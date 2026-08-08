@@ -72,9 +72,13 @@ async def db() -> AsyncIterator:
         await connection.execute("drop schema if exists catalogue cascade")
         if EXTENSIONS.exists():
             await connection.execute(EXTENSIONS.read_text(encoding="utf-8"))
-        for name in ("catalogue-reference-schema.sql",
-                     "catalogue-reference-schema-v2.sql",
-                     "catalogue-ops-schema.sql"):
+        # The same list the workers apply, imported rather than repeated: a
+        # fixture that builds a different database from the deployment is a
+        # fixture that passes while the deployment is broken. The promotion
+        # file was missing here for exactly that reason.
+        from ateliera_catalogue.storage.db import SCHEMA_FILES
+
+        for name in SCHEMA_FILES:
             await connection.execute((SCHEMA / name).read_text(encoding="utf-8"))
         try:
             yield connection

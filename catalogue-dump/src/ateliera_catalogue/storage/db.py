@@ -113,17 +113,37 @@ def schema_directory() -> Any:
     return Path(__file__).resolve().parent / "schema"
 
 
+#: The schema files, in the order they have to run.
+#:
+#: Spelled out rather than globbed, because the order is load-bearing and
+#: alphabetical is not it: `catalogue-canonical-promotion.sql` sorts first and
+#: alters `catalogue.canonical_products`, which the reference schema three
+#: entries below is what creates. Globbing worked only for as long as the names
+#: happened to sort correctly, and stopped the day the promotion file was added.
+#:
+#: `docker-compose.yml` mounts the same files into initdb under numeric
+#: prefixes for the same reason. Both lists have to agree.
+SCHEMA_FILES = (
+    "catalogue-reference-schema.sql",
+    "catalogue-reference-schema-v2.sql",
+    "catalogue-ops-schema.sql",
+    "catalogue-canonical-promotion.sql",
+)
+
+
 async def apply_schema(connection: psycopg.AsyncConnection[dict[str, Any]]) -> list[str]:
-    """Apply every schema file in filename order, and say which ran.
+    """Apply every schema file in dependency order, and say which ran.
 
     Every file is written to be re-runnable (`create table if not exists`,
     `add column if not exists`), so this is safe against a database that already
     has some of them — which is the normal case, since the reference schema is
     applied by initdb and the ops schema arrived later.
     """
+    directory = schema_directory()
     applied = []
-    for path in sorted(schema_directory().glob("*.sql")):
+    for name in SCHEMA_FILES:
+        path = directory / name
         await connection.execute(path.read_text(encoding="utf-8"))
-        applied.append(path.name)
-        LOGGER.info("schema.applied", file=path.name)
+        applied.append(name)
+        LOGGER.info("schema.applied", file=name)
     return applied

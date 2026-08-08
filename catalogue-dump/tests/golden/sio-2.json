@@ -1,5 +1,5 @@
 {
-  "digest": "e2c5d1c3c6d534cd1264fac41bba5fa5df1633df4cd2f6a56cb41e941d05ce9a",
+  "digest": "aac74e98d99ea02cde08fa12ab1599bebb3990d9ae832ff3a429e6b9ba8e6133",
   "discovered": 807,
   "error_count": 0,
   "errors": [],
@@ -17,7 +17,7 @@
     "firing": 672,
     "form": 706,
     "gtin": 0,
-    "manufacturer_sku": 461,
+    "manufacturer_sku": 476,
     "package_size": 785,
     "stock_quantity": 756,
     "supplier_reference": 787,

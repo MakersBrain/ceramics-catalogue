@@ -42,6 +42,21 @@ class NotCached(Blocked):
     """
 
 
+class BrowserUnavailable(Exception):
+    """Raised when this process cannot start a browser at all.
+
+    Deliberately **not** a Blocked: a Blocked is the site refusing this page,
+    which the source records and carries on from. This is the process being
+    wrong for the job — no camoufox in the image — and it will be just as true
+    for every remaining page, so it has to escape the per-page handlers and the
+    catch-all in `run_source` to reach the worker, which requeues the job for a
+    worker that does have a browser (§5.5).
+
+    A source's pages are not at fault here, so nothing raising this may count as
+    a failed attempt against the source.
+    """
+
+
 class HostLimiter:
     """Cap how many requests are in flight per host, and slow down when told to.
 
@@ -228,11 +243,21 @@ class BrowserRenderer:
             try:
                 from camoufox.async_api import AsyncCamoufox
             except ImportError as error:  # pragma: no cover - environment dependent
-                raise Blocked("Camoufox is not installed; run 'uv sync --directory catalogue-dump'") from error
+                raise BrowserUnavailable(
+                    "camoufox is not installed; run 'uv sync --directory catalogue-dump'"
+                ) from error
             # Camoufox warns that blocking images is itself a WAF signal, so
             # images are loaded normally even though the dump never reads them.
             self.manager = AsyncCamoufox(headless=True, block_images=False, humanize=False)
-            self.browser = await self.manager.__aenter__()
+            try:
+                self.browser = await self.manager.__aenter__()
+            except Exception as error:  # pragma: no cover - environment dependent
+                # The package can be importable while the browser itself was
+                # never fetched — `camoufox fetch` downloads it separately, so a
+                # `pip install` alone leaves this exact gap. Same remedy as a
+                # missing import: run this job somewhere that has one.
+                self.manager = None
+                raise BrowserUnavailable(f"camoufox could not start: {error}") from error
         return self.browser
 
     async def request_json(

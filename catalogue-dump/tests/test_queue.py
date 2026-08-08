@@ -164,6 +164,98 @@ class TestCapabilities:
         assert await queue.claim(db, worker, ["browser"]) is not None
 
 
+class TestDiscoveredCapabilities:
+    """A job can only be known to need a browser once a page has been read.
+
+    `pagecrawl` retries a page through the browser when it parses to nothing,
+    which depends on what the shop served that day — so no static list of
+    browser sources can be complete, and a plain worker will sometimes find
+    itself holding work it cannot do.
+    """
+
+    async def test_a_plain_worker_reroutes_rather_than_failing(self, db):
+        plain = await register_worker(db, [])
+        await queued_run(db, ["ceradel"])
+        job = await queue.claim(db, plain, [])
+        assert job is not None
+        assert await queue.start(db, job, plain)
+
+        assert await queue.require_capability(db, job, plain, "browser", reason="no camoufox")
+
+        row = await db.execute("select state, requires from catalogue.jobs where id = %s", (job.id,))
+        record = await row.fetchone()
+        assert record["state"] == "queued"
+        assert record["requires"] == ["browser"]
+
+    async def test_the_rerouted_job_goes_to_a_browser_worker_and_not_back(self, db):
+        plain = await register_worker(db, [])
+        browser = await register_worker(db, ["browser"])
+        await queued_run(db, ["ceradel"])
+        job = await queue.claim(db, plain, [])
+        await queue.start(db, job, plain)
+        await queue.require_capability(db, job, plain, "browser", reason="no camoufox")
+
+        # The worker that could not do it must not be offered it a second time.
+        assert await queue.claim(db, plain, []) is None
+        again = await queue.claim(db, browser, ["browser"])
+        assert again is not None
+        assert again.id == job.id
+
+    async def test_rerouting_does_not_spend_the_sources_attempt(self, db):
+        """The source did nothing wrong: the process was the wrong shape for it.
+
+        Without this, three plain workers taking a browser job in turn would
+        exhaust a source that was never actually crawled.
+        """
+        plain = await register_worker(db, [])
+        browser = await register_worker(db, ["browser"])
+        await queued_run(db, ["ceradel"])
+        job = await queue.claim(db, plain, [])
+        await queue.start(db, job, plain)
+        assert job.attempt == 1
+
+        await queue.require_capability(db, job, plain, "browser", reason="no camoufox")
+        again = await queue.claim(db, browser, ["browser"])
+        await queue.start(db, again, browser)
+        assert again.attempt == 1
+
+    async def test_a_job_that_already_requires_it_is_refused(self, db):
+        """Otherwise a browser worker with a broken browser and a plain worker
+        would bounce an impossible job between them for ever, neither of them
+        ever spending an attempt, and nothing would ever report it as failed.
+
+        The caller fails the job on a False.
+        """
+        browser = await register_worker(db, ["browser"])
+        await queued_run(db, ["ceramicolours"])
+        job = await queue.claim(db, browser, ["browser"])
+        assert job.requires == ["browser"]
+        await queue.start(db, job, browser)
+
+        assert not await queue.require_capability(
+            db, job, browser, "browser", reason="camoufox will not start"
+        )
+        row = await db.execute("select state from catalogue.jobs where id = %s", (job.id,))
+        assert (await row.fetchone())["state"] == "running"
+
+    async def test_rerouting_records_an_edge_for_the_operator(self, db):
+        plain = await register_worker(db, [])
+        await queued_run(db, ["ceradel"])
+        job = await queue.claim(db, plain, [])
+        await queue.start(db, job, plain)
+        await queue.require_capability(db, job, plain, "browser", reason="no camoufox")
+
+        row = await db.execute(
+            "select type, payload from catalogue.event_log where job_id = %s "
+            "and type = 'job.requeued'",
+            (job.id,),
+        )
+        event = await row.fetchone()
+        assert event is not None
+        assert event["payload"]["requires"] == ["browser"]
+        assert event["payload"]["reason"] == "no camoufox"
+
+
 class TestSourceSettings:
     async def test_a_paused_source_is_not_claimed(self, db):
         worker = await register_worker(db)

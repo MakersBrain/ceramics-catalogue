@@ -43,3 +43,7 @@ catalogue-images/
 *.sqlite
 *.sqlite3
 .env
+
+# Connector tokens and anything else handed to a container as a file rather
+# than an environment variable. Real credentials, mode 0600, never in history.
+deploy/secrets/

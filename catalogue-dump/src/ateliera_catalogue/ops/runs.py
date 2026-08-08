@@ -332,7 +332,52 @@ async def _close_run_if_done(connection: Connection, run_id: UUID) -> dict[str, 
         payload=summary,
     )
     LOGGER.info("run.finished", run_id=str(run_id), status=status, **summary)
+    await _promote_canonicals(connection, run_id)
     return {"status": status, **summary}
+
+
+async def _promote_canonicals(connection: Connection, run_id: UUID) -> None:
+    """Fold what this run collected into the cross-supplier product identities.
+
+    A loaded source is only half the point. `catalogue.promote_canonical_products`
+    is what turns "les-cousins sells PRAI" and "sio-2 sells PRAI" into one
+    product two shops quote a price for, and until it runs the catalogue holds
+    the same clay as several unrelated rows. It existed and nothing called it,
+    so the join it builds was as old as whenever somebody last ran it by hand.
+
+    Here, rather than after each load: it is one statement over the whole table
+    either way, so eighty jobs would do the same three seconds of work eighty
+    times to reach the same answer. Once per run, when the last job lands, is
+    the first moment the answer can be complete.
+
+    A failure is logged and swallowed. The run's own outcome is already
+    committed above and is not in question because a derived table could not be
+    rebuilt — and a database that predates the promotion schema has no such
+    function at all, which must not turn every run into a failed one.
+    """
+    try:
+        # A savepoint, since this runs inside the transaction that finished the
+        # job. Without it a failed statement would poison that transaction and
+        # take the run's own closure down with it.
+        async with connection.transaction():
+            row = await _one(connection, "select * from catalogue.promote_canonical_products()")
+    except psycopg.Error as error:
+        LOGGER.warning(
+            "run.promotion_failed", run_id=str(run_id), error=str(error).splitlines()[0]
+        )
+        return
+
+    if row is None:
+        return
+    result = {key: int(value) for key, value in row.items()}
+    await events.emit(
+        connection,
+        events.Topic.RUN,
+        "run.promoted",
+        run_id=run_id,
+        payload=result,
+    )
+    LOGGER.info("run.promoted", run_id=str(run_id), **result)
 
 
 async def _one(connection: Connection, sql: str, params: Any = None) -> dict[str, Any] | None:

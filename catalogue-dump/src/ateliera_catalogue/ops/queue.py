@@ -112,6 +112,35 @@ update catalogue.jobs
 returning id
 """
 
+# A job that turned out to need a capability its worker does not have. It goes
+# back on the queue carrying the requirement, so the containment test in CLAIM
+# now routes it to a worker that can serve it.
+#
+# `resume_without_attempt` is what keeps this from spending the source's retry
+# budget: the attempt was already consumed by START, and the source did nothing
+# wrong. Without it, three plain workers picking a browser job up in turn would
+# exhaust a source that was never actually crawled.
+#
+# `scheduled_for` is left alone rather than delayed: the capable worker may be
+# free right now, and there is nothing to back off from.
+ESCALATE = """
+update catalogue.jobs
+   set state = 'queued',
+       requires = (
+         select array(
+           select distinct unnest(requires || array[%(capability)s]::text[]) order by 1
+         )
+       ),
+       resume_without_attempt = true,
+       lease_owner = null,
+       lease_expires_at = null
+ where id = %(id)s
+   and lease_owner = %(worker)s
+   and state in ('leased', 'running')
+   and not (%(capability)s = any(requires))
+returning id, requires, attempt
+"""
+
 # Expired, out of attempts, and not flagged for an operator resume: nothing will
 # ever pick this up again, so it must be made terminal rather than left as a
 # `running` row that no process is running.
@@ -287,6 +316,52 @@ async def release(
         payload={"reason": reason, "retry_in_seconds": delay},
     )
     LOGGER.info("job.released", source=job.source_id, reason=reason, retry_in=delay)
+    return True
+
+
+async def require_capability(
+    connection: Connection,
+    job: ClaimedJob,
+    worker_id: UUID,
+    capability: str,
+    *,
+    reason: str,
+) -> bool:
+    """Requeue a job with `capability` added to what a worker must advertise.
+
+    For the case a static list cannot cover: whether a source needs a browser is
+    decided by what its pages turn out to contain, not by which scraper it uses,
+    so it can only be known once a page has been read. Discovering it mid-job is
+    therefore normal rather than exceptional, and the job is rerouted rather
+    than failed.
+
+    Returns False when the job already carries the capability — meaning a worker
+    that advertises it still could not serve it, and the caller must fail the
+    job instead. This is what stops two workers bouncing an impossible job back
+    and forth for ever, neither of them ever spending an attempt on it.
+    """
+    row = await _one(
+        connection,
+        ESCALATE,
+        {"id": job.id, "worker": worker_id, "capability": capability},
+    )
+    if row is None:
+        return False
+
+    job.requires = list(row["requires"] or [])
+    await events.emit(
+        connection,
+        events.Topic.JOB,
+        "job.requeued",
+        run_id=job.run_id,
+        job_id=job.id,
+        worker_id=worker_id,
+        source_id=job.source_id,
+        payload={"reason": reason, "requires": job.requires, "attempt": row["attempt"]},
+    )
+    LOGGER.info(
+        "job.requeued", source=job.source_id, requires=job.requires, reason=reason
+    )
     return True
 
 

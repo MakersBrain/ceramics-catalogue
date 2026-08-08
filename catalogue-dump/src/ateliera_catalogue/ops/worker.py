@@ -54,6 +54,7 @@ from ateliera_catalogue.observability import logging as obs
 from ateliera_catalogue.observability import metrics, tracing
 from ateliera_catalogue.ops import events, leases, monitor, queue, runs, schedule
 from ateliera_catalogue.ops.sink import JobLogHandler, PostgresSink
+from ateliera_catalogue.scrapers.base import BrowserUnavailable
 from ateliera_catalogue.scrapers.record import RecordBuilder
 from ateliera_catalogue.storage import postgres
 from ateliera_catalogue.storage.db import DictPool
@@ -376,6 +377,14 @@ class Worker:
 
             try:
                 await self._crawl_and_load(job)
+            except BrowserUnavailable as error:
+                if not await self._requeue_for_browser(job, error):
+                    # Already required a browser and still could not get one, so
+                    # rerouting it again would only find the same wall. This is
+                    # the image being wrong, not the source, but a failed job an
+                    # operator can see beats one circling the queue unnoticed.
+                    LOGGER.exception("job.failed", source=job.source_id)
+                    await self._finish(job, "failed", error=str(error)[:2000])
             except Exception as error:
                 LOGGER.exception("job.failed", source=job.source_id)
                 await self._finish(job, "failed", error=str(error)[:2000])
@@ -463,6 +472,27 @@ class Worker:
             obs.detach(log_handler)
             async with self.pool.connection() as connection:
                 await log_handler.flush_to(connection)
+
+    async def _requeue_for_browser(
+        self, job: queue.ClaimedJob, error: BrowserUnavailable
+    ) -> bool:
+        """Send a job that turned out to need a browser to a worker that has one.
+
+        `BROWSER_SOURCES` names the sources whose scrapers always render, but a
+        plain source escalates too: `pagecrawl` retries a page through the
+        browser when it parses to nothing, which depends on what the shop
+        served today. So the requirement cannot be fully known when the job is
+        enqueued, and the honest place to discover it is here.
+
+        Nothing collected so far is kept. The browser worker starts the source
+        again from the beginning, which the response cache makes cheap, and a
+        partial artifact from an aborted attempt would otherwise have to be
+        reconciled with the complete one that replaces it.
+        """
+        async with self.pool.connection() as connection:
+            return await queue.require_capability(
+                connection, job, self.state.id, "browser", reason=str(error)[:200]
+            )
 
     async def _watch_for_cancel(self, task: asyncio.Task[Any]) -> None:
         """Cancel the running source once the heartbeat sees the flag."""

@@ -182,9 +182,143 @@ class ManufacturerCodeTests(unittest.TestCase):
 
     def test_a_bare_word_is_not_a_product_code(self):
         """'SIO' matched every SIO-2 clay and collapsed them into one product."""
-        for name in ("SIO-2 FLUMO 1 lt", "SIO-2 ARGILA 5kg Red", "SIO-2 PRGI stoneware 12.5kg"):
+        for name in ("SIO-2 FLUMO 1 lt", "SIO-2 ARGILA 5kg Red", "SIO-2 RAKU 12.5kg"):
             with self.subTest(name=name):
                 self.assertIsNone(domain.manufacturer_code("SIO-2", name, ""))
+
+    def test_a_curated_code_is_read_when_the_maker_is_named_too(self):
+        """`PGV` and `PLV` carry no digit and are not in the PR series.
+
+        On a shop that writes "Sio-2 Maiolica verde PLV" the maker is named and
+        the code is right there, but no pattern can express it — so the curated
+        vocabulary has to be consulted here as well as when inferring a maker
+        from a code, or these clays join nothing.
+        """
+        for name, expected in (
+            ("Sio-2 Maiolica verde PLV 5kg", "PLV"),
+            ("Sio-2 Lut pentru veselă PGV 12.5kg", "PGV"),
+            ("Pasta Cerâmica SiO-2 PLA Azul – Faiança", "PLA"),
+        ):
+            with self.subTest(name=name):
+                self.assertEqual(expected, domain.manufacturer_code("SiO-2", name, ""))
+
+    def test_the_makers_own_name_is_not_one_of_its_codes(self):
+        """`SIO2` is letters-then-digit, exactly like a SIO-2 glaze code.
+
+        So the brand token matched its own pattern, and sixteen unrelated
+        products — a red clay, a white one, five chamotte grades, a litre of
+        Flumo — promoted into a single canonical product keyed `SIO2`.
+        """
+        self.assertIsNone(
+            domain.manufacturer_code("SiO-2", "SIO2 Chamotte 0 à 0.2mm rouge", "")
+        )
+
+    def test_a_real_code_still_wins_after_the_makers_name(self):
+        """Rejecting the name must not abandon the search for a real code."""
+        self.assertEqual(
+            "PRAI", domain.manufacturer_code("SiO-2", "SIO2 PRAI white stoneware", "")
+        )
+
+    def test_the_sio_2_clay_series_is_a_code_despite_carrying_no_digit(self):
+        """SIO-2 numbers its glazes and names its clay bodies.
+
+        `PRGI` was read as a bare word by the rule above, so SIO-2's own
+        catalogue carried no code for its clays and nothing could join a
+        retailer's `PRGI` to them.
+        """
+        for name in ("SIO-2 PRGI stoneware 12.5kg", "SIO-2 PRAI white stoneware 0-0.2mm"):
+            with self.subTest(name=name):
+                self.assertEqual(
+                    name.split()[1], domain.manufacturer_code("SIO-2", name, "")
+                )
+
+
+class CodeImpliedManufacturerTests(unittest.TestCase):
+    """A code specific enough to name its maker on a page that names nobody.
+
+    lescousins.fr sells SIO-2 clay as `PRAI - GRES REFRACTAIRE COULEUR PIERRE`
+    and never writes SIO-2 anywhere, so the maker can only come from the code.
+    """
+
+    def test_a_known_code_names_its_maker(self):
+        parsed = domain.parse_title(
+            "PRAI – GRES REFRACTAIRE COULEUR PIERRE – CHAMOTTE IMPALPABLE 0-0.2 mm",
+            supplier_sku="PRAI",
+        )
+        self.assertEqual("SiO-2", parsed["brand"])
+        self.assertEqual("manufacturer_code", parsed["brand_basis"])
+        self.assertEqual("PRAI", parsed["code"])
+
+    def test_it_reads_the_code_from_mid_title_too(self):
+        parsed = domain.parse_title("GRES BLANCO CHAMOTA FINA PRAF*E", supplier_sku="PRAF")
+        self.assertEqual("SiO-2", parsed["brand"])
+        self.assertEqual("PRAF", parsed["code"])
+
+    def test_a_longer_word_that_merely_starts_with_a_code_is_not_one(self):
+        """`PRAIRIE` is a colour on Les Cousins' own glazes."""
+        parsed = domain.parse_title(
+            "EMAIL TRANSPARENT T333B VERT PRAIRIE Poids: 25kg", supplier_sku="T333B"
+        )
+        self.assertIsNone(parsed["brand"])
+
+    def test_lower_case_is_not_a_code(self):
+        """Every shop quoting one writes it in capitals, and `pram` is a word."""
+        self.assertIsNone(domain.manufacturer_by_code("Baby pram sponge"))
+
+    def test_a_maker_named_on_the_page_outranks_a_code(self):
+        """SIO-2 resells Colorobbia's BLS line, so the page is the better source."""
+        parsed = domain.parse_title("COLOROBBIA BLS 900 Limoncello 236ml", supplier_sku="900")
+        self.assertEqual("Colorobbia", parsed["brand"])
+        self.assertEqual("named_in_title", parsed["brand_basis"])
+
+    def test_a_code_outranks_the_shops_own_label(self):
+        """A retailer's house brand is what the shop is, not what the product is."""
+        parsed = domain.parse_title(
+            "PRNI – GRES REFRACTAIRE NOIR", supplier_sku="PRNI", source_brand="Les Cousins"
+        )
+        self.assertEqual("SiO-2", parsed["brand"])
+
+    def test_a_mention_names_the_maker_without_claiming_the_code(self):
+        """Les Cousins sells `PRAIDEFAUT`: the same clay with a voiding defect.
+
+        Its title mentions PRAI and its own reference does not, so it is a SIO-2
+        product — but taking PRAI as *its* code makes it and the regular PRAI
+        one product to `dedupe_key`, at the same price and pack, and the shop's
+        two offers silently become one.
+        """
+        parsed = domain.parse_title(
+            "GRES PRAI PRESENTANT UN DEFAUT DE VIDE – A MALAXER – DESTOCKAGE",
+            supplier_sku="PRAIDEFAUT",
+        )
+        self.assertEqual("SiO-2", parsed["brand"])
+        self.assertIsNone(parsed["code"])
+
+    def test_a_shops_own_article_number_does_not_block_the_code(self):
+        """e-cibas files the same clay under `10000085-12K`.
+
+        That is the shop's numbering, not a statement about the product, so the
+        code is still this row's — and it is the only thing that can join the
+        row to the same clay in another shop.
+        """
+        parsed = domain.parse_title("PRGI", supplier_sku="10000085-12K")
+        self.assertEqual("SiO-2", parsed["brand"])
+        self.assertEqual("PRGI", parsed["code"])
+
+    def test_the_inferred_maker_does_not_feed_back_into_code_extraction(self):
+        """Naming SIO-2 from a code puts SIO-2 in the pattern search's haystack.
+
+        Left alone, `manufacturer_code` then lifts the very code the branch
+        above declined to take, straight back out of the title.
+        """
+        parsed = domain.parse_title(
+            "GRES PRAI PRESENTANT UN DEFAUT DE VIDE", supplier_sku="PRAIDEFAUT"
+        )
+        self.assertNotEqual("manufacturer_pattern", parsed["code_basis"])
+
+    def test_a_line_or_a_resold_range_is_not_a_code(self):
+        for text in ("FLUMO 1 lt", "SIO-2 VIVO glaze", "COLOROBBIA BLS 900", "PA/CHF grogged white"):
+            with self.subTest(text=text):
+                self.assertIsNone(domain.manufacturer_by_code(text))
 
 
 class ClaimTests(unittest.TestCase):

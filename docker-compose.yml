@@ -33,6 +33,11 @@ services:
       - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-reference-schema.sql:/docker-entrypoint-initdb.d/10-catalogue-reference-schema.sql:ro
       - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-reference-schema-v2.sql:/docker-entrypoint-initdb.d/20-catalogue-reference-schema-v2.sql:ro
       - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-ops-schema.sql:/docker-entrypoint-initdb.d/30-catalogue-ops-schema.sql:ro
+      # Last, and it was missing entirely: it alters `canonical_products` and
+      # defines `promote_canonical_products`, which a run calls when its last
+      # job lands. A database without it takes every source in and never folds
+      # them into the cross-supplier identities the catalogue exists to serve.
+      - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-canonical-promotion.sql:/docker-entrypoint-initdb.d/40-catalogue-canonical-promotion.sql:ro
     restart: unless-stopped
     healthcheck:
       test:
@@ -188,6 +193,43 @@ services:
       CATALOGUE_CONTROL_URL: http://control:8687
       CATALOGUE_CONTROL_TOKEN: ${CATALOGUE_CONTROL_TOKEN:?set a control token in .env}
     restart: unless-stopped
+
+  # The public edge: an outbound-only connector publishing the explorer at
+  # https://catalogue.dev.makersbrain.app. Nothing is published on the host and
+  # no port is opened inbound — the connector dials Cloudflare, which is why
+  # this can front a stack whose every other service is loopback or nothing.
+  #
+  # The tunnel is remotely managed (`config_src: cloudflare`), so the ingress
+  # rule that maps the hostname to `http://explorer:3000` lives in the Zero
+  # Trust dashboard rather than in a config file here. Changing where the
+  # hostname points is an API/dashboard change, not a redeploy.
+  #
+  # Same profile as the explorer: there is nothing to publish without it.
+  cloudflared:
+    profiles: ["ui"]
+    image: cloudflare/cloudflared:latest
+    container_name: catalogue-cloudflared
+    depends_on:
+      - explorer
+    # The image is distroless — no shell — so the connector token cannot be
+    # read from a mounted secret file by an entrypoint wrapper. It comes in as
+    # TUNNEL_TOKEN from a mode 0600 env file that is gitignored, rather than
+    # from .env, so it is not sitting beside the development passwords.
+    #
+    #   deploy/secrets/cloudflared.env   TUNNEL_TOKEN=<connector token>
+    env_file:
+      - deploy/secrets/cloudflared.env
+    command: ["tunnel", "--no-autoupdate", "--metrics", "0.0.0.0:2000", "run"]
+    restart: unless-stopped
+    healthcheck:
+      # `ready` reports the number of live edge connections, and fails while
+      # there are none — a connector that is running but has registered no
+      # tunnel is exactly the failure this needs to catch.
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:2000", "ready"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
 
 volumes:
   pgdata:

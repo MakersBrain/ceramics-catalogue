@@ -1,12 +1,12 @@
 {
-  "digest": "16e84a89c08206f30742a6e588f72eafb57638dff214d4148ee972718a2aec7d",
+  "digest": "dd5c0bda9e405671e3e73fd1bb4be5f93659df5251632adf66bd1bf20c4c6845",
   "discovered": 1007,
   "error_count": 0,
   "errors": [],
   "extraction_method": "dom",
   "field_coverage": {
     "all_image_urls": 894,
-    "brand": 58,
+    "brand": 72,
     "category_path": 0,
     "claims": 291,
     "colour": 832,
@@ -17,7 +17,7 @@
     "firing": 611,
     "form": 3,
     "gtin": 0,
-    "manufacturer_sku": 2,
+    "manufacturer_sku": 16,
     "package_size": 549,
     "stock_quantity": 0,
     "supplier_reference": 886,

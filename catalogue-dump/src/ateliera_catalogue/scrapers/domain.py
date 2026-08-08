@@ -539,8 +539,64 @@ MANUFACTURER_CODES: dict[str, str] = {
     "coyote": r"\b([A-Z]{1,3}-?\d{2,4})\b",
     "speedball": r"\b([A-Z]{1,3}-?\d{2,4})\b",
     "terracolor": r"\b([A-Z]{1,3}-?\d{3,4})\b",
-    # A code must carry a digit; a bare uppercase word is just a word.
-    "sio-2": r"\b([A-Z]{2,4}\d{1,3})\b",
+    # SIO-2 numbers its glazes but *names* its clay bodies: PR, then the colour
+    # (A white, G golden brown, N black), then the grain (I, M, F, G). The
+    # digit rule below cannot see those, so the series is spelled out — a bare
+    # uppercase word is otherwise just a word, and "RAKU" and "TOFFEE" sit in
+    # these same titles.
+    "sio-2": r"\b(PR[AGN][A-Z]|[A-Z]{2,4}\d{1,3})\b",
+}
+
+#: Alphabetic product codes, per maker, that identify the maker on their own.
+#:
+#: `MANUFACTURER_CODES` above only reads a code once the maker is already known,
+#: which is the right rule for a numeric code: "SC-16" means Mayco only because
+#: Mayco is named beside it. These are the opposite case — a token specific
+#: enough that seeing it *is* the evidence. `PRAI` on lescousins.fr names no
+#: maker anywhere on the page, and it is still a SIO-2 stoneware.
+#:
+#: The bar for an entry is deliberately high, because a wrong one silently
+#: attributes another company's product:
+#:
+#: * it must be a code, not a line or a range — `FLUMO` and `VIVO` appear in
+#:   SIO-2 titles and are neither;
+#: * it must be the maker's *own* product — `BLS` is all over SIO-2's shop and
+#:   is Colorobbia's, resold;
+#: * it must stand alone rather than qualify something else — `CHF` only ever
+#:   appears as the grog suffix in `PA/CHF`;
+#: * three letters or fewer needs stronger evidence than a catalogue listing,
+#:   since short tokens collide with words and with other shops' references.
+#:
+#: Every entry below was read off SIO-2's own catalogue, cross-checked against
+#: the retailers that quote it.
+MANUFACTURER_CODE_WORDS: dict[str, tuple[str, ...]] = {
+    "SiO-2": (
+        # White stoneware and sculpture bodies.
+        "PRAI", "PRAM", "PRAF",
+        # Golden brown.
+        "PRGI", "PRGM", "PRGF",
+        # Black.
+        "PRNI", "PRNM", "PRNF", "PRNG",
+        # Outside the PR series, so the pattern above cannot reach them:
+        # paper clay, tableware stoneware, and the two maiolica bodies. Each
+        # was read from shops that name SIO-2 beside the code rather than from
+        # SIO-2's own catalogue, which is the stronger evidence of the two —
+        # two unrelated shops agreeing is what tells a code from a house label.
+        "PCLI", "PGV", "PLA", "PLV",
+    ),
+}
+
+CODE_WORD_MAKERS: dict[str, str] = {
+    code: canonical
+    for canonical, codes in MANUFACTURER_CODE_WORDS.items()
+    for code in codes
+}
+
+#: The same vocabulary keyed the way `MANUFACTURER_CODES` is, so the pattern
+#: search can consult it for a maker it has already found named.
+MAKER_KEY_CODE_WORDS: dict[str, frozenset[str]] = {
+    fold(canonical): frozenset(codes)
+    for canonical, codes in MANUFACTURER_CODE_WORDS.items()
 }
 
 #: Manufacturers as they are written in the wild, canonical name first.
@@ -618,6 +674,16 @@ def manufacturer_code(brand: Any, *texts: Any) -> str | None:
     for maker, pattern in MANUFACTURER_CODES.items():
         if maker not in haystack:
             continue
+        # The curated words first, because a pattern cannot express them: `PGV`
+        # and `PLV` carry no digit and are not in the PR series, so on a shop
+        # that writes "Sio-2 Maiolica verde PLV" the maker is named, the code is
+        # right there, and the pattern below still finds nothing.
+        words = MAKER_KEY_CODE_WORDS.get(maker, frozenset())
+        if words:
+            for text in (clean(brand), *(clean(value) for value in texts)):
+                for token in re.findall(r"(?<![\w-])([A-Z]{3,6})(?![\w-])", text):
+                    if token in words:
+                        return token
         for text in (clean(brand), *(clean(value) for value in texts)):
             for match in re.finditer(pattern, text):
                 code = match.group(1).upper().replace("-", "")
@@ -630,7 +696,42 @@ def manufacturer_code(brand: Any, *texts: Any) -> str | None:
                 # a product code ("BOTZ ENGOBE 1180 - 1280 C").
                 if code.isdigit() and 400 <= int(code) <= 1500:
                     continue
+                # The maker's own name is not one of its product codes. `SIO2`
+                # is letters-then-digit like every SIO-2 glaze code, so the
+                # brand token matched its own pattern and sixteen unrelated
+                # products — a red clay, a white one, five chamotte grades, a
+                # litre of Flumo — promoted into one canonical product on a
+                # shared key of `SIO2`. Merging distinct products is worse than
+                # leaving them unattributed, which is why this is a `continue`:
+                # a real code later in the same text still wins.
+                if _letters(code) and _letters(code) == _letters(maker):
+                    continue
                 return code
+    return None
+
+
+def _letters(value: str) -> str:
+    """The alphabetic skeleton of a token, for comparing a code with a name."""
+    return fold(re.sub(r"[^A-Za-z]", "", value))
+
+
+def manufacturer_by_code(*texts: Any) -> tuple[str, str] | None:
+    """The maker a code identifies by itself, when no maker is named.
+
+    Only `MANUFACTURER_CODE_WORDS` is consulted, and only as a whole uppercase
+    token: this runs where nothing else names a manufacturer, so a loose match
+    here writes a maker onto a product that is not theirs. `PRAIRIE` must not
+    read as `PRAI`, which is why the boundaries reject a longer surrounding
+    word, and matching is case-sensitive because every shop that quotes one of
+    these writes it in capitals — while `pram` in lower case is an English word
+    and not a clay body.
+    """
+    for text in (clean(value) for value in texts):
+        if not text:
+            continue
+        for token in re.findall(r"(?<![\w-])([A-Z]{3,6})(?![\w-])", text):
+            if maker := CODE_WORD_MAKERS.get(token):
+                return maker, token
     return None
 
 
@@ -742,6 +843,30 @@ def parse_title(
             title = title[: -len(evidence)].strip(" -–—,:")
     elif published_brand:
         result["brand"], result["brand_basis"] = clean(published_brand), "published"
+    elif coded := manufacturer_by_code(supplier_sku, title):
+        # A code specific enough to name its maker, on a page that names nobody:
+        # `PRAI - GRES REFRACTAIRE COULEUR PIERRE` is SIO-2's white stoneware
+        # whatever the shop calls it. Ranked below a maker the page actually
+        # states and above `source_default`, because a retailer's own label is
+        # the weakest claim of the three — it is what the shop is, not what the
+        # product is.
+        canonical, code = coded
+        result["brand"], result["brand_basis"] = canonical, "manufacturer_code"
+        result["evidence"].append(code)
+        # Naming the maker is safe from a mention anywhere in the title. Taking
+        # the code as *this row's* is not, when the shop's own reference is that
+        # code carrying a qualifier: Les Cousins sells `PRAI` and `PRAIDEFAUT`,
+        # the second being the same clay with a voiding defect, at the same
+        # price and pack. Both are SIO-2, but giving the clearance row the
+        # regular row's code makes them one product to `dedupe_key`, and the
+        # shop's two offers silently become one.
+        #
+        # A reference that merely differs — e-cibas files the same clay under
+        # `10000085-12K` — is the shop's article number rather than a statement
+        # about the product, and the code is this row's after all.
+        own = clean(supplier_sku).upper().replace(" ", "").replace("-", "")
+        if not own.startswith(code) or own == code:
+            result["code"], result["code_basis"] = code, "manufacturer_code"
     elif source_brand:
         result["brand"], result["brand_basis"] = clean(source_brand), "source_default"
 
@@ -769,7 +894,12 @@ def parse_title(
                 result["code_basis"] = "manufacturer_shop"
             title = remainder
 
-    if not result["code"]:
+    # `brand_basis == "manufacturer_code"` means the maker was read *from* a
+    # code, and the branch that did it has already ruled on whether that code is
+    # this row's. Letting the pattern search run again here would undo it: the
+    # brand it now has puts SIO-2 in the haystack, so `PRAI` would be lifted
+    # straight back out of the clearance row's title.
+    if not result["code"] and result["brand_basis"] != "manufacturer_code":
         if maker_code := manufacturer_code(result["brand"], raw, supplier_sku):
             result["code"], result["code_basis"] = maker_code, "manufacturer_pattern"
         elif (

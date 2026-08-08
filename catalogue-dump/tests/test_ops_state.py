@@ -145,6 +145,73 @@ class TestRunClosure:
         result = await runs.finish_job(db, jobs["ceradel"], state="failed", summary={"records": 0})
         assert result["status"] == "failed"
 
+    async def test_closing_a_run_promotes_what_it_collected(self, db):
+        """A loaded source is only half the point.
+
+        Until promotion runs, "les-cousins sells PRAI" and "sio-2 sells PRAI"
+        are unrelated rows rather than one product two shops price. Nothing
+        called it, so the cross-supplier join was as old as the last time a
+        person ran it by hand.
+        """
+        await db.execute(
+            "insert into catalogue.manufacturers (id, name) values ('sio-2', 'SIO-2') "
+            "on conflict do nothing"
+        )
+        await db.execute(
+            "insert into catalogue.manufacturer_aliases (alias, manufacturer_id) "
+            "values ('sio-2', 'sio-2') on conflict do nothing"
+        )
+        for source in ("les-cousins", "ceradel"):
+            await db.execute(
+                "insert into catalogue.sources (id, label) values (%(source)s, %(source)s) "
+                "on conflict do nothing",
+                {"source": source},
+            )
+            await db.execute(
+                """
+                insert into catalogue.source_products
+                       (source_id, external_id, record_format, product_url, name,
+                        brand, manufacturer_sku, active, first_seen_at, last_seen_at)
+                values (%(source)s, %(source)s || ':prai', 'ceramics.catalogue_item.v2',
+                        'https://example.test/' || %(source)s || '/prai',
+                        'white stoneware', 'SiO-2', 'PRAI', true, now(), now())
+                """,
+                {"source": source},
+            )
+
+        run_id = await runs.create_run(db)
+        jobs = await runs.create_jobs(db, run_id, SOURCES, ["les-cousins", "ceradel"])
+        await runs.finish_job(db, jobs["les-cousins"], state="succeeded", summary={"records": 1})
+        await runs.finish_job(db, jobs["ceradel"], state="succeeded", summary={"records": 1})
+
+        cursor = await db.execute(
+            """
+            select c.sku_key, count(distinct sp.source_id) as shops
+              from catalogue.canonical_products c
+              join catalogue.source_products sp on sp.canonical_product_id = c.id
+             where c.manufacturer_id = 'sio-2'
+             group by 1
+            """
+        )
+        row = await cursor.fetchone()
+        assert row is not None, "the run closed without promoting anything"
+        assert row["sku_key"] == "PRAI"
+        assert row["shops"] == 2, "both shops must land on the one product"
+
+    async def test_a_run_closes_even_when_promotion_cannot(self, db):
+        """A database predating the promotion schema has no such function.
+
+        The run's outcome is already committed by then and is not in question
+        because a derived table could not be rebuilt.
+        """
+        await db.execute("drop function if exists catalogue.promote_canonical_products(text)")
+        run_id = await runs.create_run(db)
+        jobs = await runs.create_jobs(db, run_id, SOURCES, ["ceradel"])
+        result = await runs.finish_job(db, jobs["ceradel"], state="succeeded",
+                                       summary={"records": 1})
+        assert result is not None
+        assert result["status"] == "complete"
+
     async def test_concurrent_finishers_close_the_run_exactly_once(self, db):
         """Two workers finishing their last jobs at the same moment.
 

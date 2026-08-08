@@ -57,5 +57,18 @@ RUN pip install --no-cache-dir ".[postgres,otel,browser]" \
  && rm -rf /root/.cache
 USER catalogue
 WORKDIR /var/lib/catalogue
+
+# pip brings the launcher, not the browser: `camoufox fetch` downloads that
+# separately. Without it `import camoufox` still succeeds — which is why the
+# check above was not enough — and every render fails at runtime with
+# "official/stable is not installed", on an image whose entrypoint advertises
+# `--capabilities browser`.
+#
+# It runs after `USER catalogue` on purpose: the download lands in
+# $HOME/.cache/camoufox, so fetching as root would put it in a directory this
+# process cannot read and leave the image just as broken.
+RUN python -m camoufox fetch \
+ && python -c "from camoufox.pkgman import installed_verstr; print(installed_verstr())"
+
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["catalogue-worker", "--capabilities", "browser"]

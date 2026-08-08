@@ -42,6 +42,7 @@ from ateliera_catalogue.crawl.session import CrawlSession
 from ateliera_catalogue.observability import logging as obs
 from ateliera_catalogue.observability import metrics, tracing
 from ateliera_catalogue.scrapers.activity import CURRENT_SOURCE
+from ateliera_catalogue.scrapers.base import BrowserUnavailable
 from ateliera_catalogue.scrapers.record import coverage
 
 LOGGER = obs.get_logger("catalogue.runner")
@@ -144,6 +145,14 @@ async def run_source(
             # Keep what was collected, then let the cancellation continue: the
             # TaskGroup is entitled to know this task did not finish.
             LOGGER.info("job.cancelled", source=name, records=len(scraper.result.records))
+            raise
+        except BrowserUnavailable:
+            # Not this source's failure, so it must not be recorded as one. The
+            # worker catches this and requeues the job for a worker that has a
+            # browser; recording it below would instead spend an attempt and,
+            # with no records collected, fail the source for an environment
+            # fault it had no part in.
+            LOGGER.warning("job.browser_unavailable", source=name)
             raise
         except Exception as error:
             LOGGER.exception("job.failed", source=name)
