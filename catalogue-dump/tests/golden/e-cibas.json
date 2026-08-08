@@ -1,0 +1,606 @@
+{
+  "digest": "16e84a89c08206f30742a6e588f72eafb57638dff214d4148ee972718a2aec7d",
+  "discovered": 1007,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "dom",
+  "field_coverage": {
+    "all_image_urls": 894,
+    "brand": 58,
+    "category_path": 0,
+    "claims": 291,
+    "colour": 832,
+    "description": 894,
+    "documents": 0,
+    "effects": 7,
+    "family": 894,
+    "firing": 611,
+    "form": 3,
+    "gtin": 0,
+    "manufacturer_sku": 2,
+    "package_size": 549,
+    "stock_quantity": 0,
+    "supplier_reference": 886,
+    "surface": 79,
+    "unit_price": 549,
+    "vat_status": 894
+  },
+  "notes": [
+    "1007 product URLs from the sitemap"
+  ],
+  "records": 894,
+  "rendered_pages": 0,
+  "requests": 1008,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://static.wixstatic.com/media/9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": null,
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "Pigmento Blu Cobalto"
+      },
+      "currency": "EUR",
+      "description": "Pigmento colorante ossido blu cobalto. Temperatura massima consigliata: 1250 °C Il confezionamento è: barattolo di plastica da 100 grammi bottiglia di plastica da 1 kg",
+      "documents": null,
+      "effects": null,
+      "external_id": "e-cibas:https://www.e-cibas.com/product-page/pigmento-blu-cobalto#f4eb3c28-14bc-4b29-8416-6de0f1cb54a4",
+      "extraction_method": "dom",
+      "family": "stain",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1250 °C",
+        "max_celsius": 1250,
+        "min_celsius": 1250
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://static.wixstatic.com/media/9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Pigmento Blu Cobalto",
+      "name_parsed_from": null,
+      "name_raw": "Pigmento Blu Cobalto",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "1 kg",
+        "grams": 1000.0,
+        "unit": "kg",
+        "value": 1.0
+      },
+      "parent_external_id": "e-cibas:https://www.e-cibas.com/product-page/pigmento-blu-cobalto",
+      "price": 23.32,
+      "price_text": "23,32€",
+      "product_name": "Pigmento Blu Cobalto",
+      "product_url": "https://www.e-cibas.com/product-page/pigmento-blu-cobalto",
+      "raw": {
+        "product": {
+          "additionalInfo": [
+            {
+              "description": "<p>I pigmenti sono ossidi coloranti sintetici che vengono prodotti attraverso calcinazione di ossidi primari. Questa lavorazione conferisce una grande stabilità cromatica e termica al pigmento.</p> \n<p>I pigmenti possono essere usati in percentuale (1% - 5%, massimo 10%)&nbsp;per colorare cristalline,&nbsp;smalti bianchi, impasti e ingobbi.</p>",
+              "id": "923d194f-2a96-4585-a471-6391a65c8850",
+              "index": 1,
+              "title": "Descrizione Pigmenti Coloranti"
+            }
+          ],
+          "brand": null,
+          "breadcrumbs": null,
+          "categories": [],
+          "categoryIds": [
+            "dc14ed5a-ed51-468e-9e2d-a4e6e396a3ff",
+            "16f7fd5a-3c78-466f-82d7-098f58668e43",
+            "3e0942a7-e560-48a4-a871-4ba3a6d344fa",
+            "3ae2edc3-2c5b-4ccf-962b-5644277847ae",
+            "afa060b1-7f01-4e9f-a1b7-728d99c865bb"
+          ],
+          "comparePrice": 0,
+          "createVersion": 1751293069836492,
+          "currency": "EUR",
+          "customTextFields": [],
+          "description": "<p>Pigmento colorante ossido blu cobalto.</p><p>&nbsp;</p><p>Temperatura massima consigliata: 1250 °C</p><p><br>Il confezionamento è:</p><p>barattolo di plastica da 100 grammi<br>bottiglia di plastica&nbsp;da 1 kg</p>",
+          "digitalProductFileItems": [],
+          "discount": {
+            "mode": "PERCENT",
+            "value": 0
+          },
+          "discountedPrice": 23.32,
+          "formattedComparePrice": "",
+          "formattedDiscountedPrice": "23,32€",
+          "formattedPrice": "23,32€",
+          "formattedPricePerUnit": null,
+          "id": "85bac9b0-20b7-4e69-840a-017c0b551211",
+          "inventory": {
+            "availableForPreOrder": false,
+            "preOrderInfoView": {
+              "limit": null,
+              "message": null,
+              "preOrder": false
+            },
+            "quantity": 0,
+            "status": "in_stock"
+          },
+          "isInStock": true,
+          "isManageProductItems": true,
+          "isTrackingInventory": false,
+          "isVisible": true,
+          "itemDiscount": null,
+          "mainCategoryId": null,
+          "media": [
+            {
+              "altText": null,
+              "fullUrl": "https://static.wixstatic.com/media/9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg",
+              "height": 960,
+              "id": "9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg",
+              "index": 0,
+              "mediaType": "PHOTO",
+              "thumbnailFullUrl": "https://static.wixstatic.com/media/9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg/v1/fit/w_50,h_50,q_90/file.jpg",
+              "title": "",
+              "url": "9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg",
+              "videoFiles": [],
+              "videoType": null,
+              "width": 960
+            }
+          ],
+          "name": "Pigmento Blu Cobalto",
+          "nextOptionsSelectionId": 3,
+          "options": [
+            {
+              "id": "e0c589ea-9eca-4337-a05d-0e041c88b9b5",
+              "key": "Confezione",
+              "optionType": "DROP_DOWN",
+              "selections": [
+                {
+                  "description": "100 g",
+                  "id": 1,
+                  "key": "100 g",
+                  "linkedMediaItems": null,
+                  "value": "100 g"
+                },
+                {
+                  "description": "1 kg",
+                  "id": 2,
+                  "key": "1 kg",
+                  "linkedMediaItems": null,
+                  "value": "1 kg"
+                }
+              ],
+              "title": "Confezione"
+            }
+          ],
+          "price": 23.32,
+          "pricePerUnit": null,
+          "pricePerUnitData": null,
+          "priceRange": {
+            "fromPrice": 23.32,
+            "fromPriceFormatted": "23,32€"
+          },
+          "productItemsPreOrderAvailability": "no_variants",
+          "productType": "physical",
+          "ribbon": "",
+          "seoDescription": null,
+          "seoJson": null,
+          "seoTitle": null,
+          "sku": "",
+          "subscriptionPlans": {
+            "list": [],
+            "oneTimePurchase": null
+          },
+          "urlPart": "pigmento-blu-cobalto",
+          "weight": 0
+        },
+        "variant": {
+          "comparePrice": 0,
+          "formattedPrice": "23,32€",
+          "id": "f4eb3c28-14bc-4b29-8416-6de0f1cb54a4",
+          "in_stock": true,
+          "options": null,
+          "price": 23.32,
+          "sku": "40000851",
+          "title": null
+        }
+      },
+      "source": "e-cibas",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "40000851",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 23.32
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://static.wixstatic.com/media/9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": null,
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "Pigmento Blu Cobalto"
+      },
+      "currency": "EUR",
+      "description": "Pigmento colorante ossido blu cobalto. Temperatura massima consigliata: 1250 °C Il confezionamento è: barattolo di plastica da 100 grammi bottiglia di plastica da 1 kg",
+      "documents": null,
+      "effects": null,
+      "external_id": "e-cibas:https://www.e-cibas.com/product-page/pigmento-blu-cobalto#a94486cc-4930-4bc2-8850-e48cd8a1e95b",
+      "extraction_method": "dom",
+      "family": "stain",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1250 °C",
+        "max_celsius": 1250,
+        "min_celsius": 1250
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://static.wixstatic.com/media/9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Pigmento Blu Cobalto",
+      "name_parsed_from": null,
+      "name_raw": "Pigmento Blu Cobalto",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "1 kg",
+        "grams": 1000.0,
+        "unit": "kg",
+        "value": 1.0
+      },
+      "parent_external_id": "e-cibas:https://www.e-cibas.com/product-page/pigmento-blu-cobalto",
+      "price": 132.66,
+      "price_text": "132,66€",
+      "product_name": "Pigmento Blu Cobalto",
+      "product_url": "https://www.e-cibas.com/product-page/pigmento-blu-cobalto",
+      "raw": {
+        "product": {
+          "additionalInfo": [
+            {
+              "description": "<p>I pigmenti sono ossidi coloranti sintetici che vengono prodotti attraverso calcinazione di ossidi primari. Questa lavorazione conferisce una grande stabilità cromatica e termica al pigmento.</p> \n<p>I pigmenti possono essere usati in percentuale (1% - 5%, massimo 10%)&nbsp;per colorare cristalline,&nbsp;smalti bianchi, impasti e ingobbi.</p>",
+              "id": "923d194f-2a96-4585-a471-6391a65c8850",
+              "index": 1,
+              "title": "Descrizione Pigmenti Coloranti"
+            }
+          ],
+          "brand": null,
+          "breadcrumbs": null,
+          "categories": [],
+          "categoryIds": [
+            "dc14ed5a-ed51-468e-9e2d-a4e6e396a3ff",
+            "16f7fd5a-3c78-466f-82d7-098f58668e43",
+            "3e0942a7-e560-48a4-a871-4ba3a6d344fa",
+            "3ae2edc3-2c5b-4ccf-962b-5644277847ae",
+            "afa060b1-7f01-4e9f-a1b7-728d99c865bb"
+          ],
+          "comparePrice": 0,
+          "createVersion": 1751293069836492,
+          "currency": "EUR",
+          "customTextFields": [],
+          "description": "<p>Pigmento colorante ossido blu cobalto.</p><p>&nbsp;</p><p>Temperatura massima consigliata: 1250 °C</p><p><br>Il confezionamento è:</p><p>barattolo di plastica da 100 grammi<br>bottiglia di plastica&nbsp;da 1 kg</p>",
+          "digitalProductFileItems": [],
+          "discount": {
+            "mode": "PERCENT",
+            "value": 0
+          },
+          "discountedPrice": 23.32,
+          "formattedComparePrice": "",
+          "formattedDiscountedPrice": "23,32€",
+          "formattedPrice": "23,32€",
+          "formattedPricePerUnit": null,
+          "id": "85bac9b0-20b7-4e69-840a-017c0b551211",
+          "inventory": {
+            "availableForPreOrder": false,
+            "preOrderInfoView": {
+              "limit": null,
+              "message": null,
+              "preOrder": false
+            },
+            "quantity": 0,
+            "status": "in_stock"
+          },
+          "isInStock": true,
+          "isManageProductItems": true,
+          "isTrackingInventory": false,
+          "isVisible": true,
+          "itemDiscount": null,
+          "mainCategoryId": null,
+          "media": [
+            {
+              "altText": null,
+              "fullUrl": "https://static.wixstatic.com/media/9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg",
+              "height": 960,
+              "id": "9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg",
+              "index": 0,
+              "mediaType": "PHOTO",
+              "thumbnailFullUrl": "https://static.wixstatic.com/media/9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg/v1/fit/w_50,h_50,q_90/file.jpg",
+              "title": "",
+              "url": "9ad34d_507ee9b60eda4242ae150aa697ab7966~mv2.jpg",
+              "videoFiles": [],
+              "videoType": null,
+              "width": 960
+            }
+          ],
+          "name": "Pigmento Blu Cobalto",
+          "nextOptionsSelectionId": 3,
+          "options": [
+            {
+              "id": "e0c589ea-9eca-4337-a05d-0e041c88b9b5",
+              "key": "Confezione",
+              "optionType": "DROP_DOWN",
+              "selections": [
+                {
+                  "description": "100 g",
+                  "id": 1,
+                  "key": "100 g",
+                  "linkedMediaItems": null,
+                  "value": "100 g"
+                },
+                {
+                  "description": "1 kg",
+                  "id": 2,
+                  "key": "1 kg",
+                  "linkedMediaItems": null,
+                  "value": "1 kg"
+                }
+              ],
+              "title": "Confezione"
+            }
+          ],
+          "price": 23.32,
+          "pricePerUnit": null,
+          "pricePerUnitData": null,
+          "priceRange": {
+            "fromPrice": 23.32,
+            "fromPriceFormatted": "23,32€"
+          },
+          "productItemsPreOrderAvailability": "no_variants",
+          "productType": "physical",
+          "ribbon": "",
+          "seoDescription": null,
+          "seoJson": null,
+          "seoTitle": null,
+          "sku": "",
+          "subscriptionPlans": {
+            "list": [],
+            "oneTimePurchase": null
+          },
+          "urlPart": "pigmento-blu-cobalto",
+          "weight": 0
+        },
+        "variant": {
+          "comparePrice": 0,
+          "formattedPrice": "132,66€",
+          "id": "a94486cc-4930-4bc2-8850-e48cd8a1e95b",
+          "in_stock": true,
+          "options": null,
+          "price": 132.66,
+          "sku": "40004667",
+          "title": null
+        }
+      },
+      "source": "e-cibas",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "40004667",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 132.66
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://static.wixstatic.com/media/c8ccec_16eabfaa89ec49e38ce8634d849fc32d~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/OutOfStock",
+      "brand": "Laguna",
+      "brand_basis": "published",
+      "category_path": null,
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "9544 Baroque"
+      },
+      "currency": "EUR",
+      "description": "Smalto oro rosa satinato, liquido e pronto all'uso per una facile applicazione. Range di cottura: 1020-1100°C. Non superare la temperatura massima indicata. Le immagini dei colori possono differire dai colori reali a causa della cottura e dell'applicazione.",
+      "documents": null,
+      "effects": null,
+      "external_id": "e-cibas:https://www.e-cibas.com/product-page/9544-baroque",
+      "extraction_method": "dom",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1020-1100°C",
+        "max_celsius": 1100,
+        "min_celsius": 1020
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://static.wixstatic.com/media/c8ccec_16eabfaa89ec49e38ce8634d849fc32d~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Baroque",
+      "name_parsed_from": [
+        "9544"
+      ],
+      "name_raw": "9544 Baroque",
+      "package_size": null,
+      "parent_external_id": "e-cibas:https://www.e-cibas.com/product-page/9544-baroque",
+      "price": 13.73,
+      "price_text": "13,73€",
+      "product_name": "9544 Baroque",
+      "product_url": "https://www.e-cibas.com/product-page/9544-baroque",
+      "raw": {
+        "product": {
+          "additionalInfo": [
+            {
+              "description": "<p>La confezione è un barattolo di plastica contenente 200 ml di smalto.</p>\n",
+              "id": "97bb74eb-bbc8-4b23-8cee-f5c2bbe32a8b",
+              "index": 1,
+              "title": "Confezionamento"
+            },
+            {
+              "description": "<p>Cottura serie di smalti: 1020-1100°C.</p> \n<p>Non superare la temperatura massima indicata.</p> \n<p>Consigliamo di testare gli smalti prima dell'uso finale o per la produzione.</p>",
+              "id": "a0a6ac88-0769-4344-b94b-39f740051e5d",
+              "index": 2,
+              "title": "Indicazioni sulla cottura"
+            },
+            {
+              "description": "<p>La produzione di oggetti in ceramica per uso alimentare potrebbe essere sottoposta alla direttiva europea/italiana MOCA</p> \n<p><a href=\"https://www.e-cibas.com/tossicita-alimentare\" target=\"_blank\"><strong>VISUALIZZA LA PAGINA DEDICATA ALLA DIRETTIVA</strong></a></p>",
+              "id": "ee2a7551-99a8-4935-a332-448ae38fc381",
+              "index": 3,
+              "title": "Direttiva MOCA"
+            },
+            {
+              "description": "<p>Questi smalti per&nbsp;bassa&nbsp;temperatura presentano un risultato metallico dal lucido al satinato.&nbsp;&nbsp;</p> \n<p>Applicare 2 -3 mani.</p> \n<p>Prestare attenzione a non superare le temperature massime indicate, perché questi smalti tendono a colare.</p>",
+              "id": "5ac3a164-2daf-49cc-9520-350dc89d5625",
+              "index": 4,
+              "title": "Smalti Botz"
+            }
+          ],
+          "brand": "Laguna",
+          "breadcrumbs": null,
+          "categories": [],
+          "categoryIds": [
+            "16f7fd5a-3c78-466f-82d7-098f58668e43",
+            "47561337-aeec-4984-aad5-bfcbde875d58",
+            "360fcca5-81a1-418c-8357-e14996ad931e",
+            "3ae2edc3-2c5b-4ccf-962b-5644277847ae",
+            "cbf85440-fa95-41ba-9fbd-b0a9a97531ce",
+            "b47daf50-8914-44fd-9784-7e811942822b"
+          ],
+          "comparePrice": 0,
+          "createVersion": 1751293856462457,
+          "currency": "EUR",
+          "customTextFields": [],
+          "description": "<p>Smalto oro rosa satinato, liquido e pronto all'uso per una facile applicazione.</p><p>&nbsp;</p><p>Range di cottura: 1020-1100°C.&nbsp;Non superare la temperatura massima indicata.</p><p>&nbsp;</p><p><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span><span>Le immagini dei colori possono differire dai colori reali a causa della cottura e dell'applicazione.</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></p>",
+          "digitalProductFileItems": [],
+          "discount": {
+            "mode": "PERCENT",
+            "value": 0
+          },
+          "discountedPrice": 13.73,
+          "formattedComparePrice": "",
+          "formattedDiscountedPrice": "13,73€",
+          "formattedPrice": "13,73€",
+          "formattedPricePerUnit": null,
+          "id": "36b22f97-8b4e-4e11-a8b4-d34f498e3165",
+          "inventory": {
+            "availableForPreOrder": false,
+            "preOrderInfoView": {
+              "limit": null,
+              "message": null,
+              "preOrder": false
+            },
+            "quantity": 0,
+            "status": "out_of_stock"
+          },
+          "isInStock": false,
+          "isManageProductItems": false,
+          "isTrackingInventory": false,
+          "isVisible": true,
+          "itemDiscount": null,
+          "mainCategoryId": null,
+          "media": [
+            {
+              "altText": null,
+              "fullUrl": "https://static.wixstatic.com/media/c8ccec_16eabfaa89ec49e38ce8634d849fc32d~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg",
+              "height": 972,
+              "id": "c8ccec_16eabfaa89ec49e38ce8634d849fc32d~mv2.jpg",
+              "index": 0,
+              "mediaType": "PHOTO",
+              "thumbnailFullUrl": "https://static.wixstatic.com/media/c8ccec_16eabfaa89ec49e38ce8634d849fc32d~mv2.jpg/v1/fit/w_50,h_50,q_90/file.jpg",
+              "title": "",
+              "url": "c8ccec_16eabfaa89ec49e38ce8634d849fc32d~mv2.jpg",
+              "videoFiles": [],
+              "videoType": null,
+              "width": 972
+            }
+          ],
+          "name": "9544 Baroque",
+          "nextOptionsSelectionId": 1,
+          "options": [],
+          "price": 13.73,
+          "pricePerUnit": null,
+          "pricePerUnitData": null,
+          "priceRange": null,
+          "productItemsPreOrderAvailability": "no_variants",
+          "productType": "physical",
+          "ribbon": "",
+          "seoDescription": null,
+          "seoJson": null,
+          "seoTitle": null,
+          "sku": "40004966",
+          "subscriptionPlans": {
+            "list": [],
+            "oneTimePurchase": null
+          },
+          "urlPart": "9544-baroque",
+          "weight": 0.33
+        },
+        "variant": {
+          "comparePrice": 0,
+          "formattedPrice": "13,73€",
+          "id": null,
+          "in_stock": false,
+          "options": null,
+          "price": 13.73,
+          "sku": "40004966",
+          "title": null
+        }
+      },
+      "source": "e-cibas",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "40004966",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "wix",
+  "source": "e-cibas",
+  "truncated": false
+}

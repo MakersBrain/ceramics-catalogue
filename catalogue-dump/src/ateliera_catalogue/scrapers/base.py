@@ -1,0 +1,767 @@
+"""Fetching, scope policy and the Scraper contract every supplier implements."""
+
+from __future__ import annotations
+
+import asyncio
+import gzip
+import json as json_lib
+import logging
+import random
+import re
+import time
+import urllib.robotparser
+from abc import ABC, abstractmethod
+from collections import defaultdict
+from dataclasses import dataclass, field
+from typing import Any
+from urllib.parse import urljoin, urlparse
+
+import httpx
+
+from . import domain
+from . import record as record_module
+from .activity import ACTIVITY
+from .cache import CachedResponse, ResponseCache
+
+LOGGER = logging.getLogger("catalogue-dump.scrapers")
+
+USER_AGENT = "AtelieraCatalogueResearch/1.0 (+catalogue import; contact operator before production use)"
+BROWSER_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+
+
+class Blocked(Exception):
+    """Raised when a site's own rules or defences stop a fetch."""
+
+
+class NotCached(Blocked):
+    """Raised in replay mode when a request was never recorded.
+
+    A subclass of Blocked so a replay gap is handled exactly like any other
+    reason a page could not be read: the source records it and carries on
+    instead of the run dying on the first missing entry.
+    """
+
+
+class HostLimiter:
+    """Cap how many requests are in flight per host, and slow down when told to.
+
+    By default there is **no gap between requests**: a host that answers is
+    asked again immediately, and the only limit is how many requests may be in
+    flight at once. Waiting a fixed time between requests spends real minutes on
+    every source to protect a host that never showed any sign of strain, and an
+    API that returns a hundred products per call is not helped by it.
+
+    What replaces the wait is the response itself. Slots start low, climb one at
+    a time while the host keeps answering, and **halve on any error** — the
+    usual additive-increase / multiplicative-decrease shape. A host that errors
+    also earns a real gap between requests, doubling with each further failure,
+    and if it published a `Crawl-delay` that figure is adopted instead. Both are
+    released once the host has fully recovered, so a stumble costs a slowdown
+    rather than the rest of the run.
+
+    Three things set a gap:
+
+    * `--delay`, divided by the live slot count (0 by default: no gap);
+    * a `delay` configured on a source, which is a hard floor from the first
+      request and is never divided — an operator asking for a slow rate gets it;
+    * the backoff a host earns by failing, or the `Crawl-delay` it published.
+
+    Any gap is jittered, since an exact metronome is both easy to fingerprint
+    and needlessly bursty against a shop's cache.
+    """
+
+    #: Consecutive good responses before one slot is handed back. Small, because
+    #: many sources are a handful of API calls in total and would otherwise
+    #: finish before ever earning a second slot.
+    RECOVERY = 3
+
+    #: First gap a host earns by failing, and the ceiling that doubling stops at.
+    BACKOFF_START = 0.5
+    BACKOFF_MAX = 8.0
+
+    def __init__(self, delay: float, concurrency: int, *, start: int | None = None) -> None:
+        self.delay = delay
+        self.maximum = max(1, concurrency)
+        self.initial = max(1, min(start if start is not None else 2, self.maximum))
+        self.floors: dict[str, float] = {}
+        self.backoff: dict[str, float] = {}
+        self.published: dict[str, float] = {}
+        self.slots: dict[str, int] = {}
+        self.streaks: dict[str, int] = {}
+        self.gates: dict[str, _Gate] = {}
+        self.locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        self.last: dict[str, float] = {}
+
+    # -- pacing -----------------------------------------------------------
+
+    def set_delay(self, url: str, delay: float) -> None:
+        """Set a hard minimum gap for one host; the strictest request wins."""
+        host = urlparse(url).netloc
+        self.floors[host] = max(self.floors.get(host, 0.0), float(delay))
+
+    def remember_crawl_delay(self, url: str, delay: float | None) -> None:
+        """Keep a published Crawl-delay for the day the host starts refusing."""
+        if delay and delay > 0:
+            self.published.setdefault(urlparse(url).netloc, float(delay))
+
+    def spacing(self, host: str) -> float:
+        """The gap before this host's next request; zero means send it now."""
+        return max(
+            self.floors.get(host, 0.0),
+            self.backoff.get(host, 0.0),
+            self.delay / self.slots.get(host, self.initial),
+        )
+
+    def _jittered(self, host: str) -> float:
+        gap = self.spacing(host)
+        if gap <= 0:
+            return 0.0
+        # A floor is a minimum, so jitter around one may only ever add time.
+        floored = host in self.floors or host in self.backoff
+        low, high = (1.0, 1.35) if floored else (0.7, 1.3)
+        return gap * random.uniform(low, high)
+
+    def gate(self, url: str) -> _Gate:
+        host = urlparse(url).netloc
+        if host not in self.gates:
+            self.slots.setdefault(host, self.initial)
+            self.gates[host] = _Gate(self.slots[host])
+        return self.gates[host]
+
+    async def wait(self, url: str) -> None:
+        host = urlparse(url).netloc
+        gap = self._jittered(host)
+        if gap <= 0:
+            # Nothing to space out, so nothing to serialise on either: taking
+            # the per-host lock here would queue every slot behind one another.
+            return
+        async with self.locks[host]:
+            loop = asyncio.get_running_loop()
+            elapsed = loop.time() - self.last.get(host, 0.0)
+            if elapsed < gap:
+                await asyncio.sleep(gap - elapsed)
+            self.last[host] = loop.time()
+
+    # -- adaptation -------------------------------------------------------
+
+    def record_success(self, url: str) -> None:
+        host = urlparse(url).netloc
+        if self.slots.get(host, self.initial) >= self.maximum and host not in self.backoff:
+            return
+        self.streaks[host] = self.streaks.get(host, 0) + 1
+        if self.streaks[host] < self.RECOVERY:
+            return
+        self.streaks[host] = 0
+        self.slots[host] = min(self.maximum, self.slots.get(host, self.initial) + 1)
+        if host in self.gates:
+            self.gates[host].resize(self.slots[host])
+        if self.slots[host] >= self.maximum and self.backoff.pop(host, None):
+            # Back to full speed: the host has answered every request since it
+            # regained its last slot, so the gap it earned by failing is spent.
+            LOGGER.debug("host=%s recovered; backoff released", host)
+        LOGGER.debug("host=%s slots=%d (recovered)", host, self.slots[host])
+
+    def record_failure(self, url: str, reason: Any = None) -> None:
+        """Halve the slots and start leaving a gap, since this host is unhappy."""
+        host = urlparse(url).netloc
+        self.streaks[host] = 0
+        current = self.slots.get(host, self.initial)
+        self.slots[host] = max(1, current // 2)
+        if host in self.gates:
+            self.gates[host].resize(self.slots[host])
+
+        if (published := self.published.pop(host, None)) is not None:
+            # The host asked for a pace in robots.txt and has now shown it meant
+            # it, so take that figure rather than a guessed one.
+            self.set_delay(url, published)
+            LOGGER.warning(
+                "host=%s failed (%s); falling back to its published Crawl-delay of %.1fs",
+                host, reason, published,
+            )
+            return
+
+        self.backoff[host] = min(
+            self.BACKOFF_MAX, max(self.BACKOFF_START, self.backoff.get(host, 0.0) * 2),
+        )
+        LOGGER.warning(
+            "host=%s failed (%s); slots %d -> %d, waiting %.1fs between requests",
+            host, reason, current, self.slots[host], self.backoff[host],
+        )
+
+
+class _Gate:
+    """A semaphore whose size can change while requests are in flight."""
+
+    def __init__(self, limit: int) -> None:
+        self.limit = max(1, limit)
+        self.active = 0
+        self.condition = asyncio.Condition()
+
+    def resize(self, limit: int) -> None:
+        self.limit = max(1, limit)
+
+    async def __aenter__(self) -> _Gate:
+        async with self.condition:
+            while self.active >= self.limit:
+                await self.condition.wait()
+            self.active += 1
+        return self
+
+    async def __aexit__(self, *_: Any) -> None:
+        async with self.condition:
+            self.active -= 1
+            self.condition.notify()
+
+
+class BrowserRenderer:
+    """One lazily started Camoufox instance, shared by the scrapers that need it."""
+
+    def __init__(self, enabled: bool) -> None:
+        self.enabled = enabled
+        self.manager: Any = None
+        self.browser: Any = None
+        self.lock = asyncio.Lock()
+        self._pages: dict[str, Any] = {}
+
+    async def _start(self) -> Any:
+        if self.browser is None:
+            try:
+                from camoufox.async_api import AsyncCamoufox
+            except ImportError as error:  # pragma: no cover - environment dependent
+                raise Blocked("Camoufox is not installed; run 'uv sync --directory catalogue-dump'") from error
+            # Camoufox warns that blocking images is itself a WAF signal, so
+            # images are loaded normally even though the dump never reads them.
+            self.manager = AsyncCamoufox(headless=True, block_images=False, humanize=False)
+            self.browser = await self.manager.__aenter__()
+        return self.browser
+
+    async def request_json(
+        self,
+        page_url: str,
+        endpoint: str,
+        *,
+        method: str = "POST",
+        headers: dict[str, str] | None = None,
+        body: Any = None,
+    ) -> Any:
+        """Issue a request from inside a loaded page.
+
+        Some CDNs fingerprint the TLS handshake and reject any Python HTTP
+        client while serving the same public endpoint to a real browser. Running
+        the request in the page reuses the browser's own connection and session
+        instead of imitating one.
+        """
+        if not self.enabled:
+            raise Blocked("browser rendering disabled (use --browser auto or always)")
+        async with self.lock:
+            await self._start()
+            origin = urlparse(page_url).netloc
+            page = self._pages.get(origin)
+            if page is None or page.is_closed():
+                page = await self.browser.new_page()
+                await page.goto(page_url, wait_until="domcontentloaded", timeout=45_000)
+                self._pages[origin] = page
+            result = await page.evaluate(
+                """async ({endpoint, method, headers, body}) => {
+                    const response = await fetch(endpoint, {
+                        method, headers,
+                        body: body === null ? undefined : JSON.stringify(body),
+                        credentials: 'include',
+                    });
+                    return {status: response.status, text: await response.text()};
+                }""",
+                {"endpoint": endpoint, "method": method, "headers": headers or {}, "body": body},
+            )
+            if result["status"] >= 400:
+                raise Blocked(
+                    f"{endpoint} returned {result['status']} in the browser context: "
+                    f"{result['text'][:400]}"
+                )
+            try:
+                return json_lib.loads(result["text"])
+            except json_lib.JSONDecodeError as error:
+                raise Blocked(f"{endpoint} did not return JSON in the browser context") from error
+
+    async def render(self, url: str, wait_ms: int = 1500, wait_for: str | None = None) -> str:
+        if not self.enabled:
+            raise Blocked("browser rendering disabled (use --browser auto or always)")
+        async with self.lock:
+            await self._start()
+            page = await self.browser.new_page()
+            try:
+                await page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+                if wait_for:
+                    try:
+                        await page.wait_for_selector(wait_for, timeout=15_000)
+                    except Exception:  # noqa: BLE001 - a missing selector is not fatal
+                        LOGGER.debug("selector %s never appeared on %s", wait_for, url)
+                await page.wait_for_timeout(wait_ms)
+                return await page.content()
+            finally:
+                await page.close()
+
+    async def evaluate(self, url: str, script: str, wait_ms: int = 2000, wait_for: str | None = None) -> Any:
+        """Load a page and run a script in it, returning a JSON-safe value.
+
+        Used where a supplier computes what it sells in the page itself, so the
+        only way to read a published figure is to let the page produce it.
+        """
+        if not self.enabled:
+            raise Blocked("browser rendering disabled (use --browser auto or always)")
+        async with self.lock:
+            await self._start()
+            page = await self.browser.new_page()
+            try:
+                await page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+                if wait_for:
+                    try:
+                        await page.wait_for_selector(wait_for, timeout=15_000)
+                    except Exception:  # noqa: BLE001
+                        LOGGER.debug("selector %s never appeared on %s", wait_for, url)
+                await page.wait_for_timeout(wait_ms)
+                return await page.evaluate(script)
+            finally:
+                await page.close()
+
+    async def close(self) -> None:
+        if self.manager is not None:
+            self._pages.clear()
+            await self.manager.__aexit__(None, None, None)
+            self.manager = self.browser = None
+
+
+class Fetcher:
+    """Polite HTTP access with robots handling, retries and a browser fallback."""
+
+    def __init__(
+        self,
+        client: httpx.AsyncClient,
+        limiter: HostLimiter,
+        browser: BrowserRenderer,
+        browser_policy: str = "auto",
+        cache: ResponseCache | None = None,
+    ) -> None:
+        self.client = client
+        self.limiter = limiter
+        self.browser = browser
+        self.browser_policy = browser_policy
+        self.cache = cache or ResponseCache(".", mode="off")
+        self._robots: dict[str, urllib.robotparser.RobotFileParser] = {}
+        self._sitemaps: dict[str, list[str]] = {}
+        self._robots_lock: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+
+    async def robots(self, url: str) -> tuple[urllib.robotparser.RobotFileParser, list[str]]:
+        origin = f"{urlparse(url).scheme}://{urlparse(url).netloc}"
+        async with self._robots_lock[origin]:
+            if origin in self._robots:
+                return self._robots[origin], self._sitemaps[origin]
+            parser, sitemaps = await self._read_robots(origin)
+            self._robots[origin] = parser
+            self._sitemaps[origin] = sitemaps
+            return parser, sitemaps
+
+    async def _read_robots(self, origin: str) -> tuple[urllib.robotparser.RobotFileParser, list[str]]:
+        """Fetch and interpret robots.txt following RFC 9309.
+
+        RobotFileParser.can_fetch returns False for a parser that was never
+        given any content, so every unavailable robots.txt would otherwise
+        silently disallow an entire site. The status code decides:
+        2xx applies the rules, 4xx means "no restrictions published", and 5xx is
+        treated conservatively as a full disallow.
+        """
+        parser = urllib.robotparser.RobotFileParser()
+        url = f"{origin}/robots.txt"
+        response: httpx.Response | None = None
+        for browser_agent in (False, True):
+            try:
+                headers = {"user-agent": BROWSER_USER_AGENT} if browser_agent else None
+                response = await self.client.get(url, timeout=15, headers=headers)
+            except (httpx.HTTPError, UnicodeError) as error:
+                LOGGER.warning("robots.txt unreachable at %s (%s); proceeding unrestricted", origin, error)
+                parser.allow_all = True
+                return parser, []
+            # A CDN rejecting our declared agent is not the site's crawl policy;
+            # ask once more as an ordinary browser before drawing a conclusion.
+            if response.status_code not in (401, 403) or browser_agent:
+                break
+        assert response is not None
+
+        if response.is_success:
+            body = response.text
+            if "html" in response.headers.get("content-type", "").lower() and "<html" in body[:400].lower():
+                LOGGER.warning("robots.txt at %s returned HTML; proceeding unrestricted", origin)
+                parser.allow_all = True
+                return parser, []
+            parser.parse(body.splitlines())
+            sitemaps = [
+                line.split(":", 1)[1].strip()
+                for line in body.splitlines()
+                if line.lower().startswith("sitemap:") and ":" in line and line.split(":", 1)[1].strip()
+            ]
+            return parser, sitemaps
+        if 400 <= response.status_code < 500:
+            parser.allow_all = True
+            return parser, []
+        LOGGER.warning("robots.txt at %s returned %d; treating as disallow", origin, response.status_code)
+        parser.disallow_all = True
+        return parser, []
+
+    async def may_fetch(self, url: str, ignore_robots: bool = False) -> bool:
+        if ignore_robots:
+            return True
+        parser, _ = await self.robots(url)
+        # A published Crawl-delay is remembered, not applied: a host that is
+        # answering happily is crawled at the operator's pace, and only one
+        # that starts erroring gets the pace it asked for. Disallow is a rule
+        # and is obeyed either way.
+        self.limiter.remember_crawl_delay(url, parser.crawl_delay(USER_AGENT))
+        return parser.can_fetch(USER_AGENT, url)
+
+    async def text(
+        self,
+        url: str,
+        *,
+        browser_user_agent: bool = False,
+        params: dict[str, Any] | None = None,
+        accept: str | None = None,
+    ) -> str:
+        response = await self.response(url, browser_user_agent=browser_user_agent, params=params, accept=accept)
+        return response.text
+
+    async def json(
+        self,
+        url: str,
+        *,
+        params: dict[str, Any] | None = None,
+        browser_user_agent: bool = False,
+    ) -> Any:
+        response = await self.response(
+            url, params=params, browser_user_agent=browser_user_agent, accept="application/json",
+        )
+        try:
+            return response.json()
+        except json_lib.JSONDecodeError as error:
+            raise Blocked(f"{url} did not return JSON ({response.headers.get('content-type')})") from error
+
+    async def response(
+        self,
+        url: str,
+        *,
+        browser_user_agent: bool = False,
+        params: dict[str, Any] | None = None,
+        accept: str | None = None,
+        method: str = "GET",
+        json_body: Any = None,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Response:
+        request_headers: dict[str, str] = dict(headers or {})
+        if browser_user_agent:
+            request_headers["user-agent"] = BROWSER_USER_AGENT
+        if accept:
+            request_headers["accept"] = accept
+
+        # The query string is part of what was asked for, so the display and the
+        # cache both see the whole request rather than a bare path.
+        target = str(httpx.URL(url, params=params)) if params else url
+        key = self.cache.key(
+            "http", url, method=method, params=params, body=json_body, agent=browser_user_agent,
+        )
+        if stored := self.cache.read(key, url):
+            ACTIVITY.finished(target, "cached")
+            return httpx.Response(
+                stored.status,
+                content=stored.body.encode("utf-8"),
+                headers=stored.headers,
+                request=httpx.Request(method, stored.url or url),
+            )
+        if self.cache.mode == "replay":
+            raise NotCached(f"{method} {url} is not in the cache")
+
+        response: httpx.Response | None = None
+        for attempt in range(4):
+            async with self.limiter.gate(url):
+                await self.limiter.wait(url)
+                ACTIVITY.started(target)
+                try:
+                    response = await self.client.request(
+                        method, url, params=params, json=json_body, headers=request_headers or None,
+                    )
+                    ACTIVITY.finished(target, str(response.status_code))
+                except (httpx.HTTPError, UnicodeError) as error:
+                    ACTIVITY.finished(target, type(error).__name__)
+                    # A refused or timed-out request is the host telling us the
+                    # pace is wrong just as clearly as a 429 does. Crawling with
+                    # no wait between requests makes that answer common, so the
+                    # page is asked for again once the backoff has taken effect
+                    # rather than dropped — going fast must not cost coverage.
+                    self.limiter.record_failure(url, type(error).__name__)
+                    if attempt == 3:
+                        raise
+                    pause = self.limiter.spacing(urlparse(url).netloc) or 1.0
+                    LOGGER.warning(
+                        "transport=%s url=%s retry=%d pause=%.1fs",
+                        type(error).__name__, url, attempt + 1, pause,
+                    )
+                    await asyncio.sleep(pause)
+                    continue
+            if response.status_code != 429 and response.status_code < 500:
+                self.limiter.record_success(url)
+                break
+            self.limiter.record_failure(url, response.status_code)
+            if attempt == 3:
+                break
+            retry_after = response.headers.get("retry-after")
+            try:
+                pause = float(retry_after) if retry_after else min(2 ** attempt, 8)
+            except ValueError:
+                pause = min(2 ** attempt, 8)
+            LOGGER.warning("status=%d url=%s retry=%d pause=%.1fs", response.status_code, url, attempt + 1, pause)
+            await asyncio.sleep(max(0.0, pause))
+        assert response is not None
+        if response.status_code in (401, 403, 406) and not browser_user_agent:
+            # Several CDNs reject a declared research agent but serve the same
+            # public page to an ordinary browser string.
+            return await self.response(
+                url, browser_user_agent=True, params=params, accept=accept,
+                method=method, json_body=json_body, headers=headers,
+            )
+        response.raise_for_status()
+        # Only a response the site actually completed is worth replaying; a
+        # retry-exhausted 5xx would otherwise be served back as if it were the
+        # page. Recording the final URL keeps redirects out of the next run.
+        self.cache.write(key, CachedResponse(
+            status=response.status_code,
+            url=str(response.url),
+            body=response.text,
+            headers={
+                name: value for name, value in response.headers.items()
+                if name.lower() in ("content-type", "content-language", "last-modified", "etag")
+            },
+            fetched_at=time.time(),
+        ))
+        return response
+
+    async def render(self, url: str, wait_ms: int = 1500, wait_for: str | None = None) -> str:
+        if self.browser_policy == "never":
+            raise Blocked("browser rendering disabled")
+        # A rendered page is cached like any other response: replaying it is the
+        # only way to reparse a browser-only source (amaco, ceramicolours)
+        # without starting a browser at all.
+        key = self.cache.key("render", url, wait_ms=wait_ms, wait_for=wait_for)
+        if stored := self.cache.read(key, url):
+            # `url`, not the `target` the HTTP path builds: a render takes no
+            # query parameters of its own, and naming the other variable here
+            # raised NameError on every cache hit — so replaying a rendered
+            # source, which is the one thing this cache entry exists for, could
+            # never actually work.
+            ACTIVITY.finished(url, "cached")
+            return stored.body
+        if self.cache.mode == "replay":
+            raise NotCached(f"render {url} is not in the cache")
+        ACTIVITY.started(url)
+        try:
+            document = await self.browser.render(url, wait_ms, wait_for)
+        except Exception:
+            ACTIVITY.finished(url, "browser-error")
+            raise
+        ACTIVITY.finished(url, "rendered")
+        self.cache.write(key, CachedResponse(
+            status=200, url=url, body=document, headers={}, fetched_at=time.time(), kind="render",
+        ))
+        return document
+
+    async def evaluate_in_browser(
+        self, url: str, script: str, wait_ms: int = 2000, wait_for: str | None = None,
+    ) -> Any:
+        if self.browser_policy == "never":
+            raise Blocked("browser rendering disabled")
+        return await self.browser.evaluate(url, script, wait_ms, wait_for)
+
+    async def request_json_in_browser(
+        self,
+        page_url: str,
+        endpoint: str,
+        *,
+        method: str = "POST",
+        headers: dict[str, str] | None = None,
+        body: Any = None,
+    ) -> Any:
+        key = self.cache.key("browser-json", endpoint, page=page_url, method=method, body=body)
+        if stored := self.cache.read(key, endpoint):
+            return json_lib.loads(stored.body)
+        if self.cache.mode == "replay":
+            raise NotCached(f"{method} {endpoint} (in browser) is not in the cache")
+        if self.browser_policy == "never":
+            raise Blocked("browser rendering disabled")
+        payload = await self.browser.request_json(
+            page_url, endpoint, method=method, headers=headers, body=body,
+        )
+        self.cache.write(key, CachedResponse(
+            status=200, url=endpoint, body=json_lib.dumps(payload), headers={},
+            fetched_at=time.time(), kind="browser-json",
+        ))
+        return payload
+
+
+@dataclass
+class ScrapeResult:
+    records: list[dict[str, Any]] = field(default_factory=list)
+    errors: list[dict[str, str]] = field(default_factory=list)
+    requests: int = 0
+    rendered_pages: int = 0
+    discovered: int = 0
+    truncated: bool = False
+    notes: list[str] = field(default_factory=list)
+
+
+class Scraper(ABC):
+    """One supplier's collection strategy.
+
+    Implementations fetch as narrowly as the site allows, emit one row per
+    purchasable variant through record.build, and never invent a field the
+    supplier did not publish.
+    """
+
+    platform: str = "custom"
+    #: api_json, graphql, jsonld, dom or browser - recorded on every row.
+    method: str = "dom"
+
+    def __init__(self, name: str, config: dict[str, Any], fetcher: Fetcher) -> None:
+        self.name = name
+        self.config = config
+        self.fetcher = fetcher
+        self.result = ScrapeResult()
+        self.base_url = config.get("url", "")
+        if delay := config.get("delay"):
+            fetcher.limiter.set_delay(self.base_url, float(delay))
+
+    # -- helpers shared by every implementation ---------------------------
+
+    @property
+    def ignore_robots(self) -> bool:
+        return bool(self.config.get("ignore_robots"))
+
+    @property
+    def strict_scope(self) -> bool:
+        return self.config.get("scope", "materials") == "materials"
+
+    def origin(self, url: str | None = None) -> str:
+        parsed = urlparse(url or self.base_url)
+        return f"{parsed.scheme}://{parsed.netloc}"
+
+    def note(self, message: str) -> None:
+        LOGGER.info("source=%s %s", self.name, message)
+        self.result.notes.append(message)
+
+    def fail(self, url: str, error: Exception | str) -> None:
+        self.result.errors.append({"url": url, "error": str(error)})
+        LOGGER.warning("source=%s url=%s error=%s", self.name, url, error)
+
+    def category_allows(self, *values: Any) -> bool | None:
+        """Match a product's categories against this source's materials allowlist.
+
+        Returns None when the source declares no allowlist, so the caller falls
+        back to keyword classification instead of assuming a match.
+        """
+        allowed = self.config.get("material_categories")
+        if not allowed:
+            return None
+        haystack = domain.fold(" ".join(domain.clean(value) for value in values if value))
+        return any(domain.fold(entry) in haystack for entry in allowed)
+
+    def excluded(self, *values: Any) -> bool:
+        blocked = self.config.get("excluded_categories") or []
+        haystack = domain.fold(" ".join(domain.clean(value) for value in values if value))
+        return any(domain.fold(entry) in haystack for entry in blocked)
+
+    def keep(self, row: dict[str, Any], category_match: bool | None = None) -> bool:
+        """Apply validity and the ceramic-materials scope to one candidate row."""
+        if not record_module.is_valid(row):
+            return False
+        if not self.strict_scope:
+            return True
+        categories = " ".join(row.get("category_path") or [])
+        if self.excluded(categories, row.get("name")):
+            return False
+        if category_match is True:
+            # An allowlisted category is authoritative, but still drop obvious
+            # equipment filed inside it (a glaze brush under "Glazes").
+            return not domain.looks_non_material(row.get("name"))
+        if category_match is False:
+            return False
+        return record_module.in_scope(row, strict=True)
+
+    def add(self, row: dict[str, Any] | None, category_match: bool | None = None) -> None:
+        if row and self.keep(row, category_match):
+            self.result.records.append(row)
+
+    async def sitemap_urls(self, sitemap_urls: list[str], pattern: str | None = None) -> list[str]:
+        """Walk sitemap indexes and return matching product URLs."""
+        found: list[str] = []
+        seen: set[str] = set()
+        queue = list(dict.fromkeys(sitemap_urls))
+        compiled = re.compile(pattern) if pattern else None
+        while queue:
+            url = queue.pop(0)
+            if url in seen:
+                continue
+            seen.add(url)
+            try:
+                response = await self.fetcher.response(url, accept="application/xml,text/xml")
+                self.result.requests += 1
+                document = self._sitemap_text(response)
+            except (httpx.HTTPError, Blocked, UnicodeError) as error:
+                self.fail(url, error)
+                continue
+            locations = [
+                domain.clean(value)
+                for value in re.findall(r"<loc>\s*(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?\s*</loc>", document, re.I)
+            ]
+            if re.search(r"<sitemapindex\b", document, re.I):
+                queue.extend(locations)
+                continue
+            found.extend(value for value in locations if not compiled or compiled.search(value))
+        return list(dict.fromkeys(found))
+
+    @staticmethod
+    def _sitemap_text(response: httpx.Response) -> str:
+        """Decode a sitemap, decompressing the .xml.gz form many shops publish.
+
+        httpx only unwraps gzip used as a transfer encoding; a .gz file arrives
+        as compressed bytes and has to be inflated here.
+        """
+        body = response.content
+        if body[:2] == b"\x1f\x8b":
+            body = gzip.decompress(body)
+        return body.decode(response.encoding or "utf-8", errors="replace")
+
+    @abstractmethod
+    async def scrape(self, limit: int | None = None) -> ScrapeResult:
+        """Collect the source and return its records."""
+
+    async def run(self, limit: int | None = None) -> ScrapeResult:
+        start = self.base_url
+        if start and not await self.fetcher.may_fetch(start, self.ignore_robots):
+            self.result.errors.append({"url": start, "error": "robots.txt disallows this crawler"})
+            self.note("skipped: robots.txt disallows this crawler")
+            return self.result
+        if self.ignore_robots:
+            self.note("robots.txt intentionally not applied for this source (operator decision)")
+        try:
+            await self.scrape(limit)
+        except (httpx.HTTPError, Blocked, OSError, UnicodeError) as error:
+            self.fail(start, error)
+        self.result.records = self.deduplicate(self.result.records)
+        return self.result
+
+    @staticmethod
+    def deduplicate(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        merged: dict[tuple[Any, ...], dict[str, Any]] = {}
+        for row in records:
+            merged.setdefault(record_module.dedupe_key(row), row)
+        return list(merged.values())
+
+
+def absolute(base: str, url: Any) -> str | None:
+    text = domain.clean(url)
+    return urljoin(base, text) if text else None

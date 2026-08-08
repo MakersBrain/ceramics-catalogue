@@ -1,0 +1,30 @@
+# The operator control plane.
+[Unit]
+Description=Ceramics catalogue control API
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=localhost/catalogue-control:${CATALOGUE_VERSION}
+ContainerName=catalogue-control
+# Contains CATALOGUE_CONTROL_TOKEN. The service refuses to start without it,
+# because the one thing worse than having no cancel-run endpoint is an
+# unauthenticated one.
+EnvironmentFile=/etc/catalogue/catalogue.env
+# Loopback only: the explorer proxies it server-side with the token attached.
+# That is defence in depth — the token is the authentication boundary.
+PublishPort=127.0.0.1:8687:8687
+HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8687/health')"
+HealthInterval=15s
+HealthStartPeriod=10s
+HealthRetries=5
+NoNewPrivileges=true
+ReadOnly=true
+Tmpfs=/tmp
+
+[Service]
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

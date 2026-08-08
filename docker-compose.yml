@@ -1,0 +1,199 @@
+# Local PostgreSQL for the ceramics reference catalogue.
+#
+# Brings up an empty database with the `catalogue` schema already applied, so
+# catalogue-dump/load_postgres.py can stream the NDJSON dumps straight into it.
+# This is a development database, separate from the application stack in
+# ateliera-app/deploy/docker-compose.yml, and it publishes a different port.
+name: catalogue-ceramics
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: catalogue-postgres
+    # Loopback only, for a psql or a query tool on the host; nothing off this
+    # machine needs to reach it. 5434 keeps it clear of the application stack
+    # on 5433 and of any system PostgreSQL on 5432.
+    ports:
+      - "127.0.0.1:${CATALOGUE_DB_PORT:-5434}:5432"
+    environment:
+      POSTGRES_DB: ${CATALOGUE_DB_NAME:-ateliera}
+      POSTGRES_USER: ${CATALOGUE_DB_USER:-catalogue}
+      POSTGRES_PASSWORD: ${CATALOGUE_DB_PASSWORD:-catalogue}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Applied once, in filename order, the first time the volume is empty.
+      # The order is load-bearing twice over: the baseline loader rejects a v2
+      # record until the migration has widened it, and the ops schema adds a
+      # foreign key to `catalogue.import_runs`, which the baseline creates.
+      #
+      # They live under the package (src/.../storage/schema) rather than beside
+      # this file so a worker can apply the same DDL from an installed
+      # distribution — see `storage.db.apply_schema`.
+      - ./docker/initdb/00-extensions.sql:/docker-entrypoint-initdb.d/00-extensions.sql:ro
+      - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-reference-schema.sql:/docker-entrypoint-initdb.d/10-catalogue-reference-schema.sql:ro
+      - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-reference-schema-v2.sql:/docker-entrypoint-initdb.d/20-catalogue-reference-schema-v2.sql:ro
+      - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-ops-schema.sql:/docker-entrypoint-initdb.d/30-catalogue-ops-schema.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 10s
+      timeout: 3s
+      # initdb replays both schema files before the server accepts connections.
+      start_period: 30s
+      retries: 10
+
+  # The catalogue's read API. Cross-tenant reference data served to every tenant
+  # and owned by none of them, which is why it is a service in front of the
+  # database rather than a connection string handed to each tenant.
+  #
+  # Not published on the host: the only thing that needs it is another container,
+  # and it joins this stack's network to reach it.
+  service:
+    build:
+      # The build context is the repository root: the read API installs the
+      # shared OpenAPI registry from catalogue-dump as a path dependency.
+      context: .
+      dockerfile: catalogue-service/Dockerfile
+    container_name: catalogue-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8686/health')\""]
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  # One-shot importer, so a load needs no `psql` on the host:
+  #
+  #   docker compose run --rm loader --dry-run
+  #   docker compose run --rm loader --source amaco,mayco
+  #
+  # Arguments are appended to the entrypoint, so anything load_postgres.py
+  # accepts can be passed and a repeated flag wins over the default below.
+  # It is behind a profile so `docker compose up` starts the database alone.
+  loader:
+    profiles: ["loader"]
+    build:
+      # The build context is the repository root because the image installs the
+      # package from catalogue-dump/, rather than reading a script off the mount.
+      context: .
+      dockerfile: docker/loader/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # COPY streams from this process, so the dumps have to be visible to this
+      # container rather than to the server.
+      - .:/work:ro
+    # `catalogue-load` is a console script from the installed distribution.
+    # Arguments given to `docker compose run` are appended, so a repeated flag
+    # wins over the defaults below.
+    command:
+      - --dsn
+      - postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      - --data
+      - /work/catalogue-dumps-v2
+
+  # The operator control plane: run/job/worker/source control, and the live
+  # stream the /ops pages read. Deliberately not published on the host — the
+  # explorer proxies it server-side with the token attached, and the token is
+  # the authentication boundary rather than the network.
+  control:
+    build:
+      context: .
+      dockerfile: docker/control/Dockerfile
+    container_name: catalogue-control
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      # No default. The service refuses to start without it, because the one
+      # thing worse than having no cancel-run endpoint is an unauthenticated one.
+      CATALOGUE_CONTROL_TOKEN: ${CATALOGUE_CONTROL_TOKEN:?set a control token in .env}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8687/health')\""]
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  # The collection worker. Scale it with `docker compose up --scale worker=3`;
+  # the queue does not care how many there are, and catalogue.hosts is what
+  # stops three of them tripling the load on every shop.
+  worker:
+    build:
+      context: .
+      dockerfile: docker/worker/Dockerfile
+      target: worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+    volumes:
+      # Shared, so a replay works across workers and a run's artifacts are all
+      # in one place. The cache is sharded per host and the dumps are namespaced
+      # <run-id>/<job-id>/, so concurrent writers never collide.
+      - cache:/var/lib/catalogue/cache
+      - dumps:/var/lib/catalogue/dumps
+    restart: unless-stopped
+    # SIGTERM drains: finish the current source, requeue anything unfinished,
+    # mark the worker stopped. The default ten seconds is not enough to write a
+    # four-thousand-record artifact.
+    stop_grace_period: 150s
+
+  # The two sources that need camoufox, on a separate image so the plain worker
+  # does not carry a browser. One replica: it is memory-hungry, and there are
+  # only two such sources.
+  worker-browser:
+    build:
+      context: .
+      dockerfile: docker/worker/Dockerfile
+      target: worker-browser
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+    volumes:
+      - cache:/var/lib/catalogue/cache
+      - dumps:/var/lib/catalogue/dumps
+    restart: unless-stopped
+    stop_grace_period: 150s
+
+  # The catalogue explorer, including the /ops pages. Published on loopback for
+  # development; behind Caddy in production, which needs `flush_interval -1` on
+  # the reverse_proxy or the SSE stream arrives in blocks rather than as it is
+  # written.
+  explorer:
+    profiles: ["ui"]
+    build: ./catalogue-explorer
+    container_name: catalogue-explorer
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${CATALOGUE_UI_PORT:-5175}:3000"
+    environment:
+      DATABASE_URL: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_CONTROL_URL: http://control:8687
+      CATALOGUE_CONTROL_TOKEN: ${CATALOGUE_CONTROL_TOKEN:?set a control token in .env}
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  # The recorded response cache. Not in the backup set: it is reproducible by
+  # fetching, and it is hundreds of megabytes.
+  cache:
+  # The NDJSON artifacts. These *are* in the backup set — they are the audit
+  # trail each job's recorded sha256 refers to.
+  dumps:

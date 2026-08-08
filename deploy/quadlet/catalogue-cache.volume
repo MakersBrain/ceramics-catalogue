@@ -1,0 +1,7 @@
+# The recorded response cache, shared by every worker.
+#
+# Sharded per host, so two workers writing at once never touch one entry.
+# Deliberately not in the backup set: it is reproducible by fetching, and losing
+# it costs one slow run rather than any data.
+[Volume]
+VolumeName=catalogue-cache

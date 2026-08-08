@@ -1,0 +1,353 @@
+{
+  "digest": "8fd8b81061c1e246329e9f3a2d2694545b1b114a73e473a513f1d1778e30963f",
+  "discovered": 482,
+  "error_count": 415,
+  "errors": [
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS1.001&Name=colorante-verde-cromo-cr-al&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS1.002&Name=colorante-verde-smeraldo-co-cr-al&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS2.006&Name=colorante-blu-co-al&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS2.009&Name=colorante-turchese-19237-zr-v-si&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS2.017&Name=colorante-blu-co-si&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS3.007&Name=colorante-giallo-pb-sb&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS3.008&Name=colorante-giallo-zr-pr-si&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS3.012&Name=colorante-giallo-19396-zr-si-cd&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS3.014&Name=colorante-arancio-zr-si-cd&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS3.015&Name=colorante-arancio-vivo-zr-si-cd&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS4.002&Name=colorante-nero-corvo-co-cr-fe-mn&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS5.002&Name=colorante-grigio-azzurro-sn-sb&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS6.001&Name=colorante-bruno-legno-zn-cr-fe&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS6.002&Name=colorante-biscotto-fe-cr-al-zn&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS6.012&Name=colorante-bruno-scuro-fr-cr-mn&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS7.002&Name=colorante-rosa-zr-fe-si&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS7.007&Name=colorante-sangue-bue&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS7.013&Name=colorante-rosso-zr-si-cd-se&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS7.015&Name=colorante-rosso-zr-si-cd-se&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS8.001&Name=colorante-violetto-sn-cr&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CS8.002&Name=colorante-violetto-sn-cr&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CO1.007&Name=colore-ramina-ap&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CO1.068&Name=colore-verde-ap&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CO1.403&Name=colore-verde-brillante-ap-20159&Lang=IT"
+    },
+    {
+      "error": "pack pricing unavailable: browser rendering disabled",
+      "url": "https://www.ceramicolours.it/Articolo.php?cod=CO1.404&Name=colore-verde-acqua-ap-20171a&Lang=IT"
+    }
+  ],
+  "extraction_method": "dom",
+  "field_coverage": {
+    "all_image_urls": 482,
+    "brand": 47,
+    "category_path": 0,
+    "claims": 0,
+    "colour": 64,
+    "description": 0,
+    "documents": 0,
+    "effects": 13,
+    "family": 273,
+    "firing": 381,
+    "form": 0,
+    "gtin": 0,
+    "manufacturer_sku": 0,
+    "package_size": 5,
+    "stock_quantity": 0,
+    "supplier_reference": 482,
+    "surface": 134,
+    "unit_price": 5,
+    "vat_status": 482
+  },
+  "notes": [
+    "17 in-scope category pages",
+    "482 product URLs from category pages"
+  ],
+  "records": 482,
+  "rendered_pages": 0,
+  "requests": 521,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://www.ceramicolours.it/upload-immagini/011.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/K126.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/K132.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/TUMBRA4020.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/TBLUE4020.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/K110.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/RTM3010.jpg.webp"
+      ],
+      "application_methods": null,
+      "availability": null,
+      "brand": "Witgert",
+      "brand_basis": "named_in_title",
+      "category_path": null,
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": null,
+      "external_id": "ceramicolours:https://www.ceramicolours.it/Articolo.php?cod=011&Name=gres-bianco-11-witgert&Lang=IT",
+      "extraction_method": "dom",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1000 °C - 1250 °C",
+        "max_celsius": 1250,
+        "min_celsius": 1000
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.ceramicolours.it/upload-immagini/011.jpg.webp",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "GRES BIANCO 11",
+      "name_parsed_from": [
+        "WITGERT",
+        "011"
+      ],
+      "name_raw": "011 - GRES BIANCO 11 WITGERT",
+      "package_size": null,
+      "parent_external_id": "ceramicolours:https://www.ceramicolours.it/Articolo.php?cod=011&Name=gres-bianco-11-witgert&Lang=IT",
+      "price": 18.18,
+      "price_text": null,
+      "product_name": "011 - GRES BIANCO 11 WITGERT",
+      "product_url": "https://www.ceramicolours.it/Articolo.php?cod=011&Name=gres-bianco-11-witgert&Lang=IT",
+      "raw": {
+        "code": "011",
+        "temperature": "1000 °C - 1250 °C",
+        "url": "https://www.ceramicolours.it/Articolo.php?cod=011&Name=gres-bianco-11-witgert&Lang=IT"
+      },
+      "source": "ceramicolours",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "011",
+      "surface": null,
+      "technical_attributes": {
+        "Temperatura": "1000 °C - 1250 °C"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.ceramicolours.it/upload-immagini/0116.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/TBLUE4020.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/SZRIF4020.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/TNIGRA2002.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/WM-T.webp.jpg",
+        "https://www.ceramicolours.it/upload-immagini/K123.jpg.webp",
+        "https://www.ceramicolours.it/upload-immagini/WM.jpg.webp"
+      ],
+      "application_methods": null,
+      "availability": null,
+      "brand": "Witgert",
+      "brand_basis": "named_in_title",
+      "category_path": null,
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": null,
+      "external_id": "ceramicolours:https://www.ceramicolours.it/Articolo.php?cod=0116&Name=gres-antracite-116-witgert&Lang=IT",
+      "extraction_method": "dom",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1000 °C - 1280 °C",
+        "max_celsius": 1280,
+        "min_celsius": 1000
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.ceramicolours.it/upload-immagini/0116.jpg.webp",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "GRES ANTRACITE 116",
+      "name_parsed_from": [
+        "WITGERT",
+        "0116"
+      ],
+      "name_raw": "0116 - GRES ANTRACITE 116 WITGERT",
+      "package_size": null,
+      "parent_external_id": "ceramicolours:https://www.ceramicolours.it/Articolo.php?cod=0116&Name=gres-antracite-116-witgert&Lang=IT",
+      "price": 26.6,
+      "price_text": null,
+      "product_name": "0116 - GRES ANTRACITE 116 WITGERT",
+      "product_url": "https://www.ceramicolours.it/Articolo.php?cod=0116&Name=gres-antracite-116-witgert&Lang=IT",
+      "raw": {
+        "code": "0116",
+        "temperature": "1000 °C - 1280 °C",
+        "url": "https://www.ceramicolours.it/Articolo.php?cod=0116&Name=gres-antracite-116-witgert&Lang=IT"
+      },
+      "source": "ceramicolours",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "0116",
+      "surface": null,
+      "technical_attributes": {
+        "Temperatura": "1000 °C - 1280 °C"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.ceramicolours.it/upload-immagini/680.500.webp.jpg",
+        "https://www.ceramicolours.it/upload-immagini/610.510.webp.jpg",
+        "https://www.ceramicolours.it/upload-immagini/670.512.webp.jpg",
+        "https://www.ceramicolours.it/upload-immagini/610.501.webp.jpg",
+        "https://www.ceramicolours.it/upload-immagini/620.508.webp.jpg",
+        "https://www.ceramicolours.it/upload-immagini/650.503.webp.jpg",
+        "https://www.ceramicolours.it/upload-immagini/610.509.webp.jpg"
+      ],
+      "application_methods": null,
+      "availability": null,
+      "brand": null,
+      "brand_basis": null,
+      "category_path": null,
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": null,
+      "external_id": "ceramicolours:https://www.ceramicolours.it/Articolo.php?cod=680.500&Name=colore-viola-78149&Lang=IT",
+      "extraction_method": "dom",
+      "family": null,
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "550 °C - 600 °C",
+        "max_celsius": 600,
+        "min_celsius": 550
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.ceramicolours.it/upload-immagini/680.500.webp.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "COLORE VIOLA 78149",
+      "name_parsed_from": [
+        "680.500"
+      ],
+      "name_raw": "680.500 - COLORE VIOLA 78149",
+      "package_size": null,
+      "parent_external_id": "ceramicolours:https://www.ceramicolours.it/Articolo.php?cod=680.500&Name=colore-viola-78149&Lang=IT",
+      "price": 4.98,
+      "price_text": null,
+      "product_name": "680.500 - COLORE VIOLA 78149",
+      "product_url": "https://www.ceramicolours.it/Articolo.php?cod=680.500&Name=colore-viola-78149&Lang=IT",
+      "raw": {
+        "code": "680.500",
+        "temperature": "550 °C - 600 °C",
+        "url": "https://www.ceramicolours.it/Articolo.php?cod=680.500&Name=colore-viola-78149&Lang=IT"
+      },
+      "source": "ceramicolours",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "680.500",
+      "surface": null,
+      "technical_attributes": {
+        "Temperatura": "550 °C - 600 °C"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "ceramicolours",
+  "source": "ceramicolours",
+  "truncated": false
+}

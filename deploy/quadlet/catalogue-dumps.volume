@@ -1,0 +1,7 @@
+# The NDJSON artifacts, namespaced <run-id>/<job-id>/.
+#
+# This one *is* in the backup set. Every job records an artifact path and a
+# sha256 against it, and without the file the digest describes nothing — the
+# audit trail is the pair, not the row.
+[Volume]
+VolumeName=catalogue-dumps

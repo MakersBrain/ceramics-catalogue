@@ -1,0 +1,864 @@
+{
+  "digest": "01925b1a6250a86f612b88e5854253bd00b3a34c71b8c78e97268ecc8a928998",
+  "discovered": 984,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "api_json",
+  "field_coverage": {
+    "all_image_urls": 1177,
+    "brand": 442,
+    "category_path": 1177,
+    "claims": 424,
+    "colour": 1094,
+    "description": 1177,
+    "documents": 0,
+    "effects": 89,
+    "family": 1177,
+    "firing": 270,
+    "form": 0,
+    "gtin": 0,
+    "manufacturer_sku": 401,
+    "package_size": 732,
+    "stock_quantity": 0,
+    "supplier_reference": 1177,
+    "surface": 255,
+    "unit_price": 732,
+    "vat_status": 1177
+  },
+  "notes": [
+    "categories absent from the Store API: onderglazuren"
+  ],
+  "records": 1177,
+  "rendered_pages": 0,
+  "requests": 30,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://keramiekenglazuur.nl/wp-content/uploads/FGS_95_Everglades___Welte.webp",
+        "https://keramiekenglazuur.nl/wp-content/uploads/FGS_95_Everglades___Welte_1.webp"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Welte",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "glazuren",
+        "Welte",
+        "Welte",
+        "Welte",
+        "Glazuren",
+        "Steengoed"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Alle glazuren zijn loodvrij en kunnen, mits correct toegepast en gebakken, worden gebruikt voor serviesgoed.",
+          "type": "lead_free"
+        }
+      ],
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Groen"
+      },
+      "currency": "EUR",
+      "description": "Welte is een Duits kwaliteitsmerk met een uitgebreid assortiment keramische glazuren, engobes, decorverven en edelmetaalpreparaten. De producten zijn ontwikkeld voor zowel hobbyisten als professionele keramisten en staan bekend om hun betrouwbare kwaliteit en consistente resultaten. Alle glazuren zijn loodvrij en kunnen, mits correct toegepast en gebakken, worden gebruikt voor serviesgoed. De gebruikte grondstoffen worden zorgvuldig gecontroleerd om een zo hoog mogelijke productkwaliteit te waarborgen. Dankzij het brede assortiment biedt Welte glazuren voor uiteenlopende technieken en stooktemperaturen, van klassieke glazuren tot bijzondere effectglazuren.",
+      "documents": null,
+      "effects": null,
+      "external_id": "keramiekenglazuur:https://keramiekenglazuur.nl/fgs-095-everglades-welte/",
+      "extraction_method": "api_json",
+      "family": "engobe",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://keramiekenglazuur.nl/wp-content/uploads/FGS_95_Everglades___Welte.webp",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Everglades",
+      "name_parsed_from": [
+        "Welte",
+        "FGS-095"
+      ],
+      "name_raw": "FGS-095 Everglades | Welte",
+      "package_size": null,
+      "parent_external_id": "keramiekenglazuur:https://keramiekenglazuur.nl/fgs-095-everglades-welte/",
+      "price": 18.15,
+      "price_text": "€ 18,15",
+      "product_name": "FGS-095 Everglades | Welte",
+      "product_url": "https://keramiekenglazuur.nl/fgs-095-everglades-welte/",
+      "raw": {
+        "_category_slug": "glazuren",
+        "_links": {
+          "collection": [
+            {
+              "href": "https://keramiekenglazuur.nl/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://keramiekenglazuur.nl/wp-json/wc/store/v1/products?related=222126&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://keramiekenglazuur.nl/wp-json/wc/store/v1/products/222126",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Toevoegen aan winkelwagen: &ldquo;FGS-095 Everglades | Welte&ldquo;",
+          "maximum": 6,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Toevoegen aan winkelwagen",
+          "text": "Toevoegen aan winkelwagen",
+          "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;category=21&#038;add-to-cart=222126"
+        },
+        "attributes": [
+          {
+            "has_variations": false,
+            "id": 1,
+            "name": "Kleur",
+            "taxonomy": "pa_kleur",
+            "terms": [
+              {
+                "id": 28,
+                "name": "Groen",
+                "slug": "groen"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 103,
+            "name": "Fabrikant",
+            "taxonomy": "pa_fabrikant",
+            "terms": [
+              {
+                "id": 1859,
+                "name": "Welte",
+                "slug": "welte"
+              }
+            ]
+          }
+        ],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 1857,
+            "link": "https://keramiekenglazuur.nl/glazuren/steengoed/welte/",
+            "name": "Welte",
+            "slug": "welte"
+          },
+          {
+            "id": 1858,
+            "link": "https://keramiekenglazuur.nl/welte/",
+            "name": "Welte",
+            "slug": "welte"
+          },
+          {
+            "id": 1860,
+            "link": "https://keramiekenglazuur.nl/glazuren/welte/",
+            "name": "Welte",
+            "slug": "welte"
+          },
+          {
+            "id": 21,
+            "link": "https://keramiekenglazuur.nl/glazuren/",
+            "name": "Glazuren",
+            "slug": "glazuren"
+          },
+          {
+            "id": 22,
+            "link": "https://keramiekenglazuur.nl/glazuren/steengoed/",
+            "name": "Steengoed",
+            "slug": "steengoed"
+          }
+        ],
+        "description": "<p>Welte is een Duits kwaliteitsmerk met een uitgebreid assortiment keramische glazuren, engobes, decorverven en edelmetaalpreparaten. De producten zijn ontwikkeld voor zowel hobbyisten als professionele keramisten en staan bekend om hun betrouwbare kwaliteit en consistente resultaten.</p>\n<p>Alle glazuren zijn loodvrij en kunnen, mits correct toegepast en gebakken, worden gebruikt voor serviesgoed. De gebruikte grondstoffen worden zorgvuldig gecontroleerd om een zo hoog mogelijke productkwaliteit te waarborgen.</p>\n<p>Dankzij het brede assortiment biedt Welte glazuren voor uiteenlopende technieken en stooktemperaturen, van klassieke glazuren tot bijzondere effectglazuren.</p>",
+        "dimensions": {
+          "height": "",
+          "length": "",
+          "width": ""
+        },
+        "extensions": {},
+        "formatted_dimensions": "N/B",
+        "formatted_weight": "0,6 kg",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 222126,
+        "images": [
+          {
+            "alt": "",
+            "id": 222127,
+            "name": "FGS_95_Everglades___Welte.webp",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/FGS_95_Everglades___Welte.webp",
+            "srcset": "",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/FGS_95_Everglades___Welte.webp",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": ""
+          },
+          {
+            "alt": "",
+            "id": 222129,
+            "name": "FGS_95_Everglades___Welte_1.webp",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/FGS_95_Everglades___Welte_1.webp",
+            "srcset": "",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/FGS_95_Everglades___Welte_1.webp",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": ""
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": true,
+        "low_stock_remaining": null,
+        "name": "FGS-095 Everglades | Welte",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://keramiekenglazuur.nl/fgs-095-everglades-welte/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&euro;</span>&nbsp;18,15</span>",
+        "prices": {
+          "currency_code": "EUR",
+          "currency_decimal_separator": ",",
+          "currency_minor_unit": 2,
+          "currency_prefix": "€ ",
+          "currency_suffix": "",
+          "currency_symbol": "€",
+          "currency_thousand_separator": ".",
+          "price": "1815",
+          "price_range": null,
+          "regular_price": "1815",
+          "sale_price": "1815"
+        },
+        "review_count": 0,
+        "short_description": "<p data-start=\"163\" data-end=\"206\"><strong data-start=\"163\" data-end=\"173\">500 ml</strong><strong data-start=\"163\" data-end=\"173\"></strong></p>\n<p data-end=\"206\" data-start=\"163\"><strong data-start=\"176\" data-end=\"206\">Kant-en-klaar kwastglazuur</strong></p>\n<p data-start=\"44\" data-end=\"333\">Dit glanzende steengoedglazuur  heeft een rijke groenblauwe kleur, geïnspireerd op de natuurlijke tinten van de Everglades. De loodvrije glazuur is kant-en-klaar, eenvoudig aan te brengen en zorgt voor een levendig oppervlak met veel diepte en subtiele kleurnuances.</p>\n<p data-start=\"335\" data-end=\"484\">Geschikt voor een stooktemperatuur van <strong data-start=\"374\" data-end=\"389\">1220–1240°C</strong>. Het uiteindelijke resultaat wordt beïnvloed door de stookcurve, de kleisoort en de laagdikte.</p>\n<p data-start=\"486\" data-end=\"766\">Deze glazuur is getest op <strong data-start=\"512\" data-end=\"533\">zuurbestendigheid</strong> met een 3% zoutzuuroplossing gedurende 96 uur en vertoonde geen aantasting. Voor serviesgoed dat wordt verkocht, adviseren wij altijd het eindproduct onder de eigen stookomstandigheden te testen op voedselveiligheid en duurzaamheid.</p>\n<p data-start=\"768\" data-end=\"923\" data-is-last-node=\"\" data-is-only-node=\"\"><strong data-start=\"768\" data-end=\"776\">Tip:</strong> deze glazuur kan tijdens het bakken behoorlijk vloeien. Breng daarom geen dikke lagen aan en houd de onderzijde van het werkstuk vrij van glazuur.</p>",
+        "sku": "100924",
+        "slug": "fgs-095-everglades-welte",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": "Op voorraad"
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0.600"
+      },
+      "source": "keramiekenglazuur",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "100924",
+      "surface": null,
+      "technical_attributes": {
+        "Fabrikant": "Welte",
+        "Kleur": "Groen"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://keramiekenglazuur.nl/wp-content/uploads/KGS_43_Blauschimmel___Welte.webp"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Welte",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "glazuren",
+        "Welte",
+        "Welte",
+        "Welte",
+        "Glazuren",
+        "Steengoed"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Alle glazuren zijn loodvrij en kunnen, mits correct toegepast en gebakken, worden gebruikt voor serviesgoed.",
+          "type": "lead_free"
+        }
+      ],
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Blauw"
+      },
+      "currency": "EUR",
+      "description": "Welte is een Duits kwaliteitsmerk met een uitgebreid assortiment keramische glazuren, engobes, decorverven en edelmetaalpreparaten. De producten zijn ontwikkeld voor zowel hobbyisten als professionele keramisten en staan bekend om hun betrouwbare kwaliteit en consistente resultaten. Alle glazuren zijn loodvrij en kunnen, mits correct toegepast en gebakken, worden gebruikt voor serviesgoed. De gebruikte grondstoffen worden zorgvuldig gecontroleerd om een zo hoog mogelijke productkwaliteit te waarborgen. Dankzij het brede assortiment biedt Welte glazuren voor uiteenlopende technieken en stooktemperaturen, van klassieke glazuren tot bijzondere effectglazuren.",
+      "documents": null,
+      "effects": null,
+      "external_id": "keramiekenglazuur:https://keramiekenglazuur.nl/fgs-043-blauschimmel-welte/",
+      "extraction_method": "api_json",
+      "family": "engobe",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://keramiekenglazuur.nl/wp-content/uploads/KGS_43_Blauschimmel___Welte.webp",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Blauschimmel",
+      "name_parsed_from": [
+        "Welte",
+        "FGS-043"
+      ],
+      "name_raw": "FGS-043 Blauschimmel | Welte",
+      "package_size": null,
+      "parent_external_id": "keramiekenglazuur:https://keramiekenglazuur.nl/fgs-043-blauschimmel-welte/",
+      "price": 19.95,
+      "price_text": "€ 19,95",
+      "product_name": "FGS-043 Blauschimmel | Welte",
+      "product_url": "https://keramiekenglazuur.nl/fgs-043-blauschimmel-welte/",
+      "raw": {
+        "_category_slug": "glazuren",
+        "_links": {
+          "collection": [
+            {
+              "href": "https://keramiekenglazuur.nl/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://keramiekenglazuur.nl/wp-json/wc/store/v1/products?related=222122&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://keramiekenglazuur.nl/wp-json/wc/store/v1/products/222122",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Toevoegen aan winkelwagen: &ldquo;FGS-043 Blauschimmel | Welte&ldquo;",
+          "maximum": 6,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Toevoegen aan winkelwagen",
+          "text": "Toevoegen aan winkelwagen",
+          "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;category=21&#038;add-to-cart=222122"
+        },
+        "attributes": [
+          {
+            "has_variations": false,
+            "id": 1,
+            "name": "Kleur",
+            "taxonomy": "pa_kleur",
+            "terms": [
+              {
+                "id": 27,
+                "name": "Blauw",
+                "slug": "blauw"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 103,
+            "name": "Fabrikant",
+            "taxonomy": "pa_fabrikant",
+            "terms": [
+              {
+                "id": 1859,
+                "name": "Welte",
+                "slug": "welte"
+              }
+            ]
+          }
+        ],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 1857,
+            "link": "https://keramiekenglazuur.nl/glazuren/steengoed/welte/",
+            "name": "Welte",
+            "slug": "welte"
+          },
+          {
+            "id": 1858,
+            "link": "https://keramiekenglazuur.nl/welte/",
+            "name": "Welte",
+            "slug": "welte"
+          },
+          {
+            "id": 1860,
+            "link": "https://keramiekenglazuur.nl/glazuren/welte/",
+            "name": "Welte",
+            "slug": "welte"
+          },
+          {
+            "id": 21,
+            "link": "https://keramiekenglazuur.nl/glazuren/",
+            "name": "Glazuren",
+            "slug": "glazuren"
+          },
+          {
+            "id": 22,
+            "link": "https://keramiekenglazuur.nl/glazuren/steengoed/",
+            "name": "Steengoed",
+            "slug": "steengoed"
+          }
+        ],
+        "description": "<p>Welte is een Duits kwaliteitsmerk met een uitgebreid assortiment keramische glazuren, engobes, decorverven en edelmetaalpreparaten. De producten zijn ontwikkeld voor zowel hobbyisten als professionele keramisten en staan bekend om hun betrouwbare kwaliteit en consistente resultaten.</p>\n<p>Alle glazuren zijn loodvrij en kunnen, mits correct toegepast en gebakken, worden gebruikt voor serviesgoed. De gebruikte grondstoffen worden zorgvuldig gecontroleerd om een zo hoog mogelijke productkwaliteit te waarborgen.</p>\n<p>Dankzij het brede assortiment biedt Welte glazuren voor uiteenlopende technieken en stooktemperaturen, van klassieke glazuren tot bijzondere effectglazuren.</p>",
+        "dimensions": {
+          "height": "",
+          "length": "",
+          "width": ""
+        },
+        "extensions": {},
+        "formatted_dimensions": "N/B",
+        "formatted_weight": "0,6 kg",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 222122,
+        "images": [
+          {
+            "alt": "",
+            "id": 222123,
+            "name": "KGS_43_Blauschimmel___Welte.webp",
+            "sizes": "(max-width: 272px) 100vw, 272px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/KGS_43_Blauschimmel___Welte.webp",
+            "srcset": "",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/KGS_43_Blauschimmel___Welte.webp",
+            "thumbnail_sizes": "(max-width: 272px) 100vw, 272px",
+            "thumbnail_srcset": ""
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": true,
+        "low_stock_remaining": null,
+        "name": "FGS-043 Blauschimmel | Welte",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://keramiekenglazuur.nl/fgs-043-blauschimmel-welte/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&euro;</span>&nbsp;19,95</span>",
+        "prices": {
+          "currency_code": "EUR",
+          "currency_decimal_separator": ",",
+          "currency_minor_unit": 2,
+          "currency_prefix": "€ ",
+          "currency_suffix": "",
+          "currency_symbol": "€",
+          "currency_thousand_separator": ".",
+          "price": "1995",
+          "price_range": null,
+          "regular_price": "1995",
+          "sale_price": "1995"
+        },
+        "review_count": 0,
+        "short_description": "<p data-start=\"163\" data-end=\"206\"><strong data-start=\"163\" data-end=\"173\">500 ml</strong><br data-start=\"173\" data-end=\"176\"><br />\n<strong data-start=\"176\" data-end=\"206\">Kant-en-klaar kwastglazuur</strong></p>\n<p data-start=\"208\" data-end=\"417\">Dit steengoedglazuur ontwikkelt een bijzonder blauw effect met een levendig, kristallijn karakter. Afhankelijk van de laagdikte en de stookwijze ontstaat een oppervlak met veel diepte en subtiele kleurnuances.</p>\n<p data-start=\"419\" data-end=\"568\">Geschikt voor een stooktemperatuur van <strong data-start=\"458\" data-end=\"473\">1220–1240°C</strong>. Het uiteindelijke resultaat wordt beïnvloed door de stookcurve, de kleisoort en de laagdikte.</p>\n<p data-start=\"570\" data-end=\"725\"><strong data-start=\"570\" data-end=\"578\">Tip:</strong> deze glazuur kan tijdens het bakken behoorlijk vloeien. Breng daarom geen dikke lagen aan en houd de onderzijde van het werkstuk vrij van glazuur.</p>",
+        "sku": "100908",
+        "slug": "fgs-043-blauschimmel-welte",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": "Op voorraad"
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0.600"
+      },
+      "source": "keramiekenglazuur",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "100908",
+      "surface": null,
+      "technical_attributes": {
+        "Fabrikant": "Welte",
+        "Kleur": "Blauw"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp_.jpeg",
+        "https://keramiekenglazuur.nl/wp-content/uploads/PCF_18_Honeydew_1.jpeg",
+        "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__2.jpeg",
+        "https://keramiekenglazuur.nl/wp-content/uploads/PCF_03_Midnight_Run_nbsp__3.jpeg",
+        "https://keramiekenglazuur.nl/wp-content/uploads/PCF_03_Midnight_Run_nbsp__4.jpeg",
+        "https://keramiekenglazuur.nl/wp-content/uploads/PCF_18_Honeydew_5.jpeg",
+        "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__6.jpeg",
+        "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__7.jpeg",
+        "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__8.jpeg",
+        "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__9.jpeg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "AMACO",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "glazuren",
+        "Amaco",
+        "Glazuren",
+        "Potter's Choice Flux (PCF)",
+        "Potters Choice Flux",
+        "Steengoed"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Voedselveilig",
+          "type": "food_contact_suitability"
+        }
+      ],
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Crème / Beige"
+      },
+      "currency": "EUR",
+      "description": "Maak kennis met de Potters Choice Flux glazuren! Alles wat je zo mooi vindt aan PC-17 Honey Flux – het zachte vloeiende uiterlijk, de interactie met andere glazuren en hoe het de textuur accentueert op lichte en donkere kleisoorten. Heerlijk vloeibaar en kan alleen of in combinatie met andere Amaco glazuren worden gebruikt voor eindeloze creatieve mogelijkheden. Elk Potters Choice Flux glazuur heeft zijn eigen karakter en schoonheid. Dit glazuur is geschikt voor serviesgoed. De Potters Choice glazuur-serie is ontworpen met de pottenbakker in gedachten! Deze prachtige glazuren voegen vloeiende kleuren en effecten toe aan glad of getextureerd oppervlak, met optimale resultaten op Cone 5/6. Door deze glazuren te gebruiken stap je in verschillende keramische glazuur tradities van vele culturen door de geschiedenis heen. De Potters Choice Flux zijn geweldig om te combineren met andere glazuren als basis of toplaag. Prachtig op elke kleur klei. Te stoken vanaf cone 5, vloeibaarder vanaf cone 6. Voedselveilig",
+      "documents": null,
+      "effects": null,
+      "external_id": "keramiekenglazuur:https://keramiekenglazuur.nl/pcf-74-river-birch-amaco/",
+      "extraction_method": "api_json",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "cone_max": "5",
+        "cone_min": "5",
+        "cone_system": "orton",
+        "evidence": "Cone 5",
+        "max_celsius": 1207,
+        "min_celsius": 1207,
+        "temperature_basis": "derived_from_cone"
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp_.jpeg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "River Birch",
+      "name_parsed_from": [
+        "AMACO",
+        "PCF-74"
+      ],
+      "name_raw": "PCF-74 River Birch | AMACO",
+      "package_size": null,
+      "parent_external_id": "keramiekenglazuur:https://keramiekenglazuur.nl/pcf-74-river-birch-amaco/",
+      "price": 20.0,
+      "price_text": "€ 20,00",
+      "product_name": "PCF-74 River Birch | AMACO",
+      "product_url": "https://keramiekenglazuur.nl/pcf-74-river-birch-amaco/",
+      "raw": {
+        "_category_slug": "glazuren",
+        "_links": {
+          "collection": [
+            {
+              "href": "https://keramiekenglazuur.nl/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://keramiekenglazuur.nl/wp-json/wc/store/v1/products?related=3694&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://keramiekenglazuur.nl/wp-json/wc/store/v1/products/3694",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Toevoegen aan winkelwagen: &ldquo;PCF-74 River Birch | AMACO&ldquo;",
+          "maximum": 1380,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Toevoegen aan winkelwagen",
+          "text": "Toevoegen aan winkelwagen",
+          "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=10&#038;category=21&#038;add-to-cart=3694"
+        },
+        "attributes": [
+          {
+            "has_variations": false,
+            "id": 1,
+            "name": "Kleur",
+            "taxonomy": "pa_kleur",
+            "terms": [
+              {
+                "id": 186,
+                "name": "Crème / Beige",
+                "slug": "creme-beige"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 103,
+            "name": "Fabrikant",
+            "taxonomy": "pa_fabrikant",
+            "terms": [
+              {
+                "id": 183,
+                "name": "Amaco",
+                "slug": "amaco"
+              }
+            ]
+          }
+        ],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 314,
+            "link": "https://keramiekenglazuur.nl/amaco/",
+            "name": "Amaco",
+            "slug": "amaco"
+          },
+          {
+            "id": 21,
+            "link": "https://keramiekenglazuur.nl/glazuren/",
+            "name": "Glazuren",
+            "slug": "glazuren"
+          },
+          {
+            "id": 340,
+            "link": "https://keramiekenglazuur.nl/amaco/potters-choice-flux-pcf/",
+            "name": "Potter's Choice Flux (PCF)",
+            "slug": "potters-choice-flux-pcf"
+          },
+          {
+            "id": 441,
+            "link": "https://keramiekenglazuur.nl/glazuren/steengoed/potters-choice-flux/",
+            "name": "Potters Choice Flux",
+            "slug": "potters-choice-flux"
+          },
+          {
+            "id": 22,
+            "link": "https://keramiekenglazuur.nl/glazuren/steengoed/",
+            "name": "Steengoed",
+            "slug": "steengoed"
+          }
+        ],
+        "description": "<p>Maak kennis met de Potters Choice Flux glazuren! Alles wat je zo mooi vindt aan PC-17 Honey Flux – het zachte vloeiende uiterlijk, de interactie met andere glazuren en hoe het de textuur accentueert op lichte en donkere kleisoorten.<br />\nHeerlijk vloeibaar en kan alleen of in combinatie met andere Amaco glazuren worden gebruikt voor eindeloze creatieve mogelijkheden.<br />\nElk Potters Choice Flux glazuur heeft zijn eigen karakter en schoonheid.<br />\nDit glazuur is geschikt voor serviesgoed. De Potters Choice glazuur-serie is ontworpen met de pottenbakker in gedachten! Deze prachtige glazuren voegen vloeiende kleuren en effecten toe aan glad of getextureerd oppervlak, met optimale resultaten op Cone 5/6. Door deze glazuren te gebruiken stap je in verschillende keramische glazuur tradities van vele culturen door de geschiedenis heen.<br />\nDe Potters Choice Flux zijn geweldig om te combineren met andere glazuren als basis of toplaag.<br />\nPrachtig op elke kleur klei.<br />\nTe stoken vanaf cone 5, vloeibaarder vanaf cone 6.</p>\n<p>Voedselveilig</p>",
+        "dimensions": {
+          "height": "",
+          "length": "",
+          "width": ""
+        },
+        "extensions": {},
+        "formatted_dimensions": "N/B",
+        "formatted_weight": "0,6 kg",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 3694,
+        "images": [
+          {
+            "alt": "",
+            "id": 3358,
+            "name": "nbsp_PCF_74_River_Birch_nbsp_.jpeg",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp_.jpeg",
+            "srcset": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp_.jpeg 600w, https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp_-300x300.jpeg 300w, https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp_-100x100.jpeg 100w",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp_-300x300.jpeg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp_-300x300.jpeg 300w, https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp_-100x100.jpeg 100w, https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp_.jpeg 600w"
+          },
+          {
+            "alt": "",
+            "id": 3356,
+            "name": "PCF_18_Honeydew_1.jpeg",
+            "sizes": "(max-width: 184px) 100vw, 184px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_18_Honeydew_1.jpeg",
+            "srcset": "",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_18_Honeydew_1.jpeg",
+            "thumbnail_sizes": "(max-width: 184px) 100vw, 184px",
+            "thumbnail_srcset": ""
+          },
+          {
+            "alt": "",
+            "id": 3359,
+            "name": "nbsp_PCF_74_River_Birch_nbsp__2.jpeg",
+            "sizes": "(max-width: 150px) 100vw, 150px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__2.jpeg",
+            "srcset": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__2.jpeg 150w, https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__2-100x100.jpeg 100w",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__2.jpeg",
+            "thumbnail_sizes": "(max-width: 150px) 100vw, 150px",
+            "thumbnail_srcset": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__2.jpeg 150w, https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__2-100x100.jpeg 100w"
+          },
+          {
+            "alt": "",
+            "id": 3370,
+            "name": "PCF_03_Midnight_Run_nbsp__3.jpeg",
+            "sizes": "(max-width: 259px) 100vw, 259px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_03_Midnight_Run_nbsp__3.jpeg",
+            "srcset": "",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_03_Midnight_Run_nbsp__3-259x300.jpeg",
+            "thumbnail_sizes": "(max-width: 259px) 100vw, 259px",
+            "thumbnail_srcset": ""
+          },
+          {
+            "alt": "",
+            "id": 3371,
+            "name": "PCF_03_Midnight_Run_nbsp__4.jpeg",
+            "sizes": "(max-width: 150px) 100vw, 150px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_03_Midnight_Run_nbsp__4.jpeg",
+            "srcset": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_03_Midnight_Run_nbsp__4.jpeg 150w, https://keramiekenglazuur.nl/wp-content/uploads/PCF_03_Midnight_Run_nbsp__4-100x100.jpeg 100w",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_03_Midnight_Run_nbsp__4.jpeg",
+            "thumbnail_sizes": "(max-width: 150px) 100vw, 150px",
+            "thumbnail_srcset": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_03_Midnight_Run_nbsp__4.jpeg 150w, https://keramiekenglazuur.nl/wp-content/uploads/PCF_03_Midnight_Run_nbsp__4-100x100.jpeg 100w"
+          },
+          {
+            "alt": "",
+            "id": 3372,
+            "name": "PCF_18_Honeydew_5.jpeg",
+            "sizes": "(max-width: 150px) 100vw, 150px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_18_Honeydew_5.jpeg",
+            "srcset": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_18_Honeydew_5.jpeg 150w, https://keramiekenglazuur.nl/wp-content/uploads/PCF_18_Honeydew_5-100x100.jpeg 100w",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_18_Honeydew_5.jpeg",
+            "thumbnail_sizes": "(max-width: 150px) 100vw, 150px",
+            "thumbnail_srcset": "https://keramiekenglazuur.nl/wp-content/uploads/PCF_18_Honeydew_5.jpeg 150w, https://keramiekenglazuur.nl/wp-content/uploads/PCF_18_Honeydew_5-100x100.jpeg 100w"
+          },
+          {
+            "alt": "",
+            "id": 3373,
+            "name": "nbsp_PCF_74_River_Birch_nbsp__6.jpeg",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__6.jpeg",
+            "srcset": "",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__6-300x300.jpeg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__6-300x300.jpeg 300w, https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__6-100x100.jpeg 100w"
+          },
+          {
+            "alt": "",
+            "id": 3374,
+            "name": "nbsp_PCF_74_River_Birch_nbsp__7.jpeg",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__7.jpeg",
+            "srcset": "",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__7-300x300.jpeg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__7-300x300.jpeg 300w, https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__7-100x100.jpeg 100w"
+          },
+          {
+            "alt": "",
+            "id": 3375,
+            "name": "nbsp_PCF_74_River_Birch_nbsp__8.jpeg",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__8.jpeg",
+            "srcset": "",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__8-300x300.jpeg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__8-300x300.jpeg 300w, https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__8-100x100.jpeg 100w"
+          },
+          {
+            "alt": "",
+            "id": 3376,
+            "name": "nbsp_PCF_74_River_Birch_nbsp__9.jpeg",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__9.jpeg",
+            "srcset": "",
+            "thumbnail": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__9-300x300.jpeg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__9-300x300.jpeg 300w, https://keramiekenglazuur.nl/wp-content/uploads/nbsp_PCF_74_River_Birch_nbsp__9-100x100.jpeg 100w"
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": true,
+        "low_stock_remaining": null,
+        "name": "PCF-74 River Birch | AMACO",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://keramiekenglazuur.nl/pcf-74-river-birch-amaco/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&euro;</span>&nbsp;20,00</span>",
+        "prices": {
+          "currency_code": "EUR",
+          "currency_decimal_separator": ",",
+          "currency_minor_unit": 2,
+          "currency_prefix": "€ ",
+          "currency_suffix": "",
+          "currency_symbol": "€",
+          "currency_thousand_separator": ".",
+          "price": "2000",
+          "price_range": null,
+          "regular_price": "2000",
+          "sale_price": "2000"
+        },
+        "review_count": 0,
+        "short_description": "<p><b>473 ml</b></p>\n<p> Een glanzend crèmeglazuur met uitlopende donkere vlekken als de bast van een boom. Breekt over gestructureerde oppervlakken en ontwikkelt een perzikachtige zweving als het dik is. </p>\n<p><a href=\"https://keramiekenglazuur.nl/glazuur-info/merk-amaco/potters-choice-flux-pcf/\" target=\"_blank\">Alles over Potters Choice Flux</a></p>",
+        "sku": "10004",
+        "slug": "pcf-74-river-birch-amaco",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": "Op voorraad"
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0.6"
+      },
+      "source": "keramiekenglazuur",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "10004",
+      "surface": null,
+      "technical_attributes": {
+        "Fabrikant": "Amaco",
+        "Kleur": "Crème / Beige"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "woocommerce",
+  "source": "keramiekenglazuur",
+  "truncated": false
+}

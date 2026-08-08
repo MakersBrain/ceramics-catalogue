@@ -1,0 +1,593 @@
+{
+  "digest": "023a30ab0895a7e14ef28d87daec7053f88e591744ba031c87858fe07cc43cf7",
+  "discovered": 2633,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "api_json",
+  "field_coverage": {
+    "all_image_urls": 2345,
+    "brand": 156,
+    "category_path": 2345,
+    "claims": 150,
+    "colour": 2100,
+    "description": 2338,
+    "documents": 0,
+    "effects": 0,
+    "family": 2345,
+    "firing": 214,
+    "form": 2,
+    "gtin": 0,
+    "manufacturer_sku": 103,
+    "package_size": 1749,
+    "stock_quantity": 0,
+    "supplier_reference": 2339,
+    "surface": 417,
+    "unit_price": 1749,
+    "vat_status": 2345
+  },
+  "notes": [
+    "categories absent from the Store API: keramikams-ir-skulptoriams",
+    "1 variable products returned no variations"
+  ],
+  "records": 2345,
+  "rendered_pages": 0,
+  "requests": 73,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://menomuza.lt/wp-content/uploads/2026/07/8040-500.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/OutOfStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "FIMO modelinas",
+        "Fimo Professional modelinas 57g- 85g",
+        "Modelinas, plastilinas ir priedai"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "FIMO Professional modelinas"
+      },
+      "currency": "EUR",
+      "description": "Orkaitėje kepamas (prie 110 C° 30 min.). Jis pakeis FIMO Classic. Aukščiausia kokybė meistriškam rezultatui. Itin plastiškas ir labai stabilios formos. Patvari forma suminkius. Tikroms spalvoms naudojami natūraliausi pigmentai kad suminkius gautūsi puikūs rezultatai. Blokai naudojant yra lengvai uždaromi ir atidaromi. Ši kokybė rekomenduojama specialistams, ekspertams ir menininkams.",
+      "documents": null,
+      "effects": null,
+      "external_id": "menomuza:https://menomuza.lt/produktas/fimo-professional-modelinas-85g-tikra-zalia-2/",
+      "extraction_method": "api_json",
+      "family": "stain",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://menomuza.lt/wp-content/uploads/2026/07/8040-500.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "FIMO Professional modelinas 57g tikra žalia",
+      "name_parsed_from": null,
+      "name_raw": "FIMO Professional modelinas 57g tikra žalia",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "57g",
+        "grams": 57.0,
+        "unit": "g",
+        "value": 57.0
+      },
+      "parent_external_id": "menomuza:https://menomuza.lt/produktas/fimo-professional-modelinas-85g-tikra-zalia-2/",
+      "price": 2.4,
+      "price_text": "2,40 €",
+      "product_name": "FIMO Professional modelinas 57g tikra žalia",
+      "product_url": "https://menomuza.lt/produktas/fimo-professional-modelinas-85g-tikra-zalia-2/",
+      "raw": {
+        "_category_slug": null,
+        "_links": {
+          "collection": [
+            {
+              "href": "https://menomuza.lt/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://menomuza.lt/wp-json/wc/store/v1/products?related=79024&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://menomuza.lt/wp-json/wc/store/v1/products/79024",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Daugiau informacijos apie &ldquo;FIMO Professional modelinas 57g tikra žalia&rdquo;",
+          "maximum": 9999,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Į krepšelį",
+          "text": "Daugiau",
+          "url": "https://menomuza.lt/produktas/fimo-professional-modelinas-85g-tikra-zalia-2/"
+        },
+        "attributes": [],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 3789,
+            "link": "https://menomuza.lt/produkto-kategorija/fimo-modelinas-plastilinas-ir-priedai/fimo-modelinas/",
+            "name": "FIMO modelinas",
+            "slug": "fimo-modelinas"
+          },
+          {
+            "id": 3972,
+            "link": "https://menomuza.lt/produkto-kategorija/fimo-modelinas-plastilinas-ir-priedai/fimo-modelinas/fimo-professional-modelinas-57g-85g/",
+            "name": "Fimo Professional modelinas 57g- 85g",
+            "slug": "fimo-professional-modelinas-57g-85g"
+          },
+          {
+            "id": 3788,
+            "link": "https://menomuza.lt/produkto-kategorija/fimo-modelinas-plastilinas-ir-priedai/",
+            "name": "Modelinas, plastilinas ir priedai",
+            "slug": "fimo-modelinas-plastilinas-ir-priedai"
+          }
+        ],
+        "description": "<p>Orkaitėje kepamas (prie 110 C° 30 min.).</p>\n<p>Jis pakeis  FIMO Classic.<br />\nAukščiausia kokybė meistriškam rezultatui.<br />\nItin plastiškas ir labai stabilios formos.<br />\nPatvari forma suminkius.<br />\nTikroms spalvoms naudojami natūraliausi pigmentai kad suminkius gautūsi puikūs rezultatai.<br />\nBlokai naudojant yra lengvai uždaromi ir atidaromi.<br />\nŠi kokybė rekomenduojama specialistams, ekspertams ir menininkams.</p>\n<p></p>",
+        "dimensions": {
+          "height": "1.7",
+          "length": "5.5",
+          "width": "5.5"
+        },
+        "extensions": {},
+        "formatted_dimensions": "5,5 × 5,5 × 1,7 cm",
+        "formatted_weight": "0,06 kg",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 79024,
+        "images": [
+          {
+            "alt": "",
+            "id": 79025,
+            "name": "8040-500",
+            "sizes": "(max-width: 1073px) 100vw, 1073px",
+            "src": "https://menomuza.lt/wp-content/uploads/2026/07/8040-500.jpg",
+            "srcset": "https://menomuza.lt/wp-content/uploads/2026/07/8040-500.jpg 1073w, https://menomuza.lt/wp-content/uploads/2026/07/8040-500-292x300.jpg 292w, https://menomuza.lt/wp-content/uploads/2026/07/8040-500-996x1024.jpg 996w, https://menomuza.lt/wp-content/uploads/2026/07/8040-500-768x789.jpg 768w, https://menomuza.lt/wp-content/uploads/2026/07/8040-500-600x617.jpg 600w",
+            "thumbnail": "https://menomuza.lt/wp-content/uploads/2026/07/8040-500-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://menomuza.lt/wp-content/uploads/2026/07/8040-500-300x300.jpg 300w, https://menomuza.lt/wp-content/uploads/2026/07/8040-500-150x150.jpg 150w, https://menomuza.lt/wp-content/uploads/2026/07/8040-500-100x100.jpg 100w"
+          }
+        ],
+        "is_in_stock": false,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": true,
+        "low_stock_remaining": 0,
+        "name": "FIMO Professional modelinas 57g tikra žalia",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://menomuza.lt/produktas/fimo-professional-modelinas-85g-tikra-zalia-2/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\">2,40&nbsp;<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span>",
+        "prices": {
+          "currency_code": "EUR",
+          "currency_decimal_separator": ",",
+          "currency_minor_unit": 2,
+          "currency_prefix": "",
+          "currency_suffix": " €",
+          "currency_symbol": "€",
+          "currency_thousand_separator": "",
+          "price": "240",
+          "price_range": null,
+          "regular_price": "240",
+          "sale_price": "240"
+        },
+        "review_count": 0,
+        "short_description": "",
+        "sku": "",
+        "slug": "fimo-professional-modelinas-85g-tikra-zalia-2",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "out-of-stock",
+          "text": "Neturime"
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0.06"
+      },
+      "source": "menomuza",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": null,
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 42.1053
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://menomuza.lt/wp-content/uploads/2026/07/8040-4.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/OutOfStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "FIMO modelinas",
+        "Fimo Professional modelinas 57g- 85g",
+        "Modelinas, plastilinas ir priedai"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "FIMO Professional modelinas"
+      },
+      "currency": "EUR",
+      "description": "Orkaitėje kepamas (prie 110 C° 30 min.). Jis pakeis FIMO Classic. Aukščiausia kokybė meistriškam rezultatui. Itin plastiškas ir labai stabilios formos. Patvari forma suminkius. Tikroms spalvoms naudojami natūraliausi pigmentai kad suminkius gautūsi puikūs rezultatai. Blokai naudojant yra lengvai uždaromi ir atidaromi. Ši kokybė rekomenduojama specialistams, ekspertams ir menininkams.",
+      "documents": null,
+      "effects": null,
+      "external_id": "menomuza:https://menomuza.lt/produktas/fimo-professional-modelinas-57g-oranzine/",
+      "extraction_method": "api_json",
+      "family": "stain",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://menomuza.lt/wp-content/uploads/2026/07/8040-4.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "FIMO Professional modelinas 57g oranžinė",
+      "name_parsed_from": null,
+      "name_raw": "FIMO Professional modelinas 57g oranžinė",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "57g",
+        "grams": 57.0,
+        "unit": "g",
+        "value": 57.0
+      },
+      "parent_external_id": "menomuza:https://menomuza.lt/produktas/fimo-professional-modelinas-57g-oranzine/",
+      "price": 2.4,
+      "price_text": "2,40 €",
+      "product_name": "FIMO Professional modelinas 57g oranžinė",
+      "product_url": "https://menomuza.lt/produktas/fimo-professional-modelinas-57g-oranzine/",
+      "raw": {
+        "_category_slug": null,
+        "_links": {
+          "collection": [
+            {
+              "href": "https://menomuza.lt/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://menomuza.lt/wp-json/wc/store/v1/products?related=79016&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://menomuza.lt/wp-json/wc/store/v1/products/79016",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Daugiau informacijos apie &ldquo;FIMO Professional modelinas 57g oranžinė&rdquo;",
+          "maximum": 9999,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Į krepšelį",
+          "text": "Daugiau",
+          "url": "https://menomuza.lt/produktas/fimo-professional-modelinas-57g-oranzine/"
+        },
+        "attributes": [],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 3789,
+            "link": "https://menomuza.lt/produkto-kategorija/fimo-modelinas-plastilinas-ir-priedai/fimo-modelinas/",
+            "name": "FIMO modelinas",
+            "slug": "fimo-modelinas"
+          },
+          {
+            "id": 3972,
+            "link": "https://menomuza.lt/produkto-kategorija/fimo-modelinas-plastilinas-ir-priedai/fimo-modelinas/fimo-professional-modelinas-57g-85g/",
+            "name": "Fimo Professional modelinas 57g- 85g",
+            "slug": "fimo-professional-modelinas-57g-85g"
+          },
+          {
+            "id": 3788,
+            "link": "https://menomuza.lt/produkto-kategorija/fimo-modelinas-plastilinas-ir-priedai/",
+            "name": "Modelinas, plastilinas ir priedai",
+            "slug": "fimo-modelinas-plastilinas-ir-priedai"
+          }
+        ],
+        "description": "<p>Orkaitėje kepamas (prie 110 C° 30 min.).</p>\n<p>Jis pakeis  FIMO Classic.<br />\nAukščiausia kokybė meistriškam rezultatui.<br />\nItin plastiškas ir labai stabilios formos.<br />\nPatvari forma suminkius.<br />\nTikroms spalvoms naudojami natūraliausi pigmentai kad suminkius gautūsi puikūs rezultatai.<br />\nBlokai naudojant yra lengvai uždaromi ir atidaromi.<br />\nŠi kokybė rekomenduojama specialistams, ekspertams ir menininkams.</p>\n<p></p>",
+        "dimensions": {
+          "height": "1.7",
+          "length": "5.5",
+          "width": "5.5"
+        },
+        "extensions": {},
+        "formatted_dimensions": "5,5 × 5,5 × 1,7 cm",
+        "formatted_weight": "0,06 kg",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 79016,
+        "images": [
+          {
+            "alt": "",
+            "id": 79017,
+            "name": "8040-4",
+            "sizes": "(max-width: 1073px) 100vw, 1073px",
+            "src": "https://menomuza.lt/wp-content/uploads/2026/07/8040-4.jpg",
+            "srcset": "https://menomuza.lt/wp-content/uploads/2026/07/8040-4.jpg 1073w, https://menomuza.lt/wp-content/uploads/2026/07/8040-4-292x300.jpg 292w, https://menomuza.lt/wp-content/uploads/2026/07/8040-4-996x1024.jpg 996w, https://menomuza.lt/wp-content/uploads/2026/07/8040-4-768x789.jpg 768w, https://menomuza.lt/wp-content/uploads/2026/07/8040-4-600x617.jpg 600w",
+            "thumbnail": "https://menomuza.lt/wp-content/uploads/2026/07/8040-4-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://menomuza.lt/wp-content/uploads/2026/07/8040-4-300x300.jpg 300w, https://menomuza.lt/wp-content/uploads/2026/07/8040-4-150x150.jpg 150w, https://menomuza.lt/wp-content/uploads/2026/07/8040-4-100x100.jpg 100w"
+          }
+        ],
+        "is_in_stock": false,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": true,
+        "low_stock_remaining": 0,
+        "name": "FIMO Professional modelinas 57g oranžinė",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://menomuza.lt/produktas/fimo-professional-modelinas-57g-oranzine/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\">2,40&nbsp;<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span>",
+        "prices": {
+          "currency_code": "EUR",
+          "currency_decimal_separator": ",",
+          "currency_minor_unit": 2,
+          "currency_prefix": "",
+          "currency_suffix": " €",
+          "currency_symbol": "€",
+          "currency_thousand_separator": "",
+          "price": "240",
+          "price_range": null,
+          "regular_price": "240",
+          "sale_price": "240"
+        },
+        "review_count": 0,
+        "short_description": "",
+        "sku": "80404",
+        "slug": "fimo-professional-modelinas-57g-oranzine",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "out-of-stock",
+          "text": "Neturime"
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0.06"
+      },
+      "source": "menomuza",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "80404",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 42.1053
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "Lakai",
+        "Lakai, skiedikliai"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": "Pastel Revolution Freezer yra pakartotinai užpildomas skystas purškiamas lakas, kuris užšaldo purius pigmentus (sausą pastelę, anglį, grafito pieštuką, kreidą, sanguiną ir kt.), todėl paveikslus galima eksponuoti be stiklo ar akrilo apsaugos. Skystas purškiamas lakas skirtas pigmentams (sausai pastelei, angliai, grafito pieštukams, kreidai ir kt.) užfiksuotii ant tokių paviršių kaip popierius, drobė, pastelinis popierius… kad geriau apsaugotų jūsų darbą transportuojant (vyniojant, kraunant ir t. t.) arba nepažeidžiant jo ir kad būtų galima jį perdaryti tiek kartų, kiek reikia.",
+      "documents": null,
+      "effects": null,
+      "external_id": "menomuza:https://menomuza.lt/produktas/clairefontaine-purskiamas-lakas-angliai-pastelei-500-ml/",
+      "extraction_method": "api_json",
+      "family": "stain",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Clairefontaine purškiamas lakas angliai, pastelei",
+      "name_parsed_from": [
+        "500 ml"
+      ],
+      "name_raw": "Clairefontaine purškiamas lakas angliai, pastelei 500 ml",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "500 ml",
+        "millilitres": 500.0,
+        "unit": "ml",
+        "value": 500.0
+      },
+      "parent_external_id": "menomuza:https://menomuza.lt/produktas/clairefontaine-purskiamas-lakas-angliai-pastelei-500-ml/",
+      "price": 17.9,
+      "price_text": "17,90 €",
+      "product_name": "Clairefontaine purškiamas lakas angliai, pastelei 500 ml",
+      "product_url": "https://menomuza.lt/produktas/clairefontaine-purskiamas-lakas-angliai-pastelei-500-ml/",
+      "raw": {
+        "_category_slug": null,
+        "_links": {
+          "collection": [
+            {
+              "href": "https://menomuza.lt/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://menomuza.lt/wp-json/wc/store/v1/products?related=59170&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://menomuza.lt/wp-json/wc/store/v1/products/59170",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Add to cart: &ldquo;Clairefontaine purškiamas lakas angliai, pastelei 500 ml&rdquo;",
+          "maximum": 3,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Į krepšelį",
+          "text": "Į krepšelį",
+          "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=26&#038;add-to-cart=59170"
+        },
+        "attributes": [],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 3805,
+            "link": "https://menomuza.lt/produkto-kategorija/lakai-skiedikliai/lakai/",
+            "name": "Lakai",
+            "slug": "lakai"
+          },
+          {
+            "id": 3804,
+            "link": "https://menomuza.lt/produkto-kategorija/lakai-skiedikliai/",
+            "name": "Lakai, skiedikliai",
+            "slug": "lakai-skiedikliai"
+          }
+        ],
+        "description": "<p>Pastel Revolution Freezer yra pakartotinai užpildomas skystas purškiamas lakas, kuris užšaldo purius pigmentus (sausą pastelę, anglį, grafito pieštuką, kreidą, sanguiną ir kt.), todėl paveikslus galima eksponuoti be stiklo ar akrilo apsaugos. Skystas purškiamas lakas skirtas pigmentams (sausai pastelei, angliai, grafito pieštukams, kreidai ir kt.) užfiksuotii ant tokių paviršių kaip popierius, drobė, pastelinis popierius&#8230; kad geriau apsaugotų jūsų darbą transportuojant (vyniojant, kraunant ir t. t.) arba nepažeidžiant jo ir kad būtų galima jį perdaryti tiek kartų, kiek reikia.</p>",
+        "dimensions": {
+          "height": "20",
+          "length": "6.7",
+          "width": "6.7"
+        },
+        "extensions": {},
+        "formatted_dimensions": "6,7 × 6,7 × 20 cm",
+        "formatted_weight": "0,52 kg",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 59170,
+        "images": [
+          {
+            "alt": "",
+            "id": 278,
+            "name": "product_8582_1.jpg",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1.jpg",
+            "srcset": "https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1.jpg 600w, https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1-300x300.jpg 300w, https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1-150x150.jpg 150w, https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1-100x100.jpg 100w",
+            "thumbnail": "https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1-300x300.jpg 300w, https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1-150x150.jpg 150w, https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1-100x100.jpg 100w, https://menomuza.lt/wp-content/uploads/2024/09/product_8582_1.jpg 600w"
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": true,
+        "low_stock_remaining": null,
+        "name": "Clairefontaine purškiamas lakas angliai, pastelei 500 ml",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://menomuza.lt/produktas/clairefontaine-purskiamas-lakas-angliai-pastelei-500-ml/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\">17,90&nbsp;<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span>",
+        "prices": {
+          "currency_code": "EUR",
+          "currency_decimal_separator": ",",
+          "currency_minor_unit": 2,
+          "currency_prefix": "",
+          "currency_suffix": " €",
+          "currency_symbol": "€",
+          "currency_thousand_separator": "",
+          "price": "1790",
+          "price_range": null,
+          "regular_price": "1790",
+          "sale_price": "1790"
+        },
+        "review_count": 0,
+        "short_description": "",
+        "sku": "975190C",
+        "slug": "clairefontaine-purskiamas-lakas-angliai-pastelei-500-ml",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": "Liko 3"
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0.52"
+      },
+      "source": "menomuza",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "975190C",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 35.8
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "woocommerce",
+  "source": "menomuza",
+  "truncated": false
+}

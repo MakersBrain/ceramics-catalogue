@@ -1,0 +1,964 @@
+{
+  "digest": "647f504b4a3ab6ef05a95daeb37e678ed65f7dba52137f462e4b30039aeadfad",
+  "discovered": 2498,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "dom",
+  "field_coverage": {
+    "all_image_urls": 2392,
+    "brand": 870,
+    "category_path": 2404,
+    "claims": 368,
+    "colour": 1924,
+    "description": 1176,
+    "documents": 0,
+    "effects": 154,
+    "family": 2404,
+    "firing": 2031,
+    "form": 1969,
+    "gtin": 0,
+    "manufacturer_sku": 749,
+    "package_size": 2040,
+    "stock_quantity": 1981,
+    "supplier_reference": 2404,
+    "surface": 565,
+    "unit_price": 2040,
+    "vat_status": 2404
+  },
+  "notes": [
+    "2498 product URLs from category pages"
+  ],
+  "records": 2404,
+  "rendered_pages": 0,
+  "requests": 2603,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://www.colpaertonline.be/162956-thickbox_default/medium-aqueux-ceradel-5-l.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "Accueil",
+        "ÉMAUX",
+        "PEINTURE SUR PORCELAINE",
+        "MEDIUM",
+        "MEDIUM AQUEUX CERADEL 5 L"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "MEDIUM AQUEUX CERADEL"
+      },
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": null,
+      "external_id": "colpaert-online:https://www.colpaertonline.be/fr/medium/4-medium-aqueux-ceradel-5-l.html#0",
+      "extraction_method": "dom",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.colpaertonline.be/162956-thickbox_default/medium-aqueux-ceradel-5-l.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "MEDIUM AQUEUX CERADEL",
+      "name_parsed_from": [
+        "5 L"
+      ],
+      "name_raw": "MEDIUM AQUEUX CERADEL 5 L",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "5 L",
+        "millilitres": 5000.0,
+        "unit": "l",
+        "value": 5.0
+      },
+      "parent_external_id": "colpaert-online:https://www.colpaertonline.be/fr/medium/4-medium-aqueux-ceradel-5-l.html",
+      "price": 350.0,
+      "price_text": "350,00 €",
+      "product_name": "MEDIUM AQUEUX CERADEL 5 L",
+      "product_url": "https://www.colpaertonline.be/fr/medium/4-medium-aqueux-ceradel-5-l.html",
+      "raw": {
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": "0",
+        "allow_oosp": 0,
+        "attachments": [],
+        "attribute_price": 0,
+        "availability": "available",
+        "availability_date": null,
+        "availability_message": "In Stock",
+        "available_date": "0000-00-00",
+        "available_for_order": "1",
+        "available_later": "",
+        "available_now": "",
+        "cache_default_attribute": "0",
+        "category": "medium",
+        "category_name": "MEDIUM",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 162,
+              "url": "https://www.colpaertonline.be/162956-cart_default/medium-aqueux-ceradel-5-l.jpg",
+              "width": 125
+            },
+            "home_default": {
+              "height": 305,
+              "url": "https://www.colpaertonline.be/162956-home_default/medium-aqueux-ceradel-5-l.jpg",
+              "width": 236
+            },
+            "large_default": {
+              "height": 492,
+              "url": "https://www.colpaertonline.be/162956-large_default/medium-aqueux-ceradel-5-l.jpg",
+              "width": 381
+            },
+            "medium_default": {
+              "height": 584,
+              "url": "https://www.colpaertonline.be/162956-medium_default/medium-aqueux-ceradel-5-l.jpg",
+              "width": 452
+            },
+            "small_default": {
+              "height": 127,
+              "url": "https://www.colpaertonline.be/162956-small_default/medium-aqueux-ceradel-5-l.jpg",
+              "width": 98
+            },
+            "thickbox_default": {
+              "height": 1422,
+              "url": "https://www.colpaertonline.be/162956-thickbox_default/medium-aqueux-ceradel-5-l.jpg",
+              "width": 1100
+            }
+          },
+          "cover": "1",
+          "id_image": "162956",
+          "large": {
+            "height": 1422,
+            "url": "https://www.colpaertonline.be/162956-thickbox_default/medium-aqueux-ceradel-5-l.jpg",
+            "width": 1100
+          },
+          "legend": "",
+          "medium": {
+            "height": 492,
+            "url": "https://www.colpaertonline.be/162956-large_default/medium-aqueux-ceradel-5-l.jpg",
+            "width": 381
+          },
+          "position": "1",
+          "small": {
+            "height": 127,
+            "url": "https://www.colpaertonline.be/162956-small_default/medium-aqueux-ceradel-5-l.jpg",
+            "width": 98
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": "0",
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2026-03-05 08:19:36",
+        "date_upd": "2026-03-05 08:19:36",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "",
+        "description_short": "",
+        "discount_amount": null,
+        "discount_amount_to_display": null,
+        "discount_percentage": null,
+        "discount_percentage_absolute": null,
+        "discount_type": null,
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [],
+        "features": [],
+        "has_discount": false,
+        "id": 4,
+        "id_category_default": "472",
+        "id_customization": 0,
+        "id_image": "fr-default",
+        "id_manufacturer": "0",
+        "id_product": 4,
+        "id_product_attribute": "0",
+        "id_shop_default": "1",
+        "id_supplier": "0",
+        "id_type_redirected": "0",
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.colpaertonline.be/162956-cart_default/medium-aqueux-ceradel-5-l.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.colpaertonline.be/162956-home_default/medium-aqueux-ceradel-5-l.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.colpaertonline.be/162956-large_default/medium-aqueux-ceradel-5-l.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.colpaertonline.be/162956-medium_default/medium-aqueux-ceradel-5-l.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.colpaertonline.be/162956-small_default/medium-aqueux-ceradel-5-l.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.colpaertonline.be/162956-thickbox_default/medium-aqueux-ceradel-5-l.jpg",
+                "width": 1100
+              }
+            },
+            "cover": "1",
+            "id_image": "162956",
+            "large": {
+              "height": 1422,
+              "url": "https://www.colpaertonline.be/162956-thickbox_default/medium-aqueux-ceradel-5-l.jpg",
+              "width": 1100
+            },
+            "legend": "",
+            "medium": {
+              "height": 492,
+              "url": "https://www.colpaertonline.be/162956-large_default/medium-aqueux-ceradel-5-l.jpg",
+              "width": 381
+            },
+            "position": "1",
+            "small": {
+              "height": 127,
+              "url": "https://www.colpaertonline.be/162956-small_default/medium-aqueux-ceradel-5-l.jpg",
+              "width": 98
+            }
+          }
+        ],
+        "indexed": "1",
+        "is_customizable": false,
+        "is_virtual": "0",
+        "link": "https://www.colpaertonline.be/fr/medium/4-medium-aqueux-ceradel-5-l.html",
+        "link_rewrite": "medium-aqueux-ceradel-5-l",
+        "low_stock_alert": "0",
+        "low_stock_threshold": null,
+        "meta_description": "",
+        "meta_keywords": "",
+        "meta_title": "",
+        "minimal_quantity": "1",
+        "name": "MEDIUM AQUEUX CERADEL 5 L",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": "0",
+        "online_only": "0",
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": "3",
+        "price": "350,00 €",
+        "price_amount": 350,
+        "price_tax_exc": 289.2562,
+        "price_without_reduction": 350.000002,
+        "quantity": 1,
+        "quantity_all_versions": 1,
+        "quantity_discounts": [],
+        "quantity_label": "Produit",
+        "quantity_wanted": 1,
+        "rate": 21,
+        "redirect_type": "404",
+        "reduction": 0,
+        "reference": "100C05",
+        "show_availability": true,
+        "show_condition": "0",
+        "show_price": "1",
+        "show_quantities": false,
+        "specific_prices": false,
+        "tax_name": "TVA BE 21%",
+        "text_fields": "0",
+        "unit_price": "",
+        "unit_price_full": "",
+        "unit_price_ratio": "0.000000",
+        "unity": "",
+        "uploadable_files": "0",
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "colpaert-online",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-03-05 08:19:36",
+      "stock_quantity": 1,
+      "supplier_reference": "100C05",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 70.0
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.colpaertonline.be/170126-thickbox_default/mayco-fundamentals--wedgewood-blue-473-m.jpg"
+      ],
+      "application_methods": [
+        "pouring"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": "Mayco",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "Accueil",
+        "ÉMAUX",
+        "SOUS ÉMAIL",
+        "LIQUIDE",
+        "Mayco Fundamentals Wedgewood Blue 473 m"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "couleur matte si pas couvert d'un émail transparant, couleur plus profonde si on utilise un émail transparent mat ou brillant pour utilisation alimentaire, toujours appliquer un émail transparant mat ou brillant",
+          "type": "food_contact_suitability"
+        }
+      ],
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": "couleur matte si pas couvert d'un émail transparant, couleur plus profonde si on utilise un émail transparent mat ou brillant pour utilisation alimentaire, toujours appliquer un émail transparant mat ou brillant",
+      "documents": null,
+      "effects": null,
+      "external_id": "colpaert-online:https://www.colpaertonline.be/fr/liquide/9303-mayco-fundamentals--wedgewood-blue-473-m-0097539311950.html#0",
+      "extraction_method": "dom",
+      "family": "underglaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "999°C-1285°C",
+        "max_celsius": 1285,
+        "min_celsius": 999
+      },
+      "form": "liquid",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.colpaertonline.be/170126-thickbox_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+      "list_price": null,
+      "manufacturer_sku": "UG72P",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "Mayco Fundamentals Wedgewood Blue 473 m",
+      "name_parsed_from": [
+        "Mayco"
+      ],
+      "name_raw": "Mayco Fundamentals Wedgewood Blue 473 m",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "473 ml",
+        "millilitres": 473.0,
+        "unit": "ml",
+        "value": 473.0
+      },
+      "parent_external_id": "colpaert-online:https://www.colpaertonline.be/fr/liquide/9303-mayco-fundamentals--wedgewood-blue-473-m-0097539311950.html",
+      "price": 24.3,
+      "price_text": "24,30 €",
+      "product_name": "Mayco Fundamentals Wedgewood Blue 473 m",
+      "product_url": "https://www.colpaertonline.be/fr/liquide/9303-mayco-fundamentals--wedgewood-blue-473-m-0097539311950.html",
+      "raw": {
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": "0",
+        "allow_oosp": 0,
+        "attachments": [],
+        "attribute_price": 0,
+        "availability": "available",
+        "availability_date": null,
+        "availability_message": "In Stock",
+        "available_date": "0000-00-00",
+        "available_for_order": "1",
+        "available_later": "",
+        "available_now": "",
+        "cache_default_attribute": "0",
+        "category": "liquide",
+        "category_name": "LIQUIDE",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 162,
+              "url": "https://www.colpaertonline.be/170126-cart_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+              "width": 125
+            },
+            "home_default": {
+              "height": 305,
+              "url": "https://www.colpaertonline.be/170126-home_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+              "width": 236
+            },
+            "large_default": {
+              "height": 492,
+              "url": "https://www.colpaertonline.be/170126-large_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+              "width": 381
+            },
+            "medium_default": {
+              "height": 584,
+              "url": "https://www.colpaertonline.be/170126-medium_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+              "width": 452
+            },
+            "small_default": {
+              "height": 127,
+              "url": "https://www.colpaertonline.be/170126-small_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+              "width": 98
+            },
+            "thickbox_default": {
+              "height": 1422,
+              "url": "https://www.colpaertonline.be/170126-thickbox_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+              "width": 1100
+            }
+          },
+          "cover": "1",
+          "id_image": "170126",
+          "large": {
+            "height": 1422,
+            "url": "https://www.colpaertonline.be/170126-thickbox_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+            "width": 1100
+          },
+          "legend": "",
+          "medium": {
+            "height": 492,
+            "url": "https://www.colpaertonline.be/170126-large_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+            "width": 381
+          },
+          "position": "1",
+          "small": {
+            "height": 127,
+            "url": "https://www.colpaertonline.be/170126-small_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+            "width": 98
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": "0",
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2026-06-17 08:31:18",
+        "date_upd": "2026-07-03 10:58:42",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "couleur matte si pas couvert d'un émail transparant, couleur plus profonde si on utilise un émail transparent mat ou brillant<br>pour utilisation alimentaire, toujours appliquer un émail transparant mat ou brillant",
+        "description_short": "",
+        "discount_amount": null,
+        "discount_amount_to_display": null,
+        "discount_percentage": null,
+        "discount_percentage_absolute": null,
+        "discount_type": null,
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [],
+        "features": [
+          {
+            "id_feature": "41",
+            "name": "Couleur principale",
+            "position": "1",
+            "value": "Blauw"
+          },
+          {
+            "id_feature": "42",
+            "name": "Temperature",
+            "position": "2",
+            "value": "999°C-1285°C"
+          },
+          {
+            "id_feature": "43",
+            "name": "Contenu",
+            "position": "3",
+            "value": "473 ml"
+          },
+          {
+            "id_feature": "48",
+            "name": "Marque",
+            "position": "4",
+            "value": "Mayco"
+          },
+          {
+            "id_feature": "49",
+            "name": "Sécurité alimentaire",
+            "position": "5",
+            "value": "Ja indien transparant geglazuu"
+          }
+        ],
+        "has_discount": false,
+        "id": 9303,
+        "id_category_default": "513",
+        "id_customization": 0,
+        "id_image": "fr-default",
+        "id_manufacturer": "25",
+        "id_product": 9303,
+        "id_product_attribute": "0",
+        "id_shop_default": "1",
+        "id_supplier": "0",
+        "id_type_redirected": "0",
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.colpaertonline.be/170126-cart_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.colpaertonline.be/170126-home_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.colpaertonline.be/170126-large_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.colpaertonline.be/170126-medium_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.colpaertonline.be/170126-small_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.colpaertonline.be/170126-thickbox_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+                "width": 1100
+              }
+            },
+            "cover": "1",
+            "id_image": "170126",
+            "large": {
+              "height": 1422,
+              "url": "https://www.colpaertonline.be/170126-thickbox_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+              "width": 1100
+            },
+            "legend": "",
+            "medium": {
+              "height": 492,
+              "url": "https://www.colpaertonline.be/170126-large_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+              "width": 381
+            },
+            "position": "1",
+            "small": {
+              "height": 127,
+              "url": "https://www.colpaertonline.be/170126-small_default/mayco-fundamentals--wedgewood-blue-473-m.jpg",
+              "width": 98
+            }
+          }
+        ],
+        "indexed": "1",
+        "is_customizable": false,
+        "is_virtual": "0",
+        "link": "https://www.colpaertonline.be/fr/liquide/9303-mayco-fundamentals--wedgewood-blue-473-m-0097539311950.html",
+        "link_rewrite": "mayco-fundamentals--wedgewood-blue-473-m",
+        "low_stock_alert": "0",
+        "low_stock_threshold": null,
+        "meta_description": "",
+        "meta_keywords": "",
+        "meta_title": "",
+        "minimal_quantity": "1",
+        "name": "Mayco Fundamentals  Wedgewood Blue 473 m",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": "0",
+        "online_only": "0",
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": "3",
+        "price": "24,30 €",
+        "price_amount": 24.3,
+        "price_tax_exc": 20.08264,
+        "price_without_reduction": 24.299994,
+        "quantity": 14,
+        "quantity_all_versions": 14,
+        "quantity_discounts": [],
+        "quantity_label": "Produits",
+        "quantity_wanted": 1,
+        "rate": 21,
+        "redirect_type": "404",
+        "reduction": 0,
+        "reference": "UG072P",
+        "show_availability": true,
+        "show_condition": "0",
+        "show_price": "1",
+        "show_quantities": false,
+        "specific_prices": false,
+        "tax_name": "TVA BE 21%",
+        "text_fields": "0",
+        "unit_price": "",
+        "unit_price_full": "",
+        "unit_price_ratio": "0.000000",
+        "unity": "",
+        "uploadable_files": "0",
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "colpaert-online",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-07-03 10:58:42",
+      "stock_quantity": 14,
+      "supplier_reference": "UG072P",
+      "surface": null,
+      "technical_attributes": {
+        "Contenu": "473 ml",
+        "Couleur principale": "Blauw",
+        "Marque": "Mayco",
+        "Sécurité alimentaire": "Ja indien transparant geglazuu",
+        "Temperature": "999°C-1285°C"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 51.3742
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.colpaertonline.be/174599-thickbox_default/mayco-fundamentals-plum-118-ml.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Mayco",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "Accueil",
+        "ÉMAUX",
+        "SOUS ÉMAIL",
+        "LIQUIDE",
+        "MAYCO FUNDAMENTALS PLUM 118 ML"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "MAYCO FUNDAMENTALS PLUM"
+      },
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": null,
+      "external_id": "colpaert-online:https://www.colpaertonline.be/fr/liquide/12474-mayco-fundamentals-plum-118-ml.html#0",
+      "extraction_method": "dom",
+      "family": "underglaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "999°C-1285°C",
+        "max_celsius": 1285,
+        "min_celsius": 999
+      },
+      "form": "liquid",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.colpaertonline.be/174599-thickbox_default/mayco-fundamentals-plum-118-ml.jpg",
+      "list_price": null,
+      "manufacturer_sku": "UG225K",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "MAYCO FUNDAMENTALS PLUM",
+      "name_parsed_from": [
+        "118 ML",
+        "MAYCO"
+      ],
+      "name_raw": "MAYCO FUNDAMENTALS PLUM 118 ML",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "118 ml",
+        "millilitres": 118.0,
+        "unit": "ml",
+        "value": 118.0
+      },
+      "parent_external_id": "colpaert-online:https://www.colpaertonline.be/fr/liquide/12474-mayco-fundamentals-plum-118-ml.html",
+      "price": 7.5,
+      "price_text": "7,50 €",
+      "product_name": "MAYCO FUNDAMENTALS PLUM 118 ML",
+      "product_url": "https://www.colpaertonline.be/fr/liquide/12474-mayco-fundamentals-plum-118-ml.html",
+      "raw": {
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": "0",
+        "allow_oosp": 0,
+        "attachments": [],
+        "attribute_price": 0,
+        "availability": "available",
+        "availability_date": null,
+        "availability_message": "In Stock",
+        "available_date": "0000-00-00",
+        "available_for_order": "1",
+        "available_later": "",
+        "available_now": "",
+        "cache_default_attribute": "0",
+        "category": "liquide",
+        "category_name": "LIQUIDE",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 162,
+              "url": "https://www.colpaertonline.be/174599-cart_default/mayco-fundamentals-plum-118-ml.jpg",
+              "width": 125
+            },
+            "home_default": {
+              "height": 305,
+              "url": "https://www.colpaertonline.be/174599-home_default/mayco-fundamentals-plum-118-ml.jpg",
+              "width": 236
+            },
+            "large_default": {
+              "height": 492,
+              "url": "https://www.colpaertonline.be/174599-large_default/mayco-fundamentals-plum-118-ml.jpg",
+              "width": 381
+            },
+            "medium_default": {
+              "height": 584,
+              "url": "https://www.colpaertonline.be/174599-medium_default/mayco-fundamentals-plum-118-ml.jpg",
+              "width": 452
+            },
+            "small_default": {
+              "height": 127,
+              "url": "https://www.colpaertonline.be/174599-small_default/mayco-fundamentals-plum-118-ml.jpg",
+              "width": 98
+            },
+            "thickbox_default": {
+              "height": 1422,
+              "url": "https://www.colpaertonline.be/174599-thickbox_default/mayco-fundamentals-plum-118-ml.jpg",
+              "width": 1100
+            }
+          },
+          "cover": "1",
+          "id_image": "174599",
+          "large": {
+            "height": 1422,
+            "url": "https://www.colpaertonline.be/174599-thickbox_default/mayco-fundamentals-plum-118-ml.jpg",
+            "width": 1100
+          },
+          "legend": "",
+          "medium": {
+            "height": 492,
+            "url": "https://www.colpaertonline.be/174599-large_default/mayco-fundamentals-plum-118-ml.jpg",
+            "width": 381
+          },
+          "position": "1",
+          "small": {
+            "height": 127,
+            "url": "https://www.colpaertonline.be/174599-small_default/mayco-fundamentals-plum-118-ml.jpg",
+            "width": 98
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": "0",
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2026-08-05 08:17:15",
+        "date_upd": "2026-08-05 08:17:15",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "",
+        "description_short": "",
+        "discount_amount": null,
+        "discount_amount_to_display": null,
+        "discount_percentage": null,
+        "discount_percentage_absolute": null,
+        "discount_type": null,
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [],
+        "features": [
+          {
+            "id_feature": "41",
+            "name": "Couleur principale",
+            "position": "1",
+            "value": "Paars"
+          },
+          {
+            "id_feature": "42",
+            "name": "Temperature",
+            "position": "2",
+            "value": "999°C-1285°C"
+          },
+          {
+            "id_feature": "43",
+            "name": "Contenu",
+            "position": "3",
+            "value": "118 ml"
+          },
+          {
+            "id_feature": "48",
+            "name": "Marque",
+            "position": "4",
+            "value": "Mayco"
+          },
+          {
+            "id_feature": "49",
+            "name": "Sécurité alimentaire",
+            "position": "5",
+            "value": "Ja, indien transparant geglazu"
+          }
+        ],
+        "has_discount": false,
+        "id": 12474,
+        "id_category_default": "513",
+        "id_customization": 0,
+        "id_image": "fr-default",
+        "id_manufacturer": "0",
+        "id_product": 12474,
+        "id_product_attribute": "0",
+        "id_shop_default": "1",
+        "id_supplier": "0",
+        "id_type_redirected": "0",
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.colpaertonline.be/174599-cart_default/mayco-fundamentals-plum-118-ml.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.colpaertonline.be/174599-home_default/mayco-fundamentals-plum-118-ml.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.colpaertonline.be/174599-large_default/mayco-fundamentals-plum-118-ml.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.colpaertonline.be/174599-medium_default/mayco-fundamentals-plum-118-ml.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.colpaertonline.be/174599-small_default/mayco-fundamentals-plum-118-ml.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.colpaertonline.be/174599-thickbox_default/mayco-fundamentals-plum-118-ml.jpg",
+                "width": 1100
+              }
+            },
+            "cover": "1",
+            "id_image": "174599",
+            "large": {
+              "height": 1422,
+              "url": "https://www.colpaertonline.be/174599-thickbox_default/mayco-fundamentals-plum-118-ml.jpg",
+              "width": 1100
+            },
+            "legend": "",
+            "medium": {
+              "height": 492,
+              "url": "https://www.colpaertonline.be/174599-large_default/mayco-fundamentals-plum-118-ml.jpg",
+              "width": 381
+            },
+            "position": "1",
+            "small": {
+              "height": 127,
+              "url": "https://www.colpaertonline.be/174599-small_default/mayco-fundamentals-plum-118-ml.jpg",
+              "width": 98
+            }
+          }
+        ],
+        "indexed": "1",
+        "is_customizable": false,
+        "is_virtual": "0",
+        "link": "https://www.colpaertonline.be/fr/liquide/12474-mayco-fundamentals-plum-118-ml.html",
+        "link_rewrite": "mayco-fundamentals-plum-118-ml",
+        "low_stock_alert": "0",
+        "low_stock_threshold": null,
+        "meta_description": "",
+        "meta_keywords": "",
+        "meta_title": "",
+        "minimal_quantity": "1",
+        "name": "MAYCO FUNDAMENTALS PLUM 118 ML",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": "0",
+        "online_only": "0",
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": "3",
+        "price": "7,50 €",
+        "price_amount": 7.5,
+        "price_tax_exc": 6.19835,
+        "price_without_reduction": 7.500004,
+        "quantity": 12,
+        "quantity_all_versions": 12,
+        "quantity_discounts": [],
+        "quantity_label": "Produits",
+        "quantity_wanted": 1,
+        "rate": 21,
+        "redirect_type": "404",
+        "reduction": 0,
+        "reference": "UG225K",
+        "show_availability": true,
+        "show_condition": "0",
+        "show_price": "1",
+        "show_quantities": false,
+        "specific_prices": false,
+        "tax_name": "TVA BE 21%",
+        "text_fields": "0",
+        "unit_price": "",
+        "unit_price_full": "",
+        "unit_price_ratio": "0.000000",
+        "unity": "",
+        "uploadable_files": "0",
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "colpaert-online",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-08-05 08:17:15",
+      "stock_quantity": 12,
+      "supplier_reference": "UG225K",
+      "surface": null,
+      "technical_attributes": {
+        "Contenu": "118 ml",
+        "Couleur principale": "Paars",
+        "Marque": "Mayco",
+        "Sécurité alimentaire": "Ja, indien transparant geglazu",
+        "Temperature": "999°C-1285°C"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 63.5593
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "prestashop",
+  "source": "colpaert-online",
+  "truncated": false
+}

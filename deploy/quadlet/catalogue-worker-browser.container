@@ -1,0 +1,40 @@
+# The browser-capable worker: `ceramicolours` and `keramik-kraft` need camoufox.
+#
+# A separate image and a single instance. camoufox dominates the image size and
+# the process memory, and only two of the eighty sources require it — which is
+# the whole reason jobs declare `requires = {'browser'}` and plain workers
+# cannot claim them.
+[Unit]
+Description=Ceramics catalogue worker (browser)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=localhost/catalogue-worker-browser:${CATALOGUE_VERSION}
+ContainerName=catalogue-worker-browser
+EnvironmentFile=/etc/catalogue/catalogue.env
+Volume=catalogue-cache.volume:/var/lib/catalogue/cache
+Volume=catalogue-dumps.volume:/var/lib/catalogue/dumps
+PublishPort=127.0.0.1:9119:9109
+Environment=CATALOGUE_LOG_JSON=true
+# camoufox needs a writable /tmp and rather more shared memory than the default
+# 64 MB; below that it dies partway through rendering with an opaque error.
+Tmpfs=/tmp
+ShmSize=512m
+# It leaks across jobs, so the process is recycled rather than trusted to run
+# for a week. `Restart=always` plus this makes the recycle routine.
+Environment=CATALOGUE_MAX_JOBS=25
+HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:9109/health')"
+HealthInterval=30s
+HealthStartPeriod=30s
+HealthRetries=3
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+RestartSec=15
+TimeoutStopSec=180
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

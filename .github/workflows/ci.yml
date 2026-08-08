@@ -1,0 +1,153 @@
+# Lint, types, contracts and tests for the ceramics catalogue pipeline.
+#
+# Four jobs rather than one, because they answer different questions and fail
+# for different reasons. `check` is fast and runs on every push. `postgres`
+# needs a database. `golden` replays ten thousand recorded responses to prove
+# the collection output has not moved, which takes minutes and is the thing the
+# refactor is checked against.
+name: catalogue-ceramics
+
+on:
+  pull_request:
+    paths: ["catalogue-ceramics/**", ".github/workflows/ci.yml"]
+  push:
+    branches: [main]
+    paths: ["catalogue-ceramics/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catalogue-ceramics-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: catalogue-ceramics
+
+jobs:
+  check:
+    name: Lint, types, contracts and unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor declared in requires-python, and the version the project is
+        # developed on. A `type` statement or a 3.12-only builtin would pass
+        # locally and break the image, so the floor is exercised rather than
+        # asserted.
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: catalogue-ceramics/**/uv.lock
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: catalogue-ceramics/catalogue-explorer/package-lock.json
+      - name: Sync every project
+        run: |
+          for project in catalogue-dump catalogue-control catalogue-service; do
+            uv --directory "$project" sync --all-groups --python ${{ matrix.python }}
+          done
+          cd catalogue-explorer && npm ci
+      - run: make lint
+      - run: make typecheck
+      - run: make test
+      # Never hand-edit a generated OpenAPI document. This is what stops
+      # "regenerate it later" from becoming "the spec is six months old".
+      - name: Check the generated contracts have not drifted
+        run: make openapi-check
+
+  postgres:
+    name: Queue, edges, run closure and the control API
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: catalogue-ceramics/**/uv.lock
+      - name: Sync
+        run: |
+          uv --directory catalogue-dump sync --all-groups
+          uv --directory catalogue-control sync --all-groups
+      - name: Run the database-backed suites
+        run: make test-postgres
+        env:
+          # These drop and recreate the `catalogue` schema, so this must be a
+          # database nothing else is using. A CI service container is.
+          PGTEST_DSN: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+
+  golden:
+    name: Replay the recorded catalogue
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The response cache is large and stored with Git LFS. Without it the
+          # golden tests skip rather than fail, which would make a missing cache
+          # look like a passing build.
+          lfs: true
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: catalogue-ceramics/catalogue-dump/uv.lock
+      - name: Sync
+        run: uv --directory catalogue-dump sync --all-groups
+      - name: Replay every cached source
+        run: make test-golden
+      - name: Keep the differing output for inspection
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-replay-diff
+          path: /tmp/golden-*/
+          if-no-files-found: ignore
+
+  images:
+    name: Build the images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      # Built but not pushed: this proves the Dockerfiles still work against the
+      # current source, which a compose file alone does not.
+      - name: Worker
+        uses: docker/build-push-action@v6
+        with:
+          context: catalogue-ceramics
+          file: catalogue-ceramics/docker/worker/Dockerfile
+          target: worker
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Control
+        uses: docker/build-push-action@v6
+        with:
+          context: catalogue-ceramics
+          file: catalogue-ceramics/docker/control/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Read API
+        uses: docker/build-push-action@v6
+        with:
+          context: catalogue-ceramics
+          file: catalogue-ceramics/catalogue-service/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,0 +1,921 @@
+{
+  "digest": "766938f87f4e882de0c8fb762b36629e991c0185847e3b0b41b020e502c1e68b",
+  "discovered": 1242,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "api_json",
+  "field_coverage": {
+    "all_image_urls": 1274,
+    "brand": 281,
+    "category_path": 1276,
+    "claims": 675,
+    "colour": 504,
+    "description": 1276,
+    "documents": 0,
+    "effects": 222,
+    "family": 1276,
+    "firing": 1264,
+    "form": 1227,
+    "gtin": 0,
+    "manufacturer_sku": 267,
+    "package_size": 1232,
+    "stock_quantity": 0,
+    "supplier_reference": 1276,
+    "surface": 376,
+    "unit_price": 1232,
+    "vat_status": 1276
+  },
+  "notes": [
+    "1 variable products returned no variations"
+  ],
+  "records": 1276,
+  "rendered_pages": 0,
+  "requests": 21,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06.png",
+        "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6.png"
+      ],
+      "application_methods": [
+        "pouring"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "emaux-engobes-et-oxydes",
+        "Émaux liquide",
+        "Émaux Mayco",
+        "Émaux par couleur",
+        "Émaux, engobes et oxydes",
+        "Jaune",
+        "Orange",
+        "Série Jungle Gems"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "C’est un émail sans plomb prêts à l’emploi.",
+          "type": "lead_free"
+        }
+      ],
+      "coats": {
+        "evidence": "3 couches",
+        "maximum": 3,
+        "minimum": 3
+      },
+      "colour": {
+        "basis": "product_name",
+        "name": "Émail liquide Wildfire CG-954"
+      },
+      "currency": "EUR",
+      "description": "Émail liquide Wildfire CG-954 L’émail liquide CG-954 Wildfire de Mayco est un orange à effet, faisant partie de la gamme Série Jungle Gems™ Crystal Glazes. C’est un émail sans plomb prêts à l’emploi. L’application s’effectue sur terre biscuitée, en 2 ou 3 couches. Laisser sécher entre chaque couche. Remuer en cours d’application car les cristaux ont tendance à se déposer au fond du pot. Éviter de positionner des cristaux trop vers le bas car en se développant ils risqueraient de coller sur les plaques du four. Les couleurs sont miscibles entre elles. Pot de 118 ml. Cuissons de 980°C à 1280°C (cônes 06 à 10) – La température de cuisson dépendra de l’argile qui sert de support. Les émaux Jungle Gems™ Crystal Glazes sont déconseillés pour de la vaisselle car leur surface peut présenter des craquelures ou des crevasses.",
+      "documents": null,
+      "effects": null,
+      "external_id": "solutions-ceramiques:https://www.solutions-ceramiques.com/produit/email-liquide-wildfire-cg-954-118-ml/",
+      "extraction_method": "api_json",
+      "family": "engobe",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "980°C à 1280°C",
+        "max_celsius": 1280,
+        "min_celsius": 980
+      },
+      "form": "liquid",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06.png",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Émail liquide Wildfire CG-954",
+      "name_parsed_from": [
+        "118 ml"
+      ],
+      "name_raw": "Émail liquide Wildfire CG-954 118 ml",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "118 ml",
+        "millilitres": 118.0,
+        "unit": "ml",
+        "value": 118.0
+      },
+      "parent_external_id": "solutions-ceramiques:https://www.solutions-ceramiques.com/produit/email-liquide-wildfire-cg-954-118-ml/",
+      "price": 9.0,
+      "price_text": "9,00 € TTC",
+      "product_name": "Émail liquide Wildfire CG-954 118 ml",
+      "product_url": "https://www.solutions-ceramiques.com/produit/email-liquide-wildfire-cg-954-118-ml/",
+      "raw": {
+        "_category_slug": "emaux-engobes-et-oxydes",
+        "_links": {
+          "collection": [
+            {
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products?related=17679&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products/17679",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ],
+          "upsells": [
+            {
+              "embeddable": true,
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products?include=7555"
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Ajouter au panier : &ldquo;Émail liquide Wildfire CG-954 118 ml&rdquo;",
+          "maximum": 3,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Ajouter au panier",
+          "text": "Ajouter au panier",
+          "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;category=627&#038;add-to-cart=17679"
+        },
+        "attributes": [
+          {
+            "has_variations": true,
+            "id": 25,
+            "name": "Contenance",
+            "taxonomy": "pa_contenance",
+            "terms": [
+              {
+                "id": 675,
+                "name": "118 ml",
+                "slug": "118-ml"
+              }
+            ]
+          }
+        ],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 628,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-liquide/",
+            "name": "Émaux liquide",
+            "slug": "emaux-liquide"
+          },
+          {
+            "id": 629,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-liquide/emaux-mayco/",
+            "name": "Émaux Mayco",
+            "slug": "emaux-mayco"
+          },
+          {
+            "id": 774,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-par-couleur/",
+            "name": "Émaux par couleur",
+            "slug": "emaux-par-couleur"
+          },
+          {
+            "id": 627,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/",
+            "name": "Émaux, engobes et oxydes",
+            "slug": "emaux-engobes-et-oxydes"
+          },
+          {
+            "id": 789,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-par-couleur/emaux-jaune/",
+            "name": "Jaune",
+            "slug": "emaux-jaune"
+          },
+          {
+            "id": 790,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-par-couleur/emaux-orange/",
+            "name": "Orange",
+            "slug": "emaux-orange"
+          },
+          {
+            "id": 702,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-liquide/emaux-mayco/serie-jungle-gems/",
+            "name": "Série Jungle Gems",
+            "slug": "serie-jungle-gems"
+          }
+        ],
+        "description": "<h2>Émail liquide Wildfire CG-954</h2>\n<p>L&rsquo;émail liquide CG-954 Wildfire de Mayco est un orange à effet, faisant partie de la gamme Série Jungle Gems&#x2122; Crystal Glazes.</p>\n<p>C&rsquo;est un émail <strong>sans plomb</strong> prêts à l&#8217;emploi.</p>\n<p>L’application s’effectue sur terre biscuitée, en 2 ou 3 couches. Laisser sécher entre chaque couche. Remuer en cours d’application car les cristaux ont tendance à se déposer au fond du pot. Éviter de positionner des cristaux trop vers le bas car en se développant ils risqueraient de coller sur les plaques du four.</p>\n<p>Les couleurs sont miscibles entre elles.</p>\n<p>Pot de 118 ml.</p>\n<p>Cuissons de 980°C à 1280°C (cônes 06 à 10) &#8211; La température de cuisson dépendra de l&rsquo;argile qui sert de support.</p>\n<p>Les émaux Jungle Gems&#x2122; Crystal Glazes sont déconseillés pour de la vaisselle car leur surface peut présenter des craquelures ou des crevasses.</p>",
+        "dimensions": {
+          "height": "100",
+          "length": "100",
+          "width": "100"
+        },
+        "extensions": {},
+        "formatted_dimensions": "100 × 100 × 100 mm",
+        "formatted_weight": "0,2 kg",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 17679,
+        "images": [
+          {
+            "alt": "CG-954 cone06",
+            "id": 7776,
+            "name": "CG-954 cone06",
+            "sizes": "(max-width: 400px) 100vw, 400px",
+            "src": "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06.png",
+            "srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06.png 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06-150x150.png 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06-300x300.png 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06-100x100.png 100w",
+            "thumbnail": "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06.png",
+            "thumbnail_sizes": "(max-width: 400px) 100vw, 400px",
+            "thumbnail_srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06.png 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06-150x150.png 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06-300x300.png 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954-cone06-100x100.png 100w"
+          },
+          {
+            "alt": "CG-954_cone6",
+            "id": 7777,
+            "name": "CG-954_cone6",
+            "sizes": "(max-width: 400px) 100vw, 400px",
+            "src": "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6.png",
+            "srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6.png 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6-150x150.png 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6-300x300.png 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6-100x100.png 100w",
+            "thumbnail": "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6.png",
+            "thumbnail_sizes": "(max-width: 400px) 100vw, 400px",
+            "thumbnail_srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6.png 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6-150x150.png 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6-300x300.png 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2023/03/CG-954_cone6-100x100.png 100w"
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": true,
+        "low_stock_remaining": null,
+        "name": "Émail liquide Wildfire CG-954 118 ml",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://www.solutions-ceramiques.com/produit/email-liquide-wildfire-cg-954-118-ml/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\">9,00&nbsp;<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> <small class=\"woocommerce-price-suffix\">TTC</small>",
+        "prices": {
+          "currency_code": "EUR",
+          "currency_decimal_separator": ",",
+          "currency_minor_unit": 2,
+          "currency_prefix": "",
+          "currency_suffix": " €",
+          "currency_symbol": "€",
+          "currency_thousand_separator": "",
+          "price": "900",
+          "price_range": null,
+          "regular_price": "900",
+          "sale_price": "900"
+        },
+        "review_count": 0,
+        "short_description": "<p>Email prêt à l&#8217;emploi &#8211; CG-954 &#8211; Wildfire.</p>\n<p>La première image correspond à une cuisson à 1000°C.</p>\n<p>La deuxième image correspond à une cuisson à 1230°C.</p>",
+        "sku": "CG-954-118",
+        "slug": "email-liquide-wildfire-cg-954-118-ml",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": "En stock"
+        },
+        "tags": [
+          {
+            "id": 574,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/email/",
+            "name": "Émail",
+            "slug": "email"
+          },
+          {
+            "id": 661,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/liquide/",
+            "name": "liquide",
+            "slug": "liquide"
+          },
+          {
+            "id": 657,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/mayco/",
+            "name": "Mayco",
+            "slug": "mayco"
+          }
+        ],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0.200"
+      },
+      "source": "solutions-ceramiques",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "CG-954-118",
+      "surface": null,
+      "technical_attributes": {
+        "Contenance": "118 ml"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 76.2712
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016.jpg",
+        "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6.jpg"
+      ],
+      "application_methods": [
+        "pouring"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "emaux-engobes-et-oxydes",
+        "Blanc",
+        "Bleu",
+        "Émaux liquide",
+        "Émaux Mayco",
+        "Émaux par couleur",
+        "Émaux, engobes et oxydes",
+        "Série Jungle Gems",
+        "Vert"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "C’est un émail sans plomb prêts à l’emploi.",
+          "type": "lead_free"
+        }
+      ],
+      "coats": {
+        "evidence": "3 couches",
+        "maximum": 3,
+        "minimum": 3
+      },
+      "colour": {
+        "basis": "product_name",
+        "name": "Émail liquide Asteroid CG-1016"
+      },
+      "currency": "EUR",
+      "description": "Émail liquide Asteroid CG-1016 L’émail liquide CG-1016 Asteroid de Mayco est un gris à effet, faisant partie de la gamme Série Jungle Gems™ Crystal Glazes. C’est un émail sans plomb prêts à l’emploi. L’application s’effectue sur terre biscuitée, en 2 ou 3 couches. Laisser sécher entre chaque couche. Remuer en cours d’application car les cristaux ont tendance à se déposer au fond du pot. Éviter de positionner des cristaux trop vers le bas car en se développant ils risqueraient de coller sur les plaques du four. Les couleurs sont miscibles entre elles. Pot de 118 ml. Cuissons de 980°C à 1280°C (cônes 06 à 10) – La température de cuisson dépendra de l’argile qui sert de support. Les émaux Jungle Gems™ Crystal Glazes sont déconseillés pour de la vaisselle car leur surface peut présenter des craquelures ou des crevasses.",
+      "documents": null,
+      "effects": null,
+      "external_id": "solutions-ceramiques:https://www.solutions-ceramiques.com/produit/email-liquide-asteroid-cg-1016-118-ml/",
+      "extraction_method": "api_json",
+      "family": "engobe",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "980°C à 1280°C",
+        "max_celsius": 1280,
+        "min_celsius": 980
+      },
+      "form": "liquid",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Émail liquide Asteroid CG-1016",
+      "name_parsed_from": [
+        "118 ml"
+      ],
+      "name_raw": "Émail liquide Asteroid CG-1016 118 ml",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "118 ml",
+        "millilitres": 118.0,
+        "unit": "ml",
+        "value": 118.0
+      },
+      "parent_external_id": "solutions-ceramiques:https://www.solutions-ceramiques.com/produit/email-liquide-asteroid-cg-1016-118-ml/",
+      "price": 9.0,
+      "price_text": "9,00 € TTC",
+      "product_name": "Émail liquide Asteroid CG-1016 118 ml",
+      "product_url": "https://www.solutions-ceramiques.com/produit/email-liquide-asteroid-cg-1016-118-ml/",
+      "raw": {
+        "_category_slug": "emaux-engobes-et-oxydes",
+        "_links": {
+          "collection": [
+            {
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products?related=17677&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products/17677",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ],
+          "upsells": [
+            {
+              "embeddable": true,
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products?include=15912"
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Ajouter au panier : &ldquo;Émail liquide Asteroid CG-1016 118 ml&rdquo;",
+          "maximum": 2,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Ajouter au panier",
+          "text": "Ajouter au panier",
+          "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;category=627&#038;add-to-cart=17677"
+        },
+        "attributes": [
+          {
+            "has_variations": true,
+            "id": 25,
+            "name": "Contenance",
+            "taxonomy": "pa_contenance",
+            "terms": [
+              {
+                "id": 675,
+                "name": "118 ml",
+                "slug": "118-ml"
+              }
+            ]
+          }
+        ],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 788,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-par-couleur/emaux-blanc/",
+            "name": "Blanc",
+            "slug": "emaux-blanc"
+          },
+          {
+            "id": 775,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-par-couleur/emaux-bleu/",
+            "name": "Bleu",
+            "slug": "emaux-bleu"
+          },
+          {
+            "id": 628,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-liquide/",
+            "name": "Émaux liquide",
+            "slug": "emaux-liquide"
+          },
+          {
+            "id": 629,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-liquide/emaux-mayco/",
+            "name": "Émaux Mayco",
+            "slug": "emaux-mayco"
+          },
+          {
+            "id": 774,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-par-couleur/",
+            "name": "Émaux par couleur",
+            "slug": "emaux-par-couleur"
+          },
+          {
+            "id": 627,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/",
+            "name": "Émaux, engobes et oxydes",
+            "slug": "emaux-engobes-et-oxydes"
+          },
+          {
+            "id": 702,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-liquide/emaux-mayco/serie-jungle-gems/",
+            "name": "Série Jungle Gems",
+            "slug": "serie-jungle-gems"
+          },
+          {
+            "id": 793,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-par-couleur/emaux-vert/",
+            "name": "Vert",
+            "slug": "emaux-vert"
+          }
+        ],
+        "description": "<h2>Émail liquide Asteroid CG-1016</h2>\n<p>L&rsquo;émail liquide CG-1016 Asteroid de Mayco est un gris à effet, faisant partie de la gamme Série Jungle Gems&#x2122; Crystal Glazes.</p>\n<p>C&rsquo;est un émail <strong>sans plomb</strong> prêts à l&#8217;emploi.</p>\n<p>L’application s’effectue sur terre biscuitée, en 2 ou 3 couches. Laisser sécher entre chaque couche. Remuer en cours d’application car les cristaux ont tendance à se déposer au fond du pot. Éviter de positionner des cristaux trop vers le bas car en se développant ils risqueraient de coller sur les plaques du four.</p>\n<p>Les couleurs sont miscibles entre elles.</p>\n<p>Pot de 118 ml.</p>\n<p>Cuissons de 980°C à 1280°C (cônes 06 à 10) &#8211; La température de cuisson dépendra de l&rsquo;argile qui sert de support.</p>\n<p>Les émaux Jungle Gems&#x2122; Crystal Glazes sont déconseillés pour de la vaisselle car leur surface peut présenter des craquelures ou des crevasses.</p>",
+        "dimensions": {
+          "height": "100",
+          "length": "100",
+          "width": "100"
+        },
+        "extensions": {},
+        "formatted_dimensions": "100 × 100 × 100 mm",
+        "formatted_weight": "0,2 kg",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 17677,
+        "images": [
+          {
+            "alt": "cg1016",
+            "id": 15930,
+            "name": "cg1016",
+            "sizes": "(max-width: 400px) 100vw, 400px",
+            "src": "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016.jpg",
+            "srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016.jpg 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016-150x150.jpg 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016-300x300.jpg 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016-100x100.jpg 100w",
+            "thumbnail": "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016.jpg",
+            "thumbnail_sizes": "(max-width: 400px) 100vw, 400px",
+            "thumbnail_srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016.jpg 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016-150x150.jpg 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016-300x300.jpg 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016-100x100.jpg 100w"
+          },
+          {
+            "alt": "cg1016_cone6",
+            "id": 15944,
+            "name": "cg1016_cone6",
+            "sizes": "(max-width: 400px) 100vw, 400px",
+            "src": "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6.jpg",
+            "srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6.jpg 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6-150x150.jpg 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6-300x300.jpg 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6-100x100.jpg 100w",
+            "thumbnail": "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6.jpg",
+            "thumbnail_sizes": "(max-width: 400px) 100vw, 400px",
+            "thumbnail_srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6.jpg 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6-150x150.jpg 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6-300x300.jpg 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2026/02/cg1016_cone6-100x100.jpg 100w"
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": true,
+        "low_stock_remaining": null,
+        "name": "Émail liquide Asteroid CG-1016 118 ml",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://www.solutions-ceramiques.com/produit/email-liquide-asteroid-cg-1016-118-ml/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\">9,00&nbsp;<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> <small class=\"woocommerce-price-suffix\">TTC</small>",
+        "prices": {
+          "currency_code": "EUR",
+          "currency_decimal_separator": ",",
+          "currency_minor_unit": 2,
+          "currency_prefix": "",
+          "currency_suffix": " €",
+          "currency_symbol": "€",
+          "currency_thousand_separator": "",
+          "price": "900",
+          "price_range": null,
+          "regular_price": "900",
+          "sale_price": "900"
+        },
+        "review_count": 0,
+        "short_description": "<p>Email prêt à l&#8217;emploi &#8211; CG-1016 &#8211; Asteroid.</p>\n<p>La première image correspond à une cuisson à 1000°C.</p>\n<p>La deuxième image correspond à une cuisson à 1230°C.</p>",
+        "sku": "CG-1016-118",
+        "slug": "email-liquide-asteroid-cg-1016-118-ml",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": "En stock"
+        },
+        "tags": [
+          {
+            "id": 574,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/email/",
+            "name": "Émail",
+            "slug": "email"
+          },
+          {
+            "id": 661,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/liquide/",
+            "name": "liquide",
+            "slug": "liquide"
+          },
+          {
+            "id": 657,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/mayco/",
+            "name": "Mayco",
+            "slug": "mayco"
+          }
+        ],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0.200"
+      },
+      "source": "solutions-ceramiques",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "CG-1016-118",
+      "surface": null,
+      "technical_attributes": {
+        "Contenance": "118 ml"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 76.2712
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3.png",
+        "https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101.png"
+      ],
+      "application_methods": [
+        "brushing",
+        "pouring"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": "Mayco",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "emaux-engobes-et-oxydes",
+        "Couverte transparente basse temperature",
+        "Émaux liquide",
+        "Émaux Mayco",
+        "Émaux, engobes et oxydes"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Couverte sans plomb prête à l’emploi – Application en 2 ou 3 couches.",
+          "type": "lead_free"
+        }
+      ],
+      "coats": {
+        "evidence": "3 couches",
+        "maximum": 3,
+        "minimum": 3
+      },
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Transparent"
+      },
+      "currency": "EUR",
+      "description": "Couverte sans plomb prête à l’emploi – Application en 2 ou 3 couches. Laisser sécher entre les couches. Cuisson possible entre 980°C et 1050°C (Essais conseillés) – La température de cuisson dépendra de l’argile qui sert de support. Et de l’aspect souhaité pour l’émail. Mode d’emploi : Remuez le pot de façon énergique avant de l’utiliser. Application de l’éponge : Plonger une éponge propre dans l’émail et tamponner une couche sur les couleurs de la surface à recouvrir. Après que la couche épongée ai complètement séchée, émailler le reste. Application au pinceau : Chargez votre pinceau et appliquez deux couches fluides. Laisser sécher entre les couches. Laissez les articles sécher complètement et faites cuire entre 1000°C et 1040°C. Plus la température sera élevée, meilleur sera le nappage et plus les contrastent apparaîtront sur les reliefs.",
+      "documents": null,
+      "effects": [
+        "transparent"
+      ],
+      "external_id": "solutions-ceramiques:https://www.solutions-ceramiques.com/produit/email-mayco-transparent-brillant-s-2101/",
+      "extraction_method": "api_json",
+      "family": "engobe",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "980°C et 1050°C",
+        "max_celsius": 1050,
+        "min_celsius": 980
+      },
+      "form": "liquid",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3.png",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Émail Mayco transparent brillant S-2101 (473ml)",
+      "name_parsed_from": [
+        "Mayco"
+      ],
+      "name_raw": "Émail Mayco transparent brillant S-2101 (473ml)",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "473ml",
+        "millilitres": 473.0,
+        "unit": "ml",
+        "value": 473.0
+      },
+      "parent_external_id": "solutions-ceramiques:https://www.solutions-ceramiques.com/produit/email-mayco-transparent-brillant-s-2101/",
+      "price": 15.66,
+      "price_text": "15,66 € TTC",
+      "product_name": "Émail Mayco transparent brillant S-2101 (473ml)",
+      "product_url": "https://www.solutions-ceramiques.com/produit/email-mayco-transparent-brillant-s-2101/",
+      "raw": {
+        "_category_slug": "emaux-engobes-et-oxydes",
+        "_links": {
+          "collection": [
+            {
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products?related=4734&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://www.solutions-ceramiques.com/wp-json/wc/store/v1/products/4734",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Ajouter au panier : &ldquo;Émail Mayco transparent brillant S-2101 (473ml)&rdquo;",
+          "maximum": 18,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Ajouter au panier",
+          "text": "Ajouter au panier",
+          "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=13&#038;category=627&#038;add-to-cart=4734"
+        },
+        "attributes": [
+          {
+            "has_variations": false,
+            "id": 29,
+            "name": "Finition",
+            "taxonomy": "pa_finition",
+            "terms": [
+              {
+                "id": 723,
+                "name": "Brillante",
+                "slug": "brillante"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 28,
+            "name": "Couleur",
+            "taxonomy": "pa_couleur",
+            "terms": [
+              {
+                "id": 1088,
+                "name": "Transparent",
+                "slug": "transparent"
+              }
+            ]
+          }
+        ],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 1134,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/couverte-transparente/couverte-transparente-basse-temperature/",
+            "name": "Couverte transparente basse temperature",
+            "slug": "couverte-transparente-basse-temperature"
+          },
+          {
+            "id": 628,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-liquide/",
+            "name": "Émaux liquide",
+            "slug": "emaux-liquide"
+          },
+          {
+            "id": 629,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/emaux-liquide/emaux-mayco/",
+            "name": "Émaux Mayco",
+            "slug": "emaux-mayco"
+          },
+          {
+            "id": 627,
+            "link": "https://www.solutions-ceramiques.com/categorie-produit/emaux-engobes-et-oxydes/",
+            "name": "Émaux, engobes et oxydes",
+            "slug": "emaux-engobes-et-oxydes"
+          }
+        ],
+        "description": "<p>Couverte <strong>sans plomb</strong> prête à l’emploi &#8211; Application en 2 ou 3 couches. Laisser sécher entre les couches.<br />\nCuisson possible entre 980°C et 1050°C (Essais conseillés) &#8211; La température de cuisson dépendra de l’argile qui sert de support. Et de l&rsquo;aspect souhaité pour l&rsquo;émail.</p>\n<p>Mode d&#8217;emploi :</p>\n<ol>\n<li>Remuez le pot de façon énergique avant de l&rsquo;utiliser.</li>\n<li>Application de l’éponge : Plonger une éponge propre dans l&rsquo;émail et tamponner une couche sur les couleurs de la surface à recouvrir. Après que la couche épongée ai complètement séchée, émailler le reste.</li>\n<li>Application au pinceau : Chargez votre pinceau et appliquez deux couches fluides. Laisser sécher entre les couches.</li>\n<li>Laissez les articles sécher complètement et faites cuire entre 1000°C et 1040°C. Plus la température sera élevée, meilleur sera le nappage et plus les contrastent apparaîtront sur les reliefs.</li>\n</ol>",
+        "dimensions": {
+          "height": "15",
+          "length": "15",
+          "width": "5"
+        },
+        "extensions": {},
+        "formatted_dimensions": "15 × 5 × 15 mm",
+        "formatted_weight": "0,6 kg",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 4734,
+        "images": [
+          {
+            "alt": "S2101",
+            "id": 15321,
+            "name": "S2101",
+            "sizes": "(max-width: 400px) 100vw, 400px",
+            "src": "https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3.png",
+            "srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3.png 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3-150x150.png 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3-300x300.png 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3-100x100.png 100w",
+            "thumbnail": "https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3.png",
+            "thumbnail_sizes": "(max-width: 400px) 100vw, 400px",
+            "thumbnail_srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3.png 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3-150x150.png 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3-300x300.png 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/04/Design-sans-titre3-100x100.png 100w"
+          },
+          {
+            "alt": "Couverte transparente Mayco",
+            "id": 5385,
+            "name": "Couverte transparente Mayco",
+            "sizes": "(max-width: 400px) 100vw, 400px",
+            "src": "https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101.png",
+            "srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101.png 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101-150x150.png 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101-300x300.png 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101-100x100.png 100w",
+            "thumbnail": "https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101.png",
+            "thumbnail_sizes": "(max-width: 400px) 100vw, 400px",
+            "thumbnail_srcset": "https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101.png 400w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101-150x150.png 150w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101-300x300.png 300w, https://www.solutions-ceramiques.com/wp-content/uploads/2022/10/s-2101-100x100.png 100w"
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": true,
+        "low_stock_remaining": null,
+        "name": "Émail Mayco transparent brillant S-2101 (473ml)",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://www.solutions-ceramiques.com/produit/email-mayco-transparent-brillant-s-2101/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\">15,66&nbsp;<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> <small class=\"woocommerce-price-suffix\">TTC</small>",
+        "prices": {
+          "currency_code": "EUR",
+          "currency_decimal_separator": ",",
+          "currency_minor_unit": 2,
+          "currency_prefix": "",
+          "currency_suffix": " €",
+          "currency_symbol": "€",
+          "currency_thousand_separator": "",
+          "price": "1566",
+          "price_range": null,
+          "regular_price": "1566",
+          "sale_price": "1566"
+        },
+        "review_count": 0,
+        "short_description": "<p>Couverte <strong>sans plomb</strong> prête à l’emploi &#8211; Application en 2 ou 3 couches. Laisser sécher entre les couches.<br />\nCuisson possible entre 980°C et 1050°C (Essais conseillés) &#8211; La température de cuisson dépendra de l’argile qui sert de support.</p>",
+        "sku": "S-2101-473",
+        "slug": "email-mayco-transparent-brillant-s-2101",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": "En stock"
+        },
+        "tags": [
+          {
+            "id": 1177,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/473-ml/",
+            "name": "473 ml",
+            "slug": "473-ml"
+          },
+          {
+            "id": 633,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/brillant/",
+            "name": "brillant",
+            "slug": "brillant"
+          },
+          {
+            "id": 661,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/liquide/",
+            "name": "liquide",
+            "slug": "liquide"
+          },
+          {
+            "id": 657,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/mayco/",
+            "name": "Mayco",
+            "slug": "mayco"
+          },
+          {
+            "id": 1081,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/s2101/",
+            "name": "S2101",
+            "slug": "s2101"
+          },
+          {
+            "id": 660,
+            "link": "https://www.solutions-ceramiques.com/etiquette-produit/transparent/",
+            "name": "transparent",
+            "slug": "transparent"
+          }
+        ],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0.6"
+      },
+      "source": "solutions-ceramiques",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "S-2101-473",
+      "surface": "gloss",
+      "technical_attributes": {
+        "Couleur": "Transparent",
+        "Finition": "Brillante"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 33.1078
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "woocommerce",
+  "source": "solutions-ceramiques",
+  "truncated": false
+}

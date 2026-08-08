@@ -1,0 +1,91 @@
+[project]
+name = "ateliera-catalogue-control"
+version = "0.2.0"
+description = "Operator control plane for the ceramics catalogue: runs, jobs, workers and the live stream"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  # Starlette rather than the stdlib. `catalogue-service`'s "no framework for
+  # one view" argument is right for a read API over one view and wrong here:
+  # SSE over a `listen` connection with per-subscriber fan-out is materially
+  # more than a request/response loop, and hand-rolling it on
+  # ThreadingHTTPServer would be more code to audit, not less.
+  "starlette>=0.41,<1",
+  "uvicorn[standard]>=0.32,<1",
+  "psycopg[binary,pool]>=3.2,<4",
+  "pydantic>=2.9,<3",
+  "pydantic-settings>=2.6,<3",
+  "structlog>=24.4",
+  # The run-parameter and source models are shared with the collector, so a run
+  # created over HTTP and one started from the CLI cannot disagree about what a
+  # valid run is.
+  "ateliera-catalogue",
+]
+
+[project.scripts]
+catalogue-control = "catalogue_control.__main__:main"
+catalogue-ops-openapi = "catalogue_control.generate:main"
+catalogue-ops-types = "catalogue_control.typescript:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "httpx>=0.27",
+  "ruff>=0.8",
+  "mypy>=1.13",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/catalogue_control"]
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+ateliera-catalogue = { path = "../catalogue-dump", editable = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-m 'not postgres'"
+markers = [
+  "postgres: needs a live PostgreSQL; skipped when CATALOGUE_TEST_DSN is unset",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+src = ["src", "tests"]
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RUF", "BLE", "ASYNC"]
+ignore = ["E501", "SIM108", "RUF001", "RUF002", "RUF003", "ASYNC240"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["BLE", "B011", "ASYNC109", "ASYNC110"]
+
+[tool.mypy]
+files = ["src/catalogue_control", "tests"]
+mypy_path = "src"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+strict_equality = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+
+# The service is checked strictly; the tests are not. Annotating every
+# `async def test_...(self, client)` with its fixture types is noise that makes
+# the tests harder to read and catches nothing — a wrong fixture type fails the
+# test immediately and loudly.
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true

@@ -1,0 +1,203 @@
+[project]
+name = "ateliera-catalogue"
+version = "0.2.0"
+description = "Collection, loading and scheduled operation of the ceramics reference catalogue"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  # Cron expressions for `catalogue.schedules`. A five-field parser is eighty
+  # lines and gets DST wrong in ways nobody notices until the clocks change.
+  "croniter>=6.0",
+  "httpx>=0.27,<1",
+  "pydantic>=2.9,<3",
+  "pydantic-settings>=2.6,<3",
+  "structlog>=24.4",
+]
+
+[project.optional-dependencies]
+# The terminal displays. A worker in a container has no terminal and should not
+# carry rich or textual, so they are not a hard dependency of the package.
+tui = [
+  "rich>=15.0.0",
+  "textual>=8.2.8",
+]
+# Everything that talks to PostgreSQL: the loader, the worker and the sinks.
+postgres = [
+  "psycopg[binary,pool]>=3.2,<4",
+]
+# Camoufox is most of the image size, and only two sources need it (§5.5).
+browser = [
+  "camoufox>=0.5,<0.6",
+]
+# Wired always, exporting only when OTEL_EXPORTER_OTLP_ENDPOINT is set (§4.7).
+otel = [
+  "opentelemetry-api>=1.27",
+  "opentelemetry-sdk>=1.27",
+  "opentelemetry-instrumentation-httpx>=0.48b0",
+  "opentelemetry-exporter-otlp-proto-http>=1.27",
+]
+all = [
+  "ateliera-catalogue[tui,postgres,browser,otel]",
+]
+
+[project.scripts]
+catalogue-dump = "ateliera_catalogue.cli.dump:main"
+catalogue-load = "ateliera_catalogue.cli.load:main"
+catalogue-probe = "ateliera_catalogue.cli.probe:main"
+catalogue-worker = "ateliera_catalogue.cli.worker:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "ruff>=0.8",
+  "mypy>=1.13",
+  "ateliera-catalogue[tui,postgres,browser,otel]",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ateliera_catalogue"]
+
+[tool.hatch.build.targets.wheel.force-include]
+# sources.json is data the package reads at runtime, not a development file.
+"sources.json" = "ateliera_catalogue/data/sources.json"
+
+[tool.uv]
+# A real package now: `uv sync` installs it in editable mode, so an import
+# resolves through the installed distribution rather than through whichever
+# directory happened to be the working one.
+package = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The suite is a mix of the original unittest classes and plain pytest
+# functions; pytest runs both, so the classes did not need rewriting.
+asyncio_mode = "auto"
+# Replaying every cached source reads ten thousand entries and takes minutes,
+# which is the wrong default for a suite that should be run on every save. CI
+# runs `pytest -m golden` as its own step.
+addopts = "-m 'not golden and not postgres'"
+filterwarnings = ["error::DeprecationWarning:ateliera_catalogue.*"]
+markers = [
+  "golden: replays recorded responses and compares against a frozen dump",
+  "postgres: needs a live PostgreSQL; skipped when CATALOGUE_TEST_DSN is unset",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+src = ["src", "tests"]
+extend-exclude = [".venv", ".cache", "catalogue-dumps*"]
+
+[tool.ruff.lint]
+select = [
+  "E", "F", "W",      # pycodestyle, pyflakes
+  "I",                # import order
+  "UP",               # pyupgrade
+  "B",                # bugbear
+  "C4",               # comprehensions
+  "SIM",              # simplify
+  "RUF",
+  "BLE",              # the blind-except rule the `# noqa: BLE001` comments assume
+  "ASYNC",
+]
+ignore = [
+  "E501",   # line length is enforced by the formatter, not the linter
+  "SIM108", # a ternary is not always clearer than an if
+  "RUF001", # the catalogue is multilingual; ambiguous unicode is the data
+  "RUF002",
+  "RUF003",
+  # This is an asyncio codebase, not a trio one. A `mkdir` in an entry point is
+  # not the blocking call this rule is warning about, and the alternative it
+  # recommends would mean adding anyio to avoid a syscall that takes microseconds.
+  "ASYNC240",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# ASYNC109/110 tell you to take an Event rather than poll with a timeout. That
+# is right for production code and wrong for a test that watches state the code
+# under test owns and does not signal — `Progress.running` is a set, not an
+# event source. The polling helper exists so a bug becomes a red assertion
+# instead of a suite that never finishes.
+"tests/*" = ["BLE", "B011", "C408", "ASYNC109", "ASYNC110"]
+
+# The 4,700 lines of site-specific collection are the asset this whole refactor
+# exists to protect, and the plan's rule is that they move without a line
+# changing. Style rules are therefore switched off for them: reformatting a
+# scraper buys nothing and invalidates the golden file that is the only proof
+# the refactor changed no output. Correctness rules (F, B023, BLE) stay on —
+# they are how the `target` NameError in `Fetcher.render` was found.
+"src/ateliera_catalogue/scrapers/*" = ["SIM", "C4", "B905", "E701"]
+"src/ateliera_catalogue/ui/*" = ["SIM", "C4", "E701"]
+
+# Standalone development aids, imported by nothing and not part of the package
+# in §4.2. They are linted for real faults, not for house style.
+"adapters.py" = ["E701", "B023"]
+"smoke_sources.py" = ["BLE001"]
+"export_speedball.py" = ["E701", "C4", "SIM"]
+"extract_pdf_tiles.py" = ["E701", "C4", "SIM"]
+
+[tool.mypy]
+# Deliberately not pinned to 3.11: mypy would then read the installed numpy
+# stubs (a camoufox dependency) as 3.11 source and reject their `type`
+# statements before checking a line of this project. The floor is enforced by
+# `requires-python` and by CI running the suite on 3.11.
+files = ["src/ateliera_catalogue", "tests"]
+mypy_path = "src"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+strict_equality = true
+follow_imports_for_stubs = false
+
+# Everything written for this plan is checked strictly. The point of the §4.2
+# layout is that new code has no excuse; the scrapers below are the exception,
+# and they are the only one.
+[[tool.mypy.overrides]]
+module = [
+  "ateliera_catalogue.cli.*",
+  "ateliera_catalogue.config.*",
+  "ateliera_catalogue.crawl.*",
+  "ateliera_catalogue.observability.*",
+  "ateliera_catalogue.ops.*",
+  "ateliera_catalogue.storage.*",
+]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+warn_return_any = true
+
+# The 4,700 lines of site-specific collection are checked, but not strictly:
+# holding the refactor hostage to fully typing them would stop it happening.
+#
+# The disabled codes are the two patterns that account for every one of the 53
+# errors these files produce, and neither is a defect:
+#
+#  * every scraper assembles a `dict[str, Any]` of extracted fields and splats
+#    it into `record.build(**row)`. mypy cannot match a heterogeneous dict
+#    against a typed signature, so one call site yields eight errors naming
+#    parameters that are in fact being passed correctly;
+#  * `urllib.robotparser.RobotFileParser` really does have `allow_all` and
+#    `disallow_all` (set in its `__init__`) and really does return a number
+#    from `crawl_delay`; typeshed declares neither. `Fetcher._read_robots`
+#    depends on all three and is correct.
+#
+# Everything that would catch a real fault — undefined names, bad calls, bad
+# assignments — stays on. That is how `Fetcher.render`'s NameError was found.
+[[tool.mypy.overrides]]
+module = "ateliera_catalogue.scrapers.*"
+disallow_untyped_defs = false
+check_untyped_defs = true
+disable_error_code = ["arg-type", "attr-defined", "union-attr", "return-value"]
+
+[[tool.mypy.overrides]]
+module = "ateliera_catalogue.ui.*"
+disallow_untyped_defs = false
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["camoufox.*", "textual.*", "rich.*", "opentelemetry.*", "croniter.*"]
+ignore_missing_imports = true

@@ -1,0 +1,298 @@
+{
+  "digest": "7ece2f55e34d4e2b487ec7e0ba2f7f81f0f31b4622409e64d542c4ab620244aa",
+  "discovered": 2207,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "dom",
+  "field_coverage": {
+    "all_image_urls": 1677,
+    "brand": 1489,
+    "category_path": 1677,
+    "claims": 0,
+    "colour": 1343,
+    "description": 1677,
+    "documents": 0,
+    "effects": 98,
+    "family": 1677,
+    "firing": 90,
+    "form": 2,
+    "gtin": 0,
+    "manufacturer_sku": 643,
+    "package_size": 71,
+    "stock_quantity": 0,
+    "supplier_reference": 1677,
+    "surface": 91,
+    "unit_price": 71,
+    "vat_status": 1677
+  },
+  "notes": [
+    "2207 product URLs from category pages"
+  ],
+  "records": 1677,
+  "rendered_pages": 0,
+  "requests": 2256,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://cdn.starwebserver.se/shops/art4fun/files/sw_143_abalone_web-1931-650-650-80_ixlynd_bwamjy.jpg",
+        "https://cdn.starwebserver.se/shops/art4fun/files/sw-143_cone10_reduction_web.jpg",
+        "https://cdn.starwebserver.se/shops/art4fun/files/sw-143_cone6_web.jpg",
+        "https://cdn.starwebserver.se/shops/art4fun/files/sw-143_cone5_web.jpg"
+      ],
+      "application_methods": [
+        "dipping"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": "Mayco",
+      "brand_basis": "published",
+      "category_path": [
+        "Glazes & Decals"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "Abalone - Dry"
+      },
+      "currency": "SEK",
+      "description": "Dipping glaze for stoneware",
+      "documents": null,
+      "effects": null,
+      "external_id": "art4fun:https://www.art4fun.se/en/product/abalone-dry-2",
+      "extraction_method": "dom",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.starwebserver.se/shops/art4fun/files/sw_143_abalone_web-1931-650-650-80_ixlynd_bwamjy.jpg",
+      "list_price": null,
+      "manufacturer_sku": "SD143",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "Abalone - Dry",
+      "name_parsed_from": null,
+      "name_raw": "Abalone - Dry",
+      "package_size": null,
+      "parent_external_id": "art4fun:https://www.art4fun.se/en/product/abalone-dry-2",
+      "price": 1999.0,
+      "price_text": "1999 SEK",
+      "product_name": "Abalone - Dry",
+      "product_url": "https://www.art4fun.se/en/product/abalone-dry-2",
+      "raw": {
+        "@context": "http://schema.org/",
+        "@id": "https://www.art4fun.se/en/product/abalone-dry-2",
+        "@type": "Product",
+        "brand": {
+          "@type": "Brand",
+          "name": "Mayco"
+        },
+        "description": "Dipping glaze for stoneware",
+        "image": [
+          "https://cdn.starwebserver.se/shops/art4fun/files/sw_143_abalone_web-1931-650-650-80_ixlynd_bwamjy.jpg",
+          "https://cdn.starwebserver.se/shops/art4fun/files/sw-143_cone10_reduction_web.jpg",
+          "https://cdn.starwebserver.se/shops/art4fun/files/sw-143_cone6_web.jpg",
+          "https://cdn.starwebserver.se/shops/art4fun/files/sw-143_cone5_web.jpg"
+        ],
+        "name": "Abalone - Dry",
+        "offers": {
+          "@type": "Offer",
+          "availability": "http://schema.org/InStock",
+          "itemCondition": "http://schema.org/NewCondition",
+          "price": "1999",
+          "priceCurrency": "SEK",
+          "url": "https://www.art4fun.se/en/product/abalone-dry-2"
+        },
+        "sku": "SD-143"
+      },
+      "source": "art4fun",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "SD-143",
+      "surface": null,
+      "technical_attributes": {
+        "Article SKU": "SD-143",
+        "Manufacturer": "Mayco",
+        "Manufacturer article no": "{{mpn}}",
+        "Stock status": "In stock",
+        "{{stockStatusLabel}}": "{{stockStatusValue}}"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_basis": "page_markup",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://cdn.starwebserver.se/shops/art4fun/files/1729581280.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Bailey Decals",
+      "brand_basis": "published",
+      "category_path": [
+        "Glazes & Decals",
+        "Decals",
+        "Flowers"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "SEK",
+      "description": "Decal for ceramics and glass",
+      "documents": null,
+      "effects": null,
+      "external_id": "art4fun:https://www.art4fun.se/en/product/agapanthus-80x40mm-1-pc",
+      "extraction_method": "dom",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.starwebserver.se/shops/art4fun/files/1729581280.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Agapanthus 80x40mm - 1 pcs",
+      "name_parsed_from": null,
+      "name_raw": "Agapanthus 80x40mm - 1 pcs",
+      "package_size": null,
+      "parent_external_id": "art4fun:https://www.art4fun.se/en/product/agapanthus-80x40mm-1-pc",
+      "price": 8.0,
+      "price_text": "8 SEK",
+      "product_name": "Agapanthus 80x40mm - 1 pcs",
+      "product_url": "https://www.art4fun.se/en/product/agapanthus-80x40mm-1-pc",
+      "raw": {
+        "@context": "http://schema.org/",
+        "@id": "https://www.art4fun.se/en/product/agapanthus-80x40mm-1-pc",
+        "@type": "Product",
+        "brand": {
+          "@type": "Brand",
+          "name": "Bailey Decals"
+        },
+        "description": "Decal for ceramics and glass",
+        "image": [
+          "https://cdn.starwebserver.se/shops/art4fun/files/1729581280.jpg"
+        ],
+        "name": "Agapanthus 80x40mm - 1 pcs",
+        "offers": {
+          "@type": "Offer",
+          "availability": "http://schema.org/InStock",
+          "itemCondition": "http://schema.org/NewCondition",
+          "price": "8",
+          "priceCurrency": "SEK",
+          "url": "https://www.art4fun.se/en/product/agapanthus-80x40mm-1-pc"
+        },
+        "sku": "DEB-57394A"
+      },
+      "source": "art4fun",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "DEB-57394A",
+      "surface": null,
+      "technical_attributes": {
+        "Article SKU": "DEB-57394A",
+        "Manufacturer": "Bailey Decals",
+        "Manufacturer article no": "{{mpn}}",
+        "Stock status": "In stock",
+        "{{stockStatusLabel}}": "{{stockStatusValue}}"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_basis": "page_markup",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://cdn.starwebserver.se/shops/art4fun/files/1116.jpg"
+      ],
+      "application_methods": [
+        "brushing"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "Glazes & Decals"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "Mirror"
+      },
+      "currency": "SEK",
+      "description": "Brushing glaze for stoneware",
+      "documents": null,
+      "effects": null,
+      "external_id": "art4fun:https://www.art4fun.se/en/product/mirror-15",
+      "extraction_method": "dom",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.starwebserver.se/shops/art4fun/files/1116.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Mirror",
+      "name_parsed_from": null,
+      "name_raw": "Mirror",
+      "package_size": null,
+      "parent_external_id": "art4fun:https://www.art4fun.se/en/product/mirror-15",
+      "price": 263.0,
+      "price_text": "263 SEK",
+      "product_name": "Mirror",
+      "product_url": "https://www.art4fun.se/en/product/mirror-15",
+      "raw": {
+        "@context": "http://schema.org/",
+        "@id": "https://www.art4fun.se/en/product/mirror-15",
+        "@type": "Product",
+        "description": "Brushing glaze for stoneware",
+        "image": [
+          "https://cdn.starwebserver.se/shops/art4fun/files/1116.jpg"
+        ],
+        "name": "Mirror",
+        "offers": {
+          "@type": "Offer",
+          "availability": "http://schema.org/InStock",
+          "itemCondition": "http://schema.org/NewCondition",
+          "price": "263",
+          "priceCurrency": "SEK",
+          "url": "https://www.art4fun.se/en/product/mirror-15"
+        },
+        "sku": "STG-1116"
+      },
+      "source": "art4fun",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "STG-1116",
+      "surface": null,
+      "technical_attributes": {
+        "Article SKU": "STG-1116",
+        "Manufacturer article no": "{{mpn}}",
+        "Stock status": "In stock",
+        "{{stockStatusLabel}}": "{{stockStatusValue}}"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_basis": "page_markup",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "starweb",
+  "source": "art4fun",
+  "truncated": false
+}

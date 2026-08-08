@@ -1,0 +1,38 @@
+# One collection worker. A template unit, so the instance count is
+# `systemctl enable catalogue-worker@{1,2,3}` and nothing else changes.
+#
+# The queue does not care how many there are: `for update skip locked` gives
+# each of them a different job, and `catalogue.hosts` is what stops three
+# workers tripling the load on every shop.
+[Unit]
+Description=Ceramics catalogue worker %i
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=localhost/catalogue-worker:${CATALOGUE_VERSION}
+ContainerName=catalogue-worker-%i
+EnvironmentFile=/etc/catalogue/catalogue.env
+Volume=catalogue-cache.volume:/var/lib/catalogue/cache
+Volume=catalogue-dumps.volume:/var/lib/catalogue/dumps
+# One port per instance, so several workers on one host can each be scraped.
+PublishPort=127.0.0.1:910%i:9109
+Environment=CATALOGUE_LOG_JSON=true
+HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:9109/health')"
+HealthInterval=30s
+HealthStartPeriod=15s
+HealthRetries=3
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+RestartSec=10
+# SIGTERM is a drain: finish the current source, write its artifact, requeue
+# anything unfinished and mark the worker stopped. systemd's default 90s is
+# cutting it fine for a large storefront, and being killed mid-write is exactly
+# what the graceful path exists to avoid.
+TimeoutStopSec=180
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

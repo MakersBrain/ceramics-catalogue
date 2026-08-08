@@ -1,0 +1,80 @@
+country,name,address,source_address,website_as_listed,type,address_note
+Austria,Keramik-Kraft – Österreich,"Bad Vöslau, 2540, Austria","Bad Vöslau, 2540 , Austria",https://www.keramik-kraft.com/,Dealer,Normalized spelling/formatting.
+Austria,Keramikbedarf Ing. Skokan GmbH.,"Vienna, 1120, Austria","Vienna, 1120, Austria","https://www.skokan.at/48.17828605868169, 16.33179218341015",Dealer,
+Austria,Keramikbedarf Ing. Tripp & Partner OG,"Fernitz b. Graz, 8072, Austria","Fernitz b. Graz, 8072, Austria",http://www.keramikbedarf.net/,Unclassified,
+Austria,Keramix Handels GMBH,"Korneuburg, 2100, Austria","Korneuburg, 2100, Austria",https://keramix.eu,Distributor,
+Belgium,Creakor Bvba,"Kortemark, 8610, Belgium","Kortemark, 8610, Belguim",https://creakor.com,Distributor,Normalized spelling/formatting.
+Czech Republic,Keramické Centrum,"Praha, 190 00, Czech Republic","Praha, 190 00, Czech Republic",,Dealer,
+Czech Republic,Keramika do skol,"Chrudim, 537 01, Czech Republic","Chudim, 53701, Czech Republic",https://www.keramikadoskol.cz/eshop/,Dealer,Corrected city typo and formatted Czech postcode.
+Denmark,Keramikfryd ApS,"Brønshøj, 2700, Denmark","Broenshoej, 2700, Denmark",https://www.keramikfryd.dk/,Dealer,Normalized spelling/formatting.
+Finland,Kerasil Oy,"Nurmijärvi, 01900, Finland","Nurmijarvi, 01900, Finland",,Distributor,Normalized spelling/formatting.
+France,Ceradel,"Panazol, France","Panazol, France",https://www.ceradel.fr/fr/,Distributor,
+France,Ceradel Antibes,"Antibes, 06600, France","Antibes, 06600 , France",http://www.ceradel.fr/,Distributor,Normalized spelling/formatting.
+France,Ceradel Aubervilliers,"Aubervilliers, 93300, France","Auvilliers, 93300, France",http://www.ceradel.fr/,Distributor,Normalized spelling/formatting.
+France,Ceradel Lyon,"Champagne-au-Mont-d’Or, 69410, France","Champagne-au-Mont-d'Or, 69410 , France",,Distributor,Normalized spelling/formatting.
+France,Ceradel Toulouse,"Toulouse, 31100, France","Toulouse, 31100, France",http://www.ceradel.fr/,Distributor,
+France,Ceram Decor 25,"ZA Terre Rouge, Bâtiment 9, 25220 Roche-lez-Beaupré, France","Roche Lez Beaupré , 81500, France",,Unclassified,Corrected postal code and expanded current address from Ceram Decor.
+France,Ceram Decor 69,"6 rue des Sources, 69230 Saint-Genis-Laval, France","Saint Genis Laval, 69230, France",http://www.ceram-decor.fr/,Unclassified,Expanded street address; normalized locality spelling.
+France,Ceram Decor 81,"660 route de Montastruc, 81500 Saint-Agnan, France","Saint Agnan, 81500, France",http://www.ceram-decor.fr/,Dealer,Expanded current street address from Ceram Decor.
+France,Ceramique Peinture,"L’Isle-en-Dodon, 31230, France","L'Isle en Dodon, 31230, France",http://ceramique-peinture.fr,Dealer,Normalized spelling/formatting.
+France,Ceraterre Distribution,"Engauthier, 24600 Ribérac, France","Engauthier, Ribérac, 24600 , France",https://http://www.ceraplus.com/,Dealer,Normalized spelling/formatting.
+France,Eskiss/Coco Cadeaux SARL,"Fort-de-France, Martinique, 97200, France","Fort-de-France, Martinique, 97200, France",https://www.eskiss972.com,Distributor,
+France,Les Cousins,"Aubagne, Cedex, 13400, France","Aubagne, Cedex, 13400, France",http://www.lescousins.fr/,Distributor,
+France,Poterie du Vieux Bac,"Bailleul, 59270, France","Bailleul, 59270, France",https://poterieduvieuxbac.com/,Dealer,
+France,Société Peter Lavem,"Chennevières-sur-Marne, 94430, France","Chennevieres Sur Marne, 94430, France",https://www.peterlavem.fr/,Dealer,Normalized spelling/formatting.
+France,Solutions Céramiques,"Saint-Georges-d'Orques, 34680, France","Saint-Georges-d'Orques, 34680, France",https://www.solutions-ceramiques.com/,Dealer,
+Germany,Borkheider Werkstatt für Keramik & Töpfern,"Borkheide, 14822, Germany","Borkheide, 14822, Germany",https://www.keramik-toepfern.de/,Dealer,
+Germany,C4C-Keramikstudio Annette.e.k,"Leinburg, 91227, Germany","Leinburg, 91227, Germany",,Distributor,
+Germany,Keramik-Kraft – Aachen,"Aachen, 52078, Germany","Aachen, 52078, Germany",https://www.keramik-kraft.com/,Dealer,
+Germany,Keramik-Kraft – Chiemgau,"Siegsdorf, 83313, Germany","Siegsdorf, 83313, Germany",https://www.keramik-kraft.com/,Dealer,
+Germany,Keramik-Kraft – Frankfurt,"Bruckköbel, 63486, Germany","Bruckköbel, 63486, Germany",https://www.keramik-kraft.com/,Dealer,
+Germany,Keramik-Kraft – Hamburg,"Hamburg, 21079, Germany","Hamburg, 21079, Germany",https://www.keramik-kraft.com/,Dealer,
+Germany,Keramik-Kraft – Hannover-Braunschweig,"Cremlingen, 38162, Germany","Cremlingen, 38162, Germany",https://www.keramik-kraft.com/,Dealer,
+Germany,Keramik-Kraft – Kassel-Göttingen,"Hardegsen, 37181, Germany","Hardegsen, 37181, Germany",https://www.keramik-kraft.com/,Dealer,
+Germany,Keramik-Kraft – Münster,"Münster, 48157, Germany","Münster, 48157, Germany",https://www.keramik-kraft.com/,Dealer,
+Germany,Keramik-Kraft – Stuttgart,"Nürtingen, 72622, Germany","Nürtingen, 72622, Germany",https://www.keramik-kraft.com/,Dealer,
+Germany,Keramik-Kraft – Zentrale,"Leinburg, 91227, Germany","Leinburg, 91227, Germany",https://www.keramik-kraft.com/,Dealer,
+Germany,Keramik-Kriese,"Volkmarsen, 34471, Germany","Volkmarsen, 34471, Germany",https://keramik-kriese-shop.gambiocloud.com/,Dealer,
+Germany,MTL Brock GmbH,"Diedorf, 86420, Germany","Diedorf, 86420, Germany",http://www.toepferbedarf-brock.de/,Dealer,
+Germany,Töpferstudio Alte Scheuer,"Bruchsal, 76646, Germany","Bruchsal, 76646, Germany",https://mayco-glasuren.de/,Dealer,
+Greece,Eurokermiki P.C.,"Kalochori, 57009, Greece","Kalochori, 57009, Greece",http://www.eurokeramiki.gr/,Dealer,
+Ireland,D.B.I Pottery Supplies,"County Cork, T12 PPN2, Ireland","Co. Cork, T12 PPN2, Ireland",http://www.dbipottery.com/,Dealer,Normalized spelling/formatting.
+Italy,CERAMA S.R.L.,"Roma, 00181, Italy","Roma, 00181, Italy",https://cerama.shop/?srsltid=AfmBOoqLQ86f7KRbEBiwcMu4S1_nZAnnoa3CQuQKKX9Qv_X3mBLS3mv5,Dealer,
+Italy,Mondo Ceramica S.r.l.,"Deruta, 06053, Italy","Deruta, 6053, Italy",https://www.mondoceramica.net/,Dealer,Restored leading zero in postcode.
+Latvia,SIA „Peldoša Pilseta”,Latvia,Latvija,https://www.ceramics.lv,Dealer,Source provides country only; full address remains unverified. Country name normalized from Latvija.
+Lithuania,MUANDU keramika,Lithuania,Lithuania,https://muandukeramika.lt/,Dealer,Source provides country only; full address remains unverified.
+Netherlands,Art d’Argile,"Herten, 6049 DA, Netherlands","DA Herten, 6049, Netherlands",http://www.argile.nl/,Dealer,Normalized spelling/formatting.
+Netherlands,De Pottenbakster bv,"Tilburg, 5048 AZ, Netherlands","5048 AZ Tilburg, Netherlands",https://www.keramiekenglazuur.nl,Dealer,Normalized spelling/formatting.
+Netherlands,Leim&Zwa,"Elsloo, 6181 GX, Netherlands","Elsloo, 6181GX , Netherlands",https://leimenzwa.nl,Dealer,Normalized spelling/formatting.
+Netherlands,Nelliekeramiek,Netherlands,Netherlands,https://www.nelliekeramiek.nl,Dealer,Source provides country only; full address remains unverified.
+Poland,1240.Design,"Warsaw, 02-681, Poland","Warsaw, 02-681, Poland",https://www.1240.design,Distributor,
+Poland,Art-Equipment,"Warszawa-Wesoła, Poland","Warszawa-Wesoła, Poland",https://https://artequipment.pl/,Dealer,
+Poland,Ceramiq.pl Sp. z o.o.,"Warszawa, 02-908, Poland","Warszawa, 02-908, Poland",https://www.ceramiq.pl/,Dealer,
+Poland,HEHO sklep dla ceramika,"Poznań, 61-663, Poland","Poznan, 61-663, Poland",https://sklep.heho.pl/,Dealer,Normalized spelling/formatting.
+Poland,HI CLAY,Poland,Poland,https://hiclay.pl,Dealer,Source provides country only; full address remains unverified.
+Poland,Kamionka/At Ceramika,"Warszawa, Poland","Warszawa, Poland",https://www.at-ceramika.pl,Dealer,
+Portugal,MUDA CERAMICA,"Linda-a-Velha, 2795-152, Portugal","Linda-a-Velha, 2795-152, Portugal",http://www.mudaceramica.com/,Dealer,
+Romania,DAVA Art & Fun,Romania,Romania,https://davaart.ro,Dealer,Source provides country only; full address remains unverified.
+Slovenia,Keraterm Franc Konjedič s.P.,"Kranj, 4000, Slovenia","Kranj, 4000, Slovenia",https://www.keraterm.si/e-trgovina,Dealer,
+Spain,Artesania Chopo S.L.,"Madrid, 28012, Spain","Madrid, 28012, Spain",https://www.artesaniachopo.com,Dealer,
+Spain,"Bendix, SA","Palma de Mallorca, 07009, Spain","Palma de Mallorca, 07009, Spain",http://bendix.net/,Dealer,
+Spain,"Ceramica Collet, S.A.","Esparreguera, 08292, Spain","Esparreguera, 8292, Spain",https://www.sio-2.com/es/content/26-tienda-online,Distributor,Restored leading zero in postcode.
+Spain,"Esmaltes y colorantes de la Rambla, S.L.","La Rambla, 14540, Spain","La Rambla, 14540 , Spain",http://www.esmaltycolor.com/,Dealer,Normalized spelling/formatting.
+Spain,Nacho suministros ceramicos S.L.,"Valencia, 46006, Spain","Valencia, 46006, Spain",http://www.nacho-sum.es/,Dealer,
+Spain,Pappel Espanola S.L.,"Madrid, 28947, Spain","Madrid, 28947, Spain",https://pappel.com,Distributor,
+Spain,Suministros Marphil S.L.,"Madrid, 28022, Spain","Madrid, 28022, Spain",https://www.marphil.com/,Dealer,
+Sweden,Keramikcenter-Art4Fun,"Rydebäck, 257 30, Sweden","Rydeback, 257 30, Sweden",https://art4fun.se,Distributor,Normalized spelling/formatting.
+Switzerland,Argile et Création,"Vulliens, 1085, Switzerland","Vulliens, 1085, Switzerland",https://argilecreation.ch/,Dealer,
+Switzerland,Lehmhuus AG,"Aesch, 4147, Switzerland","Aesch, 4147, Switzerland",http://www.lehmhuus.ch/,Dealer,
+Switzerland,Michel Keramikbedarf,"Zürich, 8046, Switzerland","Zürich, 8046, Switzerland",https://keramikbedarf.ch/,Dealer,
+United Kingdom,Bath Potters Supplies Ltd,"Radstock, United Kingdom","Radstock, United Kingdom",https://www.bathpotters.co.uk/,Dealer,
+United Kingdom,Bluematchbox Potters Supplies,"Reading, United Kingdom","Reading, United Kingdom",,Dealer,
+United Kingdom,Corby Kilns,"Kettering, Northamptonshire, NN16 8PU, United Kingdom","Kettering, Northamptonshire, NN16 8PU, United Kingdom",http://www.corbykilns.co.uk/,Dealer,
+United Kingdom,Country Love Crafts,"Chilton Industrial Estate, Sudbury, CO10 2XW, United Kingdom","Chilton Industrial Estate, Sudbury, CO10 2XW, United Kingdom",http://www.countrylovecrafts.com,Distributor,
+United Kingdom,Cromartie Hobbycraft,"Stoke-On-Trent, Staffordshire, ST3 5AY, United Kingdom","Stoke-On-Trent, Staffordshire, ST3 5AY, United Kingdom",https://www.cromartiehobbycraft.co.uk,Distributor,
+United Kingdom,Hobby Ceramicraft Limited,"Grazeley, Berkshire, RG7 1JF, United Kingdom","Grazeley, Berkshire, RG7 1JF, United Kingdom",https://hobbyceramicraft.co.uk,Distributor,
+United Kingdom,Hot Clay,"Havyatt Rd, Wrington, Bristol, BS40 5PA, United Kingdom","Havyatt Rd, Wrington, Bristol, BS40 5PA, United Kingdom",https://www.hot-clay.com/,Dealer,
+United Kingdom,Kettles Pottery Supplies,"Edinburgh, EH7 6UL, United Kingdom","Edinburgh, EH7 6UL, United Kingdom",https://www.kettlespotterysupplies.com/,Dealer,
+United Kingdom,"Potclays, Ltd.","Stoke On Trent, Staffordshire, ST4 7BP, United Kingdom","Stoke On Trent, Staffordshire, ST4 7BP, United Kingdom",https://potclays.co.uk,Distributor,
+United Kingdom,Potterycrafts,"Stoke On Trent, Staffordshire, ST1 1AF, United Kingdom","Stoke On Trent, Staffordshire, ST1 1AF, United Kingdom",https://potterycrafts.co.uk,Distributor,
+United Kingdom,Ulster Ceramics Plc,"Maghera, BT46 5QE, United Kingdom","Maghera, BT46 5QE, United Kingdom",http://www.ulsterceramicspotterysupplies.co.uk/,Dealer,

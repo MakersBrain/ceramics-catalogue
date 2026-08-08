@@ -1,0 +1,247 @@
+{
+  "digest": "1f12f37d723e727539263aaf5a40fd19b0b941b017cf6c8c551d5290b4bb63a7",
+  "discovered": 1125,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "dom",
+  "field_coverage": {
+    "all_image_urls": 256,
+    "brand": 6,
+    "category_path": 256,
+    "claims": 0,
+    "colour": 44,
+    "description": 0,
+    "documents": 0,
+    "effects": 1,
+    "family": 256,
+    "firing": 144,
+    "form": 14,
+    "gtin": 0,
+    "manufacturer_sku": 0,
+    "package_size": 58,
+    "stock_quantity": 0,
+    "supplier_reference": 256,
+    "surface": 3,
+    "unit_price": 58,
+    "vat_status": 256
+  },
+  "notes": [
+    "robots.txt intentionally not applied for this source (operator decision)"
+  ],
+  "records": 256,
+  "rendered_pages": 0,
+  "requests": 600,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://www.keramik-kraft.com/Thumbs/T763.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "Ton"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": null,
+      "external_id": "keramik-kraft:https://www.keramik-kraft.com/de/Ton/3D-Tondrucker-und-massen/3D-Tondruckmassen/Porzellanmasse-weiss-3D-Druck-Aneto-3D-1230_-Hubel-á-5-kg_T763.html?sel=2",
+      "extraction_method": "dom",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.keramik-kraft.com/Thumbs/T763.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Porzellanmasse weiss 3D-Druck \"Aneto 3D\" 1230 Hubel á",
+      "name_parsed_from": [
+        "5 kg"
+      ],
+      "name_raw": "Porzellanmasse weiss 3D-Druck \"Aneto 3D\" 1230 Hubel á 5 kg",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "5 kg",
+        "grams": 5000.0,
+        "unit": "kg",
+        "value": 5.0
+      },
+      "parent_external_id": "keramik-kraft:https://www.keramik-kraft.com/de/Ton/3D-Tondrucker-und-massen/3D-Tondruckmassen/Porzellanmasse-weiss-3D-Druck-Aneto-3D-1230_-Hubel-á-5-kg_T763.html?sel=2",
+      "price": 17.89,
+      "price_text": "17,89 €",
+      "product_name": "Porzellanmasse weiss 3D-Druck \"Aneto 3D\" 1230",
+      "product_url": "https://www.keramik-kraft.com/de/Ton/3D-Tondrucker-und-massen/3D-Tondruckmassen/Porzellanmasse-weiss-3D-Druck-Aneto-3D-1230_-Hubel-á-5-kg_T763.html?sel=2",
+      "raw": {
+        "code": "T763",
+        "gross": 17.89,
+        "net": null,
+        "page": "https://www.keramik-kraft.com/de/Ton/3D-Tondrucker-und-massen.html",
+        "variant": "Hubel á 5 kg"
+      },
+      "source": "keramik-kraft",
+      "source_detail_level": "listing",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "T763",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 3.578
+      },
+      "variant_title": "Hubel á 5 kg",
+      "vat_rate": 0.19,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.keramik-kraft.com/Thumbs/T502-25.jpg"
+      ],
+      "application_methods": [
+        "pouring"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "Ton"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": null,
+      "external_id": "keramik-kraft:https://www.keramik-kraft.com/de/Ton/Giessmassen/Pulver-Giessmassen/Steingutgiessmasse-rot-GRT-1100C_-Sack-á-25-kg_T502-25.html?sel=3",
+      "extraction_method": "dom",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1100°C",
+        "max_celsius": 1100,
+        "min_celsius": 1100
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.keramik-kraft.com/Thumbs/T502-25.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Steingutgiessmasse rot (GRT) -1100°C Sack á",
+      "name_parsed_from": [
+        "25 kg"
+      ],
+      "name_raw": "Steingutgiessmasse rot (GRT) -1100°C Sack á 25 kg",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "25 kg",
+        "grams": 25000.0,
+        "unit": "kg",
+        "value": 25.0
+      },
+      "parent_external_id": "keramik-kraft:https://www.keramik-kraft.com/de/Ton/Giessmassen/Pulver-Giessmassen/Steingutgiessmasse-rot-GRT-1100C_-Sack-á-25-kg_T502-25.html?sel=3",
+      "price": 28.09,
+      "price_text": "28,09 €",
+      "product_name": "Steingutgiessmasse rot (GRT) -1100°C",
+      "product_url": "https://www.keramik-kraft.com/de/Ton/Giessmassen/Pulver-Giessmassen/Steingutgiessmasse-rot-GRT-1100C_-Sack-á-25-kg_T502-25.html?sel=3",
+      "raw": {
+        "code": "T502-25",
+        "gross": 28.09,
+        "net": null,
+        "page": "https://www.keramik-kraft.com/de/Ton/Giessmassen.html",
+        "variant": "Sack á 25 kg"
+      },
+      "source": "keramik-kraft",
+      "source_detail_level": "listing",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "T502-25",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 1.1236
+      },
+      "variant_title": "Sack á 25 kg",
+      "vat_rate": 0.19,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.keramik-kraft.com/Thumbs/E5210.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "Einrichtung Maschinen"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": null,
+      "external_id": "keramik-kraft:https://www.keramik-kraft.com/de/Einrichtung-Maschinen/Ton-3D-Drucker/Ton-3D-Drucker-duesenmobil/Ton-3D-Drucker-PAW60_St_E5210.html?sel=2",
+      "extraction_method": "dom",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.keramik-kraft.com/Thumbs/E5210.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Ton 3D Drucker PAW60 St",
+      "name_parsed_from": null,
+      "name_raw": "Ton 3D Drucker PAW60 St",
+      "package_size": null,
+      "parent_external_id": "keramik-kraft:https://www.keramik-kraft.com/de/Einrichtung-Maschinen/Ton-3D-Drucker/Ton-3D-Drucker-duesenmobil/Ton-3D-Drucker-PAW60_St_E5210.html?sel=2",
+      "price": 10289.0,
+      "price_text": "10 289,00 €",
+      "product_name": "Ton 3D Drucker PAW60",
+      "product_url": "https://www.keramik-kraft.com/de/Einrichtung-Maschinen/Ton-3D-Drucker/Ton-3D-Drucker-duesenmobil/Ton-3D-Drucker-PAW60_St_E5210.html?sel=2",
+      "raw": {
+        "code": "E5210",
+        "gross": 10289.0,
+        "net": null,
+        "page": "https://www.keramik-kraft.com/de/Einrichtung-Maschinen/Ton-3D-Drucker.html",
+        "variant": "St"
+      },
+      "source": "keramik-kraft",
+      "source_detail_level": "listing",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "E5210",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": null,
+      "variant_title": "St",
+      "vat_rate": 0.19,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "keramik_kraft",
+  "source": "keramik-kraft",
+  "truncated": true
+}

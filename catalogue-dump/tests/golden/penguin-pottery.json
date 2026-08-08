@@ -1,0 +1,591 @@
+{
+  "digest": "77493aa1f49379550c7b404a13ae0aaa7f12ac755cb9ed2cc07704a37a110c0b",
+  "discovered": 241,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "api_json",
+  "field_coverage": {
+    "all_image_urls": 126,
+    "brand": 126,
+    "category_path": 126,
+    "claims": 108,
+    "colour": 0,
+    "description": 126,
+    "documents": 0,
+    "effects": 22,
+    "family": 126,
+    "firing": 113,
+    "form": 3,
+    "gtin": 0,
+    "manufacturer_sku": 0,
+    "package_size": 124,
+    "stock_quantity": 0,
+    "supplier_reference": 126,
+    "surface": 27,
+    "unit_price": 124,
+    "vat_status": 126
+  },
+  "notes": [],
+  "records": 126,
+  "rendered_pages": 0,
+  "requests": 19,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/51GDSnvnaxL.jpg?v=1692881068",
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/41zZoMSI0gL_020a05d0-0be4-4d31-87d3-e90d569bb98e.jpg?v=1692881068",
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/513cjX5g0JL_bf764cde-6366-4512-84e7-61007ddff112.jpg?v=1692881068"
+      ],
+      "application_methods": [
+        "brushing",
+        "spraying"
+      ],
+      "availability": "https://schema.org/OutOfStock",
+      "brand": "Penguin Pottery",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "full-range-glazes"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "With two to three coats these glazes fire to an opaque bright matte finish and are lead free and dinnerware safe when fired as directed and covered with a gloss glaze.",
+          "type": "food_contact_suitability"
+        },
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "With two to three coats these glazes fire to an opaque bright matte finish and are lead free and dinnerware safe when fired as directed and covered with a gloss glaze.",
+          "type": "lead_free"
+        },
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Lead free and non toxic.",
+          "type": "non_toxic"
+        }
+      ],
+      "coats": null,
+      "colour": null,
+      "currency": "USD",
+      "description": "Features: A must have for all beginner and expert potters and ceramicists. Can be used to cover the entirety of work or used for fine details. Ideal for detailed painting, sgraffito decoration, watercolor effects, free brush painting, and mishima decoration. It can be brushed or sprayed on and unlike glazes these colors and lines won't run or move like most mid and high temp glazes. With underglaze the color you see before firing is the color you get after firing so its easy to know what your work will look like. With two to three coats these glazes fire to an opaque bright matte finish and are lead free and dinnerware safe when fired as directed and covered with a gloss glaze. Paint intricate designs, calligraphy, and fine lines. We recommend applying a clear glaze on top to give these colors a glossy finish. Glazes mature at cone 04 but can be fired to cone 6. Lead free and non toxic. Our Underglaze line is brightly colored glaze that is formulated to be painted onto wet clay, unfired clay or bisqueware. [LIFETIME WARRANTY] - All Penguin Pottery products are backed by our Lifetime Warranty. if you have any issues, we will give you a refund or replace your product - no questions asked! See warranty & support section for more information. Details: A must have for all beginner and expert potters and ceramicists. Can be used to cover the entirety of work or used for fine details. Ideal for detailed painting, sgraffito decoration, watercolor effects, free brush painting, and mishima decoration. It can be brushed or sprayed on and unlike glazes these colors and lines won't run or move like most mid and high temp glazes.",
+      "documents": null,
+      "effects": null,
+      "external_id": "penguin-pottery:https://www.penguinpottery.com/products/penguin-pottery-underglaze-for-ceramics-black-cone-04-to-cone-6-low-fire-to-mid-fire-4-fl-oz-118-ml#42786264875160",
+      "extraction_method": "api_json",
+      "family": "underglaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "cone_max": "6",
+        "cone_min": "04",
+        "cone_system": "orton",
+        "evidence": "Cone 04 to Cone 6",
+        "max_celsius": 1231,
+        "min_celsius": 1070,
+        "temperature_basis": "derived_from_cone"
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/51GDSnvnaxL.jpg?v=1692881068",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Underglaze for Ceramics - Black - Cone 04 to Cone 6 - Low Fire to Mid Fire (4 fl oz | 118 ml)",
+      "name_parsed_from": [
+        "Penguin Pottery",
+        "Penguin Pottery"
+      ],
+      "name_raw": "Penguin Pottery - Underglaze for Ceramics - Black - Cone 04 to Cone 6 - Low Fire to Mid Fire (4 fl oz | 118 ml)",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "4 fl oz",
+        "millilitres": 118.294,
+        "unit": "fl oz",
+        "value": 4.0
+      },
+      "parent_external_id": "penguin-pottery:https://www.penguinpottery.com/products/penguin-pottery-underglaze-for-ceramics-black-cone-04-to-cone-6-low-fire-to-mid-fire-4-fl-oz-118-ml",
+      "price": 22.98,
+      "price_text": "22.98 USD",
+      "product_name": "Penguin Pottery - Underglaze for Ceramics - Black - Cone 04 to Cone 6 - Low Fire to Mid Fire (4 fl oz | 118 ml)",
+      "product_url": "https://www.penguinpottery.com/products/penguin-pottery-underglaze-for-ceramics-black-cone-04-to-cone-6-low-fire-to-mid-fire-4-fl-oz-118-ml",
+      "raw": {
+        "product": {
+          "body_html": "<p><b>Features:</b> </p><ul>\n<li>A must have for all beginner and expert potters and ceramicists. Can be used to cover the entirety of work or used for fine details. Ideal for detailed painting, sgraffito decoration, watercolor effects, free brush painting, and mishima decoration. It can be brushed or sprayed on and unlike glazes these colors and lines won't run or move like most mid and high temp glazes.</li>\n<li>With underglaze the color you see before firing is the color you get after firing so its easy to know what your work will look like. With two to three coats these glazes fire to an opaque bright matte finish and are lead free and dinnerware safe when fired as directed and covered with a gloss glaze. Paint intricate designs, calligraphy, and fine lines. We recommend applying a clear glaze on top to give these colors a glossy finish.</li>\n<li>Glazes mature at cone 04 but can be fired to cone 6. Lead free and non toxic.</li>\n<li>Our Underglaze line is brightly colored glaze that is formulated to be painted onto wet clay, unfired clay or bisqueware.</li>\n<li>[LIFETIME WARRANTY] - All Penguin Pottery products are backed by our Lifetime Warranty. if you have any issues, we will give you a refund or replace your product - no questions asked! See warranty &amp; support section for more information.</li>\n</ul><p><b>Details:</b> A must have for all beginner and expert potters and ceramicists. Can be used to cover the entirety of work or used for fine details. Ideal for detailed painting, sgraffito decoration, watercolor effects, free brush painting, and mishima decoration. It can be brushed or sprayed on and unlike glazes these colors and lines won't run or move like most mid and high temp glazes.</p>",
+          "created_at": "2023-08-24T08:44:28-04:00",
+          "handle": "penguin-pottery-underglaze-for-ceramics-black-cone-04-to-cone-6-low-fire-to-mid-fire-4-fl-oz-118-ml",
+          "id": 7682691203224,
+          "images": [
+            {
+              "created_at": "2023-08-24T08:44:28-04:00",
+              "height": 500,
+              "id": 43146484056216,
+              "position": 1,
+              "product_id": 7682691203224,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/51GDSnvnaxL.jpg?v=1692881068",
+              "updated_at": "2023-08-24T08:44:28-04:00",
+              "variant_ids": [],
+              "width": 500
+            },
+            {
+              "created_at": "2023-08-24T08:44:28-04:00",
+              "height": 500,
+              "id": 43146484088984,
+              "position": 2,
+              "product_id": 7682691203224,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/41zZoMSI0gL_020a05d0-0be4-4d31-87d3-e90d569bb98e.jpg?v=1692881068",
+              "updated_at": "2023-08-24T08:44:28-04:00",
+              "variant_ids": [],
+              "width": 500
+            },
+            {
+              "created_at": "2023-08-24T08:44:28-04:00",
+              "height": 500,
+              "id": 43146484121752,
+              "position": 3,
+              "product_id": 7682691203224,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/513cjX5g0JL_bf764cde-6366-4512-84e7-61007ddff112.jpg?v=1692881068",
+              "updated_at": "2023-08-24T08:44:28-04:00",
+              "variant_ids": [],
+              "width": 500
+            }
+          ],
+          "options": [
+            {
+              "name": "Title",
+              "position": 1,
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "product_type": "",
+          "published_at": "2023-08-24T08:44:25-04:00",
+          "tags": [
+            "Black",
+            "Home",
+            "MCF",
+            "underglaze"
+          ],
+          "title": "Penguin Pottery - Underglaze for Ceramics - Black - Cone 04 to Cone 6 - Low Fire to Mid Fire (4 fl oz | 118 ml)",
+          "updated_at": "2026-08-06T01:35:17-04:00",
+          "vendor": "Penguin Pottery"
+        },
+        "variant": {
+          "available": false,
+          "compare_at_price": "22.98",
+          "created_at": "2023-08-24T08:44:28-04:00",
+          "featured_image": null,
+          "grams": 227,
+          "id": 42786264875160,
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "position": 1,
+          "price": "22.98",
+          "product_id": 7682691203224,
+          "requires_shipping": true,
+          "sku": "PP-UG-001-4OZ",
+          "taxable": true,
+          "title": "Default Title",
+          "updated_at": "2026-08-06T01:35:17-04:00"
+        }
+      },
+      "source": "penguin-pottery",
+      "source_detail_level": "api",
+      "source_updated_at": "2026-08-06T01:35:17-04:00",
+      "stock_quantity": null,
+      "supplier_reference": "PP-UG-001-4OZ",
+      "surface": null,
+      "technical_attributes": {
+        "shipping_weight_g": 227
+      },
+      "unit_price": {
+        "currency": "USD",
+        "per": "l",
+        "value": 194.2618
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "exclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/51eXcrZZ-uL.jpg?v=1692881077",
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/41zZoMSI0gL_6c89a6d7-cc50-4459-9bfb-285a1c230c09.jpg?v=1692881077",
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/519LjQbPWaL_f330f8eb-94df-41b4-91e9-7077ad2301b7.jpg?v=1692881077",
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/513IMdN2OnL_183d8ff2-a6ad-4f3f-b0d6-85796a5050c1.jpg?v=1692881077",
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/513cjX5g0JL_d86b0890-8235-4fa8-8abb-3d710f1fe29d.jpg?v=1692881077"
+      ],
+      "application_methods": [
+        "brushing",
+        "spraying"
+      ],
+      "availability": "https://schema.org/OutOfStock",
+      "brand": "Penguin Pottery",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "full-range-glazes",
+        "Underglazes"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "With two to three coats these glazes fire to an opaque bright matte finish and are lead free and dinnerware safe when fired as directed and covered with a gloss glaze.",
+          "type": "food_contact_suitability"
+        },
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "With two to three coats these glazes fire to an opaque bright matte finish and are lead free and dinnerware safe when fired as directed and covered with a gloss glaze.",
+          "type": "lead_free"
+        },
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Lead free and non toxic.",
+          "type": "non_toxic"
+        }
+      ],
+      "coats": null,
+      "colour": null,
+      "currency": "USD",
+      "description": "Features: A must have for all beginner and expert potters and ceramicists. Can be used to cover the entirety of work or used for fine details. Ideal for detailed painting, sgraffito decoration, watercolor effects, free brush painting, and mishima decoration. It can be brushed or sprayed on and unlike glazes these colors and lines won't run or move like most mid and high temp glazes. With underglaze the color you see before firing is the color you get after firing so its easy to know what your work will look like. With two to three coats these glazes fire to an opaque bright matte finish and are lead free and dinnerware safe when fired as directed and covered with a gloss glaze. Paint intricate designs, calligraphy, and fine lines. We recommend applying a clear glaze on top to give these colors a glossy finish. Glazes mature at cone 04 but can be fired to cone 6. Lead free and non toxic. Our Underglaze line is brightly colored glaze that is formulated to be painted onto wet clay, unfired clay or bisqueware. [LIFETIME WARRANTY] - All Penguin Pottery products are backed by our Lifetime Warranty. if you have any issues, we will give you a refund or replace your product - no questions asked! See warranty & support section for more information.",
+      "documents": null,
+      "effects": null,
+      "external_id": "penguin-pottery:https://www.penguinpottery.com/products/penguin-pottery-underglaze-for-ceramics-black-cone-04-to-cone-6-low-fire-to-mid-fire-16-fl-oz-1-pint-473-ml#42786265202840",
+      "extraction_method": "api_json",
+      "family": "underglaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "cone_max": "6",
+        "cone_min": "04",
+        "cone_system": "orton",
+        "evidence": "Cone 04 to Cone 6",
+        "max_celsius": 1231,
+        "min_celsius": 1070,
+        "temperature_basis": "derived_from_cone"
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/51eXcrZZ-uL.jpg?v=1692881077",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Underglaze for Ceramics - Black - Cone 04 to Cone 6 - Low Fire to Mid Fire (16 fl oz | 1 Pint | 473 ml)",
+      "name_parsed_from": [
+        "Penguin Pottery",
+        "Penguin Pottery"
+      ],
+      "name_raw": "Penguin Pottery - Underglaze for Ceramics - Black - Cone 04 to Cone 6 - Low Fire to Mid Fire (16 fl oz | 1 Pint | 473 ml)",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "16 fl oz",
+        "millilitres": 473.176,
+        "unit": "fl oz",
+        "value": 16.0
+      },
+      "parent_external_id": "penguin-pottery:https://www.penguinpottery.com/products/penguin-pottery-underglaze-for-ceramics-black-cone-04-to-cone-6-low-fire-to-mid-fire-16-fl-oz-1-pint-473-ml",
+      "price": 23.95,
+      "price_text": "23.95 USD",
+      "product_name": "Penguin Pottery - Underglaze for Ceramics - Black - Cone 04 to Cone 6 - Low Fire to Mid Fire (16 fl oz | 1 Pint | 473 ml)",
+      "product_url": "https://www.penguinpottery.com/products/penguin-pottery-underglaze-for-ceramics-black-cone-04-to-cone-6-low-fire-to-mid-fire-16-fl-oz-1-pint-473-ml",
+      "raw": {
+        "product": {
+          "body_html": "<p><b>Features:</b> </p><ul>\n<li>A must have for all beginner and expert potters and ceramicists. Can be used to cover the entirety of work or used for fine details. Ideal for detailed painting, sgraffito decoration, watercolor effects, free brush painting, and mishima decoration. It can be brushed or sprayed on and unlike glazes these colors and lines won't run or move like most mid and high temp glazes.</li>\n<li>With underglaze the color you see before firing is the color you get after firing so its easy to know what your work will look like. With two to three coats these glazes fire to an opaque bright matte finish and are lead free and dinnerware safe when fired as directed and covered with a gloss glaze. Paint intricate designs, calligraphy, and fine lines. We recommend applying a clear glaze on top to give these colors a glossy finish.</li>\n<li>Glazes mature at cone 04 but can be fired to cone 6. Lead free and non toxic.</li>\n<li>Our Underglaze line is brightly colored glaze that is formulated to be painted onto wet clay, unfired clay or bisqueware.</li>\n<li>[LIFETIME WARRANTY] - All Penguin Pottery products are backed by our Lifetime Warranty. if you have any issues, we will give you a refund or replace your product - no questions asked! See warranty &amp; support section for more information.</li>\n</ul>",
+          "created_at": "2023-08-24T08:44:36-04:00",
+          "handle": "penguin-pottery-underglaze-for-ceramics-black-cone-04-to-cone-6-low-fire-to-mid-fire-16-fl-oz-1-pint-473-ml",
+          "id": 7682691465368,
+          "images": [
+            {
+              "created_at": "2023-08-24T08:44:37-04:00",
+              "height": 500,
+              "id": 43146485203096,
+              "position": 1,
+              "product_id": 7682691465368,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/51eXcrZZ-uL.jpg?v=1692881077",
+              "updated_at": "2023-08-24T08:44:37-04:00",
+              "variant_ids": [],
+              "width": 500
+            },
+            {
+              "created_at": "2023-08-24T08:44:37-04:00",
+              "height": 500,
+              "id": 43146485235864,
+              "position": 2,
+              "product_id": 7682691465368,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/41zZoMSI0gL_6c89a6d7-cc50-4459-9bfb-285a1c230c09.jpg?v=1692881077",
+              "updated_at": "2023-08-24T08:44:37-04:00",
+              "variant_ids": [],
+              "width": 500
+            },
+            {
+              "created_at": "2023-08-24T08:44:37-04:00",
+              "height": 500,
+              "id": 43146485268632,
+              "position": 3,
+              "product_id": 7682691465368,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/519LjQbPWaL_f330f8eb-94df-41b4-91e9-7077ad2301b7.jpg?v=1692881077",
+              "updated_at": "2023-08-24T08:44:37-04:00",
+              "variant_ids": [],
+              "width": 500
+            },
+            {
+              "created_at": "2023-08-24T08:44:37-04:00",
+              "height": 500,
+              "id": 43146485301400,
+              "position": 4,
+              "product_id": 7682691465368,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/513IMdN2OnL_183d8ff2-a6ad-4f3f-b0d6-85796a5050c1.jpg?v=1692881077",
+              "updated_at": "2023-08-24T08:44:37-04:00",
+              "variant_ids": [],
+              "width": 500
+            },
+            {
+              "created_at": "2023-08-24T08:44:37-04:00",
+              "height": 500,
+              "id": 43146485334168,
+              "position": 5,
+              "product_id": 7682691465368,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/products/513cjX5g0JL_d86b0890-8235-4fa8-8abb-3d710f1fe29d.jpg?v=1692881077",
+              "updated_at": "2023-08-24T08:44:37-04:00",
+              "variant_ids": [],
+              "width": 500
+            }
+          ],
+          "options": [
+            {
+              "name": "Title",
+              "position": 1,
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "product_type": "Underglazes",
+          "published_at": "2023-08-24T08:44:33-04:00",
+          "tags": [
+            "Black",
+            "Home",
+            "MCF",
+            "underglaze"
+          ],
+          "title": "Penguin Pottery - Underglaze for Ceramics - Black - Cone 04 to Cone 6 - Low Fire to Mid Fire (16 fl oz | 1 Pint | 473 ml)",
+          "updated_at": "2026-08-06T01:35:17-04:00",
+          "vendor": "Penguin Pottery LLC"
+        },
+        "variant": {
+          "available": false,
+          "compare_at_price": "23.95",
+          "created_at": "2023-08-24T08:44:37-04:00",
+          "featured_image": null,
+          "grams": 906,
+          "id": 42786265202840,
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "position": 1,
+          "price": "23.95",
+          "product_id": 7682691465368,
+          "requires_shipping": true,
+          "sku": "PP-UG-001-16OZ",
+          "taxable": true,
+          "title": "Default Title",
+          "updated_at": "2026-08-06T01:35:17-04:00"
+        }
+      },
+      "source": "penguin-pottery",
+      "source_detail_level": "api",
+      "source_updated_at": "2026-08-06T01:35:17-04:00",
+      "stock_quantity": null,
+      "supplier_reference": "PP-UG-001-16OZ",
+      "surface": null,
+      "technical_attributes": {
+        "shipping_weight_g": 906
+      },
+      "unit_price": {
+        "currency": "USD",
+        "per": "l",
+        "value": 50.6154
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "exclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/files/413iJvaoDwL.jpg?v=1754502920",
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/files/61AZheqf-XL_ca1bdad9-7d4a-4145-b914-0cb795dbb583.jpg?v=1754502920",
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/files/71X1jJ7BfOL_ef64fc43-3f8d-4f6b-b81b-0b6953ae2f81.jpg?v=1754502920",
+        "https://cdn.shopify.com/s/files/1/0321/8001/1052/files/513cjX5g0JL_d5213c57-f466-410e-a4c6-a0108e17ffda.jpg?v=1754502920"
+      ],
+      "application_methods": [
+        "brushing",
+        "dipping"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": "Penguin Pottery",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "additives",
+        "Pottery Supplies"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "USD",
+      "description": "Penguin Pottery's Mixmaster glaze liquid is a must-have product for both ceramic artists and hobbyists. Our multi-purpose formula is great for rehydrating ceramic glazes, effectively bringing old, dried glazes back to a usable state. It saves both time and materials by reviving glazes that would otherwise go to waste. MixMaster is also suitable for thinning glazes for dipping purposes, ensuring that you get a smooth and consistent application for a variety of projects. It can transform dry glazes into a liquid form, making it easier to work with without changing the glaze’s original color or finish. Also, one of MixMaster's key features is its ability to slow down particle settlement in the glaze. This means the glaze maintains a more uniform texture and thickness during use, reducing the need for frequent stirring. The formula also improves the ease of brushing, leading to smoother application and fewer brush marks on your finished ceramics. Available in a 1/2 gallon (1.9 liters) container, Penguin Pottery’s Glaze Liquid is a convenient size for numerous projects and easy to store. It's a helpful addition to any pottery workspace for maintaining and enhancing the quality of glazes, ensuring better results in ceramic pieces. Penguin Pottery's Mixmaster glaze liquid is a must-have product for both ceramic artists and hobbyists. Our multi-purpose formula is great for rehydrating ceramic glazes, effectively bringing old, dried glazes back to a usable state. It saves both time and materials by reviving glazes that would otherwise go to waste. MixMaster is also suitable for thinning glazes for dipping purposes, ensuring that you get a smooth and consistent application for a variety of projects. It can transform dry glazes into a liquid form, making it easier to work with without changing the glaze’s original color or finish. Begin by adding MixMaster to your dry glaze in a 2:3 ratio, then fine-tune the consistency to suit your specific needs. Also, one of MixMaster's key features is its ability to slow down particle settlement in the glaze. This means the glaze maintains a more uniform texture and thickness during use, reducing the need for frequent stirring. The formula also improves the ease of brushing, leading to smoother application and fewer brush marks on your finished ceramics. Whether you apply it to a Penguin Pottery dry glaze mix, or your own home-made formula, with Mixmaster you can effortlessly achieve a homogenous glaze mixture. [LIFETIME WARRANTY] - All Penguin Pottery products are backed by our Lifetime Warranty. if you have any issues, we will give you a refund or replace your product - no questions asked! See warranty & support section for more information.",
+      "documents": null,
+      "effects": null,
+      "external_id": "penguin-pottery:https://www.penguinpottery.com/products/penguin-pottery-mixmaster-glaze-liquid-1-2-gallon-64-oz-add-to-dry-glazes-to-hydrate-and-increase-fluidity#46875576369304",
+      "extraction_method": "api_json",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": "liquid",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.shopify.com/s/files/1/0321/8001/1052/files/413iJvaoDwL.jpg?v=1754502920",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "MixMaster Glaze Liquid - 1/2 Gallon 64 Oz - Add to Dry Glazes to Hydrate and Increase Fluidity",
+      "name_parsed_from": [
+        "Penguin Pottery",
+        "Penguin Pottery"
+      ],
+      "name_raw": "Penguin Pottery - MixMaster Glaze Liquid - 1/2 Gallon 64 Oz - Add to Dry Glazes to Hydrate and Increase Fluidity",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "2 Gallon",
+        "millilitres": 7570.82,
+        "unit": "gallon",
+        "value": 2.0
+      },
+      "parent_external_id": "penguin-pottery:https://www.penguinpottery.com/products/penguin-pottery-mixmaster-glaze-liquid-1-2-gallon-64-oz-add-to-dry-glazes-to-hydrate-and-increase-fluidity",
+      "price": 32.0,
+      "price_text": "32.00 USD",
+      "product_name": "Penguin Pottery - MixMaster Glaze Liquid - 1/2 Gallon 64 Oz - Add to Dry Glazes to Hydrate and Increase Fluidity",
+      "product_url": "https://www.penguinpottery.com/products/penguin-pottery-mixmaster-glaze-liquid-1-2-gallon-64-oz-add-to-dry-glazes-to-hydrate-and-increase-fluidity",
+      "raw": {
+        "product": {
+          "body_html": "<p>Penguin Pottery's Mixmaster glaze liquid is a must-have product for both ceramic artists and hobbyists. Our multi-purpose formula is great for rehydrating ceramic glazes, effectively bringing old, dried glazes back to a usable state. It saves both time and materials by reviving glazes that would otherwise go to waste. MixMaster is also suitable for thinning glazes for dipping purposes, ensuring that you get a smooth and consistent application for a variety of projects. It can transform dry glazes into a liquid form, making it easier to work with without changing the glaze’s original color or finish. Also, one of MixMaster's key features is its ability to slow down particle settlement in the glaze. This means the glaze maintains a more uniform texture and thickness during use, reducing the need for frequent stirring. The formula also improves the ease of brushing, leading to smoother application and fewer brush marks on your finished ceramics. Available in a 1/2 gallon (1.9 liters) container, Penguin Pottery’s Glaze Liquid is a convenient size for numerous projects and easy to store. It's a helpful addition to any pottery workspace for maintaining and enhancing the quality of glazes, ensuring better results in ceramic pieces.</p><ul>\n<li>Penguin Pottery's Mixmaster glaze liquid is a must-have product for both ceramic artists and hobbyists. Our multi-purpose formula is great for rehydrating ceramic glazes, effectively bringing old, dried glazes back to a usable state. It saves both time and materials by reviving glazes that would otherwise go to waste.</li>\n<li>MixMaster is also suitable for thinning glazes for dipping purposes, ensuring that you get a smooth and consistent application for a variety of projects. It can transform dry glazes into a liquid form, making it easier to work with without changing the glaze’s original color or finish.</li>\n<li>Begin by adding MixMaster to your dry glaze in a 2:3 ratio, then fine-tune the consistency to suit your specific needs. Also, one of MixMaster's key features is its ability to slow down particle settlement in the glaze. This means the glaze maintains a more uniform texture and thickness during use, reducing the need for frequent stirring. The formula also improves the ease of brushing, leading to smoother application and fewer brush marks on your finished ceramics.</li>\n<li>Whether you apply it to a Penguin Pottery dry glaze mix, or your own home-made formula, with Mixmaster you can effortlessly achieve a homogenous glaze mixture.</li>\n<li>[LIFETIME WARRANTY] - All Penguin Pottery products are backed by our Lifetime Warranty. if you have any issues, we will give you a refund or replace your product - no questions asked! See warranty &amp; support section for more information.</li>\n</ul>",
+          "created_at": "2025-08-06T13:55:20-04:00",
+          "handle": "penguin-pottery-mixmaster-glaze-liquid-1-2-gallon-64-oz-add-to-dry-glazes-to-hydrate-and-increase-fluidity",
+          "id": 8797048340632,
+          "images": [
+            {
+              "created_at": "2025-08-06T13:55:20-04:00",
+              "height": 1080,
+              "id": 50043650637976,
+              "position": 1,
+              "product_id": 8797048340632,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/files/413iJvaoDwL.jpg?v=1754502920",
+              "updated_at": "2025-08-06T13:55:20-04:00",
+              "variant_ids": [],
+              "width": 1080
+            },
+            {
+              "created_at": "2025-08-06T13:55:20-04:00",
+              "height": 1500,
+              "id": 50043650670744,
+              "position": 2,
+              "product_id": 8797048340632,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/files/61AZheqf-XL_ca1bdad9-7d4a-4145-b914-0cb795dbb583.jpg?v=1754502920",
+              "updated_at": "2025-08-06T13:55:20-04:00",
+              "variant_ids": [],
+              "width": 1500
+            },
+            {
+              "created_at": "2025-08-06T13:55:20-04:00",
+              "height": 1080,
+              "id": 50043650703512,
+              "position": 3,
+              "product_id": 8797048340632,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/files/71X1jJ7BfOL_ef64fc43-3f8d-4f6b-b81b-0b6953ae2f81.jpg?v=1754502920",
+              "updated_at": "2025-08-06T13:55:20-04:00",
+              "variant_ids": [],
+              "width": 1080
+            },
+            {
+              "created_at": "2025-08-06T13:55:20-04:00",
+              "height": 500,
+              "id": 50043650736280,
+              "position": 4,
+              "product_id": 8797048340632,
+              "src": "https://cdn.shopify.com/s/files/1/0321/8001/1052/files/513cjX5g0JL_d5213c57-f466-410e-a4c6-a0108e17ffda.jpg?v=1754502920",
+              "updated_at": "2025-08-06T13:55:20-04:00",
+              "variant_ids": [],
+              "width": 500
+            }
+          ],
+          "options": [
+            {
+              "name": "Title",
+              "position": 1,
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "product_type": "Pottery Supplies",
+          "published_at": "2025-08-06T13:55:20-04:00",
+          "tags": [
+            "Chemicals",
+            "MCF"
+          ],
+          "title": "Penguin Pottery - MixMaster Glaze Liquid - 1/2 Gallon 64 Oz - Add to Dry Glazes to Hydrate and Increase Fluidity",
+          "updated_at": "2026-08-06T01:35:22-04:00",
+          "vendor": "Penguin Pottery"
+        },
+        "variant": {
+          "available": true,
+          "compare_at_price": null,
+          "created_at": "2025-08-06T13:55:20-04:00",
+          "featured_image": null,
+          "grams": 2041,
+          "id": 46875576369304,
+          "option1": "Default Title",
+          "option2": null,
+          "option3": null,
+          "position": 1,
+          "price": "32.00",
+          "product_id": 8797048340632,
+          "requires_shipping": true,
+          "sku": "PP-CH-MIXMASTER-64OZ",
+          "taxable": true,
+          "title": "Default Title",
+          "updated_at": "2026-08-06T01:35:22-04:00"
+        }
+      },
+      "source": "penguin-pottery",
+      "source_detail_level": "api",
+      "source_updated_at": "2026-08-06T01:35:22-04:00",
+      "stock_quantity": null,
+      "supplier_reference": "PP-CH-MIXMASTER-64OZ",
+      "surface": null,
+      "technical_attributes": {
+        "shipping_weight_g": 2041
+      },
+      "unit_price": {
+        "currency": "USD",
+        "per": "l",
+        "value": 4.2268
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "exclusive"
+    }
+  ],
+  "scraper": "shopify",
+  "source": "penguin-pottery",
+  "truncated": false
+}

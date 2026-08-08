@@ -1,0 +1,521 @@
+{
+  "digest": "1cd784c5d191044e3be484d46d0fe94ea0ba70940c8c93d60e9a919457730a5d",
+  "discovered": 4662,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "api_json",
+  "field_coverage": {
+    "all_image_urls": 4291,
+    "brand": 4293,
+    "category_path": 0,
+    "claims": 2151,
+    "colour": 1760,
+    "description": 4255,
+    "documents": 0,
+    "effects": 668,
+    "family": 4293,
+    "firing": 3688,
+    "form": 34,
+    "gtin": 0,
+    "manufacturer_sku": 1044,
+    "package_size": 3981,
+    "stock_quantity": 0,
+    "supplier_reference": 4286,
+    "surface": 401,
+    "unit_price": 3981,
+    "vat_status": 4293
+  },
+  "notes": [],
+  "records": 4293,
+  "rendered_pages": 0,
+  "requests": 20,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/MK_9826_00.jpg?v=1784125008",
+        "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/PD_9826_01.jpg?v=1784125011",
+        "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/PD_9821_9820_9826_042028129.jpg?v=1784125010"
+      ],
+      "application_methods": [
+        "pouring"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": "Botz",
+      "brand_basis": "named_in_title",
+      "category_path": null,
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Recouvert d'un émail transparent (par exemple BOTZ 9300 ou BOTZ 9870), il révèle des couleurs vives, une finition brillante et, selon l'émail utilisé, convient à un usage alimentaire.",
+          "type": "food_contact_suitability"
+        }
+      ],
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": "Notes / Application BOTZ Édition Engobe pour grès de haute qualité. Très stable à la cuisson entre 1180 et 1280 °C (cônes 4 à 9). Peut être mélangé avec les autres couleurs de la gamme BOTZ Édition. Sans émail, il offre une finition mate à l'aspect naturel, une excellente couvrance et des contours précis. Recouvert d'un émail transparent (par exemple BOTZ 9300 ou BOTZ 9870), il révèle des couleurs vives, une finition brillante et, selon l'émail utilisé, convient à un usage alimentaire. Propriétés Mat",
+      "documents": null,
+      "effects": null,
+      "external_id": "ceradel:https://ceradel.fr/products/b9825-botz-edition-engobe-bamboo-1180-1280-c-1#65260880331101",
+      "extraction_method": "api_json",
+      "family": "engobe",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1180° - 1280°C",
+        "max_celsius": 1280,
+        "min_celsius": 1180
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/MK_9826_00.jpg?v=1784125008",
+      "list_price": null,
+      "manufacturer_sku": "B9826",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "BOTZ EDITION ENGOBE FLORIDA",
+      "name_parsed_from": [
+        "200",
+        "1180° - 1280°C",
+        "BOTZ",
+        "B9826"
+      ],
+      "name_raw": "B9826 BOTZ EDITION ENGOBE FLORIDA 1180° - 1280°C 200",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "200 ml",
+        "millilitres": 200.0,
+        "unit": "ml",
+        "value": 200.0
+      },
+      "parent_external_id": "ceradel:https://ceradel.fr/products/b9825-botz-edition-engobe-bamboo-1180-1280-c-1",
+      "price": 11.8,
+      "price_text": "11.80 EUR",
+      "product_name": "B9826 BOTZ EDITION ENGOBE FLORIDA 1180° - 1280°C",
+      "product_url": "https://ceradel.fr/products/b9825-botz-edition-engobe-bamboo-1180-1280-c-1",
+      "raw": {
+        "product": {
+          "body_html": "<p data-pasted=\"true\"><strong><u>Notes / Application</u></strong></p><p>BOTZ Édition</p><ul>\n<li>Engobe pour grès de haute qualité.</li>\n<li>Très stable à la cuisson entre 1180 et 1280 °C (cônes 4 à 9).</li>\n<li>Peut être mélangé avec les autres couleurs de la gamme BOTZ Édition.</li>\n<li>Sans émail, il offre une finition mate à l'aspect naturel, une excellente couvrance et des contours précis.</li>\n<li>Recouvert d'un émail transparent (par exemple BOTZ 9300 ou BOTZ 9870), il révèle des couleurs vives, une finition brillante et, selon l'émail utilisé, convient à un usage alimentaire.</li>\n</ul><p><strong><u>Propriétés</u></strong></p><p>Mat</p>",
+          "created_at": "2026-07-15T16:14:07+02:00",
+          "handle": "b9825-botz-edition-engobe-bamboo-1180-1280-c-1",
+          "id": 16317983785309,
+          "images": [
+            {
+              "created_at": "2026-07-15T16:16:46+02:00",
+              "height": 900,
+              "id": 84774262538589,
+              "position": 1,
+              "product_id": 16317983785309,
+              "src": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/MK_9826_00.jpg?v=1784125008",
+              "updated_at": "2026-07-15T16:16:48+02:00",
+              "variant_ids": [],
+              "width": 900
+            },
+            {
+              "created_at": "2026-07-15T16:16:46+02:00",
+              "height": 3024,
+              "id": 84774262571357,
+              "position": 2,
+              "product_id": 16317983785309,
+              "src": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/PD_9826_01.jpg?v=1784125011",
+              "updated_at": "2026-07-15T16:16:51+02:00",
+              "variant_ids": [],
+              "width": 3024
+            },
+            {
+              "created_at": "2026-07-15T16:16:46+02:00",
+              "height": 2380,
+              "id": 84774262604125,
+              "position": 3,
+              "product_id": 16317983785309,
+              "src": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/PD_9821_9820_9826_042028129.jpg?v=1784125010",
+              "updated_at": "2026-07-15T16:16:50+02:00",
+              "variant_ids": [],
+              "width": 2380
+            }
+          ],
+          "options": [
+            {
+              "name": "Volume (ml)",
+              "position": 1,
+              "values": [
+                "200"
+              ]
+            }
+          ],
+          "product_type": "",
+          "published_at": "2026-07-29T16:22:37+02:00",
+          "tags": [
+            "NOUVEAUTÉ"
+          ],
+          "title": "B9826 BOTZ EDITION ENGOBE FLORIDA 1180° - 1280°C",
+          "updated_at": "2026-08-05T20:26:32+02:00",
+          "vendor": "Ceradel"
+        },
+        "variant": {
+          "available": true,
+          "compare_at_price": null,
+          "created_at": "2026-07-15T16:14:07+02:00",
+          "featured_image": null,
+          "grams": 300,
+          "id": 65260880331101,
+          "option1": "200",
+          "option2": null,
+          "option3": null,
+          "position": 1,
+          "price": "11.80",
+          "product_id": 16317983785309,
+          "requires_shipping": true,
+          "sku": "2371701",
+          "taxable": true,
+          "title": "200",
+          "updated_at": "2026-08-05T20:26:32+02:00"
+        }
+      },
+      "source": "ceradel",
+      "source_detail_level": "api",
+      "source_updated_at": "2026-08-05T20:26:32+02:00",
+      "stock_quantity": null,
+      "supplier_reference": "2371701",
+      "surface": null,
+      "technical_attributes": {
+        "Volume (ml)": "200",
+        "shipping_weight_g": 300
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 59.0
+      },
+      "variant_title": "200",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/MK_9825_00_4cc20684-257f-4b86-afde-f4aa7301bb2c.jpg?v=1785334926",
+        "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/PD_9825_9802_9823_01_aa6727cb-e3b8-40b3-933c-07ce64bfa262.jpg?v=1785334927"
+      ],
+      "application_methods": [
+        "pouring"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": "Botz",
+      "brand_basis": "named_in_title",
+      "category_path": null,
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Recouvert d'un émail transparent (par exemple BOTZ 9300 ou BOTZ 9870), il révèle des couleurs vives, une finition brillante et, selon l'émail utilisé, convient à un usage alimentaire.",
+          "type": "food_contact_suitability"
+        }
+      ],
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": "Notes / Application BOTZ Édition Engobe pour grès de haute qualité. Très stable à la cuisson entre 1180 et 1280 °C (cônes 4 à 9). Peut être mélangé avec les autres couleurs de la gamme BOTZ Édition. Sans émail, il offre une finition mate à l'aspect naturel, une excellente couvrance et des contours précis. Recouvert d'un émail transparent (par exemple BOTZ 9300 ou BOTZ 9870), il révèle des couleurs vives, une finition brillante et, selon l'émail utilisé, convient à un usage alimentaire. Propriétés Mat",
+      "documents": null,
+      "effects": null,
+      "external_id": "ceradel:https://ceradel.fr/products/b9825-botz-edition-engobe-bamboo-1180-1280-c#65260867158365",
+      "extraction_method": "api_json",
+      "family": "engobe",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1180° - 1280°C",
+        "max_celsius": 1280,
+        "min_celsius": 1180
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/MK_9825_00_4cc20684-257f-4b86-afde-f4aa7301bb2c.jpg?v=1785334926",
+      "list_price": null,
+      "manufacturer_sku": "B9825",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "BOTZ EDITION ENGOBE BAMBOO",
+      "name_parsed_from": [
+        "200",
+        "1180° - 1280°C",
+        "BOTZ",
+        "B9825"
+      ],
+      "name_raw": "B9825 BOTZ EDITION ENGOBE BAMBOO 1180° - 1280°C 200",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "200 ml",
+        "millilitres": 200.0,
+        "unit": "ml",
+        "value": 200.0
+      },
+      "parent_external_id": "ceradel:https://ceradel.fr/products/b9825-botz-edition-engobe-bamboo-1180-1280-c",
+      "price": 11.8,
+      "price_text": "11.80 EUR",
+      "product_name": "B9825 BOTZ EDITION ENGOBE BAMBOO 1180° - 1280°C",
+      "product_url": "https://ceradel.fr/products/b9825-botz-edition-engobe-bamboo-1180-1280-c",
+      "raw": {
+        "product": {
+          "body_html": "<p data-pasted=\"true\"><strong><u>Notes / Application</u></strong></p><p>BOTZ Édition</p><ul>\n<li>Engobe pour grès de haute qualité.</li>\n<li>Très stable à la cuisson entre 1180 et 1280 °C (cônes 4 à 9).</li>\n<li>Peut être mélangé avec les autres couleurs de la gamme BOTZ Édition.</li>\n<li>Sans émail, il offre une finition mate à l'aspect naturel, une excellente couvrance et des contours précis.</li>\n<li>Recouvert d'un émail transparent (par exemple BOTZ 9300 ou BOTZ 9870), il révèle des couleurs vives, une finition brillante et, selon l'émail utilisé, convient à un usage alimentaire.</li>\n</ul><p><strong><u>Propriétés</u></strong></p><p>Mat</p>",
+          "created_at": "2026-07-15T16:05:53+02:00",
+          "handle": "b9825-botz-edition-engobe-bamboo-1180-1280-c",
+          "id": 16317973627229,
+          "images": [
+            {
+              "created_at": "2026-07-29T16:22:04+02:00",
+              "height": 900,
+              "id": 86790747160925,
+              "position": 1,
+              "product_id": 16317973627229,
+              "src": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/MK_9825_00_4cc20684-257f-4b86-afde-f4aa7301bb2c.jpg?v=1785334926",
+              "updated_at": "2026-07-29T16:22:06+02:00",
+              "variant_ids": [],
+              "width": 900
+            },
+            {
+              "created_at": "2026-07-29T16:22:04+02:00",
+              "height": 2961,
+              "id": 86790747193693,
+              "position": 2,
+              "product_id": 16317973627229,
+              "src": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/PD_9825_9802_9823_01_aa6727cb-e3b8-40b3-933c-07ce64bfa262.jpg?v=1785334927",
+              "updated_at": "2026-07-29T16:22:07+02:00",
+              "variant_ids": [],
+              "width": 2961
+            }
+          ],
+          "options": [
+            {
+              "name": "Volume (ml)",
+              "position": 1,
+              "values": [
+                "200"
+              ]
+            }
+          ],
+          "product_type": "",
+          "published_at": "2026-07-29T16:22:36+02:00",
+          "tags": [
+            "NOUVEAUTÉ"
+          ],
+          "title": "B9825 BOTZ EDITION ENGOBE BAMBOO 1180° - 1280°C",
+          "updated_at": "2026-08-05T20:26:32+02:00",
+          "vendor": "Ceradel"
+        },
+        "variant": {
+          "available": true,
+          "compare_at_price": null,
+          "created_at": "2026-07-15T16:08:45+02:00",
+          "featured_image": null,
+          "grams": 300,
+          "id": 65260867158365,
+          "option1": "200",
+          "option2": null,
+          "option3": null,
+          "position": 1,
+          "price": "11.80",
+          "product_id": 16317973627229,
+          "requires_shipping": true,
+          "sku": "2371601",
+          "taxable": true,
+          "title": "200",
+          "updated_at": "2026-08-05T20:26:32+02:00"
+        }
+      },
+      "source": "ceradel",
+      "source_detail_level": "api",
+      "source_updated_at": "2026-08-05T20:26:32+02:00",
+      "stock_quantity": null,
+      "supplier_reference": "2371601",
+      "surface": null,
+      "technical_attributes": {
+        "Volume (ml)": "200",
+        "shipping_weight_g": 300
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 59.0
+      },
+      "variant_title": "200",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/image_5d931b34-7650-4ecf-a3f7-00518edd36a5.png?v=1746459893",
+        "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/Shimpo-Whisper-RK-3T-Pottery-Wheel-Front.jpg?v=1758806957",
+        "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/Shimpo-Whisper-RK-3T-Pottery-Wheel-Without-Splash-Pan.jpg?v=1758806957",
+        "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/tour-whisper-t-shimpo_2.jpg?v=1758806957",
+        "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/tour-whisper-t-shimpo_1.png?v=1758806957"
+      ],
+      "application_methods": [
+        "pouring"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": "Harry-Ceradel",
+      "brand_basis": "published",
+      "category_path": null,
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": "Le tour Whisper-T vous offre la puissance, la solidité et le fonctionnement silencieux qui font la renommée des tours SHIMPO. Silence et vibrations très réduites Le Whisper-T utilise une motorisation directe (pas de courroies ni poulies), ce qui réduit fortement le bruit ~30 décibels et les vibrations. Régulation continue de la vitesse La vitesse de rotation s'ajuste de façon fluide, sans à-coups, de 0 à 250 tours/min avec une pédale au pied. Même sous charge, le “micro-régulateur” permet de maintenir une vitesse constante. Construction robuste / durabilité Structure en acier massif pour garantir de la stabilité et longue durée de vie. Girelle de 300mm en alliage léger (non percée) très robuste. Bac de récupération en deux parties, démontable pour un nettoyage facile. Ergonomie Hauteur réglable de 465 à 585 mm, pour adapter le tour à votre position et votre taille. Pédale distante pour plus de liberté de positionnement. Grand espace de travail de chaque côté pour poser l'eau, les outils,... Polyvalence Peut servir en tant que tour sur pied ou posé sur une table, selon les besoins. Le plateau peut tourner librement quand le moteur est arrêté — utile pour décorer, modeler ou pour sortir les pièces délicates. Direction de rotation inversible (utile pour gauchers, ou pour certaines techniques). Grande capacité de travail Puissance de 300 W, ce qui permet de tourner un volume de terre de 10-15 kg sans perte de couple. Entretien réduit / coûts de fonctionnement modérés Le moteur avec entraînement direct, nécessite moins de maintenance et consomme moins d’énergie. Se branche directement sur une prise domestique classique 16A Poids emballé : 45 kg ATTENTION : Des imports parallèles provenant de vendeurs non agréés existent. Assurez-vous de bien acheter votre tour auprès d'un revendeur agréé Shimpo. Seul un revendeur agréé comme Ceradel sera en mesure d'intervenir pour le service après-vente.",
+      "documents": null,
+      "effects": null,
+      "external_id": "ceradel:https://ceradel.fr/products/tour-shimpo-whisper-t#64805992825181",
+      "extraction_method": "api_json",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/image_5d931b34-7650-4ecf-a3f7-00518edd36a5.png?v=1746459893",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Tour shimpo whisper T STANDARD (SANS ERGOTS)",
+      "name_parsed_from": null,
+      "name_raw": "Tour shimpo whisper T STANDARD (SANS ERGOTS)",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "45 kg",
+        "grams": 45000.0,
+        "unit": "kg",
+        "value": 45.0
+      },
+      "parent_external_id": "ceradel:https://ceradel.fr/products/tour-shimpo-whisper-t",
+      "price": 1495.0,
+      "price_text": "1495.00 EUR",
+      "product_name": "Tour shimpo whisper T",
+      "product_url": "https://ceradel.fr/products/tour-shimpo-whisper-t",
+      "raw": {
+        "product": {
+          "body_html": "<p id=\"isPasted\">Le tour Whisper-T vous offre la puissance, la solidité et le fonctionnement silencieux qui font la renommée des tours SHIMPO.</p>\n<p><strong>Silence et vibrations très réduites</strong><br>Le Whisper-T utilise une motorisation directe (pas de courroies ni poulies), ce qui réduit fortement le bruit<span> </span><strong>~30 décibels</strong><span> </span>et les vibrations.</p>\n<p><strong>Régulation continue de la vitesse</strong><br>La vitesse de rotation s'ajuste de façon fluide, sans à-coups, de<span> </span><strong>0 à 250 tours/min</strong><span> </span>avec une pédale au pied. Même sous charge, le “micro-régulateur” permet de maintenir une vitesse constante.</p>\n<p><strong>Construction robuste / durabilité</strong></p>\n<p>Structure en acier massif pour garantir de la stabilité et longue durée de vie.</p>\n<p>Girelle de<span> </span><strong>300mm </strong>en alliage léger (non percée) très<span> </span>robuste.</p>\n<p>Bac de récupération en deux parties, démontable pour un nettoyage facile.</p>\n<p><strong>Ergonomie</strong></p>\n<p>Hauteur réglable de 465 à 585 mm, pour adapter le tour à votre position et votre taille.</p>\n<p>Pédale distante pour plus de liberté de positionnement. </p>\n<p>Grand espace de travail de chaque côté pour poser l'eau,<span id=\"isPasted\"> les outils,...</span></p>\n<p> </p>\n<p><strong>Polyvalence</strong></p>\n<p>Peut servir en tant que tour sur pied ou posé sur une table, selon les besoins.</p>\n<p>Le plateau peut tourner librement quand le moteur est arrêté — utile pour décorer, modeler ou pour sortir les pièces délicates.</p>\n<p>Direction de rotation inversible (utile pour gauchers, ou pour certaines techniques). </p>\n<p><strong>Grande capacité de travail </strong></p>\n<p>Puissance de 300 W, ce qui permet de tourner un volume de terre de 10-15 kg sans perte de couple.</p>\n<p><strong>Entretien réduit / coûts de fonctionnement modérés</strong></p>\n<p>Le moteur avec entraînement direct, nécessite moins de maintenance et consomme moins d’énergie.</p>\n<p>Se branche directement sur une prise domestique classique 16A</p>\n<p>Poids emballé : 45 kg</p>\n<p><em><span style=\"text-decoration: underline;\">ATTENTION </span>: Des imports parallèles provenant de vendeurs non agréés existent. Assurez-vous de bien acheter votre tour auprès d'un revendeur agréé Shimpo. Seul un revendeur agréé comme Ceradel sera en mesure d'intervenir pour le service après-vente.</em></p>",
+          "created_at": "2025-05-05T17:39:58+02:00",
+          "handle": "tour-shimpo-whisper-t",
+          "id": 15385631031645,
+          "images": [
+            {
+              "created_at": "2025-05-05T17:44:49+02:00",
+              "height": 2592,
+              "id": 75122124259677,
+              "position": 1,
+              "product_id": 15385631031645,
+              "src": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/image_5d931b34-7650-4ecf-a3f7-00518edd36a5.png?v=1746459893",
+              "updated_at": "2025-05-05T17:44:53+02:00",
+              "variant_ids": [],
+              "width": 2592
+            },
+            {
+              "created_at": "2025-09-25T15:28:56+02:00",
+              "height": 579,
+              "id": 79062488121693,
+              "position": 2,
+              "product_id": 15385631031645,
+              "src": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/Shimpo-Whisper-RK-3T-Pottery-Wheel-Front.jpg?v=1758806957",
+              "updated_at": "2025-09-25T15:29:17+02:00",
+              "variant_ids": [],
+              "width": 651
+            },
+            {
+              "created_at": "2025-09-25T15:28:56+02:00",
+              "height": 530,
+              "id": 79062488088925,
+              "position": 3,
+              "product_id": 15385631031645,
+              "src": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/Shimpo-Whisper-RK-3T-Pottery-Wheel-Without-Splash-Pan.jpg?v=1758806957",
+              "updated_at": "2025-09-25T15:29:17+02:00",
+              "variant_ids": [],
+              "width": 590
+            },
+            {
+              "created_at": "2025-08-18T14:22:56+02:00",
+              "height": 1422,
+              "id": 78224230351197,
+              "position": 4,
+              "product_id": 15385631031645,
+              "src": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/tour-whisper-t-shimpo_2.jpg?v=1758806957",
+              "updated_at": "2025-09-25T15:29:17+02:00",
+              "variant_ids": [],
+              "width": 1100
+            },
+            {
+              "created_at": "2025-08-18T14:22:47+02:00",
+              "height": 492,
+              "id": 78224223109469,
+              "position": 5,
+              "product_id": 15385631031645,
+              "src": "https://cdn.shopify.com/s/files/1/0941/5586/6461/files/tour-whisper-t-shimpo_1.png?v=1758806957",
+              "updated_at": "2025-09-25T15:29:17+02:00",
+              "variant_ids": [],
+              "width": 381
+            }
+          ],
+          "options": [
+            {
+              "name": "Number",
+              "position": 1,
+              "values": [
+                "STANDARD (SANS ERGOTS)"
+              ]
+            }
+          ],
+          "product_type": "",
+          "published_at": "2025-05-05T17:39:58+02:00",
+          "tags": [
+            "MEILLEURE VENTE"
+          ],
+          "title": "Tour shimpo whisper T",
+          "updated_at": "2026-08-05T20:29:03+02:00",
+          "vendor": "Harry-Ceradel"
+        },
+        "variant": {
+          "available": true,
+          "compare_at_price": null,
+          "created_at": "2026-05-27T15:32:20+02:00",
+          "featured_image": null,
+          "grams": 95000,
+          "id": 64805992825181,
+          "option1": "STANDARD (SANS ERGOTS)",
+          "option2": null,
+          "option3": null,
+          "position": 1,
+          "price": "1495.00",
+          "product_id": 15385631031645,
+          "requires_shipping": true,
+          "sku": "1173201",
+          "taxable": true,
+          "title": "STANDARD (SANS ERGOTS)",
+          "updated_at": "2026-08-05T20:29:03+02:00"
+        }
+      },
+      "source": "ceradel",
+      "source_detail_level": "api",
+      "source_updated_at": "2026-08-05T20:29:03+02:00",
+      "stock_quantity": null,
+      "supplier_reference": "1173201",
+      "surface": null,
+      "technical_attributes": {
+        "Number": "STANDARD (SANS ERGOTS)",
+        "shipping_weight_g": 95000
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 33.2222
+      },
+      "variant_title": "STANDARD (SANS ERGOTS)",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "shopify",
+  "source": "ceradel",
+  "truncated": false
+}

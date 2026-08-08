@@ -1,0 +1,1454 @@
+{
+  "digest": "07d957bd1ecd66be2622686e51a713ec778580afb323d8d4a9a5472da7dcb0c1",
+  "discovered": 19,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "api_json",
+  "field_coverage": {
+    "all_image_urls": 539,
+    "brand": 539,
+    "category_path": 539,
+    "claims": 33,
+    "colour": 536,
+    "description": 539,
+    "documents": 0,
+    "effects": 62,
+    "family": 539,
+    "firing": 526,
+    "form": 0,
+    "gtin": 0,
+    "manufacturer_sku": 322,
+    "package_size": 527,
+    "stock_quantity": 0,
+    "supplier_reference": 539,
+    "surface": 21,
+    "unit_price": 527,
+    "vat_status": 539
+  },
+  "notes": [],
+  "records": 539,
+  "rendered_pages": 0,
+  "requests": 8,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4516157.jpg?v=1782813919",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6006601.jpg?v=1782813251",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-2777778.jpg?v=1782813909",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7077420.jpg?v=1782812971",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-8697846.jpg?v=1782813884",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-1931073.jpg?v=1782813788",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9458750.jpg?v=1782813778",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4831041.jpg?v=1782813831",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4553996.jpg?v=1782812911",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-8614688.jpg?v=1782813797",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9770546.jpg?v=1782813350",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-1233172.jpg?v=1782813415",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6556008.jpg?v=1782812953",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7127037.jpg?v=1782812960",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7102417.jpg?v=1782813292",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9363461.jpg?v=1782813241",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9033606.jpg?v=1782812882",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-3560608.jpg?v=1782812862",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4350496.jpg?v=1782812896",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6530468.jpg?v=1782812944",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9162580.jpg?v=1782812824"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Mayco",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "foundations",
+        "Glasuren"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "White FN001"
+      },
+      "currency": "EUR",
+      "description": "température de cuisson: 1000°C-1220°C (opaque) 1000°C-1220°C (translucide) 1000°C (mat)",
+      "documents": null,
+      "effects": null,
+      "external_id": "ceramique-peinture:https://ceramique-peinture.fr/products/mayco-foundations#51292044132616",
+      "extraction_method": "api_json",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1000°C-1220°C",
+        "max_celsius": 1220,
+        "min_celsius": 1000
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4516157.jpg?v=1782813919",
+      "list_price": null,
+      "manufacturer_sku": "FN1",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "Mayco Foundations White",
+      "name_parsed_from": [
+        "118 ml",
+        "Mayco"
+      ],
+      "name_raw": "Mayco Foundations White FN001 / 118 ml",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "118 ml",
+        "millilitres": 118.0,
+        "unit": "ml",
+        "value": 118.0
+      },
+      "parent_external_id": "ceramique-peinture:https://ceramique-peinture.fr/products/mayco-foundations",
+      "price": 7.9,
+      "price_text": "7.90 EUR",
+      "product_name": "Mayco Foundations",
+      "product_url": "https://ceramique-peinture.fr/products/mayco-foundations",
+      "raw": {
+        "product": {
+          "body_html": "<p>température de cuisson:</p>\n<p>1000°C-1220°C (opaque)</p>\n<p>1000°C-1220°C (translucide)</p>\n<p>1000°C (mat)</p>\n<p><a href=\"https://ceramique-peinture.fr/pages/label-de-securite-mayco\" title=\"Label de sécurité\"><img height=\"90\" width=\"90\" alt=\"\" src=\"https://cdn.shopify.com/s/files/1/0948/2525/1080/files/dinnerware-safe-big-removebg-preview.png?v=1746892039\"><img height=\"77\" width=\"66\" alt=\"\" src=\"https://cdn.shopify.com/s/files/1/0948/2525/1080/files/ap-acmi.png?v=1746890247\"></a></p>",
+          "created_at": "2025-04-22T16:43:22+02:00",
+          "handle": "mayco-foundations",
+          "id": 10193165418760,
+          "images": [
+            {
+              "created_at": "2025-04-22T16:43:07+02:00",
+              "height": 400,
+              "id": 63199778570504,
+              "position": 1,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4516157.jpg?v=1782813919",
+              "updated_at": "2026-06-30T12:05:19+02:00",
+              "variant_ids": [
+                51292044132616,
+                51292044165384
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:47:11+02:00",
+              "height": 400,
+              "id": 63199838339336,
+              "position": 2,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6006601.jpg?v=1782813251",
+              "updated_at": "2026-06-30T11:54:11+02:00",
+              "variant_ids": [
+                51292044198152,
+                51292044230920
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:45:06+02:00",
+              "height": 400,
+              "id": 63199811895560,
+              "position": 3,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-2777778.jpg?v=1782813909",
+              "updated_at": "2026-06-30T12:05:09+02:00",
+              "variant_ids": [
+                51292044263688,
+                51292044296456
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:50:29+02:00",
+              "height": 400,
+              "id": 63199877136648,
+              "position": 4,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7077420.jpg?v=1782812971",
+              "updated_at": "2026-06-30T11:49:31+02:00",
+              "variant_ids": [
+                51292044329224,
+                51292044361992
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:51:23+02:00",
+              "height": 400,
+              "id": 63199890178312,
+              "position": 5,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-8697846.jpg?v=1782813884",
+              "updated_at": "2026-06-30T12:04:44+02:00",
+              "variant_ids": [
+                51292044427528
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:45:35+02:00",
+              "height": 400,
+              "id": 63199818875144,
+              "position": 6,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-1931073.jpg?v=1782813788",
+              "updated_at": "2026-06-30T12:03:08+02:00",
+              "variant_ids": [
+                51292044460296,
+                51292044493064
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:52:02+02:00",
+              "height": 400,
+              "id": 63199898403080,
+              "position": 7,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9458750.jpg?v=1782813778",
+              "updated_at": "2026-06-30T12:02:58+02:00",
+              "variant_ids": [
+                51292044558600
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:46:02+02:00",
+              "height": 400,
+              "id": 63199824544008,
+              "position": 8,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4831041.jpg?v=1782813831",
+              "updated_at": "2026-06-30T12:03:51+02:00",
+              "variant_ids": [
+                51292044591368,
+                51292044624136
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:46:34+02:00",
+              "height": 400,
+              "id": 63199830507784,
+              "position": 9,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4553996.jpg?v=1782812911",
+              "updated_at": "2026-06-30T11:48:31+02:00",
+              "variant_ids": [
+                51292044656904,
+                51292044689672
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:48:22+02:00",
+              "height": 400,
+              "id": 63199851774216,
+              "position": 10,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-8614688.jpg?v=1782813797",
+              "updated_at": "2026-06-30T12:03:17+02:00",
+              "variant_ids": [
+                51292044722440,
+                51292044755208
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:52:38+02:00",
+              "height": 400,
+              "id": 63199902662920,
+              "position": 11,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9770546.jpg?v=1782813350",
+              "updated_at": "2026-06-30T11:55:50+02:00",
+              "variant_ids": [
+                51292044787976,
+                51292044820744
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:48:56+02:00",
+              "height": 400,
+              "id": 63199857803528,
+              "position": 12,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-1233172.jpg?v=1782813415",
+              "updated_at": "2026-06-30T11:56:55+02:00",
+              "variant_ids": [
+                51292044853512,
+                51292044886280
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:47:49+02:00",
+              "height": 400,
+              "id": 63199845515528,
+              "position": 13,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6556008.jpg?v=1782812953",
+              "updated_at": "2026-06-30T11:49:13+02:00",
+              "variant_ids": [
+                51292044919048,
+                51292044951816
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:53:19+02:00",
+              "height": 400,
+              "id": 63199911117064,
+              "position": 14,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7127037.jpg?v=1782812960",
+              "updated_at": "2026-06-30T11:49:20+02:00",
+              "variant_ids": [
+                51292044984584,
+                51292045017352
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:50:00+02:00",
+              "height": 400,
+              "id": 63199868715272,
+              "position": 15,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7102417.jpg?v=1782813292",
+              "updated_at": "2026-06-30T11:54:52+02:00",
+              "variant_ids": [
+                51292045082888
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:53:45+02:00",
+              "height": 400,
+              "id": 63199915245832,
+              "position": 16,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9363461.jpg?v=1782813241",
+              "updated_at": "2026-06-30T11:54:01+02:00",
+              "variant_ids": [
+                51292045148424
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:54:12+02:00",
+              "height": 400,
+              "id": 63199920488712,
+              "position": 17,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9033606.jpg?v=1782812882",
+              "updated_at": "2026-06-30T11:48:02+02:00",
+              "variant_ids": [
+                51292045181192,
+                51292045213960
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:54:38+02:00",
+              "height": 400,
+              "id": 63199927632136,
+              "position": 18,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-3560608.jpg?v=1782812862",
+              "updated_at": "2026-06-30T11:47:42+02:00",
+              "variant_ids": [
+                51292045279496
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:54:58+02:00",
+              "height": 400,
+              "id": 63199929696520,
+              "position": 19,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4350496.jpg?v=1782812896",
+              "updated_at": "2026-06-30T11:48:16+02:00",
+              "variant_ids": [
+                51292045312264,
+                51292045345032
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:55:45+02:00",
+              "height": 400,
+              "id": 63199936676104,
+              "position": 20,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6530468.jpg?v=1782812944",
+              "updated_at": "2026-06-30T11:49:04+02:00",
+              "variant_ids": [
+                51292045377800,
+                51292045410568
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-07-01T11:33:24+02:00",
+              "height": 1080,
+              "id": 66645075558664,
+              "position": 21,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9162580.jpg?v=1782812824",
+              "updated_at": "2026-06-30T11:47:04+02:00",
+              "variant_ids": [
+                52680837300488,
+                52680837333256
+              ],
+              "width": 1080
+            }
+          ],
+          "options": [
+            {
+              "name": "Couleur",
+              "position": 1,
+              "values": [
+                "White FN001",
+                "Antique White FN014",
+                "Yellow FN002",
+                "Yellow Orange FN044",
+                "Strawberry FN051",
+                "Red FN004",
+                "Light Pink FN047",
+                "Pink FN005",
+                "Lavender FN012",
+                "Light Blue FN011",
+                "Big Sky Blue FN034",
+                "Corn Flower Blue FN031",
+                "Bright Blue FN018",
+                "Teal Blue FN042",
+                "Canton Jade FN032",
+                "Pistachio FN054",
+                "Green FN007",
+                "Light Gray FN039",
+                "Gray FN024",
+                "Black FN009",
+                "Ivory Specks FN061"
+              ]
+            },
+            {
+              "name": "Taille",
+              "position": 2,
+              "values": [
+                "118 ml",
+                "473 ml"
+              ]
+            }
+          ],
+          "product_type": "Glasuren",
+          "published_at": "2025-04-22T16:43:22+02:00",
+          "tags": [
+            "Foundations"
+          ],
+          "title": "Mayco Foundations",
+          "updated_at": "2026-08-06T07:12:20+02:00",
+          "vendor": "Mayco"
+        },
+        "variant": {
+          "available": true,
+          "compare_at_price": null,
+          "created_at": "2025-04-22T16:55:59+02:00",
+          "featured_image": {
+            "alt": "Mayco Foundations_Glasuren_KFN001 - Ceramique Peinture EI",
+            "created_at": "2025-04-22T16:43:07+02:00",
+            "height": 400,
+            "id": 63199778570504,
+            "position": 1,
+            "product_id": 10193165418760,
+            "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4516157.jpg?v=1782813919",
+            "updated_at": "2026-06-30T12:05:19+02:00",
+            "variant_ids": [
+              51292044132616,
+              51292044165384
+            ],
+            "width": 400
+          },
+          "grams": 0,
+          "id": 51292044132616,
+          "option1": "White FN001",
+          "option2": "118 ml",
+          "option3": null,
+          "position": 1,
+          "price": "7.90",
+          "product_id": 10193165418760,
+          "requires_shipping": true,
+          "sku": "KFN001",
+          "taxable": true,
+          "title": "White FN001 / 118 ml",
+          "updated_at": "2026-08-06T07:12:20+02:00"
+        }
+      },
+      "source": "ceramique-peinture",
+      "source_detail_level": "api",
+      "source_updated_at": "2026-08-06T07:12:20+02:00",
+      "stock_quantity": null,
+      "supplier_reference": "KFN001",
+      "surface": null,
+      "technical_attributes": {
+        "Couleur": "White FN001",
+        "Taille": "118 ml"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 66.9492
+      },
+      "variant_title": "White FN001 / 118 ml",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4516157.jpg?v=1782813919",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6006601.jpg?v=1782813251",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-2777778.jpg?v=1782813909",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7077420.jpg?v=1782812971",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-8697846.jpg?v=1782813884",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-1931073.jpg?v=1782813788",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9458750.jpg?v=1782813778",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4831041.jpg?v=1782813831",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4553996.jpg?v=1782812911",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-8614688.jpg?v=1782813797",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9770546.jpg?v=1782813350",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-1233172.jpg?v=1782813415",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6556008.jpg?v=1782812953",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7127037.jpg?v=1782812960",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7102417.jpg?v=1782813292",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9363461.jpg?v=1782813241",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9033606.jpg?v=1782812882",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-3560608.jpg?v=1782812862",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4350496.jpg?v=1782812896",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6530468.jpg?v=1782812944",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9162580.jpg?v=1782812824"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Mayco",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "foundations",
+        "Glasuren"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "White FN001"
+      },
+      "currency": "EUR",
+      "description": "température de cuisson: 1000°C-1220°C (opaque) 1000°C-1220°C (translucide) 1000°C (mat)",
+      "documents": null,
+      "effects": null,
+      "external_id": "ceramique-peinture:https://ceramique-peinture.fr/products/mayco-foundations#51292044165384",
+      "extraction_method": "api_json",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1000°C-1220°C",
+        "max_celsius": 1220,
+        "min_celsius": 1000
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4516157.jpg?v=1782813919",
+      "list_price": null,
+      "manufacturer_sku": "FN1",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "Mayco Foundations White",
+      "name_parsed_from": [
+        "473 ml",
+        "Mayco"
+      ],
+      "name_raw": "Mayco Foundations White FN001 / 473 ml",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "473 ml",
+        "millilitres": 473.0,
+        "unit": "ml",
+        "value": 473.0
+      },
+      "parent_external_id": "ceramique-peinture:https://ceramique-peinture.fr/products/mayco-foundations",
+      "price": 21.89,
+      "price_text": "21.89 EUR",
+      "product_name": "Mayco Foundations",
+      "product_url": "https://ceramique-peinture.fr/products/mayco-foundations",
+      "raw": {
+        "product": {
+          "body_html": "<p>température de cuisson:</p>\n<p>1000°C-1220°C (opaque)</p>\n<p>1000°C-1220°C (translucide)</p>\n<p>1000°C (mat)</p>\n<p><a href=\"https://ceramique-peinture.fr/pages/label-de-securite-mayco\" title=\"Label de sécurité\"><img height=\"90\" width=\"90\" alt=\"\" src=\"https://cdn.shopify.com/s/files/1/0948/2525/1080/files/dinnerware-safe-big-removebg-preview.png?v=1746892039\"><img height=\"77\" width=\"66\" alt=\"\" src=\"https://cdn.shopify.com/s/files/1/0948/2525/1080/files/ap-acmi.png?v=1746890247\"></a></p>",
+          "created_at": "2025-04-22T16:43:22+02:00",
+          "handle": "mayco-foundations",
+          "id": 10193165418760,
+          "images": [
+            {
+              "created_at": "2025-04-22T16:43:07+02:00",
+              "height": 400,
+              "id": 63199778570504,
+              "position": 1,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4516157.jpg?v=1782813919",
+              "updated_at": "2026-06-30T12:05:19+02:00",
+              "variant_ids": [
+                51292044132616,
+                51292044165384
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:47:11+02:00",
+              "height": 400,
+              "id": 63199838339336,
+              "position": 2,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6006601.jpg?v=1782813251",
+              "updated_at": "2026-06-30T11:54:11+02:00",
+              "variant_ids": [
+                51292044198152,
+                51292044230920
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:45:06+02:00",
+              "height": 400,
+              "id": 63199811895560,
+              "position": 3,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-2777778.jpg?v=1782813909",
+              "updated_at": "2026-06-30T12:05:09+02:00",
+              "variant_ids": [
+                51292044263688,
+                51292044296456
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:50:29+02:00",
+              "height": 400,
+              "id": 63199877136648,
+              "position": 4,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7077420.jpg?v=1782812971",
+              "updated_at": "2026-06-30T11:49:31+02:00",
+              "variant_ids": [
+                51292044329224,
+                51292044361992
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:51:23+02:00",
+              "height": 400,
+              "id": 63199890178312,
+              "position": 5,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-8697846.jpg?v=1782813884",
+              "updated_at": "2026-06-30T12:04:44+02:00",
+              "variant_ids": [
+                51292044427528
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:45:35+02:00",
+              "height": 400,
+              "id": 63199818875144,
+              "position": 6,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-1931073.jpg?v=1782813788",
+              "updated_at": "2026-06-30T12:03:08+02:00",
+              "variant_ids": [
+                51292044460296,
+                51292044493064
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:52:02+02:00",
+              "height": 400,
+              "id": 63199898403080,
+              "position": 7,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9458750.jpg?v=1782813778",
+              "updated_at": "2026-06-30T12:02:58+02:00",
+              "variant_ids": [
+                51292044558600
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:46:02+02:00",
+              "height": 400,
+              "id": 63199824544008,
+              "position": 8,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4831041.jpg?v=1782813831",
+              "updated_at": "2026-06-30T12:03:51+02:00",
+              "variant_ids": [
+                51292044591368,
+                51292044624136
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:46:34+02:00",
+              "height": 400,
+              "id": 63199830507784,
+              "position": 9,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4553996.jpg?v=1782812911",
+              "updated_at": "2026-06-30T11:48:31+02:00",
+              "variant_ids": [
+                51292044656904,
+                51292044689672
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:48:22+02:00",
+              "height": 400,
+              "id": 63199851774216,
+              "position": 10,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-8614688.jpg?v=1782813797",
+              "updated_at": "2026-06-30T12:03:17+02:00",
+              "variant_ids": [
+                51292044722440,
+                51292044755208
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:52:38+02:00",
+              "height": 400,
+              "id": 63199902662920,
+              "position": 11,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9770546.jpg?v=1782813350",
+              "updated_at": "2026-06-30T11:55:50+02:00",
+              "variant_ids": [
+                51292044787976,
+                51292044820744
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:48:56+02:00",
+              "height": 400,
+              "id": 63199857803528,
+              "position": 12,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-1233172.jpg?v=1782813415",
+              "updated_at": "2026-06-30T11:56:55+02:00",
+              "variant_ids": [
+                51292044853512,
+                51292044886280
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:47:49+02:00",
+              "height": 400,
+              "id": 63199845515528,
+              "position": 13,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6556008.jpg?v=1782812953",
+              "updated_at": "2026-06-30T11:49:13+02:00",
+              "variant_ids": [
+                51292044919048,
+                51292044951816
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:53:19+02:00",
+              "height": 400,
+              "id": 63199911117064,
+              "position": 14,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7127037.jpg?v=1782812960",
+              "updated_at": "2026-06-30T11:49:20+02:00",
+              "variant_ids": [
+                51292044984584,
+                51292045017352
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:50:00+02:00",
+              "height": 400,
+              "id": 63199868715272,
+              "position": 15,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-7102417.jpg?v=1782813292",
+              "updated_at": "2026-06-30T11:54:52+02:00",
+              "variant_ids": [
+                51292045082888
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:53:45+02:00",
+              "height": 400,
+              "id": 63199915245832,
+              "position": 16,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9363461.jpg?v=1782813241",
+              "updated_at": "2026-06-30T11:54:01+02:00",
+              "variant_ids": [
+                51292045148424
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:54:12+02:00",
+              "height": 400,
+              "id": 63199920488712,
+              "position": 17,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9033606.jpg?v=1782812882",
+              "updated_at": "2026-06-30T11:48:02+02:00",
+              "variant_ids": [
+                51292045181192,
+                51292045213960
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:54:38+02:00",
+              "height": 400,
+              "id": 63199927632136,
+              "position": 18,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-3560608.jpg?v=1782812862",
+              "updated_at": "2026-06-30T11:47:42+02:00",
+              "variant_ids": [
+                51292045279496
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:54:58+02:00",
+              "height": 400,
+              "id": 63199929696520,
+              "position": 19,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4350496.jpg?v=1782812896",
+              "updated_at": "2026-06-30T11:48:16+02:00",
+              "variant_ids": [
+                51292045312264,
+                51292045345032
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-04-22T16:55:45+02:00",
+              "height": 400,
+              "id": 63199936676104,
+              "position": 20,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-6530468.jpg?v=1782812944",
+              "updated_at": "2026-06-30T11:49:04+02:00",
+              "variant_ids": [
+                51292045377800,
+                51292045410568
+              ],
+              "width": 400
+            },
+            {
+              "created_at": "2025-07-01T11:33:24+02:00",
+              "height": 1080,
+              "id": 66645075558664,
+              "position": 21,
+              "product_id": 10193165418760,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-9162580.jpg?v=1782812824",
+              "updated_at": "2026-06-30T11:47:04+02:00",
+              "variant_ids": [
+                52680837300488,
+                52680837333256
+              ],
+              "width": 1080
+            }
+          ],
+          "options": [
+            {
+              "name": "Couleur",
+              "position": 1,
+              "values": [
+                "White FN001",
+                "Antique White FN014",
+                "Yellow FN002",
+                "Yellow Orange FN044",
+                "Strawberry FN051",
+                "Red FN004",
+                "Light Pink FN047",
+                "Pink FN005",
+                "Lavender FN012",
+                "Light Blue FN011",
+                "Big Sky Blue FN034",
+                "Corn Flower Blue FN031",
+                "Bright Blue FN018",
+                "Teal Blue FN042",
+                "Canton Jade FN032",
+                "Pistachio FN054",
+                "Green FN007",
+                "Light Gray FN039",
+                "Gray FN024",
+                "Black FN009",
+                "Ivory Specks FN061"
+              ]
+            },
+            {
+              "name": "Taille",
+              "position": 2,
+              "values": [
+                "118 ml",
+                "473 ml"
+              ]
+            }
+          ],
+          "product_type": "Glasuren",
+          "published_at": "2025-04-22T16:43:22+02:00",
+          "tags": [
+            "Foundations"
+          ],
+          "title": "Mayco Foundations",
+          "updated_at": "2026-08-06T07:12:20+02:00",
+          "vendor": "Mayco"
+        },
+        "variant": {
+          "available": true,
+          "compare_at_price": null,
+          "created_at": "2025-04-22T16:55:59+02:00",
+          "featured_image": {
+            "alt": "Mayco Foundations_Glasuren_KFN001 - Ceramique Peinture EI",
+            "created_at": "2025-04-22T16:43:07+02:00",
+            "height": 400,
+            "id": 63199778570504,
+            "position": 1,
+            "product_id": 10193165418760,
+            "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/mayco-foundations-glasuren-4516157.jpg?v=1782813919",
+            "updated_at": "2026-06-30T12:05:19+02:00",
+            "variant_ids": [
+              51292044132616,
+              51292044165384
+            ],
+            "width": 400
+          },
+          "grams": 0,
+          "id": 51292044165384,
+          "option1": "White FN001",
+          "option2": "473 ml",
+          "option3": null,
+          "position": 2,
+          "price": "21.89",
+          "product_id": 10193165418760,
+          "requires_shipping": true,
+          "sku": "FN001",
+          "taxable": true,
+          "title": "White FN001 / 473 ml",
+          "updated_at": "2026-08-06T07:12:20+02:00"
+        }
+      },
+      "source": "ceramique-peinture",
+      "source_detail_level": "api",
+      "source_updated_at": "2026-08-06T07:12:20+02:00",
+      "stock_quantity": null,
+      "supplier_reference": "FN001",
+      "surface": null,
+      "technical_attributes": {
+        "Couleur": "White FN001",
+        "Taille": "473 ml"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 46.2791
+      },
+      "variant_title": "White FN001 / 473 ml",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS101_-_Pink_Toes_61ee1f64-b79c-4468-817f-082d8947f973.png?v=1775319261",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS102_-_Fuchsia_Razzle_Dazzle_961c096e-b117-481a-918b-ad0379a10fae.png?v=1775319262",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS114_-_Amethyst_a5181dcb-8a5f-4403-880c-f969ec99d353.png?v=1775319264",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS103_-_Rasperry_Delight_e81f556d-8619-4302-9385-651fc6646a71.png?v=1775319264",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS113_-_Venetian_Red_33edeb68-4370-414a-8ad2-9afe7a948805.png?v=1775319270",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS111_-_Naples_Ochre_49e652aa-9177-48b4-892b-01ce4cf4b57f.png?v=1775319267",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS112_-_Sedona_Sun_2a70392b-667f-4fef-ab23-cd4bd8011038.png?v=1775319268",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS104_-_Midas_Gold_dfe33532-24ef-48e2-bd66-922a3923fdf0.png?v=1775319268",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS105_-_Amber_Sparks_5086ecc0-3019-42fa-a70d-8ebf67582d5a.png?v=1775319271",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS110_-_XO_Brown_954d488a-83d4-4e26-8198-aa5efdcb39cb.png?v=1775319269",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS117_-_Sage_6ccfb66a-93db-4578-842f-859dac4c53e8.png?v=1775319272",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS118_-_Lunar_Eclipse_05a65287-9f26-462d-96b1-817b8ee14413.png?v=1775319273",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS106_-_Emerald_Forest_cc9c0baa-307a-48c6-843b-8b17f567cdf7.png?v=1775319274",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS005_-_Dusty_Clear_dbd37429-93df-4ea4-a85d-176a90fd5e08.png?v=1775319276",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS100_-_Grey_Stardust_a0493282-669d-4e68-9db1-73c44798f09f.png?v=1775319277",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS109_-_Galaxy_Black_ae3fff45-8c71-4354-8642-c63ddc7c2b94.png?v=1775319276",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS116_-_Mermaid_s_Tale_eb9070b8-2e98-4cf5-af13-a6193ea50d17.png?v=1775319278",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS107_-_Sea_Spray_642adc33-cea3-4bcd-889c-0034824bbee6.png?v=1775319278",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS115_-_Moonglow_a757ed65-268b-4ca4-afa6-9615b4b79868.png?v=1775319279",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS108_-_Blue_Cosmos_28520b57-4285-4343-8a6f-8343f4aee114.png?v=1775319282",
+        "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS119_-_Violette_bece2a6f-f8c0-4b14-b867-c47ab173409d.png?v=1775319286"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Colorobbia",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "colorobbia-fairy-dust-1",
+        "Glasuren"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Sans plomb et adapté au contact alimentaire, flacons de 236 ml.",
+          "type": "food_contact_suitability"
+        },
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Sans plomb et adapté au contact alimentaire, flacons de 236 ml.",
+          "type": "lead_free"
+        }
+      ],
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Violette HSS119"
+      },
+      "currency": "EUR",
+      "description": "Fairy Dust de Colorobbia est un émail contenant des particules scintillantes. Cet émail peut être utilisé aussi bien avec qu'sans émail transparent. Sans plomb et adapté au contact alimentaire, flacons de 236 ml. température de cuisson: 1000°C-1040°C",
+      "documents": null,
+      "effects": null,
+      "external_id": "ceramique-peinture:https://ceramique-peinture.fr/products/colorobbia-fairy-dust-effet-metallique#53685416853768",
+      "extraction_method": "api_json",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1000°C-1040°C",
+        "max_celsius": 1040,
+        "min_celsius": 1000
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS119_-_Violette_bece2a6f-f8c0-4b14-b867-c47ab173409d.png?v=1775319286",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Colorobbia Fairy Dust - effet métallique Violette HSS119",
+      "name_parsed_from": [
+        "236 ml",
+        "Colorobbia"
+      ],
+      "name_raw": "Colorobbia Fairy Dust - effet métallique Violette HSS119 / 236 ml",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "236 ml",
+        "millilitres": 236.0,
+        "unit": "ml",
+        "value": 236.0
+      },
+      "parent_external_id": "ceramique-peinture:https://ceramique-peinture.fr/products/colorobbia-fairy-dust-effet-metallique",
+      "price": 16.93,
+      "price_text": "16.93 EUR",
+      "product_name": "Colorobbia Fairy Dust - effet métallique",
+      "product_url": "https://ceramique-peinture.fr/products/colorobbia-fairy-dust-effet-metallique",
+      "raw": {
+        "product": {
+          "body_html": "<p>Fairy Dust de Colorobbia est un émail contenant des particules scintillantes. Cet émail peut être utilisé aussi bien avec qu'sans émail transparent.</p>\n<p>Sans plomb et adapté au contact alimentaire, flacons de 236 ml.</p>\n<p>température de cuisson:</p>\n<p>1000°C-1040°C</p>\n<p><meta charset=\"utf-8\"><a href=\"https://ceramique-peinture.fr/pages/label-de-securite-mayco\" title=\"Label de sécurité\"><img src=\"https://cdn.shopify.com/s/files/1/0948/2525/1080/files/dinnerware-safe-big-removebg-preview.png?v=1746892039\" alt=\"\" width=\"98\" height=\"98\"><img src=\"https://cdn.shopify.com/s/files/1/0948/2525/1080/files/ap-acmi.png?v=1746890247\" alt=\"\" width=\"71\" height=\"82\"></a><a href=\"https://ceramique-peinture.fr/pages/label-de-securite-mayco\" title=\"Label de sécurité\"></a></p>",
+          "created_at": "2026-03-14T12:14:50+01:00",
+          "handle": "colorobbia-fairy-dust-effet-metallique",
+          "id": 10869907882248,
+          "images": [
+            {
+              "created_at": "2026-03-14T12:45:03+01:00",
+              "height": 945,
+              "id": 80042173759752,
+              "position": 1,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS101_-_Pink_Toes_61ee1f64-b79c-4468-817f-082d8947f973.png?v=1775319261",
+              "updated_at": "2026-04-04T18:14:21+02:00",
+              "variant_ids": [
+                53685416198408
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:45:37+01:00",
+              "height": 945,
+              "id": 80042175136008,
+              "position": 2,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS102_-_Fuchsia_Razzle_Dazzle_961c096e-b117-481a-918b-ad0379a10fae.png?v=1775319262",
+              "updated_at": "2026-04-04T18:14:22+02:00",
+              "variant_ids": [
+                53685416231176
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:45:56+01:00",
+              "height": 945,
+              "id": 80042175955208,
+              "position": 3,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS114_-_Amethyst_a5181dcb-8a5f-4403-880c-f969ec99d353.png?v=1775319264",
+              "updated_at": "2026-04-04T18:14:24+02:00",
+              "variant_ids": [
+                53685416263944
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:46:15+01:00",
+              "height": 945,
+              "id": 80042176807176,
+              "position": 4,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS103_-_Rasperry_Delight_e81f556d-8619-4302-9385-651fc6646a71.png?v=1775319264",
+              "updated_at": "2026-04-04T18:14:24+02:00",
+              "variant_ids": [
+                53685416296712
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:46:55+01:00",
+              "height": 945,
+              "id": 80042178183432,
+              "position": 5,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS113_-_Venetian_Red_33edeb68-4370-414a-8ad2-9afe7a948805.png?v=1775319270",
+              "updated_at": "2026-04-04T18:14:30+02:00",
+              "variant_ids": [
+                53685416329480
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:47:49+01:00",
+              "height": 945,
+              "id": 80042286547208,
+              "position": 6,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS111_-_Naples_Ochre_49e652aa-9177-48b4-892b-01ce4cf4b57f.png?v=1775319267",
+              "updated_at": "2026-04-04T18:14:27+02:00",
+              "variant_ids": [
+                53685416362248
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:48:03+01:00",
+              "height": 945,
+              "id": 80042318135560,
+              "position": 7,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS112_-_Sedona_Sun_2a70392b-667f-4fef-ab23-cd4bd8011038.png?v=1775319268",
+              "updated_at": "2026-04-04T18:14:28+02:00",
+              "variant_ids": [
+                53685416395016
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:48:35+01:00",
+              "height": 945,
+              "id": 80042411327752,
+              "position": 8,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS104_-_Midas_Gold_dfe33532-24ef-48e2-bd66-922a3923fdf0.png?v=1775319268",
+              "updated_at": "2026-04-04T18:14:28+02:00",
+              "variant_ids": [
+                53685416427784
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:48:55+01:00",
+              "height": 945,
+              "id": 80042486923528,
+              "position": 9,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS105_-_Amber_Sparks_5086ecc0-3019-42fa-a70d-8ebf67582d5a.png?v=1775319271",
+              "updated_at": "2026-04-04T18:14:31+02:00",
+              "variant_ids": [
+                53685416460552
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:49:20+01:00",
+              "height": 945,
+              "id": 80042575921416,
+              "position": 10,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS110_-_XO_Brown_954d488a-83d4-4e26-8198-aa5efdcb39cb.png?v=1775319269",
+              "updated_at": "2026-04-04T18:14:29+02:00",
+              "variant_ids": [
+                53685416493320
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:49:39+01:00",
+              "height": 945,
+              "id": 80042644144392,
+              "position": 11,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS117_-_Sage_6ccfb66a-93db-4578-842f-859dac4c53e8.png?v=1775319272",
+              "updated_at": "2026-04-04T18:14:32+02:00",
+              "variant_ids": [
+                53685416526088
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:50:01+01:00",
+              "height": 945,
+              "id": 80042707058952,
+              "position": 12,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS118_-_Lunar_Eclipse_05a65287-9f26-462d-96b1-817b8ee14413.png?v=1775319273",
+              "updated_at": "2026-04-04T18:14:33+02:00",
+              "variant_ids": [
+                53685416558856
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:50:22+01:00",
+              "height": 945,
+              "id": 80042743759112,
+              "position": 13,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS106_-_Emerald_Forest_cc9c0baa-307a-48c6-843b-8b17f567cdf7.png?v=1775319274",
+              "updated_at": "2026-04-04T18:14:34+02:00",
+              "variant_ids": [
+                53685416591624
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:50:44+01:00",
+              "height": 945,
+              "id": 80042759258376,
+              "position": 14,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS005_-_Dusty_Clear_dbd37429-93df-4ea4-a85d-176a90fd5e08.png?v=1775319276",
+              "updated_at": "2026-04-04T18:14:36+02:00",
+              "variant_ids": [
+                53685416624392
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:51:07+01:00",
+              "height": 945,
+              "id": 80042766106888,
+              "position": 15,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS100_-_Grey_Stardust_a0493282-669d-4e68-9db1-73c44798f09f.png?v=1775319277",
+              "updated_at": "2026-04-04T18:14:37+02:00",
+              "variant_ids": [
+                53685416657160
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:51:28+01:00",
+              "height": 945,
+              "id": 80042769678600,
+              "position": 16,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS109_-_Galaxy_Black_ae3fff45-8c71-4354-8642-c63ddc7c2b94.png?v=1775319276",
+              "updated_at": "2026-04-04T18:14:36+02:00",
+              "variant_ids": [
+                53685416689928
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:51:49+01:00",
+              "height": 945,
+              "id": 80042771153160,
+              "position": 17,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS116_-_Mermaid_s_Tale_eb9070b8-2e98-4cf5-af13-a6193ea50d17.png?v=1775319278",
+              "updated_at": "2026-04-04T18:14:38+02:00",
+              "variant_ids": [
+                53685416722696
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:52:11+01:00",
+              "height": 945,
+              "id": 80042772201736,
+              "position": 18,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS107_-_Sea_Spray_642adc33-cea3-4bcd-889c-0034824bbee6.png?v=1775319278",
+              "updated_at": "2026-04-04T18:14:38+02:00",
+              "variant_ids": [
+                53685416755464
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:52:32+01:00",
+              "height": 945,
+              "id": 80042773152008,
+              "position": 19,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS115_-_Moonglow_a757ed65-268b-4ca4-afa6-9615b4b79868.png?v=1775319279",
+              "updated_at": "2026-04-04T18:14:39+02:00",
+              "variant_ids": [
+                53685416788232
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:52:52+01:00",
+              "height": 945,
+              "id": 80042773774600,
+              "position": 20,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS108_-_Blue_Cosmos_28520b57-4285-4343-8a6f-8343f4aee114.png?v=1775319282",
+              "updated_at": "2026-04-04T18:14:42+02:00",
+              "variant_ids": [
+                53685416821000
+              ],
+              "width": 945
+            },
+            {
+              "created_at": "2026-03-14T12:53:17+01:00",
+              "height": 1928,
+              "id": 80042774593800,
+              "position": 21,
+              "product_id": 10869907882248,
+              "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS119_-_Violette_bece2a6f-f8c0-4b14-b867-c47ab173409d.png?v=1775319286",
+              "updated_at": "2026-04-04T18:14:46+02:00",
+              "variant_ids": [
+                53685416853768
+              ],
+              "width": 1918
+            }
+          ],
+          "options": [
+            {
+              "name": "Couleur",
+              "position": 1,
+              "values": [
+                "Pinky Toes HSS101",
+                "Fuchsia Razzle Dazzle HSS102",
+                "Amethyst HSS114",
+                "Rasperry Delight HSS103",
+                "Venetian Red HSS113",
+                "Naples Ochre HSS111",
+                "Sedona Sun HSS112",
+                "Midas Gold HSS104",
+                "Amber Sparks HSS105",
+                "XO Brown HSS110",
+                "Sage HSS117",
+                "Lunar Eclipse HSS118",
+                "Emerald Forest HSS106",
+                "Dusty Clear HSS005",
+                "Grey Stardust HSS100",
+                "Galaxy Black HSS109",
+                "Mermaids Tail HSS116",
+                "Sea Spray HSS107",
+                "Moonglow HSS115",
+                "Blue Cosmos HSS108",
+                "Violette HSS119"
+              ]
+            },
+            {
+              "name": "Taille",
+              "position": 2,
+              "values": [
+                "236 ml"
+              ]
+            }
+          ],
+          "product_type": "Glasuren",
+          "published_at": "2026-03-14T12:55:47+01:00",
+          "tags": [
+            "Colorobbia"
+          ],
+          "title": "Colorobbia Fairy Dust - effet métallique",
+          "updated_at": "2026-08-06T07:35:03+02:00",
+          "vendor": "Colorobbia"
+        },
+        "variant": {
+          "available": true,
+          "compare_at_price": null,
+          "created_at": "2026-03-14T12:55:50+01:00",
+          "featured_image": {
+            "alt": null,
+            "created_at": "2026-03-14T12:53:17+01:00",
+            "height": 1928,
+            "id": 80042774593800,
+            "position": 21,
+            "product_id": 10869907882248,
+            "src": "https://cdn.shopify.com/s/files/1/0948/2525/1080/files/HSS119_-_Violette_bece2a6f-f8c0-4b14-b867-c47ab173409d.png?v=1775319286",
+            "updated_at": "2026-04-04T18:14:46+02:00",
+            "variant_ids": [
+              53685416853768
+            ],
+            "width": 1918
+          },
+          "grams": 0,
+          "id": 53685416853768,
+          "option1": "Violette HSS119",
+          "option2": "236 ml",
+          "option3": null,
+          "position": 21,
+          "price": "16.93",
+          "product_id": 10869907882248,
+          "requires_shipping": true,
+          "sku": "HSS119",
+          "taxable": true,
+          "title": "Violette HSS119 / 236 ml",
+          "updated_at": "2026-08-06T07:35:03+02:00"
+        }
+      },
+      "source": "ceramique-peinture",
+      "source_detail_level": "api",
+      "source_updated_at": "2026-08-06T07:35:03+02:00",
+      "stock_quantity": null,
+      "supplier_reference": "HSS119",
+      "surface": "metallic",
+      "technical_attributes": {
+        "Couleur": "Violette HSS119",
+        "Taille": "236 ml"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 71.7373
+      },
+      "variant_title": "Violette HSS119 / 236 ml",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "shopify",
+  "source": "ceramique-peinture",
+  "truncated": false
+}

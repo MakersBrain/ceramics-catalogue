@@ -1,0 +1,1265 @@
+{
+  "digest": "f8faa8bb1ab3e0489afef13afc7f4d9ed57ef8e259aab238b92c0dcd9c83d650",
+  "discovered": 1421,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "dom",
+  "field_coverage": {
+    "all_image_urls": 1223,
+    "brand": 1084,
+    "category_path": 1223,
+    "claims": 878,
+    "colour": 250,
+    "description": 1223,
+    "documents": 352,
+    "effects": 215,
+    "family": 1223,
+    "firing": 1148,
+    "form": 5,
+    "gtin": 0,
+    "manufacturer_sku": 646,
+    "package_size": 1134,
+    "stock_quantity": 998,
+    "supplier_reference": 1223,
+    "surface": 919,
+    "unit_price": 1134,
+    "vat_status": 1223
+  },
+  "notes": [
+    "1421 product URLs from the sitemap"
+  ],
+  "records": 1223,
+  "rendered_pages": 0,
+  "requests": 1960,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://1240.design/24-large_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "AMACO",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "Home",
+        "Ceramic glazes & paints",
+        "Ceramic glazes",
+        "Stoneware glazes",
+        "AMACO Potter's Choice",
+        "AMACO PC-1 SATURATION METALLIC stoneware glaze"
+      ],
+      "claims": [
+        {
+          "basis": "product_attribute",
+          "claim": true,
+          "evidence": "Food-safe: yes",
+          "type": "food_contact_suitability"
+        }
+      ],
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": "Great for sculptural work and industrial ware, AMACO PC-1 Saturation Metallic is a satin metallic black glaze that resembles steel and other metals. For best results, apply the glazes from the AMACO Potter's Choice series in 2-3 layers on your bisque-fired ware. You can layer the glazes from this series with each other in countless combinations, to achieve unique, floating effects.",
+      "documents": null,
+      "effects": null,
+      "external_id": "1240-design:https://1240.design/en/glazes-and-underglazes/ceramic-glazes/high-fire-glazes/amaco-potters-choice/pc-1-saturation-metallic-stoneware-glaze.html#3509",
+      "extraction_method": "dom",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1200-1240°C",
+        "max_celsius": 1240,
+        "min_celsius": 1200
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://1240.design/24-large_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+      "list_price": null,
+      "manufacturer_sku": "PC1",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "SATURATION METALLIC stoneware glaze",
+      "name_parsed_from": [
+        "AMACO"
+      ],
+      "name_raw": "AMACO PC-1 SATURATION METALLIC stoneware glaze",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "472 ml",
+        "millilitres": 472.0,
+        "unit": "ml",
+        "value": 472.0
+      },
+      "parent_external_id": "1240-design:https://1240.design/en/glazes-and-underglazes/ceramic-glazes/high-fire-glazes/amaco-potters-choice/pc-1-saturation-metallic-stoneware-glaze.html",
+      "price": 26.15,
+      "price_text": "26.15 €",
+      "product_name": "AMACO PC-1 SATURATION METALLIC stoneware glaze",
+      "product_url": "https://1240.design/en/glazes-and-paints/ceramic-glazes/stoneware-glazes/amaco-potters-choice/pc-1-saturation-metallic-stoneware-glaze.html",
+      "raw": {
+        "active": 1,
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": 0,
+        "allow_oosp": 0,
+        "attachments": [
+          {
+            "description": "Product safety data sheet",
+            "file": "96bc1d65fe87140f7c9693c5700ad1864ab3a170",
+            "file_name": "PC-1 Saturation Metallic 20220802 FG00018.pdf",
+            "file_size": 1618400,
+            "file_size_formatted": "1.54MB",
+            "id_attachment": 12,
+            "id_lang": 2,
+            "id_product": 20,
+            "mime": "application/pdf",
+            "name": "Attachment 1"
+          },
+          {
+            "description": "Brochure",
+            "file": "13ead861c626d57da56acca8dfea75ebba461f61",
+            "file_name": "amaco_potters_choice.pdf",
+            "file_size": 10043678,
+            "file_size_formatted": "9.58MB",
+            "id_attachment": 405,
+            "id_lang": 2,
+            "id_product": 20,
+            "mime": "application/pdf",
+            "name": "AMACO Potter's Choice Sheet"
+          }
+        ],
+        "attribute_price": 0,
+        "attributes": {
+          "5": {
+            "available_later": "",
+            "available_now": "",
+            "ean13": "",
+            "group": "Size",
+            "id_attribute": 26,
+            "id_attribute_group": 5,
+            "isbn": "",
+            "mpn": "",
+            "name": "472 ml",
+            "reference": "35413T",
+            "upc": ""
+          }
+        },
+        "availability": "available",
+        "availability_date": null,
+        "availability_message": "In stock",
+        "available_date": null,
+        "available_for_order": 1,
+        "available_later": "",
+        "available_now": "",
+        "cache_default_attribute": 3509,
+        "category": "amaco-potters-choice",
+        "category_name": "AMACO Potter's Choice",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 140,
+              "sources": {
+                "jpg": "https://1240.design/24-cart_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/24-cart_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+              "width": 150
+            },
+            "home_default": {
+              "height": 280,
+              "sources": {
+                "jpg": "https://1240.design/24-home_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/24-home_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+              "width": 300
+            },
+            "large_default": {
+              "height": 745,
+              "sources": {
+                "jpg": "https://1240.design/24-large_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/24-large_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+              "width": 800
+            },
+            "medium_default": {
+              "height": 613,
+              "sources": {
+                "jpg": "https://1240.design/24-medium_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/24-medium_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+              "width": 500
+            },
+            "medium_square": {
+              "height": 500,
+              "sources": {
+                "jpg": "https://1240.design/24-medium_square/pc-1-saturation-metallic-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/24-medium_square/pc-1-saturation-metallic-stoneware-glaze.jpg",
+              "width": 500
+            },
+            "small_default": {
+              "height": 123,
+              "sources": {
+                "jpg": "https://1240.design/24-small_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/24-small_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+              "width": 100
+            }
+          },
+          "cover": 1,
+          "id_image": 24,
+          "large": {
+            "height": 745,
+            "sources": {
+              "jpg": "https://1240.design/24-large_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+            },
+            "url": "https://1240.design/24-large_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+            "width": 800
+          },
+          "legend": "Szkliwo PC-1 SATURATION METALLIC",
+          "medium": {
+            "height": 500,
+            "sources": {
+              "jpg": "https://1240.design/24-medium_square/pc-1-saturation-metallic-stoneware-glaze.jpg"
+            },
+            "url": "https://1240.design/24-medium_square/pc-1-saturation-metallic-stoneware-glaze.jpg",
+            "width": 500
+          },
+          "position": 1,
+          "small": {
+            "height": 123,
+            "sources": {
+              "jpg": "https://1240.design/24-small_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+            },
+            "url": "https://1240.design/24-small_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+            "width": 100
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": 0,
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2024-05-23 08:32:17",
+        "date_upd": "2026-07-31 08:50:27",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "<p>Great for sculptural work and industrial ware, AMACO PC-1 Saturation Metallic is a satin metallic black glaze that resembles steel and other metals. For best results, apply the glazes from the AMACO Potter's Choice series in 2-3 layers on your bisque-fired ware. You can layer the glazes from this series with each other in countless combinations, to achieve unique, floating effects.</p>",
+        "description_short": "<p>Great for sculptural work and industrial ware, AMACO PC-1 Saturation Metallic is a satin metallic black glaze that resembles steel and other metals.</p>",
+        "discount_amount": null,
+        "discount_amount_to_display": null,
+        "discount_percentage": null,
+        "discount_percentage_absolute": null,
+        "discount_type": null,
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [],
+        "features": [
+          {
+            "id_feature": 156,
+            "id_feature_value": 308,
+            "name": "Firing temperature",
+            "position": 1,
+            "value": "1200-1240°C"
+          },
+          {
+            "id_feature": 175,
+            "id_feature_value": 533,
+            "name": "Food-safe",
+            "position": 2,
+            "value": "yes"
+          },
+          {
+            "id_feature": 174,
+            "id_feature_value": 522,
+            "name": "Hue",
+            "position": 21,
+            "value": "Black"
+          },
+          {
+            "id_feature": 176,
+            "id_feature_value": 537,
+            "name": "Properties",
+            "position": 22,
+            "value": "semi-matte"
+          },
+          {
+            "id_feature": 176,
+            "id_feature_value": 541,
+            "name": "Properties",
+            "position": 22,
+            "value": "metallic"
+          }
+        ],
+        "has_discount": false,
+        "id": 20,
+        "id_category_default": 17,
+        "id_customization": 0,
+        "id_image": "en-default",
+        "id_manufacturer": 3,
+        "id_product": 20,
+        "id_product_attribute": 3509,
+        "id_shop_default": 1,
+        "id_supplier": 0,
+        "id_type_redirected": 0,
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 140,
+                "sources": {
+                  "jpg": "https://1240.design/24-cart_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/24-cart_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+                "width": 150
+              },
+              "home_default": {
+                "height": 280,
+                "sources": {
+                  "jpg": "https://1240.design/24-home_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/24-home_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+                "width": 300
+              },
+              "large_default": {
+                "height": 745,
+                "sources": {
+                  "jpg": "https://1240.design/24-large_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/24-large_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+                "width": 800
+              },
+              "medium_default": {
+                "height": 613,
+                "sources": {
+                  "jpg": "https://1240.design/24-medium_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/24-medium_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+                "width": 500
+              },
+              "medium_square": {
+                "height": 500,
+                "sources": {
+                  "jpg": "https://1240.design/24-medium_square/pc-1-saturation-metallic-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/24-medium_square/pc-1-saturation-metallic-stoneware-glaze.jpg",
+                "width": 500
+              },
+              "small_default": {
+                "height": 123,
+                "sources": {
+                  "jpg": "https://1240.design/24-small_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/24-small_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+                "width": 100
+              }
+            },
+            "cover": 1,
+            "id_image": 24,
+            "large": {
+              "height": 745,
+              "sources": {
+                "jpg": "https://1240.design/24-large_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/24-large_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+              "width": 800
+            },
+            "legend": "Szkliwo PC-1 SATURATION METALLIC",
+            "medium": {
+              "height": 500,
+              "sources": {
+                "jpg": "https://1240.design/24-medium_square/pc-1-saturation-metallic-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/24-medium_square/pc-1-saturation-metallic-stoneware-glaze.jpg",
+              "width": 500
+            },
+            "position": 1,
+            "small": {
+              "height": 123,
+              "sources": {
+                "jpg": "https://1240.design/24-small_default/pc-1-saturation-metallic-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/24-small_default/pc-1-saturation-metallic-stoneware-glaze.jpg",
+              "width": 100
+            }
+          }
+        ],
+        "indexed": 1,
+        "is_customizable": false,
+        "is_virtual": 0,
+        "link": "https://1240.design/en/glazes-and-paints/ceramic-glazes/stoneware-glazes/amaco-potters-choice/pc-1-saturation-metallic-stoneware-glaze.html",
+        "link_rewrite": "pc-1-saturation-metallic-stoneware-glaze",
+        "low_stock_alert": 0,
+        "low_stock_threshold": 0,
+        "manufacturer_name": "AMACO",
+        "meta_description": "Discover stoneware glazes from the AMACO Potter's Choice series and start your journey with high quality products for decoration of your ceramic works.",
+        "meta_keywords": "",
+        "meta_title": "AMACO PC-1 SATURATION METALLIC stoneware glaze - 1240.design",
+        "minimal_quantity": 1,
+        "name": "AMACO PC-1 SATURATION METALLIC stoneware glaze",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": 0,
+        "online_only": 0,
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": 3,
+        "price": "26.15 €",
+        "price_amount": 26.15,
+        "price_tax_exc": 21.792328,
+        "price_without_reduction": 26.150793,
+        "quantity": 17,
+        "quantity_all_versions": 17,
+        "quantity_discounts": [],
+        "quantity_label": "Items",
+        "quantity_wanted": 1,
+        "rate": 20,
+        "redirect_type": "default",
+        "reduction": 0,
+        "reference": "35413T",
+        "show_availability": true,
+        "show_condition": 0,
+        "show_price": 1,
+        "show_quantities": false,
+        "specific_prices": false,
+        "tax_name": "TVA FR 20%",
+        "text_fields": 0,
+        "unit_price": "",
+        "unit_price_full": "",
+        "unit_price_ratio": 0,
+        "unity": "",
+        "uploadable_files": 0,
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "1240-design",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-07-31 08:50:27",
+      "stock_quantity": 17,
+      "supplier_reference": "35413T",
+      "surface": "matte",
+      "technical_attributes": {
+        "Firing temperature": "1200-1240°C",
+        "Food-safe": "yes",
+        "Hue": "Black",
+        "Properties": "metallic, semi-matte"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 55.4025
+      },
+      "variant_title": "Size: 472 ml",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://1240.design/26-large_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "AMACO",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "Home",
+        "Ceramic glazes & paints",
+        "Ceramic glazes",
+        "Stoneware glazes",
+        "AMACO Potter's Choice",
+        "AMACO PC-15 SATIN ORIBE stoneware glaze"
+      ],
+      "claims": [
+        {
+          "basis": "product_attribute",
+          "claim": true,
+          "evidence": "Food-safe: yes",
+          "type": "food_contact_suitability"
+        }
+      ],
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": "A modern take on a traditional Japanese oribe glaze, AMACO PC-15 Satin Oribe adds a wonderful blue-green burnished look to your wares. Over texture, the dark green pools and light grey breaks bring an extra level of depth to this opaque glaze. For best results, apply the glazes from the AMACO Potter's Choice series in 2-3 layers on your bisque-fired ware. You can layer the glazes from this series with each other in countless combinations, to achieve unique, floating effects.",
+      "documents": null,
+      "effects": null,
+      "external_id": "1240-design:https://1240.design/en/glazes-and-underglazes/ceramic-glazes/high-fire-glazes/amaco-potters-choice/pc-15-satin-oribe-stoneware-glaze.html#3539",
+      "extraction_method": "dom",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1200-1240°C",
+        "max_celsius": 1240,
+        "min_celsius": 1200
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://1240.design/26-large_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+      "list_price": null,
+      "manufacturer_sku": "PC15",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "SATIN ORIBE stoneware glaze",
+      "name_parsed_from": [
+        "AMACO"
+      ],
+      "name_raw": "AMACO PC-15 SATIN ORIBE stoneware glaze",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "472 ml",
+        "millilitres": 472.0,
+        "unit": "ml",
+        "value": 472.0
+      },
+      "parent_external_id": "1240-design:https://1240.design/en/glazes-and-underglazes/ceramic-glazes/high-fire-glazes/amaco-potters-choice/pc-15-satin-oribe-stoneware-glaze.html",
+      "price": 17.83,
+      "price_text": "17.83 €",
+      "product_name": "AMACO PC-15 SATIN ORIBE stoneware glaze",
+      "product_url": "https://1240.design/en/glazes-and-paints/ceramic-glazes/stoneware-glazes/amaco-potters-choice/pc-15-satin-oribe-stoneware-glaze.html",
+      "raw": {
+        "active": 1,
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": 0,
+        "allow_oosp": 0,
+        "attachments": [
+          {
+            "description": "Product safety data sheet",
+            "file": "2f1a837f5192118c79f28c3faf977950b5b7d31d",
+            "file_name": "PC-15 Satin Oribe 20220802 FG00073.pdf",
+            "file_size": 1223491,
+            "file_size_formatted": "1.17MB",
+            "id_attachment": 15,
+            "id_lang": 2,
+            "id_product": 22,
+            "mime": "application/pdf",
+            "name": "Attachment 1"
+          },
+          {
+            "description": "Brochure",
+            "file": "13ead861c626d57da56acca8dfea75ebba461f61",
+            "file_name": "amaco_potters_choice.pdf",
+            "file_size": 10043678,
+            "file_size_formatted": "9.58MB",
+            "id_attachment": 405,
+            "id_lang": 2,
+            "id_product": 22,
+            "mime": "application/pdf",
+            "name": "AMACO Potter's Choice Sheet"
+          }
+        ],
+        "attribute_price": 0,
+        "attributes": {
+          "5": {
+            "available_later": "",
+            "available_now": "",
+            "ean13": "",
+            "group": "Size",
+            "id_attribute": 26,
+            "id_attribute_group": 5,
+            "isbn": "",
+            "mpn": "",
+            "name": "472 ml",
+            "reference": "35521D",
+            "upc": ""
+          }
+        },
+        "availability": "available",
+        "availability_date": null,
+        "availability_message": "In stock",
+        "available_date": null,
+        "available_for_order": 1,
+        "available_later": "",
+        "available_now": "",
+        "cache_default_attribute": 3539,
+        "category": "amaco-potters-choice",
+        "category_name": "AMACO Potter's Choice",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 140,
+              "sources": {
+                "jpg": "https://1240.design/26-cart_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/26-cart_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+              "width": 150
+            },
+            "home_default": {
+              "height": 280,
+              "sources": {
+                "jpg": "https://1240.design/26-home_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/26-home_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+              "width": 300
+            },
+            "large_default": {
+              "height": 745,
+              "sources": {
+                "jpg": "https://1240.design/26-large_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/26-large_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+              "width": 800
+            },
+            "medium_default": {
+              "height": 613,
+              "sources": {
+                "jpg": "https://1240.design/26-medium_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/26-medium_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+              "width": 500
+            },
+            "medium_square": {
+              "height": 500,
+              "sources": {
+                "jpg": "https://1240.design/26-medium_square/pc-15-satin-oribe-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/26-medium_square/pc-15-satin-oribe-stoneware-glaze.jpg",
+              "width": 500
+            },
+            "small_default": {
+              "height": 123,
+              "sources": {
+                "jpg": "https://1240.design/26-small_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/26-small_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+              "width": 100
+            }
+          },
+          "cover": 1,
+          "id_image": 26,
+          "large": {
+            "height": 745,
+            "sources": {
+              "jpg": "https://1240.design/26-large_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+            },
+            "url": "https://1240.design/26-large_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+            "width": 800
+          },
+          "legend": "Szkliwo PC-15  SATIN ORIBE",
+          "medium": {
+            "height": 500,
+            "sources": {
+              "jpg": "https://1240.design/26-medium_square/pc-15-satin-oribe-stoneware-glaze.jpg"
+            },
+            "url": "https://1240.design/26-medium_square/pc-15-satin-oribe-stoneware-glaze.jpg",
+            "width": 500
+          },
+          "position": 1,
+          "small": {
+            "height": 123,
+            "sources": {
+              "jpg": "https://1240.design/26-small_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+            },
+            "url": "https://1240.design/26-small_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+            "width": 100
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": 0,
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2024-05-23 08:32:17",
+        "date_upd": "2026-07-31 08:50:27",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "<p>A modern take on a traditional Japanese oribe glaze, AMACO PC-15 Satin Oribe adds a wonderful blue-green burnished look to your wares. Over texture, the dark green pools and light grey breaks bring an extra level of depth to this opaque glaze. For best results, apply the glazes from the AMACO Potter's Choice series in 2-3 layers on your bisque-fired ware. You can layer the glazes from this series with each other in countless combinations, to achieve unique, floating effects.</p>",
+        "description_short": "<p>A modern take on a traditional Japanese oribe glaze, AMACO PC-15 Satin Oribe adds a wonderful blue-green burnished look to your wares. Over texture, the dark green pools and light grey breaks bring an extra level of depth to this opaque glaze.</p>",
+        "discount_amount": null,
+        "discount_amount_to_display": null,
+        "discount_percentage": null,
+        "discount_percentage_absolute": null,
+        "discount_type": null,
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [],
+        "features": [
+          {
+            "id_feature": 156,
+            "id_feature_value": 308,
+            "name": "Firing temperature",
+            "position": 1,
+            "value": "1200-1240°C"
+          },
+          {
+            "id_feature": 175,
+            "id_feature_value": 533,
+            "name": "Food-safe",
+            "position": 2,
+            "value": "yes"
+          },
+          {
+            "id_feature": 174,
+            "id_feature_value": 517,
+            "name": "Hue",
+            "position": 21,
+            "value": "Turquoise"
+          },
+          {
+            "id_feature": 176,
+            "id_feature_value": 537,
+            "name": "Properties",
+            "position": 22,
+            "value": "semi-matte"
+          }
+        ],
+        "has_discount": false,
+        "id": 22,
+        "id_category_default": 17,
+        "id_customization": 0,
+        "id_image": "en-default",
+        "id_manufacturer": 3,
+        "id_product": 22,
+        "id_product_attribute": 3539,
+        "id_shop_default": 1,
+        "id_supplier": 0,
+        "id_type_redirected": 0,
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 140,
+                "sources": {
+                  "jpg": "https://1240.design/26-cart_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/26-cart_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+                "width": 150
+              },
+              "home_default": {
+                "height": 280,
+                "sources": {
+                  "jpg": "https://1240.design/26-home_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/26-home_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+                "width": 300
+              },
+              "large_default": {
+                "height": 745,
+                "sources": {
+                  "jpg": "https://1240.design/26-large_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/26-large_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+                "width": 800
+              },
+              "medium_default": {
+                "height": 613,
+                "sources": {
+                  "jpg": "https://1240.design/26-medium_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/26-medium_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+                "width": 500
+              },
+              "medium_square": {
+                "height": 500,
+                "sources": {
+                  "jpg": "https://1240.design/26-medium_square/pc-15-satin-oribe-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/26-medium_square/pc-15-satin-oribe-stoneware-glaze.jpg",
+                "width": 500
+              },
+              "small_default": {
+                "height": 123,
+                "sources": {
+                  "jpg": "https://1240.design/26-small_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+                },
+                "url": "https://1240.design/26-small_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+                "width": 100
+              }
+            },
+            "cover": 1,
+            "id_image": 26,
+            "large": {
+              "height": 745,
+              "sources": {
+                "jpg": "https://1240.design/26-large_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/26-large_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+              "width": 800
+            },
+            "legend": "Szkliwo PC-15  SATIN ORIBE",
+            "medium": {
+              "height": 500,
+              "sources": {
+                "jpg": "https://1240.design/26-medium_square/pc-15-satin-oribe-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/26-medium_square/pc-15-satin-oribe-stoneware-glaze.jpg",
+              "width": 500
+            },
+            "position": 1,
+            "small": {
+              "height": 123,
+              "sources": {
+                "jpg": "https://1240.design/26-small_default/pc-15-satin-oribe-stoneware-glaze.jpg"
+              },
+              "url": "https://1240.design/26-small_default/pc-15-satin-oribe-stoneware-glaze.jpg",
+              "width": 100
+            }
+          }
+        ],
+        "indexed": 1,
+        "is_customizable": false,
+        "is_virtual": 0,
+        "link": "https://1240.design/en/glazes-and-paints/ceramic-glazes/stoneware-glazes/amaco-potters-choice/pc-15-satin-oribe-stoneware-glaze.html",
+        "link_rewrite": "pc-15-satin-oribe-stoneware-glaze",
+        "low_stock_alert": 0,
+        "low_stock_threshold": 3,
+        "manufacturer_name": "AMACO",
+        "meta_description": "Discover stoneware glazes from the AMACO Potter's Choice series and start your journey with high quality products for decoration of your ceramic works.",
+        "meta_keywords": "",
+        "meta_title": "AMACO PC-15  SATIN ORIBE stoneware glaze - 1240.design",
+        "minimal_quantity": 1,
+        "name": "AMACO PC-15 SATIN ORIBE stoneware glaze",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": 0,
+        "online_only": 0,
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": 3,
+        "price": "17.83 €",
+        "price_amount": 17.83,
+        "price_tax_exc": 14.857775,
+        "price_without_reduction": 17.82933,
+        "quantity": 80,
+        "quantity_all_versions": 80,
+        "quantity_discounts": [],
+        "quantity_label": "Items",
+        "quantity_wanted": 1,
+        "rate": 20,
+        "redirect_type": "default",
+        "reduction": 0,
+        "reference": "35521D",
+        "show_availability": true,
+        "show_condition": 0,
+        "show_price": 1,
+        "show_quantities": false,
+        "specific_prices": [],
+        "tax_name": "TVA FR 20%",
+        "text_fields": 0,
+        "unit_price": "",
+        "unit_price_full": "",
+        "unit_price_ratio": 0,
+        "unity": "",
+        "uploadable_files": 0,
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "1240-design",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-07-31 08:50:27",
+      "stock_quantity": 80,
+      "supplier_reference": "35521D",
+      "surface": "satin",
+      "technical_attributes": {
+        "Firing temperature": "1200-1240°C",
+        "Food-safe": "yes",
+        "Hue": "Turquoise",
+        "Properties": "semi-matte"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 37.7754
+      },
+      "variant_title": "Size: 472 ml",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://1240.design/5583-large_default/copper-oxide.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "Home",
+        "Clays & raw materials",
+        "Raw materials",
+        "Oxides",
+        "Copper oxide"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "Copper oxide"
+      },
+      "currency": "EUR",
+      "description": "Copper oxide produces green shades, colors alkali glazes turquoise, red coloring is possible when reduced. If oversaturated (from 5%), metallic deposits can form on the glaze surface.",
+      "documents": [
+        {
+          "name": "SDS-Tlenek_miedzi_II_-PL-pl[1].pdf",
+          "type": "safety_data_sheet",
+          "url": "https://1240.design/en/index.php?controller=attachment&id_attachment=187"
+        }
+      ],
+      "effects": null,
+      "external_id": "1240-design:https://1240.design/en/clays-and-raw-materials/raw-materials/oxides/copper-oxide.html#4104",
+      "extraction_method": "dom",
+      "family": "oxide",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://1240.design/5583-large_default/copper-oxide.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Copper oxide",
+      "name_parsed_from": null,
+      "name_raw": "Copper oxide",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "100 g",
+        "grams": 100.0,
+        "unit": "g",
+        "value": 100.0
+      },
+      "parent_external_id": "1240-design:https://1240.design/en/clays-and-raw-materials/raw-materials/oxides/copper-oxide.html",
+      "price": 11.89,
+      "price_text": "11.89 €",
+      "product_name": "Copper oxide",
+      "product_url": "https://1240.design/en/clays-and-raw-materials/raw-materials/oxides/copper-oxide.html",
+      "raw": {
+        "active": "1",
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": "0",
+        "allow_oosp": 0,
+        "attachments": [
+          {
+            "description": "Safety Data Sheet",
+            "file": "9da9c766c89fcc6860a31fda6a10e4a331c3abfd",
+            "file_name": "SDS-Tlenek_miedzi_II_-PL-pl[1].pdf",
+            "file_size": 114611,
+            "id_attachment": 187,
+            "id_lang": 2,
+            "id_product": 1505,
+            "mime": "application/pdf",
+            "name": "Copper oxide"
+          }
+        ],
+        "attribute_price": 16.260163,
+        "attributes": {
+          "12": {
+            "available_later": "",
+            "available_now": "",
+            "ean13": "",
+            "group": "Weight",
+            "id_attribute": 139,
+            "id_attribute_group": 12,
+            "isbn": "",
+            "mpn": "",
+            "name": "100 g",
+            "reference": "13292-100",
+            "upc": ""
+          }
+        },
+        "availability": "available",
+        "availability_date": null,
+        "availability_message": "In stock",
+        "available_date": null,
+        "available_for_order": "1",
+        "available_later": "",
+        "available_now": "",
+        "cache_default_attribute": 4103,
+        "category": "oxides",
+        "category_name": "Oxides",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 140,
+              "sources": {
+                "jpg": "https://1240.design/5583-cart_default/copper-oxide.jpg"
+              },
+              "url": "https://1240.design/5583-cart_default/copper-oxide.jpg",
+              "width": 150
+            },
+            "home_default": {
+              "height": 280,
+              "sources": {
+                "jpg": "https://1240.design/5583-home_default/copper-oxide.jpg"
+              },
+              "url": "https://1240.design/5583-home_default/copper-oxide.jpg",
+              "width": 300
+            },
+            "large_default": {
+              "height": 745,
+              "sources": {
+                "jpg": "https://1240.design/5583-large_default/copper-oxide.jpg"
+              },
+              "url": "https://1240.design/5583-large_default/copper-oxide.jpg",
+              "width": 800
+            },
+            "medium_default": {
+              "height": 613,
+              "sources": {
+                "jpg": "https://1240.design/5583-medium_default/copper-oxide.jpg"
+              },
+              "url": "https://1240.design/5583-medium_default/copper-oxide.jpg",
+              "width": 500
+            },
+            "medium_square": {
+              "height": 500,
+              "sources": {
+                "jpg": "https://1240.design/5583-medium_square/copper-oxide.jpg"
+              },
+              "url": "https://1240.design/5583-medium_square/copper-oxide.jpg",
+              "width": 500
+            },
+            "small_default": {
+              "height": 123,
+              "sources": {
+                "jpg": "https://1240.design/5583-small_default/copper-oxide.jpg"
+              },
+              "url": "https://1240.design/5583-small_default/copper-oxide.jpg",
+              "width": 100
+            }
+          },
+          "cover": 1,
+          "id_image": 5583,
+          "large": {
+            "height": 745,
+            "sources": {
+              "jpg": "https://1240.design/5583-large_default/copper-oxide.jpg"
+            },
+            "url": "https://1240.design/5583-large_default/copper-oxide.jpg",
+            "width": 800
+          },
+          "legend": "Copper oxide - 1240.design",
+          "medium": {
+            "height": 500,
+            "sources": {
+              "jpg": "https://1240.design/5583-medium_square/copper-oxide.jpg"
+            },
+            "url": "https://1240.design/5583-medium_square/copper-oxide.jpg",
+            "width": 500
+          },
+          "position": 1,
+          "small": {
+            "height": 123,
+            "sources": {
+              "jpg": "https://1240.design/5583-small_default/copper-oxide.jpg"
+            },
+            "url": "https://1240.design/5583-small_default/copper-oxide.jpg",
+            "width": 100
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": 0,
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2024-10-23 14:54:34",
+        "date_upd": "2026-07-31 08:50:27",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "<p>Copper oxide produces green shades, colors alkali glazes turquoise, red coloring is possible when reduced. If oversaturated (from 5%), metallic deposits can form on the glaze surface.</p>",
+        "description_short": "<p>Copper oxide produces green shades, colors alkali glazes turquoise, red coloring is possible when reduced. If oversaturated (from 5%), metallic deposits can form on the glaze surface.</p>",
+        "discount_amount": null,
+        "discount_amount_to_display": null,
+        "discount_percentage": null,
+        "discount_percentage_absolute": null,
+        "discount_type": null,
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [],
+        "features": [
+          {
+            "id_feature": 161,
+            "id_feature_value": 567,
+            "name": "Usage",
+            "position": 8,
+            "value": "dyeing"
+          },
+          {
+            "id_feature": 171,
+            "id_feature_value": 662,
+            "name": "Chemical composition",
+            "position": 18,
+            "value": "CuO"
+          }
+        ],
+        "has_discount": false,
+        "id": 1505,
+        "id_category_default": 54,
+        "id_customization": 0,
+        "id_image": "en-default",
+        "id_manufacturer": 0,
+        "id_product": 1505,
+        "id_product_attribute": 4104,
+        "id_shop_default": 1,
+        "id_supplier": 0,
+        "id_type_redirected": 0,
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 140,
+                "sources": {
+                  "jpg": "https://1240.design/5583-cart_default/copper-oxide.jpg"
+                },
+                "url": "https://1240.design/5583-cart_default/copper-oxide.jpg",
+                "width": 150
+              },
+              "home_default": {
+                "height": 280,
+                "sources": {
+                  "jpg": "https://1240.design/5583-home_default/copper-oxide.jpg"
+                },
+                "url": "https://1240.design/5583-home_default/copper-oxide.jpg",
+                "width": 300
+              },
+              "large_default": {
+                "height": 745,
+                "sources": {
+                  "jpg": "https://1240.design/5583-large_default/copper-oxide.jpg"
+                },
+                "url": "https://1240.design/5583-large_default/copper-oxide.jpg",
+                "width": 800
+              },
+              "medium_default": {
+                "height": 613,
+                "sources": {
+                  "jpg": "https://1240.design/5583-medium_default/copper-oxide.jpg"
+                },
+                "url": "https://1240.design/5583-medium_default/copper-oxide.jpg",
+                "width": 500
+              },
+              "medium_square": {
+                "height": 500,
+                "sources": {
+                  "jpg": "https://1240.design/5583-medium_square/copper-oxide.jpg"
+                },
+                "url": "https://1240.design/5583-medium_square/copper-oxide.jpg",
+                "width": 500
+              },
+              "small_default": {
+                "height": 123,
+                "sources": {
+                  "jpg": "https://1240.design/5583-small_default/copper-oxide.jpg"
+                },
+                "url": "https://1240.design/5583-small_default/copper-oxide.jpg",
+                "width": 100
+              }
+            },
+            "cover": 1,
+            "id_image": 5583,
+            "large": {
+              "height": 745,
+              "sources": {
+                "jpg": "https://1240.design/5583-large_default/copper-oxide.jpg"
+              },
+              "url": "https://1240.design/5583-large_default/copper-oxide.jpg",
+              "width": 800
+            },
+            "legend": "Copper oxide - 1240.design",
+            "medium": {
+              "height": 500,
+              "sources": {
+                "jpg": "https://1240.design/5583-medium_square/copper-oxide.jpg"
+              },
+              "url": "https://1240.design/5583-medium_square/copper-oxide.jpg",
+              "width": 500
+            },
+            "position": 1,
+            "small": {
+              "height": 123,
+              "sources": {
+                "jpg": "https://1240.design/5583-small_default/copper-oxide.jpg"
+              },
+              "url": "https://1240.design/5583-small_default/copper-oxide.jpg",
+              "width": 100
+            }
+          }
+        ],
+        "indexed": "1",
+        "is_customizable": false,
+        "is_virtual": "0",
+        "link": "https://1240.design/en/clays-and-raw-materials/raw-materials/oxides/copper-oxide.html",
+        "link_rewrite": "copper-oxide",
+        "low_stock_alert": "0",
+        "low_stock_threshold": 0,
+        "manufacturer_name": null,
+        "meta_description": "At 1240.design you will find high-qualtity raw materials, such as copper oxide, for the production of ceramic glazes, underglazes and engobes.",
+        "meta_keywords": "",
+        "meta_title": "Copper oxide - 1240.design",
+        "minimal_quantity": 1,
+        "name": "Copper oxide",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": "0",
+        "online_only": "0",
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": 3,
+        "price": "11.89 €",
+        "price_amount": 11.89,
+        "price_tax_exc": 9.904523,
+        "price_without_reduction": 11.885427,
+        "quantity": 39,
+        "quantity_all_versions": 68,
+        "quantity_discounts": [],
+        "quantity_label": "Items",
+        "quantity_wanted": 1,
+        "rate": 20,
+        "redirect_type": "default",
+        "reduction": 0,
+        "reference": "13292",
+        "show_availability": true,
+        "show_condition": "0",
+        "show_price": "1",
+        "show_quantities": false,
+        "specific_prices": [],
+        "tax_name": "TVA FR 20%",
+        "text_fields": 0,
+        "unit_price": "",
+        "unit_price_full": "",
+        "unit_price_ratio": 0,
+        "unity": "",
+        "uploadable_files": 0,
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "1240-design",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-07-31 08:50:27",
+      "stock_quantity": 39,
+      "supplier_reference": "13292-100",
+      "surface": "matte",
+      "technical_attributes": {
+        "Chemical composition": "CuO",
+        "Usage": "dyeing"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 118.9
+      },
+      "variant_title": "Weight: 100 g",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "prestashop",
+  "source": "1240-design",
+  "truncated": false
+}

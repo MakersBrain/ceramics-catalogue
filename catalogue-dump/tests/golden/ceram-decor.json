@@ -1,0 +1,1629 @@
+{
+  "digest": "9e6fa2f931f36ed7ec03347f6aa2ffeab7b31b88b529de6f772107e2333e2698",
+  "discovered": 41,
+  "error_count": 1,
+  "errors": [
+    {
+      "error": "GET https://www.ceram-decor.fr/1_index_sitemap.xml is not in the cache",
+      "url": "https://www.ceram-decor.fr/1_index_sitemap.xml"
+    }
+  ],
+  "extraction_method": "dom",
+  "field_coverage": {
+    "all_image_urls": 49,
+    "brand": 15,
+    "category_path": 49,
+    "claims": 7,
+    "colour": 49,
+    "description": 49,
+    "documents": 13,
+    "effects": 0,
+    "family": 49,
+    "firing": 42,
+    "form": 13,
+    "gtin": 0,
+    "manufacturer_sku": 0,
+    "package_size": 49,
+    "stock_quantity": 45,
+    "supplier_reference": 49,
+    "surface": 0,
+    "unit_price": 49,
+    "vat_status": 49
+  },
+  "notes": [
+    "41 product URLs from category pages"
+  ],
+  "records": 49,
+  "rendered_pages": 0,
+  "requests": 53,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://www.ceram-decor.fr/31261-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+        "https://www.ceram-decor.fr/29559-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+        "https://www.ceram-decor.fr/25439-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "Accueil",
+        "NOS PRODUITS",
+        "ARGILES",
+        "FAIENCES",
+        "FAIENCES BLANCHES",
+        "Faïence blanche à chamotte 0-0.5mm Fdmchf | VICAR"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Blanc"
+      },
+      "currency": "EUR",
+      "description": "Petite astuce: Il est conseillé de cuire votre biscuit au dessus de 1040°C Photo du pain de terre avec étiquette non contractuelle",
+      "documents": null,
+      "effects": null,
+      "external_id": "ceram-decor:https://www.ceram-decor.fr/faiencesblanches/8920-faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.html#0",
+      "extraction_method": "dom",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1000°C à 1060°C",
+        "max_celsius": 1060,
+        "min_celsius": 1000
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.ceram-decor.fr/31261-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Faïence blanche à chamotte 0-0.5mm Fdmchf | VICAR",
+      "name_parsed_from": null,
+      "name_raw": "Faïence blanche à chamotte 0-0.5mm Fdmchf | VICAR",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "12.5 kg",
+        "grams": 12500.0,
+        "unit": "kg",
+        "value": 12.5
+      },
+      "parent_external_id": "ceram-decor:https://www.ceram-decor.fr/faiencesblanches/8920-faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.html",
+      "price": 20.4,
+      "price_text": "20,40 €",
+      "product_name": "Faïence blanche à chamotte 0-0.5mm Fdmchf | VICAR",
+      "product_url": "https://www.ceram-decor.fr/faiencesblanches/8920-faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.html",
+      "raw": {
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": "0",
+        "allow_oosp": 0,
+        "attachments": [
+          {
+            "description": "",
+            "file": "4604a337922e9e5080c04a8ce760919cab48db72",
+            "file_name": "FDS FDMCH.pdf",
+            "file_size": "281031",
+            "file_size_formatted": "274.44KB",
+            "id_attachment": "42",
+            "id_lang": "1",
+            "id_product": "8920",
+            "mime": "application/pdf",
+            "name": "FDS FDMCHF"
+          },
+          {
+            "description": "",
+            "file": "fed35d29b100ab67f3a63c2cb310818e882ee53f",
+            "file_name": "FDMCHF.pdf",
+            "file_size": "84888",
+            "file_size_formatted": "82.9KB",
+            "id_attachment": "1078",
+            "id_lang": "1",
+            "id_product": "8920",
+            "mime": "application/pdf",
+            "name": "FT FDMCHF"
+          }
+        ],
+        "attribute_price": 0,
+        "availability": "available",
+        "availability_date": null,
+        "availability_message": "En stock",
+        "available_date": "0000-00-00",
+        "available_for_order": "1",
+        "available_later": "",
+        "available_now": "",
+        "cache_default_attribute": "0",
+        "category": "faiencesblanches",
+        "category_name": "FAIENCES BLANCHES",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 162,
+              "url": "https://www.ceram-decor.fr/31261-cart_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 125
+            },
+            "home_default": {
+              "height": 305,
+              "url": "https://www.ceram-decor.fr/31261-home_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 236
+            },
+            "large_default": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/31261-large_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 381
+            },
+            "medium_default": {
+              "height": 584,
+              "url": "https://www.ceram-decor.fr/31261-medium_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 452
+            },
+            "small_default": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/31261-small_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 98
+            },
+            "thickbox_default": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/31261-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 1100
+            }
+          },
+          "cover": "1",
+          "id_image": "31261",
+          "large": {
+            "height": 1422,
+            "url": "https://www.ceram-decor.fr/31261-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+            "width": 1100
+          },
+          "legend": "",
+          "medium": {
+            "height": 492,
+            "url": "https://www.ceram-decor.fr/31261-large_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+            "width": 381
+          },
+          "position": "1",
+          "small": {
+            "height": 127,
+            "url": "https://www.ceram-decor.fr/31261-small_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+            "width": 98
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": "0",
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2017-03-17 01:49:51",
+        "date_upd": "2026-07-10 22:00:42",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "<p><span><span style=\"text-decoration: underline;\">Petite astuce: </span></span></p>\r\n<ul>\r\n<li><span>Il est conseillé de cuire votre biscuit au dessus de 1040°C</span></li>\r\n</ul>\r\n<p><span style=\"font-size: 9pt; font-family: Poppins,sans-serif; color: #000000; background-color: transparent; font-weight: 400; font-style: italic; font-variant: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;\" id=\"docs-internal-guid-b9caa356-7fff-ae8d-00ab-99488cc69993\">Photo du pain de terre avec étiquette non contractuelle</span></p>",
+        "description_short": "<p>Utilisée principalement pour le modelage ainsi que l'estampage, cette argile est idéale pour la sculpture de taille moyenne ainsi que pour de la céramique décorative.<br />Cette argile peut aussi très bien se travailler au tournage si vous ne craignez pas la chamotte. <br />Bon comportement lors des collages à la barbotine. Destiné pour la bi-cuisson.<br /><span></span>Convient aussi bien aux céramistes qu'aux débutants et enfants.</p>",
+        "discount_amount": null,
+        "discount_amount_to_display": null,
+        "discount_percentage": null,
+        "discount_percentage_absolute": null,
+        "discount_type": null,
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [],
+        "features": [
+          {
+            "id_feature": "44",
+            "name": "Température de biscuit/dégourdi recommandée (°C)",
+            "position": "37",
+            "value": "1020°C"
+          },
+          {
+            "id_feature": "45",
+            "name": "Chamotte (mm)",
+            "position": "39",
+            "value": "Fine"
+          },
+          {
+            "id_feature": "46",
+            "name": "Retrait de séchage (%)",
+            "position": "40",
+            "value": "5 à 6%"
+          },
+          {
+            "id_feature": "47",
+            "name": "Retrait de cuisson à 1000°C (%)",
+            "position": "41",
+            "value": "0 à 1%"
+          },
+          {
+            "id_feature": "50",
+            "name": "Coéfficient de dilatation ",
+            "position": "53",
+            "value": "73 à 75"
+          },
+          {
+            "id_feature": "8",
+            "name": "Marque",
+            "position": "65",
+            "value": "VICAR"
+          },
+          {
+            "id_feature": "115",
+            "name": "Conditionnement",
+            "position": "100",
+            "value": "12.5 kg"
+          },
+          {
+            "id_feature": "142",
+            "name": "Type de terre",
+            "position": "125",
+            "value": "faïence "
+          },
+          {
+            "id_feature": "153",
+            "name": "Technique de façonnage",
+            "position": "134",
+            "value": "Modelage"
+          },
+          {
+            "id_feature": "153",
+            "name": "Technique de façonnage",
+            "position": "134",
+            "value": "Estampage"
+          },
+          {
+            "id_feature": "154",
+            "name": "Température",
+            "position": "135",
+            "value": "Basse (faïence)"
+          },
+          {
+            "id_feature": "164",
+            "name": "Couleur",
+            "position": "145",
+            "value": "Blanc"
+          },
+          {
+            "id_feature": "170",
+            "name": "Plage de température",
+            "position": "150",
+            "value": "1000°C à 1060°C"
+          }
+        ],
+        "has_discount": false,
+        "id": 8920,
+        "id_category_default": "486",
+        "id_customization": 0,
+        "id_image": "fr-default",
+        "id_manufacturer": "28",
+        "id_product": 8920,
+        "id_product_attribute": "0",
+        "id_shop_default": "1",
+        "id_supplier": "0",
+        "id_type_redirected": "486",
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.ceram-decor.fr/31261-cart_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.ceram-decor.fr/31261-home_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.ceram-decor.fr/31261-large_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.ceram-decor.fr/31261-medium_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.ceram-decor.fr/31261-small_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.ceram-decor.fr/31261-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 1100
+              }
+            },
+            "cover": "1",
+            "id_image": "31261",
+            "large": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/31261-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 1100
+            },
+            "legend": "",
+            "medium": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/31261-large_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 381
+            },
+            "position": "1",
+            "small": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/31261-small_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.ceram-decor.fr/29559-cart_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.ceram-decor.fr/29559-home_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.ceram-decor.fr/29559-large_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.ceram-decor.fr/29559-medium_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.ceram-decor.fr/29559-small_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.ceram-decor.fr/29559-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "29559",
+            "large": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/29559-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 1100
+            },
+            "legend": "",
+            "medium": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/29559-large_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 381
+            },
+            "position": "2",
+            "small": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/29559-small_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.ceram-decor.fr/25439-cart_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.ceram-decor.fr/25439-home_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.ceram-decor.fr/25439-large_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.ceram-decor.fr/25439-medium_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.ceram-decor.fr/25439-small_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.ceram-decor.fr/25439-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "25439",
+            "large": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/25439-thickbox_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 1100
+            },
+            "legend": "",
+            "medium": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/25439-large_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 381
+            },
+            "position": "3",
+            "small": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/25439-small_default/faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.jpg",
+              "width": 98
+            }
+          }
+        ],
+        "indexed": "1",
+        "is_customizable": false,
+        "is_virtual": "0",
+        "link": "https://www.ceram-decor.fr/faiencesblanches/8920-faience-blanche-a-chamotte-0-05mm-fdmchf-vicar.html",
+        "link_rewrite": "faience-blanche-a-chamotte-0-05mm-fdmchf-vicar",
+        "low_stock_alert": "0",
+        "low_stock_threshold": null,
+        "meta_description": "Faïence blanche chamottée pour le modelage et travaille à la plaque",
+        "meta_keywords": "",
+        "meta_title": "Faïence blanche à chamotte 0-0.5mm FDMCHF | VICAR",
+        "minimal_quantity": 1,
+        "name": "Faïence blanche à chamotte 0-0.5mm Fdmchf | VICAR",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": "0",
+        "online_only": "0",
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": "3",
+        "price": "20,40 €",
+        "price_amount": 20.4,
+        "price_tax_exc": 17,
+        "price_without_reduction": 20.4,
+        "quantity": 66,
+        "quantity_all_versions": 66,
+        "quantity_discounts": [
+          {
+            "discount": "17,26 €",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "8.000000",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "0",
+            "id_product": "8920",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "12172153",
+            "id_specific_price_rule": "0",
+            "nextQuantity": 80,
+            "price": "14.380000",
+            "quantity": "8.000000",
+            "real_value": 3.143999999999998,
+            "reduction": 0,
+            "reduction_tax": "1",
+            "reduction_type": "amount",
+            "reduction_with_tax": 0,
+            "save": "25,15 €",
+            "score": "32",
+            "to": "0000-00-00 00:00:00"
+          },
+          {
+            "discount": "15,16 €",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "80.000000",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "0",
+            "id_product": "8920",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "12172154",
+            "id_specific_price_rule": "0",
+            "nextQuantity": 240,
+            "price": "12.630000",
+            "quantity": "80.000000",
+            "real_value": 5.243999999999998,
+            "reduction": 0,
+            "reduction_tax": "1",
+            "reduction_type": "amount",
+            "reduction_with_tax": 0,
+            "save": "419,52 €",
+            "score": "32",
+            "to": "0000-00-00 00:00:00"
+          },
+          {
+            "discount": "13,36 €",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "240.000000",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "0",
+            "id_product": "8920",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "12172155",
+            "id_specific_price_rule": "0",
+            "nextQuantity": -1,
+            "price": "11.130000",
+            "quantity": "240.000000",
+            "real_value": 7.043999999999999,
+            "reduction": 0,
+            "reduction_tax": "1",
+            "reduction_type": "amount",
+            "reduction_with_tax": 0,
+            "save": "1 690,56 €",
+            "score": "32",
+            "to": "0000-00-00 00:00:00"
+          }
+        ],
+        "quantity_label": "Produits",
+        "quantity_wanted": 1,
+        "rate": 20,
+        "redirect_type": "301-category",
+        "reduction": 0,
+        "reference": "FDMCHF",
+        "show_availability": true,
+        "show_condition": "0",
+        "show_price": "1",
+        "show_quantities": false,
+        "specific_prices": false,
+        "tax_name": "TVA FR 20%",
+        "text_fields": "0",
+        "unit_price": "1,63 €",
+        "unit_price_full": "1,63 € kg",
+        "unit_price_ratio": "12.500000",
+        "unity": "kg",
+        "uploadable_files": "0",
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "ceram-decor",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-07-10 22:00:42",
+      "stock_quantity": 66,
+      "supplier_reference": "FDMCHF",
+      "surface": null,
+      "technical_attributes": {
+        "Chamotte (mm)": "Fine",
+        "Conditionnement": "12.5 kg",
+        "Couleur": "Blanc",
+        "Coéfficient de dilatation": "73 à 75",
+        "Marque": "VICAR",
+        "Plage de température": "1000°C à 1060°C",
+        "Retrait de cuisson à 1000°C (%)": "0 à 1%",
+        "Retrait de séchage (%)": "5 à 6%",
+        "Technique de façonnage": "Estampage Modelage",
+        "Température": "Basse (faïence)",
+        "Température de biscuit/dégourdi recommandée (°C)": "1020°C",
+        "Type de terre": "faïence"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 1.632
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.ceram-decor.fr/29571-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+        "https://www.ceram-decor.fr/29553-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+        "https://www.ceram-decor.fr/25441-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg"
+      ],
+      "application_methods": [
+        "pouring"
+      ],
+      "availability": "https://schema.org/OutOfStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "Accueil",
+        "NOS PRODUITS",
+        "ARGILES",
+        "FAIENCES",
+        "FAIENCES BLANCHES",
+        "Faïence blanche à chamotte fine qualité Beck | RAOULT & BECK"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "blanc"
+      },
+      "currency": "EUR",
+      "description": "Petites astuces: Température de biscuit maximum à 980°C afin de pouvoir garder une meilleure porosité et faciliter votre émaillage. Cette pâte se mélange très bien avec la terre qualité BECK noire et rouge pour faire du nériage . Photo du pain de terre avec étiquette non contractuelle",
+      "documents": null,
+      "effects": null,
+      "external_id": "ceram-decor:https://www.ceram-decor.fr/faiencesblanches/12615-faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.html#0",
+      "extraction_method": "dom",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "980°C - 1020°C",
+        "max_celsius": 1020,
+        "min_celsius": 980
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.ceram-decor.fr/29571-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Faïence blanche à chamotte fine qualité Beck | RAOULT & BECK",
+      "name_parsed_from": null,
+      "name_raw": "Faïence blanche à chamotte fine qualité Beck | RAOULT & BECK",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "10kg",
+        "grams": 10000.0,
+        "unit": "kg",
+        "value": 10.0
+      },
+      "parent_external_id": "ceram-decor:https://www.ceram-decor.fr/faiencesblanches/12615-faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.html",
+      "price": 21.24,
+      "price_text": "21,24 €",
+      "product_name": "Faïence blanche à chamotte fine qualité Beck | RAOULT & BECK",
+      "product_url": "https://www.ceram-decor.fr/faiencesblanches/12615-faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.html",
+      "raw": {
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": "0",
+        "allow_oosp": 0,
+        "attachments": [
+          {
+            "description": "",
+            "file": "757d4ed948680f1655747fe709fe75cafc4d3799",
+            "file_name": "FDS BECK BLANCHE.pdf",
+            "file_size": "143571",
+            "file_size_formatted": "140.21KB",
+            "id_attachment": "586",
+            "id_lang": "1",
+            "id_product": "12615",
+            "mime": "application/pdf",
+            "name": "FDS Beck Blanche"
+          },
+          {
+            "description": "",
+            "file": "ab6e18789521550d257351c8582d60ac4478b30e",
+            "file_name": "BECK BLANCHE.pdf",
+            "file_size": "67899",
+            "file_size_formatted": "66.31KB",
+            "id_attachment": "2159",
+            "id_lang": "1",
+            "id_product": "12615",
+            "mime": "application/pdf",
+            "name": "FT BECK BLANCHE"
+          }
+        ],
+        "attribute_price": 0,
+        "availability": "unavailable",
+        "availability_date": null,
+        "availability_message": "Rupture de stock",
+        "available_date": "0000-00-00",
+        "available_for_order": "1",
+        "available_later": "",
+        "available_now": "",
+        "cache_default_attribute": "0",
+        "category": "faiencesblanches",
+        "category_name": "FAIENCES BLANCHES",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 162,
+              "url": "https://www.ceram-decor.fr/29571-cart_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 125
+            },
+            "home_default": {
+              "height": 305,
+              "url": "https://www.ceram-decor.fr/29571-home_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 236
+            },
+            "large_default": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/29571-large_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 381
+            },
+            "medium_default": {
+              "height": 584,
+              "url": "https://www.ceram-decor.fr/29571-medium_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 452
+            },
+            "small_default": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/29571-small_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 98
+            },
+            "thickbox_default": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/29571-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 1100
+            }
+          },
+          "cover": "1",
+          "id_image": "29571",
+          "large": {
+            "height": 1422,
+            "url": "https://www.ceram-decor.fr/29571-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+            "width": 1100
+          },
+          "legend": "",
+          "medium": {
+            "height": 492,
+            "url": "https://www.ceram-decor.fr/29571-large_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+            "width": 381
+          },
+          "position": "1",
+          "small": {
+            "height": 127,
+            "url": "https://www.ceram-decor.fr/29571-small_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+            "width": 98
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": "0",
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2022-03-21 09:17:52",
+        "date_upd": "2026-07-10 22:00:30",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "<p><span><span style=\"text-decoration: underline;\">Petites astuces:</span></span><img src=\"https://www.ceram-decor.fr/img/cms/product_1_1_11-38-020_2.jpg\" alt=\"\" width=\"90\" height=\"68\" style=\"float: right;\" /></p>\r\n<ul>\r\n<li><span> Température de biscuit maximum à 980°C afin de pouvoir garder une meilleure porosité et faciliter votre émaillage.</span></li>\r\n</ul>\r\n<ul>\r\n<li><span> </span><span>Cette pâte se mélange très bien avec la terre qualité BECK <a href=\"https://www.ceram-decor.fr/fr/argiles/6232-FAIENCE-NOIRE-LISSE----QUALITE-BECK.html\"><strong>noire </strong></a>et <a href=\"https://www.ceram-decor.fr/fr/argiles/8916-FAIENCE-ROUGE-LISSE---QUALITE-BECK.html\"><strong>rouge </strong></a>pour faire du <strong><a href=\"https://www.ceram-decor.fr/fr/librairie/5904-TERRES-MELEES---M-DE-REILHAN.html?search_query=melees&amp;results=1\">nériage</a>.</strong></span></li>\r\n</ul>\r\n<p></p>\r\n<p><span style=\"font-size: 9pt; font-family: Poppins,sans-serif; color: #000000; background-color: transparent; font-weight: 400; font-style: italic; font-variant: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;\" id=\"docs-internal-guid-b9caa356-7fff-ae8d-00ab-99488cc69993\">Photo du pain de terre avec étiquette non contractuelle</span><em></em></p>\r\n<p></p>",
+        "description_short": "<p>Elle présente un haut coefficient de dilatation ainsi qu'un faible retrait qui lui permette de s'accorder parfaitement avec les émaux et engobes traditionnels aussi bien en mono qu'en bi-cuisson.<br />Broyée en Alsing, tamisée finement puis filtre-pressée, les terres BECK vous garantissent une régularité ainsi qu’une finesse optimale. <br />Pâte idéale pour la réalisation de pièces de tailles moyennes pour le modelage, l'estampage et à la plaque. Excellent comportement lors des collages à la barbotine, elle ne fissure pas et assure un séchage sans déformation. <br />Cette argile peut aussi très bien se travailler au tournage si vous ne craignez pas la chamotte. <br />Convient aussi bien aux céramistes qu'aux débutants et enfants.</p>\r\n<p></p>\r\n<p></p>",
+        "discount_amount": null,
+        "discount_amount_to_display": null,
+        "discount_percentage": null,
+        "discount_percentage_absolute": null,
+        "discount_type": null,
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [
+          {
+            "attr": {
+              "class": "",
+              "id": ""
+            },
+            "content": "    <script type=\"application/ld+json\">\n   {\n   \"@context\": \"http://schema.org/\",\n   \"@type\": \"Product\",\n   \"@id\": \"https://www.ceram-decor.fr/faiencesblanches/12615-faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.html\",\n   \"name\": \"Faïence blanche à chamotte fine qualité Beck | RAOULT &amp; BECK\",\n      \"aggregateRating\": {\n      \"@type\": \"AggregateRating\",\n      \"ratingValue\": \"5\",\n      \"reviewCount\": \"1\",\n      \"bestRating\": \"5\"\n      }\n   }\n   </script>\n            <script type=\"application/ld+json\">\n            {\n            \"@context\": \"http://schema.org/\",\n            \"@type\": \"Product\",\n            \"@id\": \"https://www.ceram-decor.fr/faiencesblanches/12615-faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.html\",\n            \"name\": \"Faïence blanche à chamotte fine qualité Beck | RAOULT &amp; BECK\",\n            \"review\" : {\n               \"@type\": \"Review\",\n               \"reviewRating\": {\n                     \"@type\": \"Rating\",\n                     \"ratingValue\": \"5\"\n                     },\n               \"author\": {\n                     \"@type\": \"Person\",\n                     \"name\": \"MAISON DES JEUNES ET DE LA CULTURE \"\n                     },\n               \"datePublished\": \"23/01/2025 à 16:14\",\n               \"reviewBody\": \"convient très bien à notre utilisation. Très bon produit\"\n            }\n            }\n        </script>\n    \n<div id=\"ag-s\" class=\"fr\">\n    <div>\n        <div id=\"agWidgetMain\" class=\"agWidget rad\" >\n            <div class=\"topBar\">Avis à propos du produit</div>\n            <div class=\"inner bgGrey1\" >\n            <div class=\"logoCont\"><img alt=\"Logo Société des Avis Garantis\" src=\"/modules/steavisgarantis/views/img/steavisgarantis_logo_fr.png\" width=\"150px\" height=\"35px\" class=\"logoAg\">\n            <a href=\"https://www.societe-des-avis-garantis.fr/ceram-decor/\" class=\"agBt certificateBtn\" target=\"_blank\">Voir l'attestation</a>\n            <p class=\"agReviewsLegal\">\n                <span>Avis soumis à un contrôle</span>\n                <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 16 16\" height=\"16px\" width=\"16px\" id=\"ag-reviews-legal\">\n                    <g fill=\"#7a7a7a\"><path d=\"M8 2a6 6 0 1 0 6 6 6 6 0 0 0-6-6Zm0 11a5 5 0 1 1 5-5 5 5 0 0 1-5 5Z\"></path><path d=\"M8 6.85a.5.5 0 0 0-.5.5v3.4a.5.5 0 0 0 1 0v-3.4a.5.5 0 0 0-.5-.5zM8 4.8a.53.53 0 0 0-.51.52v.08a.47.47 0 0 0 .51.47.52.52 0 0 0 .5-.5v-.12A.45.45 0 0 0 8 4.8z\"></path></g>\n                </svg>\n            </p>\n            </div>\n            <div class=\"statCont\">\n                <div class=\"steavisgarantisStats\">\n                <div class=\"item\"><span class=\"stat\"><div class=\"note bar1\" style=\"height:0%\"><span class=\"value\">0</span></div></span><span class=\"name\">1&starf;</span></div>\n                <div class=\"item\"><span class=\"stat\"><div class=\"note bar2\" style=\"height:0%\"><span class=\"value\">0</span></div></span><span class=\"name\">2&starf;</span></div>\n                <div class=\"item\"><span class=\"stat\"><div class=\"note bar3\" style=\"height:0%\"><span class=\"value\">0</span></div></span><span class=\"name\">3&starf;</span></div>\n                <div class=\"item\"><span class=\"stat\"><div class=\"note bar4\" style=\"height:0%\"><span class=\"value\">0</span></div></span><span class=\"name\">4&starf;</span></div>\n                <div class=\"item\"><span class=\"stat\"><div class=\"note bar5\" style=\"height:100%\"><span class=\"value\">1</span></div></span><span class=\"name\">5&starf;</span></div>\n                </div>\n            </div>\n            <div class=\"reviewCont\"> <div class=\"reviewGlobal\">\n                <div class=\"largeNote\">\n                    <big>10</big>/10\n                    <p>\n                        <br>Basé sur 1 \n                        avis                    </p>\n                </div>\n                </div></div>\n                            </div>\n            <ul class=\"reviewList\">\n                            \n\n                <li class=\"bgGrey0\" >\n                <div class=\"author\" >\n                <img alt=\"Image utilisateur\" class=\"authorAvatar\" width=\"24px\" height=\"24px\" src=\"/modules/steavisgarantis/views/img/ico_user.png\" />\n                <span >MAISON DES JEUNES ET DE LA CULTURE </span>\n                                <br><span class=\"time\"><span class=\"published\">Publié le 23/01/2025 à 16:14</span> (Date de commande : 28/10/2024)</span>\n            </div>\n                                    <div class=\"reviewTxt\">\n\t\t\t\t<div class=\"steavisgarantisStar\">\n\t\t\t\t\t<span></span>\n\t\t\t\t\t<div class=\"animate\" style=\"width:100%;position:relative;overflow:hidden;\">\n\t\t\t\t\t\t<svg class=\"note\" version=\"1.0\" xmlns=\"http://www.w3.org/2000/svg\" width=\"250.000000pt\" height=\"68.000000pt\" viewBox=\"0 0 250.000000 68.000000\" preserveAspectRatio=\"xMidYMid meet\">\n\t\t\t\t\t\t\t<g fill=\"rgba(250,0,0,1)\">\n                                <path d=\"M 16.02 28.17   L 22.31 11.82   A 0.34 0.34 0.0 0 1 22.95 11.82   L 29.11 28.05   A 0.34 0.34 0.0 0 0 29.43 28.27   L 43.29 28.24   A 0.34 0.34 0.0 0 1 43.53 28.82   L 32.81 39.62   A 0.34 0.34 0.0 0 0 32.73 39.97   L 38.17 56.11   A 0.34 0.34 0.0 0 1 37.67 56.51   L 22.84 47.29   A 0.34 0.34 0.0 0 0 22.48 47.29   L 7.31 56.49   A 0.34 0.34 0.0 0 1 6.81 56.09   L 12.27 40.15   A 0.34 0.34 0.0 0 0 12.19 39.80   L 1.50 28.79   A 0.34 0.34 0.0 0 1 1.75 28.21   L 15.69 28.39   A 0.34 0.34 0.0 0 0 16.02 28.17   Z\"/>\n                                <path d=\"M 79.28 28.29   L 93.14 28.22   A 0.34 0.34 0.0 0 1 93.38 28.80   L 82.66 39.66   A 0.34 0.34 0.0 0 0 82.58 40.01   L 88.04 56.15   A 0.34 0.34 0.0 0 1 87.54 56.55   L 72.70 47.28   A 0.34 0.34 0.0 0 0 72.34 47.28   L 57.15 56.50   A 0.34 0.34 0.0 0 1 56.65 56.10   L 62.13 40.14   A 0.34 0.34 0.0 0 0 62.05 39.79   L 51.34 28.78   A 0.34 0.34 0.0 0 1 51.59 28.20   L 65.53 28.40   A 0.34 0.34 0.0 0 0 65.86 28.18   L 72.17 11.87   A 0.34 0.34 0.0 0 1 72.80 11.87   L 78.96 28.07   A 0.34 0.34 0.0 0 0 79.28 28.29   Z\"/>\n                                <path d=\"M 129.12 28.28   L 142.99 28.23   A 0.34 0.34 0.0 0 1 143.23 28.81   L 132.51 39.64   A 0.34 0.34 0.0 0 0 132.43 39.99   L 137.90 56.14   A 0.34 0.34 0.0 0 1 137.39 56.54   L 122.57 47.30   A 0.34 0.34 0.0 0 0 122.21 47.30   L 107.02 56.48   A 0.34 0.34 0.0 0 1 106.52 56.08   L 111.97 40.14   A 0.34 0.34 0.0 0 0 111.89 39.79   L 101.22 28.79   A 0.34 0.34 0.0 0 1 101.47 28.21   L 115.40 28.39   A 0.34 0.34 0.0 0 0 115.73 28.17   L 122.03 11.80   A 0.34 0.34 0.0 0 1 122.66 11.80   L 128.80 28.06   A 0.34 0.34 0.0 0 0 129.12 28.28   Z\"/>\n                                <path d=\"M 178.98 28.27   L 192.81 28.24   A 0.34 0.34 0.0 0 1 193.06 28.82   L 182.39 39.63   A 0.34 0.34 0.0 0 0 182.31 39.98   L 187.74 56.13   A 0.34 0.34 0.0 0 1 187.24 56.53   L 172.41 47.29   A 0.34 0.34 0.0 0 0 172.05 47.29   L 156.88 56.48   A 0.34 0.34 0.0 0 1 156.38 56.07   L 161.83 40.13   A 0.34 0.34 0.0 0 0 161.75 39.78   L 151.05 28.79   A 0.34 0.34 0.0 0 1 151.30 28.21   L 165.26 28.39   A 0.34 0.34 0.0 0 0 165.58 28.17   L 171.86 11.80   A 0.34 0.34 0.0 0 1 172.50 11.80   L 178.66 28.05   A 0.34 0.34 0.0 0 0 178.98 28.27   Z\"/>\n                                <path d=\"M 220.13 27.69   L 226.23 12.00   Q 226.58 11.10 226.92 12.00   L 232.93 27.72   Q 233.14 28.26 233.72 28.26   L 247.19 28.27   Q 247.99 28.27 247.43 28.84   L 237.01 39.40   A 0.90 0.89 58.3 0 0 236.80 40.32   L 242.11 56.20   Q 242.35 56.94 241.69 56.53   L 227.01 47.45   Q 226.61 47.21 226.22 47.44   L 211.29 56.43   Q 210.52 56.89 210.81 56.04   L 216.12 40.39   Q 216.27 39.94 215.94 39.60   L 205.48 28.80   Q 204.93 28.23 205.72 28.24   L 219.11 28.37   Q 219.86 28.38 220.13 27.69   Z\"/>\n\t\t\t\t\t\t\t</g>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n                <div >\n                    <span class=\"metaHide\" >5</span>\n                </div>\n            <p class=\"\" >convient très bien à notre utilisation. Très bon produit</p>\n                        </div>\n            </li>\n                                    </ul>\n\n            <img id=\"chargement\" src=\"/modules/steavisgarantis/views/img/page.gif\" style=\"display:none\">\n                    </div>\n    </div>\n</div>\n<style>\n.bar1 {animation-duration: 1s;  animation-name: newHeight1;  animation-iteration-count: 1;} @keyframes newHeight1 { from {height: 0%} to {height: 0%} }\n.bar2 {animation-duration: 1s;  animation-name: newHeight2;  animation-iteration-count: 1;} @keyframes newHeight2 { from {height: 0%} to {height: 0%} }\n.bar3 {animation-duration: 1s;  animation-name: newHeight3;  animation-iteration-count: 1;} @keyframes newHeight3 { from {height: 0%} to {height: 0%} }\n.bar4 {animation-duration: 1s;  animation-name: newHeight4;  animation-iteration-count: 1;} @keyframes newHeight4 { from {height: 0%} to {height: 0%} }\n.bar5 {animation-duration: 1s;  animation-name: newHeight5;  animation-iteration-count: 1;} @keyframes newHeight5 { from {height: 0%} to {height: 100%} }\n\n.steavisgarantisStar svg.note g { fill:  #f5d700 !important;}\n.steavisgarantisStats .item .name { color:  #f5d700 !important;}\n.steavisgarantisStats .item .stat .note { background:  #f5d700 !important;}\n</style>\n<script type=\"text/javascript\">\n    var reviewTabStr = \"Avis clients\";\n    var maxReviewsPage = \"10\";\n\n    document.addEventListener(\"DOMContentLoaded\", (event) => {\n        var legalContent = \"<ul>\" +\n                \"<li>Les avis déposés sont soumis à un contrôle.</li>\" +\n                \"<li>Les avis déposés sont classés par ordre chronologique décroissant.</li>\" +\n                \"<li>Les avis ont été déposés sans aucune contrepartie.</li>\" +\n                \"<li>Le délai maximum de publication des avis est de 30 jours.</li>\" +\n                \"<li>Le délai maximum de conservation des avis correspond à la période d'exécution du contrat du commerçant.</li>\" +\n            \"</ul>\";\n\n        tippy('#ag-reviews-legal', {\n            content: legalContent,\n            allowHTML: true,\n            placement: 'bottom'\n        });\n    });\n</script>\n<br><br>",
+            "moduleName": "steavisgarantis",
+            "title": "Avis clients"
+          }
+        ],
+        "features": [
+          {
+            "id_feature": "44",
+            "name": "Température de biscuit/dégourdi recommandée (°C)",
+            "position": "37",
+            "value": "980°C"
+          },
+          {
+            "id_feature": "45",
+            "name": "Chamotte (mm)",
+            "position": "39",
+            "value": "Fine"
+          },
+          {
+            "id_feature": "46",
+            "name": "Retrait de séchage (%)",
+            "position": "40",
+            "value": "5"
+          },
+          {
+            "id_feature": "47",
+            "name": "Retrait de cuisson à 1000°C (%)",
+            "position": "41",
+            "value": "1.2"
+          },
+          {
+            "id_feature": "49",
+            "name": "Porosité à 1000°C (%)",
+            "position": "49",
+            "value": "10.1"
+          },
+          {
+            "id_feature": "50",
+            "name": "Coéfficient de dilatation ",
+            "position": "53",
+            "value": "80 x 10  ̄ ⁷"
+          },
+          {
+            "id_feature": "8",
+            "name": "Marque",
+            "position": "65",
+            "value": "RAOULT & BECK"
+          },
+          {
+            "id_feature": "115",
+            "name": "Conditionnement",
+            "position": "100",
+            "value": "10kg"
+          },
+          {
+            "id_feature": "151",
+            "name": "Fabrication Française 🇫🇷",
+            "position": "132",
+            "value": "oui"
+          },
+          {
+            "id_feature": "164",
+            "name": "Couleur",
+            "position": "145",
+            "value": "blanc"
+          },
+          {
+            "id_feature": "170",
+            "name": "Plage de température",
+            "position": "150",
+            "value": "980°C - 1020°C"
+          }
+        ],
+        "has_discount": false,
+        "id": 12615,
+        "id_category_default": "486",
+        "id_customization": 0,
+        "id_image": "fr-default",
+        "id_manufacturer": "4",
+        "id_product": 12615,
+        "id_product_attribute": "0",
+        "id_shop_default": "1",
+        "id_supplier": "0",
+        "id_type_redirected": "486",
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.ceram-decor.fr/29571-cart_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.ceram-decor.fr/29571-home_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.ceram-decor.fr/29571-large_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.ceram-decor.fr/29571-medium_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.ceram-decor.fr/29571-small_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.ceram-decor.fr/29571-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 1100
+              }
+            },
+            "cover": "1",
+            "id_image": "29571",
+            "large": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/29571-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 1100
+            },
+            "legend": "",
+            "medium": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/29571-large_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 381
+            },
+            "position": "1",
+            "small": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/29571-small_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.ceram-decor.fr/29553-cart_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.ceram-decor.fr/29553-home_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.ceram-decor.fr/29553-large_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.ceram-decor.fr/29553-medium_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.ceram-decor.fr/29553-small_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.ceram-decor.fr/29553-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "29553",
+            "large": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/29553-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 1100
+            },
+            "legend": "",
+            "medium": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/29553-large_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 381
+            },
+            "position": "2",
+            "small": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/29553-small_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.ceram-decor.fr/25441-cart_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.ceram-decor.fr/25441-home_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.ceram-decor.fr/25441-large_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.ceram-decor.fr/25441-medium_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.ceram-decor.fr/25441-small_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.ceram-decor.fr/25441-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "25441",
+            "large": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/25441-thickbox_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 1100
+            },
+            "legend": "",
+            "medium": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/25441-large_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 381
+            },
+            "position": "3",
+            "small": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/25441-small_default/faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.jpg",
+              "width": 98
+            }
+          }
+        ],
+        "indexed": "1",
+        "is_customizable": false,
+        "is_virtual": "0",
+        "link": "https://www.ceram-decor.fr/faiencesblanches/12615-faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck.html",
+        "link_rewrite": "faience-blanche-a-chamotte-fine-qualite-beck-raoult-beck",
+        "low_stock_alert": "0",
+        "low_stock_threshold": null,
+        "meta_description": "Elle présente un haut coefficient de dilatation ainsi qu'un faible retrait qui lui permette de s'accorder parfaitement avec les émaux et engobes traditionnels aussi bien en mono qu'en bi-cuisson.",
+        "meta_keywords": "",
+        "meta_title": "",
+        "minimal_quantity": 1,
+        "name": "Faïence blanche à chamotte fine qualité Beck | RAOULT & BECK",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": "0",
+        "online_only": "0",
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": "3",
+        "price": "21,24 €",
+        "price_amount": 21.24,
+        "price_tax_exc": 17.7,
+        "price_without_reduction": 21.24,
+        "quantity": -8,
+        "quantity_all_versions": -8,
+        "quantity_discounts": [
+          {
+            "discount": "19,08 €",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "10.000000",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "0",
+            "id_product": "12615",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "12172132",
+            "id_specific_price_rule": "0",
+            "nextQuantity": 100,
+            "price": "15.900000",
+            "quantity": "10.000000",
+            "real_value": 2.16,
+            "reduction": 0,
+            "reduction_tax": "1",
+            "reduction_type": "amount",
+            "reduction_with_tax": 0,
+            "save": "21,60 €",
+            "score": "32",
+            "to": "0000-00-00 00:00:00"
+          },
+          {
+            "discount": "16,56 €",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "100.000000",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "0",
+            "id_product": "12615",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "12172133",
+            "id_specific_price_rule": "0",
+            "nextQuantity": 300,
+            "price": "13.800000",
+            "quantity": "100.000000",
+            "real_value": 4.68,
+            "reduction": 0,
+            "reduction_tax": "1",
+            "reduction_type": "amount",
+            "reduction_with_tax": 0,
+            "save": "468,00 €",
+            "score": "32",
+            "to": "0000-00-00 00:00:00"
+          },
+          {
+            "discount": "14,64 €",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "300.000000",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "0",
+            "id_product": "12615",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "12172134",
+            "id_specific_price_rule": "0",
+            "nextQuantity": -1,
+            "price": "12.200000",
+            "quantity": "300.000000",
+            "real_value": 6.6,
+            "reduction": 0,
+            "reduction_tax": "1",
+            "reduction_type": "amount",
+            "reduction_with_tax": 0,
+            "save": "1 980,00 €",
+            "score": "32",
+            "to": "0000-00-00 00:00:00"
+          }
+        ],
+        "quantity_label": "Produit",
+        "quantity_wanted": 1,
+        "rate": 20,
+        "redirect_type": "301-category",
+        "reduction": 0,
+        "reference": "BECKBCF",
+        "show_availability": true,
+        "show_condition": "0",
+        "show_price": "1",
+        "show_quantities": false,
+        "specific_prices": false,
+        "tax_name": "TVA FR 20%",
+        "text_fields": "0",
+        "unit_price": "2,12 €",
+        "unit_price_full": "2,12 € ",
+        "unit_price_ratio": "10.000000",
+        "unity": "",
+        "uploadable_files": "0",
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "ceram-decor",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-07-10 22:00:30",
+      "stock_quantity": -8,
+      "supplier_reference": "BECKBCF",
+      "surface": null,
+      "technical_attributes": {
+        "Chamotte (mm)": "Fine",
+        "Conditionnement": "10kg",
+        "Couleur": "blanc",
+        "Coéfficient de dilatation": "80 x 10 ̄ ⁷",
+        "Fabrication Française 🇫🇷": "oui",
+        "Marque": "RAOULT & BECK",
+        "Plage de température": "980°C - 1020°C",
+        "Porosité à 1000°C (%)": "10.1",
+        "Retrait de cuisson à 1000°C (%)": "1.2",
+        "Retrait de séchage (%)": "5",
+        "Température de biscuit/dégourdi recommandée (°C)": "980°C"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 2.124
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg"
+      ],
+      "application_methods": [
+        "pouring"
+      ],
+      "availability": "https://schema.org/InStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "Accueil",
+        "NOS PRODUITS",
+        "ARGILES",
+        "FAIENCES",
+        "FAIENCES DE COULAGE",
+        "Faïence rouge clair de coulage en poudre Barroco | VICAR"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Rouge"
+      },
+      "currency": "EUR",
+      "description": "Photo du pain de terre avec étiquette non contractuelle",
+      "documents": [
+        {
+          "name": "FICHE TECHNIQUE BARROCO-AT.pdf",
+          "type": "technical_sheet",
+          "url": "https://www.ceram-decor.fr/index.php?controller=attachment&id_attachment=1730"
+        }
+      ],
+      "effects": null,
+      "external_id": "ceram-decor:https://www.ceram-decor.fr/faiences-de-coulage/11822-2759-faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.html#2763",
+      "extraction_method": "dom",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1000°C",
+        "max_celsius": 1000,
+        "min_celsius": 1000
+      },
+      "form": "powder",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Faïence rouge clair de coulage en poudre Barroco | VICAR",
+      "name_parsed_from": null,
+      "name_raw": "Faïence rouge clair de coulage en poudre Barroco | VICAR",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "100 KG",
+        "grams": 100000.0,
+        "unit": "kg",
+        "value": 100.0
+      },
+      "parent_external_id": "ceram-decor:https://www.ceram-decor.fr/faiences-de-coulage/11822-2759-faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.html",
+      "price": 211.2,
+      "price_text": "211,20 €",
+      "product_name": "Faïence rouge clair de coulage en poudre Barroco | VICAR",
+      "product_url": "https://www.ceram-decor.fr/faiences-de-coulage/11822-faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.html",
+      "raw": {
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": "0",
+        "allow_oosp": 0,
+        "attachments": [
+          {
+            "description": "",
+            "file": "334e8bde0ce257b445b2e061d5e5f2eca4657ed9",
+            "file_name": "FICHE TECHNIQUE BARROCO-AT.pdf",
+            "file_size": "43370",
+            "id_attachment": "1730",
+            "id_lang": "1",
+            "id_product": "11822",
+            "mime": "application/pdf",
+            "name": "FICHE TECHNIQUE BAROCCO"
+          },
+          {
+            "description": "",
+            "file": "d1f66147a767dc102fafcc17e40f76fd5b7abc6c",
+            "file_name": "FDS BARROCO AT.pdf",
+            "file_size": "658145",
+            "id_attachment": "2161",
+            "id_lang": "1",
+            "id_product": "11822",
+            "mime": "application/pdf",
+            "name": "FDS BARROCO"
+          }
+        ],
+        "attribute_price": 174.24,
+        "attributes": {
+          "30": {
+            "ean13": "",
+            "group": "CONDITIONNEMENT",
+            "id_attribute": "228",
+            "id_attribute_group": "30",
+            "isbn": "",
+            "mpn": "",
+            "name": "PAR 100 KG",
+            "reference": "COULBAROC/100",
+            "upc": ""
+          }
+        },
+        "availability": "last_remaining_items",
+        "availability_date": null,
+        "availability_message": "Derniers articles en stock",
+        "available_date": null,
+        "available_for_order": "1",
+        "available_later": "",
+        "available_now": "",
+        "cache_default_attribute": "2759",
+        "category": "faiences-de-coulage",
+        "category_name": "FAIENCES DE COULAGE",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 162,
+              "url": "https://www.ceram-decor.fr/18849-cart_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "width": 125
+            },
+            "home_default": {
+              "height": 305,
+              "url": "https://www.ceram-decor.fr/18849-home_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "width": 236
+            },
+            "large_default": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/18849-large_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "width": 381
+            },
+            "medium_default": {
+              "height": 584,
+              "url": "https://www.ceram-decor.fr/18849-medium_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "width": 452
+            },
+            "small_default": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/18849-small_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "width": 98
+            },
+            "thickbox_default": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "width": 1100
+            }
+          },
+          "cover": "1",
+          "id_image": "18849",
+          "large": {
+            "height": 1422,
+            "url": "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+            "width": 1100
+          },
+          "legend": "FAIENCE ROUGE CLAIRE EN POUDRE POUR COULAGE -BAROCCO ",
+          "medium": {
+            "height": 492,
+            "url": "https://www.ceram-decor.fr/18849-large_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+            "width": 381
+          },
+          "position": "1",
+          "small": {
+            "height": 127,
+            "url": "https://www.ceram-decor.fr/18849-small_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+            "width": 98
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": "0",
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2020-10-07 13:10:47",
+        "date_upd": "2026-07-07 22:00:31",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "<p><span style=\"font-size: 9pt; font-family: Poppins,sans-serif; color: #000000; background-color: transparent; font-weight: 400; font-style: italic; font-variant: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;\" id=\"docs-internal-guid-b9caa356-7fff-ae8d-00ab-99488cc69993\">Photo du pain de terre avec étiquette non contractuelle</span></p>",
+        "description_short": "<p>Faïence rouge en poudre préparée pour la technique du coulage. <br />Très appréciée pour la fabrication de céramique utilitaire mais aussi décorative aussi bien artistique que structurelle.  <br />Poudre atomisée et défloculée.</p>",
+        "discount_amount": null,
+        "discount_amount_to_display": null,
+        "discount_percentage": null,
+        "discount_percentage_absolute": null,
+        "discount_type": null,
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [],
+        "features": [
+          {
+            "id_feature": "46",
+            "name": "Retrait de séchage (%)",
+            "position": "40",
+            "value": "3.5 - 4.5%"
+          },
+          {
+            "id_feature": "47",
+            "name": "Retrait de cuisson à 1000°C (%)",
+            "position": "41",
+            "value": "0.5-1.5%"
+          },
+          {
+            "id_feature": "50",
+            "name": "Coéfficient de dilatation ",
+            "position": "53",
+            "value": "76 - 78 x 10-7"
+          },
+          {
+            "id_feature": "78",
+            "name": "Absorption d'eau à 980°C",
+            "position": "64",
+            "value": "23-25%"
+          },
+          {
+            "id_feature": "8",
+            "name": "Marque",
+            "position": "65",
+            "value": "VICAR"
+          },
+          {
+            "id_feature": "115",
+            "name": "Conditionnement",
+            "position": "100",
+            "value": "sac de 25 kg"
+          },
+          {
+            "id_feature": "142",
+            "name": "Type de terre",
+            "position": "125",
+            "value": "faïence "
+          },
+          {
+            "id_feature": "153",
+            "name": "Technique de façonnage",
+            "position": "134",
+            "value": "Coulage"
+          },
+          {
+            "id_feature": "154",
+            "name": "Température",
+            "position": "135",
+            "value": "Basse (faïence)"
+          },
+          {
+            "id_feature": "164",
+            "name": "Couleur",
+            "position": "145",
+            "value": "Rouge"
+          }
+        ],
+        "has_discount": false,
+        "id": 11822,
+        "id_category_default": "489",
+        "id_customization": 0,
+        "id_image": "fr-default",
+        "id_manufacturer": "28",
+        "id_product": 11822,
+        "id_product_attribute": 2763,
+        "id_shop_default": "1",
+        "id_supplier": "0",
+        "id_type_redirected": "489",
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.ceram-decor.fr/18849-cart_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.ceram-decor.fr/18849-home_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.ceram-decor.fr/18849-large_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.ceram-decor.fr/18849-medium_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.ceram-decor.fr/18849-small_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "width": 1100
+              }
+            },
+            "cover": "1",
+            "id_image": "18849",
+            "large": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "width": 1100
+            },
+            "legend": "FAIENCE ROUGE CLAIRE EN POUDRE POUR COULAGE -BAROCCO ",
+            "medium": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/18849-large_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "width": 381
+            },
+            "position": "1",
+            "small": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/18849-small_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "width": 98
+            }
+          }
+        ],
+        "indexed": "1",
+        "is_customizable": false,
+        "is_virtual": "0",
+        "link": "https://www.ceram-decor.fr/faiences-de-coulage/11822-faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.html",
+        "link_rewrite": "faience-rouge-clair-de-coulage-en-poudre-barroco-vicar",
+        "low_stock_alert": "0",
+        "low_stock_threshold": null,
+        "meta_description": "Faïence rouge en poudre préparée pour la technique du coulage.\r\nTrès appréciée pour la fabrication de céramique utilitaire mais aussi décorative aussi bien artistique que structurelle.",
+        "meta_keywords": "",
+        "meta_title": "",
+        "minimal_quantity": 1,
+        "name": "Faïence rouge clair de coulage en poudre Barroco |  VICAR",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": "0",
+        "online_only": "0",
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": "3",
+        "price": "211,20 €",
+        "price_amount": 211.2,
+        "price_tax_exc": 176,
+        "price_without_reduction": 211.2,
+        "quantity": 1,
+        "quantity_all_versions": 231,
+        "quantity_discounts": [],
+        "quantity_label": "Produits",
+        "quantity_wanted": 1,
+        "rate": 20,
+        "redirect_type": "301-category",
+        "reduction": 0,
+        "reference": "COULBAROC",
+        "show_availability": true,
+        "show_condition": "0",
+        "show_price": "1",
+        "show_quantities": false,
+        "specific_prices": false,
+        "tax_name": "TVA FR 20%",
+        "text_fields": "0",
+        "unit_price": "",
+        "unit_price_full": "",
+        "unit_price_ratio": "0.000000",
+        "unity": "",
+        "uploadable_files": "0",
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "ceram-decor",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-07-07 22:00:31",
+      "stock_quantity": 1,
+      "supplier_reference": "COULBAROC/100",
+      "surface": null,
+      "technical_attributes": {
+        "Absorption d'eau à 980°C": "23-25%",
+        "CONDITIONNEMENT": "Prix unitaire Disponible Acheter",
+        "Conditionnement": "sac de 25 kg",
+        "Couleur": "Rouge",
+        "Coéfficient de dilatation": "76 - 78 x 10-7",
+        "Marque": "VICAR",
+        "PAR 1 KG": "2,51 € Total :",
+        "PAR 10 KG": "25,08 € Total :",
+        "PAR 100 KG": "211,20 € Total :",
+        "PAR 25 KG": "62,70 € Total :",
+        "PAR 5 KG": "12,54 € Total :",
+        "Retrait de cuisson à 1000°C (%)": "0.5-1.5%",
+        "Retrait de séchage (%)": "3.5 - 4.5%",
+        "Technique de façonnage": "Coulage",
+        "Température": "Basse (faïence)",
+        "Type de terre": "faïence"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 2.112
+      },
+      "variant_title": "CONDITIONNEMENT: PAR 100 KG",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "prestashop",
+  "source": "ceram-decor",
+  "truncated": false
+}

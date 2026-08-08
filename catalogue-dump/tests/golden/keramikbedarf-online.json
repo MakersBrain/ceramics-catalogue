@@ -1,0 +1,342 @@
+{
+  "digest": "d8eae06575d62e6337120b8579efdc96efbbaa965581d3a3ebd970d65a8d6e73",
+  "discovered": 72,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "dom",
+  "field_coverage": {
+    "all_image_urls": 72,
+    "brand": 70,
+    "category_path": 72,
+    "claims": 1,
+    "colour": 61,
+    "description": 72,
+    "documents": 0,
+    "effects": 2,
+    "family": 72,
+    "firing": 72,
+    "form": 39,
+    "gtin": 0,
+    "manufacturer_sku": 17,
+    "package_size": 10,
+    "stock_quantity": 0,
+    "supplier_reference": 72,
+    "surface": 23,
+    "unit_price": 10,
+    "vat_status": 72
+  },
+  "notes": [
+    "72 product URLs from category pages"
+  ],
+  "records": 72,
+  "rendered_pages": 0,
+  "requests": 75,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://shop.keramikbedarf-online.de/media/28/85/30/1709642168/W122_RGB_02.jpg?ts=1709642168",
+        "https://shop.keramikbedarf-online.de/media/e8/9c/eb/1709642167/2-W122_VATER_02.jpeg?ts=1709642167",
+        "https://shop.keramikbedarf-online.de/media/db/02/e8/1709642168/2-W122_VATER_03.jpeg?ts=1709642168"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/LimitedAvailability",
+      "brand": "Paint-it",
+      "brand_basis": "published",
+      "category_path": [
+        "Glasuren",
+        "1020 °C - 1100 °C",
+        "Streichglasuren",
+        "Paint it"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Grün"
+      },
+      "currency": "EUR",
+      "description": "Unsere \"Frozen Fruits\" Glasuren bringen trendige Pastellfarbtöne mit einer umwerfend seidigen Oberfläche auf die Keramik. Sie lassen sich wunderbar miteinander kombinieren. Die Glasur Frozen Mint erzeugt eine weiche, minzgrüne Oberfläche. Die Paint it Vario Glasuren können im Niedrigbrand- (ab 1020°C) als auch im Steinzeugbereich (bis 1240 °C) genutzt werden. EIGENSCHAFTEN Deckkraft: deckend Für Ess- und Trinkgeschirr: geeignet Schwierigkeitsgrad: gelingt leicht Effekte: ohne Effekt Farbe: grün Oberfläche : seidenmatt BRENNBEREICHBrennbereich: 1020 - 1240°C ESSGESCHIRRDiese Streichglasur ist säurebeständig und somit geeignet für Essgeschirr.",
+      "documents": null,
+      "effects": null,
+      "external_id": "keramikbedarf-online:https://shop.keramikbedarf-online.de/Paint-it-Vario-Streichglasur-Frozen-Mint/2-W122",
+      "extraction_method": "dom",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1020 - 1240°C",
+        "max_celsius": 1240,
+        "min_celsius": 1020
+      },
+      "form": "powder",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://shop.keramikbedarf-online.de/media/28/85/30/1709642168/W122_RGB_02.jpg?ts=1709642168",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Paint it Vario Streichglasur Frozen Mint",
+      "name_parsed_from": null,
+      "name_raw": "Paint it Vario Streichglasur Frozen Mint",
+      "package_size": null,
+      "parent_external_id": "keramikbedarf-online:https://shop.keramikbedarf-online.de/Paint-it-Vario-Streichglasur-Frozen-Mint/2-W122",
+      "price": 7.35,
+      "price_text": "7.35 EUR",
+      "product_name": "Paint it Vario Streichglasur Frozen Mint",
+      "product_url": "https://shop.keramikbedarf-online.de/Paint-it-Vario-Streichglasur-Frozen-Mint/2-W122",
+      "published_unit_price": "Inhalt:",
+      "raw": {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "brand": {
+          "@type": "Brand",
+          "name": "Paint-it"
+        },
+        "description": "Unsere \"Frozen Fruits\" Glasuren bringen trendige Pastellfarbtöne mit einer umwerfend seidigen Oberfläche auf die Keramik. Sie lassen sich wunderbar miteinander kombinieren. Die Glasur Frozen Mint erzeugt eine weiche, minzgrüne Oberfläche.  Die Paint it Vario Glasuren können im Niedrigbrand- (ab 1020°C) als auch im Steinzeugbereich (bis 1240 °C) genutzt werden. EIGENSCHAFTEN\r\n\r\n Deckkraft: deckend \r\n Für Ess- und Trinkgeschirr: geeignet  \r\n Schwierigkeitsgrad: gelingt leicht \r\n Effekte: ohne Effekt \r\n Farbe: grün \r\n Oberfläche : seidenmatt BRENNBEREICHBrennbereich: 1020 - 1240°C  ESSGESCHIRRDiese Streichglasur ist säurebeständig und somit geeignet für Essgeschirr.",
+        "image": [
+          "https://shop.keramikbedarf-online.de/media/28/85/30/1709642168/W122_RGB_02.jpg?ts=1709642168",
+          "https://shop.keramikbedarf-online.de/media/e8/9c/eb/1709642167/2-W122_VATER_02.jpeg?ts=1709642167",
+          "https://shop.keramikbedarf-online.de/media/db/02/e8/1709642168/2-W122_VATER_03.jpeg?ts=1709642168"
+        ],
+        "mpn": "2-W122",
+        "name": "Paint it Vario Streichglasur Frozen Mint ",
+        "offers": [
+          {
+            "@type": "Offer",
+            "availability": "https://schema.org/LimitedAvailability",
+            "itemCondition": "https://schema.org/NewCondition",
+            "price": 7.35,
+            "priceCurrency": "EUR",
+            "priceValidUntil": "2026-08-06",
+            "url": "https://shop.keramikbedarf-online.de/Paint-it-Vario-Streichglasur-Frozen-Mint/2-W122"
+          }
+        ],
+        "sku": "2-W122"
+      },
+      "source": "keramikbedarf-online",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "2-W122",
+      "surface": "gloss",
+      "technical_attributes": {
+        "Brenntemperatur ": "1020 °C - 1100 °C , 1180 °C - 1260 °C",
+        "Deckkraft": "deckend",
+        "Effekte": "ohne Effekt",
+        "Farbe": "Grün",
+        "Glanz": "seidenmatt",
+        "Hersteller": "Paint it",
+        "Pulver- oder Streichglasur": "Streichglasur"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://shop.keramikbedarf-online.de/media/4d/a3/b5/1709643048/W151_RGB.jpg?ts=1709643048",
+        "https://shop.keramikbedarf-online.de/media/cb/91/a2/1709643046/2-W151_VATER_01.jpeg?ts=1709643046",
+        "https://shop.keramikbedarf-online.de/media/e8/44/c6/1709643047/2-W151_VATER_02.jpeg?ts=1709643047",
+        "https://shop.keramikbedarf-online.de/media/74/6c/f1/1709643048/2-W151_VATER_03.jpeg?ts=1709643048"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/LimitedAvailability",
+      "brand": "Paint-it",
+      "brand_basis": "published",
+      "category_path": [
+        "Glasuren",
+        "1020 °C - 1100 °C",
+        "Streichglasuren",
+        "Paint it"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Grün"
+      },
+      "currency": "EUR",
+      "description": "Die Streichglasur Lagune bringt ein kräftiges Grün, welches leicht ins Türkis neigt auf Ihre Keramik. Auch auf dunklen Tonmassen erzielt die Glasur gute Ergebnisse und schmilzt sehr gut aus. Eine farbintensive Glasur für satte Akzente und Highlights.Die Paint it Vario Glasuren können im Niedrigbrand- (ab 1020°C) als auch im Steinzeugbereich (bis 1240 °C) genutzt werden. EIGENSCHAFTEN Farbe: grün, türkis Deckkraft: deckend Schwierigkeitsgrad: gelingt leicht Oberfläche: glänzend Effekte: ohne Effekt BRENNBEREICHDie Streichglasur ist stabil im Brennbereich von 1020° – 1220°C ESSGESCHIRRDiese Streichglasur ist säurebeständig und somit geeignet für Essgeschirr.",
+      "documents": null,
+      "effects": null,
+      "external_id": "keramikbedarf-online:https://shop.keramikbedarf-online.de/Paint-it-Vario-Streichglasur-Lagune-glaenzend/2-W151",
+      "extraction_method": "dom",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1020° – 1220°C",
+        "max_celsius": 1220,
+        "min_celsius": 1020
+      },
+      "form": "powder",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://shop.keramikbedarf-online.de/media/4d/a3/b5/1709643048/W151_RGB.jpg?ts=1709643048",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "Paint it Vario Streichglasur Lagune glänzend",
+      "name_parsed_from": null,
+      "name_raw": "Paint it Vario Streichglasur Lagune glänzend",
+      "package_size": null,
+      "parent_external_id": "keramikbedarf-online:https://shop.keramikbedarf-online.de/Paint-it-Vario-Streichglasur-Lagune-glaenzend/2-W151",
+      "price": 7.35,
+      "price_text": "7.35 EUR",
+      "product_name": "Paint it Vario Streichglasur Lagune glänzend",
+      "product_url": "https://shop.keramikbedarf-online.de/Paint-it-Vario-Streichglasur-Lagune-glaenzend/2-W151",
+      "published_unit_price": "Inhalt:",
+      "raw": {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "brand": {
+          "@type": "Brand",
+          "name": "Paint-it"
+        },
+        "description": "Die Streichglasur Lagune bringt ein kräftiges Grün, welches leicht ins Türkis neigt auf Ihre Keramik. Auch auf dunklen Tonmassen erzielt die Glasur gute Ergebnisse und schmilzt sehr gut aus. Eine farbintensive Glasur für satte Akzente und Highlights.Die Paint it Vario Glasuren können im Niedrigbrand- (ab 1020°C) als auch im Steinzeugbereich (bis 1240 °C) genutzt werden. EIGENSCHAFTEN\r\n\r\nFarbe: grün, türkis \r\nDeckkraft: deckend \r\nSchwierigkeitsgrad: gelingt leicht \r\nOberfläche: glänzend \r\nEffekte: ohne Effekt  BRENNBEREICHDie Streichglasur ist stabil im Brennbereich von 1020° – 1220°C  ESSGESCHIRRDiese Streichglasur ist säurebeständig und somit geeignet für Essgeschirr.",
+        "image": [
+          "https://shop.keramikbedarf-online.de/media/4d/a3/b5/1709643048/W151_RGB.jpg?ts=1709643048",
+          "https://shop.keramikbedarf-online.de/media/cb/91/a2/1709643046/2-W151_VATER_01.jpeg?ts=1709643046",
+          "https://shop.keramikbedarf-online.de/media/e8/44/c6/1709643047/2-W151_VATER_02.jpeg?ts=1709643047",
+          "https://shop.keramikbedarf-online.de/media/74/6c/f1/1709643048/2-W151_VATER_03.jpeg?ts=1709643048"
+        ],
+        "mpn": "2-W151",
+        "name": "Paint it Vario Streichglasur Lagune glänzend  ",
+        "offers": [
+          {
+            "@type": "Offer",
+            "availability": "https://schema.org/LimitedAvailability",
+            "itemCondition": "https://schema.org/NewCondition",
+            "price": 7.35,
+            "priceCurrency": "EUR",
+            "priceValidUntil": "2026-08-06",
+            "url": "https://shop.keramikbedarf-online.de/Paint-it-Vario-Streichglasur-Lagune-glaenzend/2-W151"
+          }
+        ],
+        "sku": "2-W151"
+      },
+      "source": "keramikbedarf-online",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "2-W151",
+      "surface": "gloss",
+      "technical_attributes": {
+        "Brenntemperatur ": "1020 °C - 1100 °C , 1180 °C - 1260 °C",
+        "Deckkraft": "deckend",
+        "Effekte": "ohne Effekt",
+        "Farbe": "Grün",
+        "Glanz": "glänzend",
+        "Hersteller": "Paint it",
+        "Pulver- oder Streichglasur": "Streichglasur"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://shop.keramikbedarf-online.de/media/9e/fd/4c/1706108752/Mittel (BOTZ_Steinzeugengobe_Edition0001).jpeg?ts=1706108752",
+        "https://shop.keramikbedarf-online.de/media/f4/f6/41/1706108752/Mittel (BOTZ_Steinzeugengobe_Edition0002).jpeg?ts=1706108752",
+        "https://shop.keramikbedarf-online.de/media/c8/b8/76/1706108753/Mittel (BOTZ_Steinzeugengobe_Edition0003).jpeg?ts=1706108753"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/LimitedAvailability",
+      "brand": "Botz",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "Farben",
+        "Engoben",
+        "Steinzeug-Engoben"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Weiß"
+      },
+      "currency": "EUR",
+      "description": "Die BOTZ Steinzeugengobe Edition Weiß ist eine hochwertige Engobe für Keramikprojekte. Sie bietet: EIGENSCHAFTEN Stabilität im Brennbereich von 1180°C bis 1280°C. Mischbarkeit mit anderen Edition-Farben für pastellige Töne, besonders mit 9801. Mattes, erdiges Finish ohne Glasur; gut deckend und konturscharf. Leuchtende, glänzende Optik mit transparenter Glasur (z. B. BOTZ 9300/9870), ideal für Essgeschirr.Perfekt für kreative und qualitätsbewusste Keramikarbeiten.",
+      "documents": null,
+      "effects": null,
+      "external_id": "keramikbedarf-online:https://shop.keramikbedarf-online.de/Botz-Edition-Weiss/3-9801",
+      "extraction_method": "dom",
+      "family": "engobe",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1180°C bis 1280°C",
+        "max_celsius": 1280,
+        "min_celsius": 1180
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://shop.keramikbedarf-online.de/media/9e/fd/4c/1706108752/Mittel (BOTZ_Steinzeugengobe_Edition0001).jpeg?ts=1706108752",
+      "list_price": null,
+      "manufacturer_sku": "9801",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "Botz Edition Weiß",
+      "name_parsed_from": [
+        "Botz"
+      ],
+      "name_raw": "Botz Edition Weiß",
+      "package_size": null,
+      "parent_external_id": "keramikbedarf-online:https://shop.keramikbedarf-online.de/Botz-Edition-Weiss/3-9801",
+      "price": 6.77,
+      "price_text": "6.77 EUR",
+      "product_name": "Botz Edition Weiß",
+      "product_url": "https://shop.keramikbedarf-online.de/Botz-Edition-Weiss/3-9801",
+      "published_unit_price": "Inhalt:",
+      "raw": {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "brand": {
+          "@type": "Brand",
+          "name": "BOTZ GmbH"
+        },
+        "description": "Die BOTZ Steinzeugengobe Edition Weiß ist eine hochwertige Engobe für Keramikprojekte. Sie bietet: EIGENSCHAFTEN\r\n\r\nStabilität im Brennbereich von 1180°C bis 1280°C.\r\nMischbarkeit mit anderen Edition-Farben für pastellige Töne, besonders mit 9801.\r\nMattes, erdiges Finish ohne Glasur; gut deckend und konturscharf.\r\nLeuchtende, glänzende Optik mit transparenter Glasur (z. B. BOTZ 9300/9870), ideal für Essgeschirr.Perfekt für kreative und qualitätsbewusste Keramikarbeiten.",
+        "image": [
+          "https://shop.keramikbedarf-online.de/media/9e/fd/4c/1706108752/Mittel (BOTZ_Steinzeugengobe_Edition0001).jpeg?ts=1706108752",
+          "https://shop.keramikbedarf-online.de/media/f4/f6/41/1706108752/Mittel (BOTZ_Steinzeugengobe_Edition0002).jpeg?ts=1706108752",
+          "https://shop.keramikbedarf-online.de/media/c8/b8/76/1706108753/Mittel (BOTZ_Steinzeugengobe_Edition0003).jpeg?ts=1706108753"
+        ],
+        "mpn": "3-9801",
+        "name": "Botz Edition Weiß",
+        "offers": [
+          {
+            "@type": "Offer",
+            "availability": "https://schema.org/LimitedAvailability",
+            "itemCondition": "https://schema.org/NewCondition",
+            "price": 6.77,
+            "priceCurrency": "EUR",
+            "priceValidUntil": "2026-08-06",
+            "url": "https://shop.keramikbedarf-online.de/Botz-Edition-Weiss/3-9801"
+          }
+        ],
+        "sku": "3-9801"
+      },
+      "source": "keramikbedarf-online",
+      "source_detail_level": "product_page",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "3-9801",
+      "surface": null,
+      "technical_attributes": {
+        "Farbe": "Weiß"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "shopware",
+  "source": "keramikbedarf-online",
+  "truncated": false
+}

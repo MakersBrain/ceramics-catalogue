@@ -1,0 +1,118 @@
+tier,domain,country,name,listed_by,platform,access,catalogue_size,size_source,brand_hits,shop_signals,glaze_urls,score,url,note
+A,poterieduvieuxbac.com,France,Poterie du Vieux Bac,mayco,shopify,shopify /products.json (needs curl_cffi impersonation),250,"api page1 (250+, paginates)",mayco:42;botz:5,,0,9999,https://poterieduvieuxbac.com,"vendor field populated (Rohde 113, Mayco 14, Nabertherm 46); kiln-heavy"
+A,potterycrafts.co.uk,United Kingdom,POTTERY CRAFTS LIMITED,amaco/mayco/sio2/spectrum,shopify,shopify /products.json,250,"api page1 (250+, paginates)",mayco:812;spectrum:283;amaco:282;terracolor:151;botz:93;duncan:23,,1586,6543,https://potterycrafts.co.uk,
+A,corbykilns.co.uk,United Kingdom,Corby Kilns,mayco,woocommerce,woo store api /wp-json/wc/store/v1/products,2571,api count,mayco:815;amaco:229;botz:94;spectrum:66;terracolor:17;duncan:3,,0,3929,https://corbykilns.co.uk,
+A,argile.nl,Netherlands,Art d’Argile,mayco,woocommerce,woo store api /wp-json/wc/store/v1/products,4567,api count,mayco:614;botz:249;terracolor:162;amaco:156,,0,3843,https://hazelaar.nl/,
+A,kettlespotterysupplies.com,United Kingdom,Kettles Pottery Supplies,mayco,shopify,shopify /products.json,250,"api page1 (250+, paginates)",botz:383;mayco:290;amaco:129;terracolor:34;spectrum:4,,441,2986,https://www.kettlespotterysupplies.com/,
+A,at-ceramika.pl,Poland,Kamionka/At Ceramika,mayco,woocommerce,woo store api /wp-json/wc/store/v1/products,1584,api count,botz:315;mayco:149;amaco:132;spectrum:12;terracolor:3,,829,2820,https://pckamionka.pl/,
+A,keramikbedarf.ch,Switzerland,Michel Keramikbedarf,mayco/spectrum,woocommerce,woo store api /wp-json/wc/store/v1/products,1972,api count,amaco:207;terracolor:148;mayco:140;spectrum:28;duncan:6,,906,2690,https://keramikbedarf.ch,
+A,tallergingell.com,Spain,Taller Gingell,amaco,shopify,shopify /products.json,250,"api page1 (250+, paginates)",amaco:744;spectrum:1,,246,2506,https://tallergingell.com,
+A,hot-clay.com,United Kingdom,Hot Clay,amaco/mayco/spectrum,shopify,shopify /products.json,250,"api page1 (250+, paginates)",spectrum:140;mayco:138;botz:94;amaco:57;sio-2:2,,1007,2325,https://www.hot-clay.com/,
+A,ceramistashop.pt,Portugal,Ceramista Shop (Lisboa),amaco,shopify,shopify /products.json,250,"api page1 (250+, paginates)",amaco:585;botz:82;mayco:56,,60,2254,https://ceramistashop.pt,
+A,barro.ro,Romania,BARRO LAB,sio2,shopify,shopify /products.json,250,"api page1 (250+, paginates)",amaco:289;mayco:229;sio-2:42;botz:31,,364,2162,https://www.barro.ro,
+A,cerama.shop,Italy,CERAMA S.R.L.,mayco,woocommerce,woo store api /wp-json/wc/store/v1/products,927,api count,mayco:388;sio-2:37,,51,1419,https://cerama.shop,
+A,esmalteybarro.com,Spain,ESMALTE Y BARRO,sio2,woocommerce,woo store api /wp-json/wc/store/v1/products,1078,api count,sio-2:19,,1174,1339,https://www.esmalteybarro.com/,
+A,marphil.com,Spain,MARPHIL CENTRO,mayco/sio2,woocommerce,woo store api /wp-json/wc/store/v1/products,1650,api count,mayco:164;botz:102;sio-2:19;duncan:3;terracolor:2,,299,1334,https://www.marphil.com/,
+A,mudaceramica.com,Portugal,MUDA CERAMICA,mayco,shopify,shopify /products.json,250,"api page1 (250+, paginates)",mayco:401,,41,1269,https://mudaceramica.com,
+A,ulsterceramicspotterysupplies.co.uk,United Kingdom,Ulster Ceramics Plc,mayco,shopify,shopify /products.json,250,"api page1 (250+, paginates)",mayco:61;amaco:48;botz:39;spectrum:19,,311,837,https://www.ulsterceramicspotterysupplies.co.uk/,
+A,dbipottery.com,Ireland,D.B.I Pottery Supplies,mayco,woocommerce,woo store api /wp-json/wc/store/v1/products,2189,api count,amaco:92;mayco:15;terracolor:8;duncan:2;botz:1,,256,829,https://www.dbipottery.com/,
+A,themakersspace.eu,Cyprus,THE MAKERS SPACE,sio2,woocommerce,woo store api /wp-json/wc/store/v1/products,160,api count,mayco:116;amaco:24,,0,436,https://www.themakersspace.eu/,
+A,hiclay.pl,Poland,HI CLAY,mayco,woocommerce,woo store api /wp-json/wc/store/v1/products,293,api count,amaco:130;mayco:4,,2,433,https://hiclay.pl,
+A,ramfos.gr,Greece,RAMFOS YLIKOKERAMIKI,amaco/sio2,woocommerce,woo store api /wp-json/wc/store/v1/products,2816,api count,botz:11;amaco:9;sio-2:1,,66,411,https://www.ramfos.gr/,
+A,santiagopidal.es,Spain,SANTIAGO PIDAL,sio2,woocommerce,woo store api /wp-json/wc/store/v1/products,615,api count,,,315,376,https://santiagopidal.es,
+A,inglet.com,Spain,Inglet S.L.U.,amaco,woocommerce,woo store api /wp-json/wc/store/v1/products,4084,api count,amaco:19,,2,359,https://www.inglet.com/,
+A,prodesco.es,Spain,PRODESCO,sio2,woocommerce,woo store api /wp-json/wc/store/v1/products,1398,api count,sio-2:3,,189,338,https://prodesco.es,
+A,centrado.co,United Kingdom,Centrado Trading Ltd - Armagh,amaco,woocommerce,woo store api /wp-json/wc/store/v1/products,2942,api count,amaco:1,,4,301,https://centrado.co,
+A,keramica.info,Croatia,RAVITERA d.o.o.,sio2,woocommerce,woo store api /wp-json/wc/store/v1/products,385,api count,mayco:57;sio-2:1,,70,282,https://keramica.info,
+A,keramikfryd.dk,Denmark,Keramikfryd,amaco/mayco,woocommerce,woo store api /wp-json/wc/store/v1/products,731,api count,amaco:15;mayco:10;spectrum:8,,50,222,https://www.keramikfryd.dk/,
+A,paraceramica.com,Spain,PARACERAMICA,sio2,woocommerce,woo store api /wp-json/wc/store/v1/products,625,api count,mayco:6;sio-2:1,,43,126,https://paraceramica.com,
+A,artacademydirect.com,Malta,ART ACADEMY,sio2,shopify,shopify /products.json,250,"api page1 (250+, paginates)",mayco:8;sio-2:5,,45,109,https://artacademydirect.com,
+A,muandukeramika.lt,Lithuania,MUANDU keramika,mayco,woocommerce,woo store api /wp-json/wc/store/products,788,api count,,,0,79,https://muandukeramika.lt,
+A,keramikbedarf-zinser.de,Germany,KERAMIKBEDARF ZINSER,sio2,woocommerce,woo store api /wp-json/wc/store/v1/products,6,sitemap glaze urls,botz:7;mayco:1,,6,31,https://www.keramikbedarf-zinser.de/,
+A,helenahodell.se,Sweden,Helena Hodell Produktion,amaco,woocommerce,woo store api /wp-json/wc/store/v1/products,75,api count,amaco:1,,1,12,https://helenahodell.se,
+B,keramikams.lt,Lithuania,SUVENA,amaco/sio2,magento2,"html w/ UPC+SKU (needs rendered fetch, CF challenge)",223,amaco facet count,amaco:223;sio-2:y;botz:y,,0,9999,https://keramikams.lt,GTIN/UPC + SKU + list/sale price + ml + cone range + food-contact claim; CF challenge needs curl_cffi+cf_clearance or a browser; robots Crawl-delay 10
+B,keramik-kriese-shop.gambiocloud.com,Germany,Keramik-Kriese,mayco,shopware,json-ld Product+offers,1205,sitemap product urls,duncan:568;botz:563;mayco:477;amaco:1,cart;prices;checkout,820,5768,https://keramik-kriese-shop.gambiocloud.com,
+B,ceramiq.pl,Poland,CERAMIQ PL AGNIESZKA BARNAT,mayco/sio2,unknown,json-ld Product+offers,5,sitemap product urls,mayco:420;botz:391;sio-2:43;terracolor:1;duncan:1,add-to-cart;cart;prices,2238,4568,https://www.ceramiq.pl/,
+B,potclays.co.uk,United Kingdom,POTCLAYS,amaco/mayco/sio2/spectrum,oxid,json-ld Product+offers,1,sitemap product urls,mayco:395;botz:163;amaco:156;spectrum:36;duncan:8,cart;prices;checkout,2438,4274,https://www.potclays.co.uk/,
+B,toepferbedarf-brock.de,Germany,MTL Brock GmbH,mayco,jtl,schema.org microdata,988,sitemap glaze urls,mayco:389;botz:265;terracolor:6;duncan:6;sio-2:2,cart;prices;checkout,988,3091,https://www.toepferbedarf-brock.de/,
+B,keramikadoskol.cz,Czech Republic,Keramika do skol,mayco,shoptet,schema.org microdata,15,sitemap product urls,mayco:790;duncan:49,add-to-cart;cart;prices;checkout,321,2840,https://www.keramikadoskol.cz/,
+B,hobbyland.eu,Italy,HOBBYLAND,sio2,unknown,json-ld Product+offers,30153,sitemap product urls,spectrum:551;sio-2:63;botz:15,add-to-cart;cart;prices;checkout,368,2555,https://www.hobbyland.eu/,
+B,cromartiehobbycraft.co.uk,United Kingdom,Cromartie Hobbycraft,mayco,oxid,schema.org microdata,7,sitemap product urls,duncan:99;botz:25;mayco:4;spectrum:1,cart;prices;checkout,1443,1831,https://www.cromartiehobbycraft.co.uk/,
+B,sklep.heho.pl,Poland,HEHO sklep dla ceramika,mayco,shoper,schema.org microdata,1479,sitemap product urls,mayco:209;duncan:27;terracolor:1,cart;prices;checkout,685,1544,https://heho.pl,
+B,artequipment.pl,Poland,Art-Equipment,mayco,unknown,schema.org microdata,56,sitemap product urls,mayco:191;amaco:91;sio-2:12;spectrum:1,cart,386,1277,https://artequipment.pl,
+B,countrylovecrafts.com,United Kingdom,Country Love Crafts,mayco,odoo,schema.org microdata,18678,sitemap product urls,spectrum:27;duncan:17;sio-2:1,cart;prices,382,817,https://www.countrylovecrafts.com/,
+B,mayco-glasuren.de,Germany,Töpferstudio Alte Scheuer,mayco,epages,schema.org microdata,60,sitemap product urls,mayco:181;terracolor:11;duncan:7,add-to-cart;cart;prices;checkout,181,784,https://mayco-glasuren.de,
+B,silexshop.nl,Netherlands,SILEX / TOTAAL SERVICE B.V.,spectrum,woocommerce,json-ld Product+offers,6419,sitemap product urls,mayco:3;botz:3;duncan:3;spectrum:1,add-to-cart;cart;prices;checkout,382,712,https://www.silexshop.nl/,
+B,arteyceramica.es,Spain,ARTE Y CERAMICA DE GALICIA,sio2,oxid,json-ld Product+offers,3575,sitemap product urls,sio-2:10;mayco:3,add-to-cart;cart;prices;checkout,138,477,https://www.arteyceramica.es/,
+B,davaart.ro,Romania,DAVA Art & Fun,mayco,epages,json-ld Product+offers,355,sitemap product urls,mayco:50,add-to-cart;cart;prices;checkout,106,292,https://www.davaart.ro/,
+B,cerama.dk,Denmark,CERAMA,amaco/sio2,unknown,schema.org microdata,2,sitemap product urls,,cart;prices;checkout,287,287,https://cerama.dk,
+B,kadarceramica.com,Spain,KADAR,sio2,woocommerce,json-ld Product+offers,513,sitemap product urls,,add-to-cart;cart;prices;checkout,200,251,https://kadarceramica.com,
+B,mestrebras.pt,Portugal,LOJA MESTRE BRÁS,sio2,oxid,json-ld Product+offers,368,sitemap product urls,sio-2:29,add-to-cart;cart;prices;checkout,3,127,https://www.mestrebras.pt/,
+B,keramik-toepfern.de,Germany,Borkheider Werkstatt für Keramik & Töpfern,mayco,epages,schema.org microdata,20,sitemap product urls,mayco:14;botz:9;duncan:1,add-to-cart;cart;prices;checkout,23,97,https://www.keramik-toepfern.de/,
+B,keramikbedarf.de,Germany,HANS WOLBRING,sio2,epages,schema.org microdata,80,sitemap product urls,botz:1,add-to-cart;cart;prices;checkout,34,45,https://www.keramikbedarf.de/,
+B,bsz-keramikbedarf.de,Germany,BSZ Keramikbedarf,sio2,oxid,schema.org microdata,0,unknown,,cart;prices,0,0,https://www.bsz-keramikbedarf.de/,6 product links reachable
+B,cigaleetfourmi.fr,France,CIGALE et FOURMI,sio2,prestashop,schema.org microdata,0,unknown,,add-to-cart;cart;prices,0,0,https://www.cigaleetfourmi.fr/,8 product links reachable
+B,como-ceramique.com,France,COMO CÉRAMIQUE,sio2,prestashop,schema.org microdata,0,unknown,,add-to-cart;cart;prices,0,0,https://www.como-ceramique.com/,16 product links reachable
+B,eskiss972.com,France,"Eskiss, la Maison des Beaux-Arts",mayco/sio2,prestashop,json-ld Product+offers,0,unknown,,add-to-cart;cart;prices,0,0,https://www.eskiss972.com/fr/,12 product links reachable
+B,esmaltycolor.com,Spain,ESMALTES Y COLORANTES DE LA RAMBLA,mayco/sio2,prestashop,schema.org microdata,0,unknown,,add-to-cart;cart;prices,0,0,https://www.esmaltycolor.com/,44 product links reachable
+B,keramickepece.cz,Czech Republic,Artik Studio S.R.O.,spectrum,prestashop,json-ld Product+offers,0,unknown,,add-to-cart;cart;prices;checkout,0,0,https://www.artikstudio.com/,
+B,peterlavem.fr,France,PETER LAVEM,mayco/sio2,prestashop,json-ld Product+offers,0,unknown,,add-to-cart;cart;prices,0,0,https://www.peterlavem.fr/,17 product links reachable
+B,toepferspass.de,Germany,RANTZAUER TÖPFERBEDARF,sio2,unknown,schema.org microdata,0,unknown,,cart;prices;checkout,0,0,https://toepferspass.de,
+C,scarva.com,United Kingdom,Scarva Pottery Supplies,amaco,unknown,"blocked (Azure WAF, not Cloudflare; impersonation fails)",0,unknown,,,0,9999,https://www.scarva.com/,needs browser rendering
+C,vicentiz.com,Spain,ARKAITZ KERAMIKA,sio2,wordpress,html only (earlier 429 was transient; no woo api),0,unknown,,,0,9999,https://vicentiz.es/,reachable via curl_cffi; no Store API
+C,bathpotters.co.uk,United Kingdom,Bath Potters Supplies Ltd,mayco/spectrum,oxid,html only (cart/price confirmed),1408,sitemap glaze urls,spectrum:236;mayco:212;amaco:175;terracolor:156;botz:64,cart,1408,4078,https://www.bathpotters.co.uk/,
+C,kerasil.fi,Finland,KERASIL,amaco/sio2/spectrum,epages,html only (cart/price confirmed),94,sitemap glaze urls,spectrum:238;amaco:140;botz:139;terracolor:110;mayco:31;sio-2:6,add-to-cart;cart;prices,94,2095,https://www.kerasil.fi,
+C,specialistcrafts.co.uk,United Kingdom,SPECIALIST CRAFTS LIMITED,spectrum,magento,html only (cart/price confirmed),34,sitemap product urls,spectrum:67,add-to-cart;cart;prices;checkout,42,246,https://www.specialistcrafts.co.uk/,1 product links reachable
+C,hobbyceramicraft.co.uk,United Kingdom,Hobby Ceramicraft Limited,mayco,unknown,html only (cart markup on home),145,sitemap glaze urls,mayco:22;amaco:2;botz:1;duncan:1,cart;prices;checkout,145,238,https://hobbyceramicraft.co.uk,
+C,artesaniachopo.com,Spain,Artesania Chopo S.L.,mayco,shopware,html only (cart markup on home),1,sitemap product urls,,add-to-cart;cart;prices,4,4,https://artesaniachopo.com,
+C,keraterm.si,Slovenia,KERATERM,mayco/sio2,unknown,html only (shop confirmed by hand),1,sitemap glaze urls,,cart;prices,1,1,https://www.keraterm.si/,cart present
+C,bendix.net,Spain,ARTBENDIX,mayco/sio2,unknown,html only (cart markup on home),0,unknown,,cart;prices,0,0,https://bendix.net,
+C,bricolajeazuaje.es,Spain,BRICOLAJE AZUAJE,sio2,unknown,html only (cart/price confirmed),0,unknown,,cart;prices,0,0,https://bricolajeazuaje.es,19 product links reachable
+C,eurokeramiki.gr,Greece,EUROKERAMIKI P.C.,amaco/mayco/sio2,opencart,html only (shop confirmed by hand),0,unknown,,cart;prices;checkout,0,0,https://eurokeramiki.gr,"155 catalogue links, prices on home"
+C,keramikbedarf.net,Austria,Keramikbedarf,amaco/mayco/spectrum,gambio,html only (cart/price confirmed),0,unknown,,,0,0,http://www.keramikbedarf.net/,
+C,keramikos.nl,Netherlands,KERAMIKOS,sio2,prestashop,html only (shop confirmed by hand),0,unknown,,add-to-cart;cart;prices,0,0,https://www.keramikos.nl/,add-to-cart on home
+C,lehmhuus.ch,Switzerland,Lehmhuus AG,amaco/mayco,unknown,html only (cart markup on home),0,unknown,,cart;prices;checkout,0,0,https://lehmhuus.ch,
+C,mondoceramica.net,Italy,MONDO CERAMICA,mayco/sio2,woocommerce,html only (shop confirmed by hand),0,unknown,,add-to-cart;cart;prices;checkout,0,0,https://www.mondoceramica.net/,"cart present, catalogue behind JS"
+C,nacho-sum.es,Spain,Nacho suministros ceramicos S.L.,mayco,woocommerce,html only (cart markup on home),0,unknown,,cart;prices,0,0,https://www.nacho-sum.es/,
+C,pappel.com,Spain,Pappel Espanola S.L.,mayco,prestashop,html only (shop confirmed by hand),0,unknown,,add-to-cart;cart;prices,0,0,https://tienda.pappel.com/en/,259 catalogue links + add-to-cart on home
+C,pece.sk,Slovakia,Pece,amaco,oxid,html only (cart/price confirmed),0,unknown,,cart;checkout,0,0,https://www.pece.sk/,10 product links reachable
+C,propec.cz,Czech Republic,PROPEC,amaco/sio2,oxid,html only (shop confirmed by hand),0,unknown,,cart,0,0,https://propec.cz,"prices on home, no cart markup found"
+C,r2w-ceramica.pt,Portugal,R2W Equipamentos e Matérias Primas para Cerâmica,sio2,unknown,html only (cart/price confirmed),0,unknown,,prices,0,0,https://r2w-ceramica.pt,17 product links reachable
+D,bpkeramia.hu,Hungary,BUDAPEST KERAMIA,amaco/sio2,unknown,no shop detected,1,sitemap product urls,botz:252;amaco:19;duncan:14;sio-2:2;terracolor:2,prices,37,904,https://bpkeramia.hu,
+D,nelliekeramiek.nl,Netherlands,Nelliekeramiek,mayco,unknown,no shop detected,2,sitemap glaze urls,mayco:9,cart,2,29,https://nelliekeramiek.nl,
+D,ceramica-troyan.bg,Bulgaria,CERAMICA TROYAN LTD,sio2,opencart,no shop detected,194,sitemap product urls,mayco:1,cart,0,22,https://www.ceramica-troyan.bg/,
+D,creakor.com,Belgium,CREAKOR,mayco/sio2,siquando,no shop detected,0,unknown,mayco:1;amaco:1;sio-2:1;botz:1,,0,12,https://creakor.com,
+D,anper.net,Spain,SUMINISTROS ANPER,sio2,unknown,no shop detected,0,unknown,,prices,0,0,https://anper.net/inicio,
+D,casaviana.net,Portugal,CASA VIANA,sio2,unknown,no shop detected,0,unknown,,prices,0,0,https://www.casaviana.net/,
+D,ceramicaroque.com,Spain,CERAMICA ROQUE,sio2,unknown,no shop detected,0,unknown,,,0,0,https://ceramicaroque.com,
+D,ceramicashop.de,Germany,CERAMICA Ton und Töpferbedarf,sio2,unknown,no shop detected,0,unknown,,,0,0,http://ceramicashop.de,
+D,ceramics.lv,Latvia,SIA „Peldoša Pilseta”,mayco,unknown,no shop detected,0,unknown,,,0,0,https://ceramics.lv,
+D,ceraplus.com,France,Ceraterre Distribution,mayco,unknown,no shop detected,0,unknown,,prices,0,0,http://ceraplus.com,
+D,javierherranz.com,Spain,Javier Herranz S.L.,amaco,unknown,no shop detected,0,unknown,,cart,0,0,https://javierherranz.com,6 product links reachable
+D,keramik.at,Austria,TÖPFEREIBEDARF ING. LEHRER,sio2,unknown,no shop detected,0,unknown,,prices,0,0,https://www.keramik.at/,
+D,martinezytrini.es,Spain,MARTINEZ Y TRINI,sio2,unknown,no shop detected,0,unknown,,cart,0,0,http://www.martinezytrini.es/,
+D,skokan.at,Austria,Keramikbedarf Ing. Skokan GmbH.,mayco,unknown,no shop detected,1,sitemap product urls,,,0,0,https://www.skokan.at,1 product links reachable
+D,suministrosceramicoseusebio.com,Spain,SUMINISTROS CERÁMICOS EUSEBIO,sio2,unknown,no shop detected,0,unknown,,cart,0,0,https://suministrosceramicoseusebio.com,2 product links reachable
+M,michel.ch,Switzerland,Michel Verkauf & Service,amaco,woocommerce,woo store api /wp-json/wc/store/v1/products,1972,api count,amaco:207;terracolor:148;mayco:140;spectrum:28;duncan:6,,906,2690,https://keramikbedarf.ch/,same catalogue as keramikbedarf.ch
+M,ceramistashop.com,Portugal,CERAMISTA SHOP - LISBOA,sio2,shopify,shopify /products.json,250,"api page1 (250+, paginates)",amaco:585;botz:82;mayco:56,,60,2254,https://ceramistashop.pt/,same catalogue as ceramistashop.pt
+M,countryloveceramics.co.uk,United Kingdom,EM Richford LTD,spectrum,odoo,schema.org microdata,18678,sitemap product urls,spectrum:27;duncan:17;sio-2:1,cart;prices,382,817,https://www.countrylovecrafts.com/,same catalogue as countrylovecrafts.com
+M,cebex.se,Sweden,CEBEX KERAMIKEXPERTERNA,sio2,oxid,schema.org microdata,3,sitemap product urls,,cart;prices,296,296,https://cerama.se/,same catalogue as cerama.dk
+M,scarvapottery.com,United Kingdom,Scarva Pottery,spectrum,unknown,no shop detected,0,unknown,,,0,0,https://scarvapottery.com,same catalogue as scarva.com
+X,cosplayshop.be,Belgium,Select Style,amaco,woocommerce,woo store api /wp-json/wc/store/v1/products,765,api count,,,3,80,https://cosplayshop.com/en/,"cosplay retailer; Amaco listing is craft foam, not ceramics"
+X,sibelco.com,Germany,SIBELCO DEUTSCHLAND,sio2,oxid,no shop detected,42,sitemap glaze urls,,cart;prices,42,46,https://www.sibelco.com/en,"industrial raw-materials multinational, no consumer shop"
+X,salescapeartsupply.com,United Kingdom,Salescape Limited,amaco,shopify,shopify /products.json,4,api count,amaco:7,,1,22,https://salescapeartsupply.com,"4 products total, general art supply"
+X,cristaleraiberica.com,Spain,CRISTALERA IBÉRICA,sio2,epages,json-ld Product+offers,93,sitemap product urls,,cart;prices,0,9,https://www.cristaleraiberica.com/,"glazing/windows firm, not ceramics"
+X,aigaia.com.cy,Cyprus,AIGAIA School of Art & Design,amaco,unknown,no shop detected,2,sitemap glaze urls,amaco:1,prices,2,5,https://www.aigaia.com.cy/,"art school, no shop"
+X,hins.be,Belgium,ARGILIÈRES HINS,sio2,unknown,no shop detected,1,sitemap glaze urls,sio-2:1,prices,1,4,https://www.hins.be/,"clay producer, brochure site"
+X,leimenzwa.nl,Netherlands,Leim&Zwa,mayco,unknown,no shop detected,1,sitemap glaze urls,mayco:1,prices,1,4,https://leimenzwa.nl,"studio/workshops, no shop"
+X,keramix.eu,Austria,Keramix Handels GMBH,mayco,unknown,no shop detected,3,sitemap product urls,,prices,1,1,https://keramix.eu/en/homepage-english-2,"workshops, no shop"
+X,3dpotter.fr,France,3D POTTER FRANCE (Pâtes pour impression 3D),sio2,unknown,unreachable,0,unknown,,,0,0,,domain does not resolve
+X,argilecreation.ch,Switzerland,Argile et Création,mayco,woocommerce,no shop detected,0,unknown,,prices,0,0,https://argilecreation.ch,"studio/workshops, no shop"
+X,casparceramique.ch,Switzerland,LES ARGILES DU MOULIN,sio2,unknown,unreachable,0,unknown,,,0,0,,domain does not resolve
+X,colorobbiaspa.com,Italy,COLOROBBIA,sio2,unknown,unreachable,0,unknown,,,0,0,,"manufacturer group site, DNS failed"
+X,cristaleraibericanova.com,Spain,CRISTALERA IBERICA,sio2,epages,no shop detected,0,unknown,,add-to-cart;cart;prices,0,0,https://www.cristaleraibericanova.es/,"glazing/windows firm, not ceramics"
+X,danilogueller.ch,Switzerland,DANILO GÜLLER,sio2,unknown,no shop detected,0,unknown,,,0,0,https://danilogueller.ch,"studio site, no shop"
+X,eurolijsten.be,Belgium,Eurolijsten nv,amaco,unknown,no shop detected,0,unknown,,prices,0,0,https://eurolijsten.be,picture framing wholesaler
+X,les-gres-d-uzes.fr,France,LES GRÈS D'UZÈS,sio2,unknown,no shop detected,0,unknown,,,0,0,https://les-gres-d-uzes.fr,"studio site, no shop"
+X,quadrimovel.com,Portugal,QUADRIMÓVEL Comércio e Indústria de Quadros,sio2,epages,no shop detected,0,unknown,,add-to-cart;cart;prices;checkout,0,0,https://www.quadrimovel.com/,frame manufacturer
+X,www.boerkey,Germany,BÖRKEY KERATECH,sio2,unknown,unreachable,0,unknown,,,0,0,,malformed URL in source list

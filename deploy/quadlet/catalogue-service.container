@@ -1,0 +1,29 @@
+# The catalogue read API. Cross-tenant reference data served to every tenant and
+# owned by none of them.
+[Unit]
+Description=Ceramics catalogue read API
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=localhost/catalogue-service:${CATALOGUE_VERSION}
+ContainerName=catalogue-service
+# The DSN comes from Infisical; nothing secret is in this file.
+EnvironmentFile=/etc/catalogue/catalogue.env
+# Published on loopback only. The consumers are the explorer and the tenant
+# application, both of which reach it over the host's own interface.
+PublishPort=127.0.0.1:8686:8686
+HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8686/health')"
+HealthInterval=15s
+HealthStartPeriod=10s
+HealthRetries=5
+NoNewPrivileges=true
+ReadOnly=true
+Tmpfs=/tmp
+
+[Service]
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

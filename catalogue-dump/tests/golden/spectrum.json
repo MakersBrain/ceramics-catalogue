@@ -1,0 +1,676 @@
+{
+  "digest": "9eae12c5f3b221537cc35dd0de08a75f904651e1e14a031c50b1bd48fd7a0d3d",
+  "discovered": 651,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "api_json",
+  "field_coverage": {
+    "all_image_urls": 1493,
+    "brand": 1601,
+    "category_path": 1601,
+    "claims": 6,
+    "colour": 585,
+    "description": 49,
+    "documents": 0,
+    "effects": 220,
+    "family": 1601,
+    "firing": 598,
+    "form": 4,
+    "gtin": 0,
+    "manufacturer_sku": 1597,
+    "package_size": 1215,
+    "stock_quantity": 0,
+    "supplier_reference": 1601,
+    "surface": 265,
+    "unit_price": 1215,
+    "vat_status": 1601
+  },
+  "notes": [],
+  "records": 1601,
+  "rendered_pages": 0,
+  "requests": 37,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://www.spectrumglazes.com/wp-content/uploads/2026/05/ECONO1430_4-ECONO-PACKS.png",
+        "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1431-12x10-1.jpg",
+        "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1436-12x10-1.jpg",
+        "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1441-12x10-1.jpg",
+        "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1443-12x10-1.jpg",
+        "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1447-12x10-1.jpg",
+        "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1452-12x10-1.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Spectrum",
+      "brand_basis": "published",
+      "category_path": [
+        "glazes",
+        "1430 Series – Cone 4/6 Floating Glazes",
+        "Sample/Econo Packs"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "ECONO1430.4 ECONO PACKS"
+      },
+      "currency": "USD",
+      "description": "ECONO PACKS 6 X PINTS NOVA PACK #2 1431 PEARL WHITE 1436 KIMCHI 1441 SCANDINAVIAN BLUE 1443 FUZZY PEACH 1447 BOUGAINVILLEA 1452 SPANISH MOSS",
+      "documents": null,
+      "effects": null,
+      "external_id": "spectrum:https://www.spectrumglazes.com/product/econo1430-4-econo-packs/",
+      "extraction_method": "api_json",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "cone_max": "4",
+        "cone_min": "4",
+        "cone_system": "orton",
+        "evidence": "Cone 4",
+        "max_celsius": 1196,
+        "min_celsius": 1196,
+        "temperature_basis": "derived_from_cone"
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.spectrumglazes.com/wp-content/uploads/2026/05/ECONO1430_4-ECONO-PACKS.png",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "ECONO1430.4 ECONO PACKS",
+      "name_parsed_from": null,
+      "name_raw": "ECONO1430.4 ECONO PACKS",
+      "package_size": {
+        "basis": "named_container",
+        "dimension": "volume",
+        "evidence": "pint",
+        "millilitres": 473.176,
+        "unit": "pint",
+        "value": 1.0
+      },
+      "parent_external_id": "spectrum:https://www.spectrumglazes.com/product/econo1430-4-econo-packs/",
+      "price": 96.0,
+      "price_text": "$ 96.00",
+      "product_name": "ECONO1430.4 ECONO PACKS",
+      "product_url": "https://www.spectrumglazes.com/product/econo1430-4-econo-packs/",
+      "raw": {
+        "_category_slug": "glazes",
+        "add_to_cart": {
+          "description": "Add to cart: &ldquo;ECONO1430.4 ECONO PACKS&rdquo;",
+          "maximum": 9999,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Add to cart",
+          "text": "Add to cart",
+          "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=1&#038;category=355&#038;add-to-cart=93565"
+        },
+        "attributes": [],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 302,
+            "link": "https://www.spectrumglazes.com/product-category/glazes/high-fire-glazes/cone-4-6/1430-series-cone-4-6-floating-glazes/",
+            "name": "1430 Series – Cone 4/6 Floating Glazes",
+            "slug": "1430-series-cone-4-6-floating-glazes"
+          },
+          {
+            "id": 334,
+            "link": "https://www.spectrumglazes.com/product-category/glazes/specialty-glazes/sample-packs/",
+            "name": "Sample/Econo Packs",
+            "slug": "sample-packs"
+          }
+        ],
+        "description": "",
+        "extensions": {},
+        "grouped_products": [],
+        "has_options": false,
+        "id": 93565,
+        "images": [
+          {
+            "alt": "",
+            "id": 93592,
+            "name": "ECONO1430_4 ECONO PACKS",
+            "sizes": "(max-width: 277px) 100vw, 277px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2026/05/ECONO1430_4-ECONO-PACKS.png",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2026/05/ECONO1430_4-ECONO-PACKS.png 277w, https://www.spectrumglazes.com/wp-content/uploads/2026/05/ECONO1430_4-ECONO-PACKS-150x150.png 150w, https://www.spectrumglazes.com/wp-content/uploads/2026/05/ECONO1430_4-ECONO-PACKS-100x100.png 100w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2026/05/ECONO1430_4-ECONO-PACKS.png"
+          },
+          {
+            "alt": "",
+            "id": 92820,
+            "name": "1431 12&#215;10",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1431-12x10-1.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1431-12x10-1.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1431-12x10-1-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1431-12x10-1-150x150.jpg 150w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1431-12x10-1-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1431-12x10-1-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1431-12x10-1-100x100.jpg 100w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1431-12x10-1-324x324.jpg"
+          },
+          {
+            "alt": "",
+            "id": 92825,
+            "name": "1436 12&#215;10",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1436-12x10-1.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1436-12x10-1.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1436-12x10-1-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1436-12x10-1-150x150.jpg 150w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1436-12x10-1-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1436-12x10-1-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1436-12x10-1-100x100.jpg 100w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1436-12x10-1-324x324.jpg"
+          },
+          {
+            "alt": "",
+            "id": 92831,
+            "name": "1441 12&#215;10",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1441-12x10-1.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1441-12x10-1.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1441-12x10-1-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1441-12x10-1-150x150.jpg 150w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1441-12x10-1-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1441-12x10-1-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1441-12x10-1-100x100.jpg 100w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1441-12x10-1-324x324.jpg"
+          },
+          {
+            "alt": "",
+            "id": 92833,
+            "name": "1443 12&#215;10",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1443-12x10-1.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1443-12x10-1.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1443-12x10-1-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1443-12x10-1-150x150.jpg 150w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1443-12x10-1-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1443-12x10-1-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1443-12x10-1-100x100.jpg 100w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1443-12x10-1-324x324.jpg"
+          },
+          {
+            "alt": "",
+            "id": 92837,
+            "name": "1447 12&#215;10",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1447-12x10-1.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1447-12x10-1.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1447-12x10-1-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1447-12x10-1-150x150.jpg 150w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1447-12x10-1-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1447-12x10-1-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1447-12x10-1-100x100.jpg 100w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1447-12x10-1-324x324.jpg"
+          },
+          {
+            "alt": "",
+            "id": 92842,
+            "name": "1452 12&#215;10",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1452-12x10-1.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1452-12x10-1.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1452-12x10-1-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1452-12x10-1-150x150.jpg 150w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1452-12x10-1-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1452-12x10-1-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2026/02/1452-12x10-1-100x100.jpg 100w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2026/02/1452-12x10-1-324x324.jpg"
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_purchasable": true,
+        "low_stock_remaining": null,
+        "name": "ECONO1430.4 ECONO PACKS",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://www.spectrumglazes.com/product/econo1430-4-econo-packs/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>96.00</span>",
+        "prices": {
+          "currency_code": "USD",
+          "currency_decimal_separator": ".",
+          "currency_minor_unit": 2,
+          "currency_prefix": "$",
+          "currency_suffix": "",
+          "currency_symbol": "$",
+          "currency_thousand_separator": ",",
+          "price": "9600",
+          "price_range": null,
+          "regular_price": "9600",
+          "sale_price": "9600"
+        },
+        "review_count": 0,
+        "short_description": "<p>ECONO PACKS 6 X PINTS<br />\nNOVA PACK #2</p>\n<ul>\n<li class=\"u-break-words ps-[2px]\">1431 PEARL WHITE</li>\n<li class=\"u-break-words ps-[2px]\">1436 KIMCHI</li>\n<li class=\"u-break-words ps-[2px]\">1441 SCANDINAVIAN BLUE</li>\n<li class=\"u-break-words ps-[2px]\">1443 FUZZY PEACH</li>\n<li class=\"u-break-words ps-[2px]\">1447 BOUGAINVILLEA</li>\n<li class=\"u-break-words ps-[2px] force-loading\">1452 SPANISH MOSS</li>\n</ul>",
+        "sku": "ECONO1500.2-2",
+        "slug": "econo1430-4-econo-packs",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": ""
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": []
+      },
+      "source": "spectrum",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "ECONO1500.2-2",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": {
+        "currency": "USD",
+        "per": "l",
+        "value": 202.8843
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "exclusive"
+    },
+    {
+      "all_image_urls": null,
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Spectrum",
+      "brand_basis": "published",
+      "category_path": [
+        "glazes",
+        "One-Strokes Concentrated Underglazes"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "USD",
+      "description": null,
+      "documents": null,
+      "effects": null,
+      "external_id": "spectrum:https://www.spectrumglazes.com/product/5570-hot-ink/#93172",
+      "extraction_method": "api_json",
+      "family": "underglaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": null,
+      "list_price": null,
+      "manufacturer_sku": "5570",
+      "manufacturer_sku_basis": "manufacturer_shop",
+      "min_order_quantity": null,
+      "name": "HOT INK",
+      "name_parsed_from": [
+        "size: $/4oz",
+        "5570"
+      ],
+      "name_raw": "5570 HOT INK size: $/4oz",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "4oz",
+        "millilitres": 118.294,
+        "unit": "fl oz",
+        "value": 4.0
+      },
+      "parent_external_id": "spectrum:https://www.spectrumglazes.com/product/5570-hot-ink/",
+      "price": 10.0,
+      "price_text": null,
+      "product_name": "5570 HOT INK",
+      "product_url": "https://www.spectrumglazes.com/product/5570-hot-ink/?attribute_size=%24%2F4oz",
+      "raw": {
+        "product": {
+          "_category_slug": "glazes",
+          "add_to_cart": {
+            "description": "Select options for &ldquo;5570 HOT INK&rdquo;",
+            "maximum": 9999,
+            "minimum": 1,
+            "multiple_of": 1,
+            "single_text": "Add to cart",
+            "text": "Select options",
+            "url": "https://www.spectrumglazes.com/product/5570-hot-ink/"
+          },
+          "attributes": [
+            {
+              "has_variations": true,
+              "id": 0,
+              "name": "size",
+              "taxonomy": null,
+              "terms": [
+                {
+                  "id": 0,
+                  "name": "$/GAL",
+                  "slug": "$/GAL"
+                },
+                {
+                  "id": 0,
+                  "name": "$/PT",
+                  "slug": "$/PT"
+                },
+                {
+                  "id": 0,
+                  "name": "$/4oz",
+                  "slug": "$/4oz"
+                }
+              ]
+            }
+          ],
+          "average_rating": "0",
+          "brands": [],
+          "categories": [
+            {
+              "id": 397,
+              "link": "https://www.spectrumglazes.com/product-category/glazes/specialty-glazes/one-strokes-concentrated-underglazes/",
+              "name": "One-Strokes Concentrated Underglazes",
+              "slug": "one-strokes-concentrated-underglazes"
+            }
+          ],
+          "description": "",
+          "extensions": {},
+          "grouped_products": [],
+          "has_options": true,
+          "id": 93116,
+          "images": [],
+          "is_in_stock": true,
+          "is_on_backorder": false,
+          "is_purchasable": true,
+          "low_stock_remaining": null,
+          "name": "5570 HOT INK",
+          "on_sale": false,
+          "parent": 0,
+          "permalink": "https://www.spectrumglazes.com/product/5570-hot-ink/",
+          "price_html": "<span class=\"woocommerce-Price-amount amount\" aria-hidden=\"true\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>10.00</span> <span aria-hidden=\"true\">&ndash;</span> <span class=\"woocommerce-Price-amount amount\" aria-hidden=\"true\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>140.00</span><span class=\"screen-reader-text\">Price range: &#036;10.00 through &#036;140.00</span>",
+          "prices": {
+            "currency_code": "USD",
+            "currency_decimal_separator": ".",
+            "currency_minor_unit": 2,
+            "currency_prefix": "$",
+            "currency_suffix": "",
+            "currency_symbol": "$",
+            "currency_thousand_separator": ",",
+            "price": "1000",
+            "price_range": {
+              "max_amount": "14000",
+              "min_amount": "1000"
+            },
+            "regular_price": "1000",
+            "sale_price": "1000"
+          },
+          "review_count": 0,
+          "short_description": "<p><img class=\"alignnone size-full wp-image-14847\" src=\"https://www.spectrumglazes.com/wp-content/uploads/2020/03/1AP-Logo.png\" alt=\"\" width=\"150\" height=\"210\" /></p>",
+          "sku": "5570",
+          "slug": "5570-hot-ink",
+          "sold_individually": false,
+          "stock_availability": {
+            "class": "in-stock",
+            "text": ""
+          },
+          "tags": [],
+          "type": "variable",
+          "variation": ""
+        },
+        "variation": {
+          "add_to_cart": {
+            "description": "Add to cart: &ldquo;5570 HOT INK &#8211; $/4oz&rdquo;",
+            "maximum": 9999,
+            "minimum": 1,
+            "multiple_of": 1,
+            "single_text": "Add to cart",
+            "text": "Add to cart",
+            "url": "https://www.spectrumglazes.com/product/5570-hot-ink/?attribute_size=%24%2F4oz&#038;variation_id=93172&#038;add-to-cart=93116"
+          },
+          "attributes": [],
+          "average_rating": "0",
+          "brands": [],
+          "categories": [],
+          "description": "",
+          "extensions": {},
+          "grouped_products": [],
+          "has_options": false,
+          "id": 93172,
+          "images": [],
+          "is_in_stock": true,
+          "is_on_backorder": false,
+          "is_purchasable": true,
+          "low_stock_remaining": null,
+          "name": "5570 HOT INK",
+          "on_sale": false,
+          "parent": 93116,
+          "permalink": "https://www.spectrumglazes.com/product/5570-hot-ink/?attribute_size=%24%2F4oz",
+          "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>10.00</span>",
+          "prices": {
+            "currency_code": "USD",
+            "currency_decimal_separator": ".",
+            "currency_minor_unit": 2,
+            "currency_prefix": "$",
+            "currency_suffix": "",
+            "currency_symbol": "$",
+            "currency_thousand_separator": ",",
+            "price": "1000",
+            "price_range": null,
+            "regular_price": "1000",
+            "sale_price": "1000"
+          },
+          "review_count": 0,
+          "short_description": "",
+          "sku": "5570",
+          "slug": "5570-hot-ink-4oz",
+          "sold_individually": false,
+          "stock_availability": {
+            "class": "in-stock",
+            "text": ""
+          },
+          "tags": [],
+          "type": "variation",
+          "variation": "size: $/4oz",
+          "variations": []
+        }
+      },
+      "source": "spectrum",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "5570",
+      "surface": null,
+      "technical_attributes": {
+        "size": "$/GAL, $/PT, $/4oz"
+      },
+      "unit_price": {
+        "currency": "USD",
+        "per": "l",
+        "value": 84.5351
+      },
+      "variant_title": "size: $/4oz",
+      "vat_rate": null,
+      "vat_status": "exclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.spectrumglazes.com/wp-content/uploads/2020/03/ECONO500_1-ECONO-PACKS.png",
+        "https://www.spectrumglazes.com/wp-content/uploads/2020/02/501.jpg",
+        "https://www.spectrumglazes.com/wp-content/uploads/2020/02/506.jpg",
+        "https://www.spectrumglazes.com/wp-content/uploads/2020/02/515.jpg",
+        "https://www.spectrumglazes.com/wp-content/uploads/2020/02/525.jpg",
+        "https://www.spectrumglazes.com/wp-content/uploads/2020/02/532.jpg",
+        "https://www.spectrumglazes.com/wp-content/uploads/2020/02/567.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Spectrum",
+      "brand_basis": "published",
+      "category_path": [
+        "glazes",
+        "Sample/Econo Packs",
+        "Underglazes"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "ECONO500.1 ECONO PACKS"
+      },
+      "currency": "USD",
+      "description": "ECONO PACKS 6 X PINTS 501 WHITE 506 YELLOW 515 BLACK 525 LIME 532 SKY BLUE 567 FIRE ENG.RED",
+      "documents": null,
+      "effects": null,
+      "external_id": "spectrum:https://www.spectrumglazes.com/product/underglaze-economy-pack-contains-6-x-pts/",
+      "extraction_method": "api_json",
+      "family": "underglaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.spectrumglazes.com/wp-content/uploads/2020/03/ECONO500_1-ECONO-PACKS.png",
+      "list_price": null,
+      "manufacturer_sku": "ECONO500.1",
+      "manufacturer_sku_basis": "manufacturer_shop",
+      "min_order_quantity": null,
+      "name": "ECONO500.1 ECONO PACKS",
+      "name_parsed_from": null,
+      "name_raw": "ECONO500.1 ECONO PACKS",
+      "package_size": {
+        "basis": "named_container",
+        "dimension": "volume",
+        "evidence": "pint",
+        "millilitres": 473.176,
+        "unit": "pint",
+        "value": 1.0
+      },
+      "parent_external_id": "spectrum:https://www.spectrumglazes.com/product/underglaze-economy-pack-contains-6-x-pts/",
+      "price": 105.0,
+      "price_text": "$ 105.00",
+      "product_name": "ECONO500.1 ECONO PACKS",
+      "product_url": "https://www.spectrumglazes.com/product/underglaze-economy-pack-contains-6-x-pts/",
+      "raw": {
+        "_category_slug": "glazes",
+        "add_to_cart": {
+          "description": "Add to cart: &ldquo;ECONO500.1 ECONO PACKS&rdquo;",
+          "maximum": 9999,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Add to cart",
+          "text": "Add to cart",
+          "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=7&#038;category=355&#038;add-to-cart=12687"
+        },
+        "attributes": [],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 334,
+            "link": "https://www.spectrumglazes.com/product-category/glazes/specialty-glazes/sample-packs/",
+            "name": "Sample/Econo Packs",
+            "slug": "sample-packs"
+          },
+          {
+            "id": 312,
+            "link": "https://www.spectrumglazes.com/product-category/glazes/500-series-underglazes/",
+            "name": "Underglazes",
+            "slug": "500-series-underglazes"
+          }
+        ],
+        "description": "",
+        "extensions": {},
+        "grouped_products": [],
+        "has_options": false,
+        "id": 12687,
+        "images": [
+          {
+            "alt": "ECONO500.1 ECONO PACKS ",
+            "id": 14815,
+            "name": "ECONO500_1 ECONO PACKS",
+            "sizes": "(max-width: 277px) 100vw, 277px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2020/03/ECONO500_1-ECONO-PACKS.png",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2020/03/ECONO500_1-ECONO-PACKS.png 277w, https://www.spectrumglazes.com/wp-content/uploads/2020/03/ECONO500_1-ECONO-PACKS-100x100.png 100w, https://www.spectrumglazes.com/wp-content/uploads/2020/03/ECONO500_1-ECONO-PACKS-150x150.png 150w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2020/03/ECONO500_1-ECONO-PACKS.png"
+          },
+          {
+            "alt": "",
+            "id": 10182,
+            "name": "501",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/501.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/501.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/501-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/501-100x100.jpg 100w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/501-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/501-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/501-150x150.jpg 150w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/501-324x324.jpg"
+          },
+          {
+            "alt": "",
+            "id": 10187,
+            "name": "506",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/506.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/506.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/506-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/506-100x100.jpg 100w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/506-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/506-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/506-150x150.jpg 150w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/506-324x324.jpg"
+          },
+          {
+            "alt": "",
+            "id": 10196,
+            "name": "515",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/515.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/515.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/515-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/515-100x100.jpg 100w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/515-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/515-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/515-150x150.jpg 150w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/515-324x324.jpg"
+          },
+          {
+            "alt": "",
+            "id": 10206,
+            "name": "525",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/525.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/525.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/525-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/525-100x100.jpg 100w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/525-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/525-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/525-150x150.jpg 150w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/525-324x324.jpg"
+          },
+          {
+            "alt": "",
+            "id": 10213,
+            "name": "532",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/532.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/532.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/532-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/532-100x100.jpg 100w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/532-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/532-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/532-150x150.jpg 150w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/532-324x324.jpg"
+          },
+          {
+            "alt": "",
+            "id": 10248,
+            "name": "567",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/567.jpg",
+            "srcset": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/567.jpg 600w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/567-324x324.jpg 324w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/567-100x100.jpg 100w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/567-416x416.jpg 416w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/567-300x300.jpg 300w, https://www.spectrumglazes.com/wp-content/uploads/2020/02/567-150x150.jpg 150w",
+            "thumbnail": "https://www.spectrumglazes.com/wp-content/uploads/2020/02/567-324x324.jpg"
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_purchasable": true,
+        "low_stock_remaining": null,
+        "name": "ECONO500.1 ECONO PACKS",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://www.spectrumglazes.com/product/underglaze-economy-pack-contains-6-x-pts/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>105.00</span>",
+        "prices": {
+          "currency_code": "USD",
+          "currency_decimal_separator": ".",
+          "currency_minor_unit": 2,
+          "currency_prefix": "$",
+          "currency_suffix": "",
+          "currency_symbol": "$",
+          "currency_thousand_separator": ",",
+          "price": "10500",
+          "price_range": null,
+          "regular_price": "10500",
+          "sale_price": "10500"
+        },
+        "review_count": 0,
+        "short_description": "<p>ECONO PACKS 6 X PINTS</p>\n<ul>\n<li>501 WHITE</li>\n<li>506 YELLOW</li>\n<li>515 BLACK</li>\n<li>525 LIME</li>\n<li>532 SKY BLUE</li>\n<li>567 FIRE ENG.RED</li>\n</ul>",
+        "sku": "ECONO500.1",
+        "slug": "underglaze-economy-pack-contains-6-x-pts",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": ""
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": []
+      },
+      "source": "spectrum",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "ECONO500.1",
+      "surface": null,
+      "technical_attributes": null,
+      "unit_price": {
+        "currency": "USD",
+        "per": "l",
+        "value": 221.9047
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "exclusive"
+    }
+  ],
+  "scraper": "woocommerce",
+  "source": "spectrum",
+  "truncated": false
+}

@@ -1,0 +1,1079 @@
+{
+  "digest": "9ccfa87b40c68bc9247410ccd3affb1e29a01af327914e7f0f4bbaf79b7095d9",
+  "discovered": 882,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "api_json",
+  "field_coverage": {
+    "all_image_urls": 1166,
+    "brand": 1166,
+    "category_path": 1166,
+    "claims": 1077,
+    "colour": 177,
+    "description": 1166,
+    "documents": 0,
+    "effects": 258,
+    "family": 1166,
+    "firing": 455,
+    "form": 0,
+    "gtin": 0,
+    "manufacturer_sku": 1158,
+    "package_size": 1125,
+    "stock_quantity": 0,
+    "supplier_reference": 1166,
+    "surface": 50,
+    "unit_price": 0,
+    "vat_status": 0
+  },
+  "notes": [],
+  "records": 1166,
+  "rendered_pages": 0,
+  "requests": 21,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Mayco",
+      "brand_basis": "published",
+      "category_path": [
+        "Color",
+        "Fired",
+        "New Colors",
+        "New Stoneware Glazes Colors",
+        "Stoneware"
+      ],
+      "claims": [
+        {
+          "basis": "product_attribute",
+          "claim": false,
+          "evidence": "Dinnerware Safe: http://maycocolors.com/catalog/toxicology/not-dinnerware-safe.png",
+          "type": "food_contact_suitability"
+        }
+      ],
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "Mood Ring"
+      },
+      "currency": "USD",
+      "description": "Stoneware classic glazes offer the depth, sophistication and reliability to artists working from mid-range to high-fire temperatures. Many glazes will break over textures, revealing secondary colors and shades. Used alone, stoneware glazes produce beautiful color variations. One coat will allow the clay body to show through the glaze and two to three coats deeper the color. The choice of clay body, thickness of glaze application, firing process and temperature will affect the fired finish.",
+      "documents": null,
+      "effects": null,
+      "external_id": "mayco:https://www.maycocolors.com/product/sw229-mood-ring/",
+      "extraction_method": "api_json",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_identity.v2",
+      "gtin": null,
+      "image_url": "https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring.jpg",
+      "list_price": null,
+      "manufacturer_sku": "SW229",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "Mood Ring",
+      "name_parsed_from": null,
+      "name_raw": "Mood Ring",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "10lbs",
+        "grams": 4535.92,
+        "unit": "lbs",
+        "value": 10.0
+      },
+      "parent_external_id": "mayco:https://www.maycocolors.com/product/sw229-mood-ring/",
+      "price": null,
+      "price_text": null,
+      "product_name": "Mood Ring",
+      "product_url": "https://www.maycocolors.com/product/sw229-mood-ring/",
+      "raw": {
+        "_category_slug": null,
+        "_links": {
+          "collection": [
+            {
+              "href": "https://www.maycocolors.com/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://www.maycocolors.com/wp-json/wc/store/v1/products?related=59987&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://www.maycocolors.com/wp-json/wc/store/v1/products/59987",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Read more about &ldquo;Mood Ring&rdquo;",
+          "maximum": 9999,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Add to cart",
+          "text": "Read more",
+          "url": "https://www.maycocolors.com/product/sw229-mood-ring/"
+        },
+        "attributes": [
+          {
+            "has_variations": true,
+            "id": 0,
+            "name": "Size /Unit of Measure",
+            "taxonomy": null,
+            "terms": [
+              {
+                "id": 0,
+                "name": "SW-229 Pint",
+                "slug": "SW-229 Pint"
+              },
+              {
+                "id": 0,
+                "name": "SD-229 10lbs Dry",
+                "slug": "SD-229 10lbs Dry"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 0,
+            "name": "Dinnerware Safe",
+            "taxonomy": null,
+            "terms": [
+              {
+                "id": 0,
+                "name": "http://maycocolors.com/catalog/toxicology/not-dinnerware-safe.png",
+                "slug": "http://maycocolors.com/catalog/toxicology/not-dinnerware-safe.png"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 0,
+            "name": "Country Of Origin",
+            "taxonomy": null,
+            "terms": [
+              {
+                "id": 0,
+                "name": "US",
+                "slug": "US"
+              }
+            ]
+          }
+        ],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 95,
+            "link": "https://www.maycocolors.com/product-category/color/",
+            "name": "Color",
+            "slug": "color"
+          },
+          {
+            "id": 98,
+            "link": "https://www.maycocolors.com/product-category/color/fired/",
+            "name": "Fired",
+            "slug": "fired"
+          },
+          {
+            "id": 99,
+            "link": "https://www.maycocolors.com/product-category/color/new-colors/",
+            "name": "New Colors",
+            "slug": "new-colors"
+          },
+          {
+            "id": 730,
+            "link": "https://www.maycocolors.com/product-category/new-stoneware-glazes-colors/",
+            "name": "New Stoneware Glazes Colors",
+            "slug": "new-stoneware-glazes-colors"
+          },
+          {
+            "id": 570,
+            "link": "https://www.maycocolors.com/product-category/color/fired/stoneware/",
+            "name": "Stoneware",
+            "slug": "stoneware"
+          }
+        ],
+        "description": "<p>Stoneware classic glazes offer the depth, sophistication and reliability to artists working from mid-range to high-fire temperatures. Many glazes will break over textures, revealing secondary colors and shades. Used alone, stoneware glazes produce beautiful color variations. One coat will allow the clay body to show through the glaze and two to three coats deeper the color. The choice of clay body, thickness of glaze application, firing process and temperature will affect the fired finish.</p>",
+        "dimensions": {
+          "height": "0",
+          "length": "0",
+          "width": "0"
+        },
+        "extensions": {},
+        "formatted_dimensions": " in",
+        "formatted_weight": "N/A",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 59987,
+        "images": [
+          {
+            "alt": "",
+            "id": 59988,
+            "name": "SW229 Mood Ring",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW229-Mood-Ring.jpg 1080w"
+          },
+          {
+            "alt": "",
+            "id": 59989,
+            "name": "sw229_cone10",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on white clay, cone 6 oxidation",
+            "id": 60490,
+            "name": "2026_sw_release_white_clay_standard_181_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on wheat clay, cone 6 oxidation",
+            "id": 60488,
+            "name": "2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on speckled brown clay, cone 6 oxidation",
+            "id": 60486,
+            "name": "2026_sw_release_speckled_clay_standard_212_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on red clay, cone 6 oxidation",
+            "id": 60487,
+            "name": "2026_sw_release_red_clay_standard_308_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on dark brown clay, cone 6 oxidation",
+            "id": 60485,
+            "name": "2026_sw_release_brown_clay_standard_266_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on dark brown clay, cone 6 oxidation",
+            "id": 60489,
+            "name": "2026_sw_release_black_clay_si02_black_ice_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "",
+            "id": 60543,
+            "name": "sw229_cone5_1-2-3-coats_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone5_1-2-3-coats_crop.jpg 1080w"
+          },
+          {
+            "alt": "",
+            "id": 60333,
+            "name": "sw229_cone6_1-2-3-coats_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone6_1-2-3-coats_crop.jpg 1080w"
+          },
+          {
+            "alt": "",
+            "id": 60334,
+            "name": "sw229_cone10_1-2-3-coats_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_cone10_1-2-3-coats_crop.jpg 1080w"
+          },
+          {
+            "alt": "SW229 Over Fluxes, cone 6 oxdiation",
+            "id": 60520,
+            "name": "sw229_over_fluxes_cone6",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone6.jpg 1080w"
+          },
+          {
+            "alt": "SW229 Under Fluxes, cone 6 oxdiation",
+            "id": 60522,
+            "name": "sw229_under_fluxes_cone6",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone6.jpg 1080w"
+          },
+          {
+            "alt": "SW229 Over Fluxes, cone 10 reduction",
+            "id": 60521,
+            "name": "sw229_over_fluxes_cone10",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_over_fluxes_cone10.jpg 1080w"
+          },
+          {
+            "alt": "SW229 Under Fluxes, cone 10 reduction",
+            "id": 60523,
+            "name": "sw229_under_fluxes_cone10",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw229_under_fluxes_cone10.jpg 1080w"
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": false,
+        "low_stock_remaining": null,
+        "name": "Mood Ring",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://www.maycocolors.com/product/sw229-mood-ring/",
+        "price_html": "",
+        "prices": {
+          "currency_code": "USD",
+          "currency_decimal_separator": ".",
+          "currency_minor_unit": 2,
+          "currency_prefix": "$",
+          "currency_suffix": "",
+          "currency_symbol": "$",
+          "currency_thousand_separator": ",",
+          "price": "0",
+          "price_range": null,
+          "regular_price": "0",
+          "sale_price": "0"
+        },
+        "review_count": 0,
+        "short_description": "<p><strong>Cone 6:</strong> Mood Ring is a glossy, opaque dark green glaze that breaks brown over texture and has an iridescent sheen. Semi-fluid at 3 coats.</p>\n<p><strong>Cone 10:</strong> Mood Ring darkens. Heavier reduction may produce surface texture.</p>",
+        "sku": "SW-229",
+        "slug": "sw229-mood-ring",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": ""
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0"
+      },
+      "source": "mayco",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "SW-229",
+      "surface": null,
+      "technical_attributes": {
+        "Country Of Origin": "US",
+        "Dinnerware Safe": "http://maycocolors.com/catalog/toxicology/not-dinnerware-safe.png",
+        "Size /Unit of Measure": "SW-229 Pint, SD-229 10lbs Dry"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": null
+    },
+    {
+      "all_image_urls": [
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10.jpg",
+        "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Mayco",
+      "brand_basis": "published",
+      "category_path": [
+        "Color",
+        "Fired",
+        "New Colors",
+        "New Stoneware Glazes Colors",
+        "Stoneware"
+      ],
+      "claims": [
+        {
+          "basis": "product_attribute",
+          "claim": true,
+          "evidence": "Dinnerware Safe: http://maycocolors.com/catalog/toxicology/dinnerware-safe.png",
+          "type": "food_contact_suitability"
+        }
+      ],
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "Lilac Speck"
+      },
+      "currency": "USD",
+      "description": "Stoneware matte glazes range from solid shades to those that create interesting color variations as they move and break. Application thickness is the key to making mattes work for you. Chips shown are fired flat on a white clay body fired to cone 6 oxidation and cone 10 reduction. The choice of clay body, the thickness of glaze application, the firing process, and temperature will affect the fired results.",
+      "documents": null,
+      "effects": null,
+      "external_id": "mayco:https://www.maycocolors.com/product/sw231-lilac-speck/",
+      "extraction_method": "api_json",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "atmosphere": "reduction",
+        "basis": "published_text",
+        "cone_max": "6",
+        "cone_min": "6",
+        "cone_system": "orton",
+        "evidence": "cone 6",
+        "max_celsius": 1231,
+        "min_celsius": 1231,
+        "temperature_basis": "derived_from_cone"
+      },
+      "form": null,
+      "format": "ceramics.catalogue_identity.v2",
+      "gtin": null,
+      "image_url": "https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck.jpg",
+      "list_price": null,
+      "manufacturer_sku": "SW231",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "min_order_quantity": null,
+      "name": "Lilac Speck",
+      "name_parsed_from": null,
+      "name_raw": "Lilac Speck",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "10lbs",
+        "grams": 4535.92,
+        "unit": "lbs",
+        "value": 10.0
+      },
+      "parent_external_id": "mayco:https://www.maycocolors.com/product/sw231-lilac-speck/",
+      "price": null,
+      "price_text": null,
+      "product_name": "Lilac Speck",
+      "product_url": "https://www.maycocolors.com/product/sw231-lilac-speck/",
+      "raw": {
+        "_category_slug": null,
+        "_links": {
+          "collection": [
+            {
+              "href": "https://www.maycocolors.com/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://www.maycocolors.com/wp-json/wc/store/v1/products?related=59993&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://www.maycocolors.com/wp-json/wc/store/v1/products/59993",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Read more about &ldquo;Lilac Speck&rdquo;",
+          "maximum": 9999,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Add to cart",
+          "text": "Read more",
+          "url": "https://www.maycocolors.com/product/sw231-lilac-speck/"
+        },
+        "attributes": [
+          {
+            "has_variations": true,
+            "id": 0,
+            "name": "Size /Unit of Measure",
+            "taxonomy": null,
+            "terms": [
+              {
+                "id": 0,
+                "name": "SW231 Pint",
+                "slug": "SW231 Pint"
+              },
+              {
+                "id": 0,
+                "name": "SD-231 10lbs Dry",
+                "slug": "SD-231 10lbs Dry"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 0,
+            "name": "Dinnerware Safe",
+            "taxonomy": null,
+            "terms": [
+              {
+                "id": 0,
+                "name": "http://maycocolors.com/catalog/toxicology/dinnerware-safe.png",
+                "slug": "http://maycocolors.com/catalog/toxicology/dinnerware-safe.png"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 0,
+            "name": "Country Of Origin",
+            "taxonomy": null,
+            "terms": [
+              {
+                "id": 0,
+                "name": "US",
+                "slug": "US"
+              }
+            ]
+          }
+        ],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 95,
+            "link": "https://www.maycocolors.com/product-category/color/",
+            "name": "Color",
+            "slug": "color"
+          },
+          {
+            "id": 98,
+            "link": "https://www.maycocolors.com/product-category/color/fired/",
+            "name": "Fired",
+            "slug": "fired"
+          },
+          {
+            "id": 99,
+            "link": "https://www.maycocolors.com/product-category/color/new-colors/",
+            "name": "New Colors",
+            "slug": "new-colors"
+          },
+          {
+            "id": 730,
+            "link": "https://www.maycocolors.com/product-category/new-stoneware-glazes-colors/",
+            "name": "New Stoneware Glazes Colors",
+            "slug": "new-stoneware-glazes-colors"
+          },
+          {
+            "id": 570,
+            "link": "https://www.maycocolors.com/product-category/color/fired/stoneware/",
+            "name": "Stoneware",
+            "slug": "stoneware"
+          }
+        ],
+        "description": "<p>Stoneware matte glazes range from solid shades to those that create interesting color variations as they move and break. Application thickness is the key to making mattes work for you.</p>\n<p><span class=\"s1\"><i>Chips shown are fired flat on a white clay body fired to cone 6 oxidation and cone 10 reduction. The choice of clay body, the thickness of glaze application, the firing process, and temperature will affect the fired results.</i></span></p>",
+        "dimensions": {
+          "height": "0",
+          "length": "0",
+          "width": "0"
+        },
+        "extensions": {},
+        "formatted_dimensions": " in",
+        "formatted_weight": "N/A",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 59993,
+        "images": [
+          {
+            "alt": "",
+            "id": 59994,
+            "name": "SW231 Lilac Speck",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/SW231-Lilac-Speck.jpg 1080w"
+          },
+          {
+            "alt": "",
+            "id": 59995,
+            "name": "sw231_cone10",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on white clay, cone 6 oxidation",
+            "id": 60490,
+            "name": "2026_sw_release_white_clay_standard_181_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_clay_standard_181_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on speckled brown clay, cone 6 oxidation",
+            "id": 60486,
+            "name": "2026_sw_release_speckled_clay_standard_212_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_speckled_clay_standard_212_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on wheat clay, cone 6 oxidation",
+            "id": 60488,
+            "name": "2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_white_wheat_clay_runyan_wheat_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on red clay, cone 6 oxidation",
+            "id": 60487,
+            "name": "2026_sw_release_red_clay_standard_308_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_red_clay_standard_308_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on dark brown clay, cone 6 oxidation",
+            "id": 60485,
+            "name": "2026_sw_release_brown_clay_standard_266_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_brown_clay_standard_266_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "2026 Mayco Stoneware Glaze release on dark brown clay, cone 6 oxidation",
+            "id": 60489,
+            "name": "2026_sw_release_black_clay_si02_black_ice_labeled_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/2026_sw_release_black_clay_si02_black_ice_labeled_crop.jpg 1080w"
+          },
+          {
+            "alt": "",
+            "id": 60366,
+            "name": "sw231_cone5_1-2-3-coats_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone5_1-2-3-coats_crop.jpg 1080w"
+          },
+          {
+            "alt": "",
+            "id": 60367,
+            "name": "sw231_cone6_1-2-3-coats_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone6_1-2-3-coats_crop.jpg 1080w"
+          },
+          {
+            "alt": "",
+            "id": 60368,
+            "name": "sw231_cone10_1-2-3-coats_crop",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_cone10_1-2-3-coats_crop.jpg 1080w"
+          },
+          {
+            "alt": "SW231 Over Fluxes, cone 6 oxdiation",
+            "id": 60531,
+            "name": "sw231_over_fluxes_cone6",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone6.jpg 1080w"
+          },
+          {
+            "alt": "SW231 Under Fluxes, cone 6 oxdiation",
+            "id": 60533,
+            "name": "sw231_under_fluxes_cone6",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone6.jpg 1080w"
+          },
+          {
+            "alt": "SW231 Over Fluxes, cone 10 reduction",
+            "id": 60532,
+            "name": "sw231_over_fluxes_cone10",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_over_fluxes_cone10.jpg 1080w"
+          },
+          {
+            "alt": "SW231 Under Fluxes, cone 10 reduction",
+            "id": 60534,
+            "name": "sw231_under_fluxes_cone10",
+            "sizes": "(max-width: 1080px) 100vw, 1080px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10.jpg 1080w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-100x100.jpg 100w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-1024x1024.jpg 1024w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-768x768.jpg 768w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-600x600.jpg 600w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10-100x100.jpg 100w, https://www.maycocolors.com/wp-content/uploads/2026/03/sw231_under_fluxes_cone10.jpg 1080w"
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": false,
+        "low_stock_remaining": null,
+        "name": "Lilac Speck",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://www.maycocolors.com/product/sw231-lilac-speck/",
+        "price_html": "",
+        "prices": {
+          "currency_code": "USD",
+          "currency_decimal_separator": ".",
+          "currency_minor_unit": 2,
+          "currency_prefix": "$",
+          "currency_suffix": "",
+          "currency_symbol": "$",
+          "currency_thousand_separator": ",",
+          "price": "0",
+          "price_range": null,
+          "regular_price": "0",
+          "sale_price": "0"
+        },
+        "review_count": 0,
+        "short_description": "<p><strong>Cone 6:</strong> Lilac Speck is a satin-matte, semi-opaque light purple that breaks over texture. Contains small purple, orange and yellow specks. Stable glaze.</p>\n<p><strong>Cone 10:</strong> Lilac Speck lightens to off-white. Specks blur and lose definition with increased application thickness; crystallization may develop. Remains stable.</p>\n<p><strong>TIP:</strong> We recommend firing our matte glazes to cone 6 to produce a satin matte finish. Upon opening, specks will be concentrated in the bottom of the bottle. Stir/shake thoroughly to incorporate before each use.</p>",
+        "sku": "SW-231",
+        "slug": "sw231-lilac-speck",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": ""
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0"
+      },
+      "source": "mayco",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "SW-231",
+      "surface": null,
+      "technical_attributes": {
+        "Country Of Origin": "US",
+        "Dinnerware Safe": "http://maycocolors.com/catalog/toxicology/dinnerware-safe.png",
+        "Size /Unit of Measure": "SW231 Pint, SD-231 10lbs Dry"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": null
+    },
+    {
+      "all_image_urls": [
+        "https://www.maycocolors.com/wp-content/uploads/2020/02/dss-0163.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Mayco",
+      "brand_basis": "published",
+      "category_path": [
+        "Discontinued Products"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "USD",
+      "description": "Combine AC-310 Silkscreen Medium and any color of Underglazes, Stroke & Coat®, Designer Liner or acrylic paints to create a paste which is pushed through the screen onto bisque or unfired glaze surface. The design transfers onto ceramic, glass wood or fabric surfaces with ease. Designer Silkscreens may also be used as an outline to fill in images with color.",
+      "documents": null,
+      "effects": null,
+      "external_id": "mayco:https://www.maycocolors.com/product/dss-0163-designer-silkscreen-continuous-fronds/",
+      "extraction_method": "api_json",
+      "family": "underglaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": null,
+      "format": "ceramics.catalogue_identity.v2",
+      "gtin": null,
+      "image_url": "https://www.maycocolors.com/wp-content/uploads/2020/02/dss-0163.jpg",
+      "list_price": null,
+      "manufacturer_sku": "DSS-0163",
+      "manufacturer_sku_basis": "manufacturer_shop",
+      "min_order_quantity": null,
+      "name": "Designer Silkscreen Continuous Fronds- DISCONTINUED",
+      "name_parsed_from": null,
+      "name_raw": "Designer Silkscreen Continuous Fronds- DISCONTINUED",
+      "package_size": null,
+      "parent_external_id": "mayco:https://www.maycocolors.com/product/dss-0163-designer-silkscreen-continuous-fronds/",
+      "price": null,
+      "price_text": "$ 22.00",
+      "product_name": "Designer Silkscreen Continuous Fronds- DISCONTINUED",
+      "product_url": "https://www.maycocolors.com/product/dss-0163-designer-silkscreen-continuous-fronds/",
+      "raw": {
+        "_category_slug": null,
+        "_links": {
+          "collection": [
+            {
+              "href": "https://www.maycocolors.com/wp-json/wc/store/v1/products"
+            }
+          ],
+          "related": [
+            {
+              "embeddable": true,
+              "href": "https://www.maycocolors.com/wp-json/wc/store/v1/products?related=12346&per_page=10"
+            }
+          ],
+          "self": [
+            {
+              "href": "https://www.maycocolors.com/wp-json/wc/store/v1/products/12346",
+              "targetHints": {
+                "allow": [
+                  "GET"
+                ]
+              }
+            }
+          ]
+        },
+        "add_to_cart": {
+          "description": "Add to cart: &ldquo;Designer Silkscreen Continuous Fronds- DISCONTINUED&rdquo;",
+          "maximum": 9999,
+          "minimum": 1,
+          "multiple_of": 1,
+          "single_text": "Add to cart",
+          "text": "Add to cart",
+          "url": "/wp-json/wc/store/v1/products?per_page=100&#038;page=9&#038;add-to-cart=12346"
+        },
+        "attributes": [
+          {
+            "has_variations": true,
+            "id": 0,
+            "name": "Size /Unit of Measure",
+            "taxonomy": null,
+            "terms": [
+              {
+                "id": 0,
+                "name": "Each",
+                "slug": "Each"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 0,
+            "name": "Country Of Origin",
+            "taxonomy": null,
+            "terms": [
+              {
+                "id": 0,
+                "name": "US",
+                "slug": "US"
+              }
+            ]
+          }
+        ],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 1318,
+            "link": "https://www.maycocolors.com/product-category/color/discontinued-products/",
+            "name": "Discontinued Products",
+            "slug": "discontinued-products"
+          }
+        ],
+        "description": "<p>Combine AC-310 Silkscreen Medium and any color of Underglazes, Stroke &amp; Coat®, Designer Liner or acrylic paints to create a paste which is pushed through the screen onto bisque or unfired glaze surface. The design transfers onto ceramic, glass wood or fabric surfaces with ease. Designer Silkscreens may also be used as an outline to fill in images with color.</p>",
+        "dimensions": {
+          "height": "0",
+          "length": "0",
+          "width": "0"
+        },
+        "extensions": {},
+        "formatted_dimensions": " in",
+        "formatted_weight": "0.25 lbs",
+        "grouped_products": [],
+        "has_options": false,
+        "id": 12346,
+        "images": [
+          {
+            "alt": "",
+            "id": 37684,
+            "name": "dss-0163",
+            "sizes": "(max-width: 633px) 100vw, 633px",
+            "src": "https://www.maycocolors.com/wp-content/uploads/2020/02/dss-0163.jpg",
+            "srcset": "https://www.maycocolors.com/wp-content/uploads/2020/02/dss-0163.jpg 633w, https://www.maycocolors.com/wp-content/uploads/2020/02/dss-0163-300x240.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2020/02/dss-0163-600x480.jpg 600w",
+            "thumbnail": "https://www.maycocolors.com/wp-content/uploads/2020/02/dss-0163-300x300.jpg",
+            "thumbnail_sizes": "(max-width: 300px) 100vw, 300px",
+            "thumbnail_srcset": "https://www.maycocolors.com/wp-content/uploads/2020/02/dss-0163-300x300.jpg 300w, https://www.maycocolors.com/wp-content/uploads/2020/02/dss-0163-150x150.jpg 150w, https://www.maycocolors.com/wp-content/uploads/2020/02/dss-0163-100x100.jpg 100w"
+          }
+        ],
+        "is_in_stock": true,
+        "is_on_backorder": false,
+        "is_password_protected": false,
+        "is_purchasable": true,
+        "low_stock_remaining": null,
+        "name": "Designer Silkscreen Continuous Fronds- DISCONTINUED",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://www.maycocolors.com/product/dss-0163-designer-silkscreen-continuous-fronds/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#036;</span>22.00</span>",
+        "prices": {
+          "currency_code": "USD",
+          "currency_decimal_separator": ".",
+          "currency_minor_unit": 2,
+          "currency_prefix": "$",
+          "currency_suffix": "",
+          "currency_symbol": "$",
+          "currency_thousand_separator": ",",
+          "price": "2200",
+          "price_range": null,
+          "regular_price": "2200",
+          "sale_price": "2200"
+        },
+        "review_count": 0,
+        "short_description": "<p>Mayco Designer Silkscreens are a great way to add intricate detail to your work and they&#8217;re reusable!</p>",
+        "sku": "DSS-0163",
+        "slug": "dss-0163-designer-silkscreen-continuous-fronds",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "in-stock",
+          "text": ""
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": [],
+        "weight": "0.25"
+      },
+      "source": "mayco",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "DSS-0163",
+      "surface": null,
+      "technical_attributes": {
+        "Country Of Origin": "US",
+        "Size /Unit of Measure": "Each"
+      },
+      "unit_price": null,
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": null
+    }
+  ],
+  "scraper": "woocommerce",
+  "source": "mayco",
+  "truncated": false
+}

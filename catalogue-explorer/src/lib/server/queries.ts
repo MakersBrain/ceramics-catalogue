@@ -1,0 +1,274 @@
+import { band } from '$lib/bands';
+import { sql } from './db';
+import { eurRate, fxRates, type Rates } from './fx';
+
+// Every price shown as EUR per litre comes through catalogue.offer_comparison,
+// which is the latest offer per source product and only exists for rows that
+// carry a manufacturer code — the only honest cross-supplier key.
+//
+// Pack size is normalised to litres here rather than in the view because the
+// view keeps the supplier's own unit. A 59 ml jar always costs more per litre
+// than a 473 ml pot, so anything that compares suppliers compares inside one
+// pack band and never across bands.
+const litres = sql`
+	quantity / nullif(
+		case unit
+			when 'ml' then 1000 when 'l' then 1 when 'cl' then 100
+			when 'fl oz' then 33.814 when 'pint' then 2.113 when 'gallon' then 0.2642
+		end, 0)
+`;
+
+export { BANDS, band } from '$lib/bands';
+
+/**
+ * Brand is matched case-insensitively: the same manufacturer is published as
+ * "Mayco" by one storefront and "MAYCO" by the next, and they are one brand.
+ */
+function brandFilter(brand: string | null, column = sql`brand`) {
+	return brand ? sql`upper(${column}) = ${brand.toUpperCase()}` : sql`true`;
+}
+
+/**
+ * Product type is a promoted column, so it filters by equality rather than by
+ * the case-folding brand needs. A row the importer could not classify is left
+ * out of the filter entirely rather than being matched as an empty string.
+ */
+function familyFilter(family: string | null, column = sql`family`) {
+	return family ? sql`${column} = ${family}` : sql`true`;
+}
+
+/** Product types with a count, most-stocked first, for the dashboard filter. */
+export async function families(min = 20) {
+	return sql<{ key: string; label: string; products: number }[]>`
+		select btrim(family) as key, btrim(family) as label, count(*)::int as products
+		from catalogue.source_products
+		where family is not null and btrim(family) <> ''
+		group by 1
+		having count(*) >= ${min}
+		order by 3 desc
+	`;
+}
+
+/** Brands with a product count, most-stocked first, for the dashboard filter. */
+export async function brands(min = 20) {
+	return sql<{ key: string; label: string; products: number }[]>`
+		select upper(brand) as key,
+		       mode() within group (order by brand) as label,
+		       count(*)::int as products
+		from catalogue.source_products
+		where brand is not null
+		group by 1
+		having count(*) >= ${min}
+		order by 3 desc
+	`;
+}
+
+export async function overview(brand: string | null = null, family: string | null = null) {
+	const scope = sql`${brandFilter(brand, sql`p.brand`)} and ${familyFilter(family, sql`p.family`)}`;
+	const [row] = await sql<
+		{ products: number; suppliers: number; offers: number; codes: number; observed: Date | null }[]
+	>`
+		select
+			(select count(*)::int from catalogue.source_products p where ${scope}) as products,
+			(select count(distinct p.source_id)::int from catalogue.source_products p
+				where ${scope}) as suppliers,
+			(select count(*)::int from catalogue.offer_observations o
+				join catalogue.source_products p on p.id = o.source_product_id
+				where ${scope}) as offers,
+			(select count(distinct upper(p.manufacturer_sku))::int from catalogue.source_products p
+				where p.manufacturer_sku is not null and ${scope}) as codes,
+			(select max(o.observed_at) from catalogue.offer_observations o
+				join catalogue.source_products p on p.id = o.source_product_id
+				where ${scope}) as observed
+	`;
+	return row;
+}
+
+export async function supplierCoverage(brand: string | null = null, family: string | null = null) {
+	return sql<{ supplier: string; products: number; coded: number }[]>`
+		select source_id as supplier,
+		       count(*)::int as products,
+		       count(*) filter (where manufacturer_sku is not null)::int as coded
+		from catalogue.source_products
+		where ${brandFilter(brand)} and ${familyFilter(family)}
+		group by 1
+		order by 2 desc
+	`;
+}
+
+/**
+ * Top families by product count, with the tail folded into one "other" slice.
+ *
+ * The one panel the product-type filter does not scope, and deliberately: this
+ * is the panel that shows what the types are, and narrowed to one type it would
+ * only ever report 100% of itself.
+ */
+export async function familyMix(brand: string | null = null, keep = 6) {
+	const rows = await sql<{ family: string; products: number }[]>`
+		select coalesce(nullif(btrim(family), ''), 'unclassified') as family,
+		       count(*)::int as products
+		from catalogue.source_products
+		where ${brandFilter(brand)}
+		group by 1
+		order by 2 desc
+	`;
+	const head = rows.slice(0, keep);
+	const tail = rows.slice(keep);
+	if (tail.length) {
+		head.push({ family: 'other', products: tail.reduce((sum, row) => sum + row.products, 0) });
+	}
+	return head;
+}
+
+/** Median EUR per litre per supplier, inside one pack band, for one family. */
+export async function medianUnitPrice(
+	bandId: string,
+	brand: string | null = null,
+	family = 'glaze',
+	minOffers = 5,
+	rates: Rates | null = null
+) {
+	const chosen = band(bandId);
+	const fx = eurRate(rates ?? (await fxRates()));
+	return sql<{ supplier: string; median: number; offers: number }[]>`
+		with priced as (
+			select source_id, family, (unit_price / ${fx})::float8 as unit_price, ${litres} as litres
+			from catalogue.offer_comparison
+			-- Strictly positive, not merely present. A 0.00 listing is a
+			-- storefront saying "ask us", not a price of nothing, and a median
+			-- that counts it reports a shop as cheaper than it is.
+			where unit_price > 0
+			  and unit_price_per = 'l' and quantity is not null
+			  and ${fx} is not null
+			  and ${brandFilter(brand)}
+		)
+		select source_id as supplier,
+		       (percentile_cont(0.5) within group (order by unit_price))::float8 as median,
+		       count(*)::int as offers
+		from priced
+		where litres >= ${chosen.low} and litres < ${chosen.high} and family = ${family}
+		group by 1
+		having count(*) >= ${minOffers}
+		order by 2
+	`;
+}
+
+/** Products several suppliers sell in the same pack band, widest gap first. */
+export async function widestSpread(
+	bandId: string,
+	brand: string | null = null,
+	family: string | null = null,
+	limit = 12,
+	minSuppliers = 3,
+	rates: Rates | null = null
+) {
+	const chosen = band(bandId);
+	const fx = eurRate(rates ?? (await fxRates()));
+	return sql<
+		{
+			code: string;
+			name: string;
+			family: string | null;
+			suppliers: number;
+			low: number;
+			high: number;
+			ratio: number;
+		}[]
+	>`
+		with priced as (
+			select upper(manufacturer_sku) as code, source_id, name, family,
+			       (unit_price / ${fx})::float8 as unit_price, ${litres} as litres
+			from catalogue.offer_comparison
+			-- As above, and here it is also what keeps the ratio finite: a group
+			-- whose cheapest listing is 0.00 divides by zero and reports a null
+			-- spread, which is not a wider spread but an absent one.
+			where unit_price > 0
+			  and unit_price_per = 'l' and quantity is not null
+			  and ${fx} is not null
+			  and ${brandFilter(brand)}
+			  and ${familyFilter(family)}
+		)
+		select code,
+		       min(name) as name,
+		       min(family) as family,
+		       count(distinct source_id)::int as suppliers,
+		       min(unit_price)::float8 as low,
+		       max(unit_price)::float8 as high,
+		       (max(unit_price) / nullif(min(unit_price), 0))::float8 as ratio
+		from priced
+		where litres >= ${chosen.low} and litres < ${chosen.high}
+		group by code
+		having count(distinct source_id) >= ${minSuppliers}
+		order by ratio desc, suppliers desc
+		limit ${limit}
+	`;
+}
+
+export type Offer = {
+	code: string;
+	supplier: string;
+	name: string;
+	brand: string | null;
+	family: string | null;
+	url: string;
+	price: number;
+	currency: string;
+	/** The same price at the ECB reference rate; null for an unlisted currency. */
+	price_eur: number | null;
+	vat_status: string | null;
+	availability: string | null;
+	quantity: number | null;
+	unit: string | null;
+	unit_price: number | null;
+	unit_price_eur: number | null;
+	unit_price_per: string | null;
+	litres: number | null;
+	observed_at: Date;
+};
+
+/**
+ * Offers for one manufacturer code, or for the codes whose product name
+ * matches. An empty query returns nothing: the dashboard, not this route,
+ * is where browsing starts.
+ */
+export async function searchOffers(query: string, limit = 200, rates: Rates | null = null) {
+	const term = query.trim();
+	if (!term) return [] as Offer[];
+	const pattern = `%${term}%`;
+	const fx = eurRate(rates ?? (await fxRates()));
+	// Read source_products with its own latest offer rather than the
+	// offer_comparison view: the view drops the stock state, and joining it
+	// back on name and URL would collapse the sizes of one product together.
+	return sql<Offer[]>`
+		with matched as (
+			select distinct upper(manufacturer_sku) as code
+			from catalogue.source_products
+			where manufacturer_sku is not null
+			  and (upper(manufacturer_sku) = upper(${term})
+			       or replace(upper(manufacturer_sku), '-', '') = replace(upper(${term}), '-', '')
+			       or name ilike ${pattern})
+			limit 40
+		)
+		select upper(p.manufacturer_sku) as code, p.source_id as supplier, p.name, p.brand, p.family,
+		       p.product_url as url, p.availability,
+		       o.price::float8 as price, o.currency, o.vat_status,
+		       (o.price / ${fx})::float8 as price_eur,
+		       o.quantity::float8 as quantity, o.unit,
+		       o.unit_price::float8 as unit_price, o.unit_price_per,
+		       (o.unit_price / ${fx})::float8 as unit_price_eur,
+		       (${litres})::float8 as litres,
+		       o.observed_at
+		from catalogue.source_products p
+		join matched m on m.code = upper(p.manufacturer_sku)
+		join lateral (
+			select price, currency, vat_status, quantity, unit, unit_price, unit_price_per, observed_at
+			from catalogue.offer_observations o
+			where o.source_product_id = p.id
+			order by o.observed_at desc
+			limit 1
+		) o on true
+		where p.active
+		order by code, (o.unit_price / ${fx}) nulls last
+		limit ${limit}
+	`;
+}

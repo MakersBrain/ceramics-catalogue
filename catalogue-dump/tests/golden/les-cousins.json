@@ -1,0 +1,923 @@
+{
+  "digest": "0f3af2216c70082dbcacb3a0f62fddc493dfd591bff8148ed3d042a22095b9af",
+  "discovered": 3210,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "api_json",
+  "field_coverage": {
+    "all_image_urls": 3912,
+    "brand": 2932,
+    "category_path": 4473,
+    "claims": 64,
+    "colour": 3826,
+    "description": 2261,
+    "documents": 0,
+    "effects": 3110,
+    "family": 4473,
+    "firing": 2391,
+    "form": 2723,
+    "gtin": 0,
+    "manufacturer_sku": 1450,
+    "package_size": 4279,
+    "stock_quantity": 0,
+    "supplier_reference": 4473,
+    "surface": 3120,
+    "unit_price": 4279,
+    "vat_status": 4473
+  },
+  "notes": [],
+  "records": 4473,
+  "rendered_pages": 0,
+  "requests": 112,
+  "sample": [
+    {
+      "all_image_urls": null,
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Les Cousins",
+      "brand_basis": "published",
+      "category_path": [
+        "emaux-et-couleurs",
+        "Emaux et couleurs",
+        "Emaux",
+        "Grès/porcelaine poudre"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Noir"
+      },
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": [
+        "opaque"
+      ],
+      "external_id": "les-cousins:https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/#151844",
+      "extraction_method": "api_json",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": "powder",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": null,
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "EMAIL GRES NOIR EG140-05B NOIR – DESTOCKAGE Poids",
+      "name_parsed_from": [
+        "25kg"
+      ],
+      "name_raw": "EMAIL GRES NOIR EG140-05B NOIR – DESTOCKAGE Poids: 25kg",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "25kg",
+        "grams": 25000.0,
+        "unit": "kg",
+        "value": 25.0
+      },
+      "parent_external_id": "les-cousins:https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/",
+      "price": 472.5,
+      "price_text": null,
+      "product_name": "EMAIL GRES NOIR EG140-05B NOIR – DESTOCKAGE",
+      "product_url": "https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/?attribute_pa_variation-poids=25kg",
+      "raw": {
+        "product": {
+          "_category_slug": "emaux-et-couleurs",
+          "add_to_cart": {
+            "description": "Sélectionner les options pour &ldquo;EMAIL GRES NOIR EG140-05B NOIR &#8211; DESTOCKAGE&rdquo;",
+            "maximum": 1,
+            "minimum": 1,
+            "multiple_of": 0,
+            "single_text": "Ajouter au panier",
+            "text": "Choix des options",
+            "url": "https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/"
+          },
+          "attributes": [
+            {
+              "has_variations": false,
+              "id": 36,
+              "name": "Aspect",
+              "taxonomy": "pa_aspect",
+              "terms": [
+                {
+                  "id": 803,
+                  "name": "Brillant",
+                  "slug": "brillant"
+                }
+              ]
+            },
+            {
+              "has_variations": false,
+              "id": 4,
+              "name": "Couleurs",
+              "taxonomy": "pa_couleurs",
+              "terms": [
+                {
+                  "id": 194,
+                  "name": "Noir",
+                  "slug": "noir"
+                }
+              ]
+            },
+            {
+              "has_variations": false,
+              "id": 37,
+              "name": "Marque Email",
+              "taxonomy": "pa_marque-email",
+              "terms": [
+                {
+                  "id": 806,
+                  "name": "Les Cousins",
+                  "slug": "les-cousins"
+                }
+              ]
+            },
+            {
+              "has_variations": false,
+              "id": 35,
+              "name": "Opacité",
+              "taxonomy": "pa_opacite",
+              "terms": [
+                {
+                  "id": 801,
+                  "name": "opaque",
+                  "slug": "opaque"
+                }
+              ]
+            },
+            {
+              "has_variations": true,
+              "id": 54,
+              "name": "Poids",
+              "taxonomy": "pa_variation-poids",
+              "terms": [
+                {
+                  "id": 1299,
+                  "name": "1kg",
+                  "slug": "1kg"
+                },
+                {
+                  "id": 1301,
+                  "name": "25kg",
+                  "slug": "25kg"
+                },
+                {
+                  "id": 1432,
+                  "name": "500g",
+                  "slug": "500g"
+                },
+                {
+                  "id": 1300,
+                  "name": "5kg",
+                  "slug": "5kg"
+                }
+              ]
+            }
+          ],
+          "average_rating": "0",
+          "brands": [],
+          "categories": [
+            {
+              "id": 226,
+              "link": "https://lescousins.fr/product-category/emaux-et-couleurs/",
+              "name": "Emaux et couleurs",
+              "slug": "emaux-et-couleurs"
+            },
+            {
+              "id": 227,
+              "link": "https://lescousins.fr/product-category/emaux-et-couleurs/emaux/",
+              "name": "Emaux",
+              "slug": "emaux"
+            },
+            {
+              "id": 335,
+              "link": "https://lescousins.fr/product-category/emaux-et-couleurs/emaux/gres-porcelaine-poudre/",
+              "name": "Grès/porcelaine poudre",
+              "slug": "gres-porcelaine-poudre"
+            }
+          ],
+          "description": "",
+          "extensions": {},
+          "grouped_products": [],
+          "has_options": true,
+          "id": 151840,
+          "images": [],
+          "is_in_stock": false,
+          "is_on_backorder": false,
+          "is_purchasable": true,
+          "low_stock_remaining": 0,
+          "name": "EMAIL GRES NOIR EG140-05B NOIR &#8211; DESTOCKAGE",
+          "on_sale": false,
+          "parent": 0,
+          "permalink": "https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/",
+          "price_html": "<span class=\"woocommerce-Price-amount amount\">3.75<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> &ndash; <span class=\"woocommerce-Price-amount amount\">472.50<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span>",
+          "prices": {
+            "currency_code": "EUR",
+            "currency_decimal_separator": ".",
+            "currency_minor_unit": 2,
+            "currency_prefix": "",
+            "currency_suffix": "€",
+            "currency_symbol": "€",
+            "currency_thousand_separator": "",
+            "price": "375",
+            "price_range": {
+              "max_amount": "47250",
+              "min_amount": "375"
+            },
+            "regular_price": "375",
+            "sale_price": "375"
+          },
+          "review_count": 0,
+          "short_description": "",
+          "sku": "EG140-05B",
+          "slug": "email-gres-noir-eg140-05b-noir-destockage",
+          "sold_individually": false,
+          "stock_availability": {
+            "class": "",
+            "text": ""
+          },
+          "tags": [],
+          "type": "variable",
+          "variation": ""
+        },
+        "variation": {
+          "add_to_cart": {
+            "description": "Ajouter au panier : &ldquo;EMAIL GRES NOIR EG140-05B NOIR &#8211; DESTOCKAGE &#8211; 25kg&rdquo;",
+            "maximum": 1,
+            "minimum": 1,
+            "multiple_of": 0,
+            "single_text": "Ajouter au panier",
+            "text": "Ajouter au panier",
+            "url": "https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/?attribute_pa_variation-poids=25kg&#038;variation_id=151844&#038;add-to-cart=151840"
+          },
+          "attributes": [],
+          "average_rating": "0",
+          "brands": [],
+          "categories": [],
+          "description": "",
+          "extensions": {},
+          "grouped_products": [],
+          "has_options": false,
+          "id": 151844,
+          "images": [],
+          "is_in_stock": true,
+          "is_on_backorder": true,
+          "is_purchasable": true,
+          "low_stock_remaining": 0,
+          "name": "EMAIL GRES NOIR EG140-05B NOIR &#8211; DESTOCKAGE",
+          "on_sale": false,
+          "parent": 151840,
+          "permalink": "https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/?attribute_pa_variation-poids=25kg",
+          "price_html": "<span class=\"woocommerce-Price-amount amount\">472.50<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> <small class=\"woocommerce-price-suffix\">HT soit <span class=\"woocommerce-Price-amount amount\">567.00<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> TTC</small>",
+          "prices": {
+            "currency_code": "EUR",
+            "currency_decimal_separator": ".",
+            "currency_minor_unit": 2,
+            "currency_prefix": "",
+            "currency_suffix": "€",
+            "currency_symbol": "€",
+            "currency_thousand_separator": "",
+            "price": "47250",
+            "price_range": null,
+            "regular_price": "47250",
+            "sale_price": "47250"
+          },
+          "review_count": 0,
+          "short_description": "",
+          "sku": "EG140-05B",
+          "slug": "eg140-05b-25kg",
+          "sold_individually": false,
+          "stock_availability": {
+            "class": "available-on-backorder",
+            "text": ""
+          },
+          "tags": [],
+          "type": "variation",
+          "variation": "Poids: 25kg",
+          "variations": []
+        }
+      },
+      "source": "les-cousins",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "EG140-05B",
+      "surface": "gloss",
+      "technical_attributes": {
+        "Aspect": "Brillant",
+        "Couleurs": "Noir",
+        "Marque Email": "Les Cousins",
+        "Opacité": "opaque",
+        "Poids": "1kg, 25kg, 500g, 5kg"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 18.9
+      },
+      "variant_title": "Poids: 25kg",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": null,
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "Les Cousins",
+      "brand_basis": "published",
+      "category_path": [
+        "emaux-et-couleurs",
+        "Emaux et couleurs",
+        "Emaux",
+        "Grès/porcelaine poudre"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Noir"
+      },
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": [
+        "opaque"
+      ],
+      "external_id": "les-cousins:https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/#151843",
+      "extraction_method": "api_json",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": null,
+      "form": "powder",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": null,
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "EMAIL GRES NOIR EG140-05B NOIR – DESTOCKAGE Poids",
+      "name_parsed_from": [
+        "5kg"
+      ],
+      "name_raw": "EMAIL GRES NOIR EG140-05B NOIR – DESTOCKAGE Poids: 5kg",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "5kg",
+        "grams": 5000.0,
+        "unit": "kg",
+        "value": 5.0
+      },
+      "parent_external_id": "les-cousins:https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/",
+      "price": 104.5,
+      "price_text": null,
+      "product_name": "EMAIL GRES NOIR EG140-05B NOIR – DESTOCKAGE",
+      "product_url": "https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/?attribute_pa_variation-poids=5kg",
+      "raw": {
+        "product": {
+          "_category_slug": "emaux-et-couleurs",
+          "add_to_cart": {
+            "description": "Sélectionner les options pour &ldquo;EMAIL GRES NOIR EG140-05B NOIR &#8211; DESTOCKAGE&rdquo;",
+            "maximum": 1,
+            "minimum": 1,
+            "multiple_of": 0,
+            "single_text": "Ajouter au panier",
+            "text": "Choix des options",
+            "url": "https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/"
+          },
+          "attributes": [
+            {
+              "has_variations": false,
+              "id": 36,
+              "name": "Aspect",
+              "taxonomy": "pa_aspect",
+              "terms": [
+                {
+                  "id": 803,
+                  "name": "Brillant",
+                  "slug": "brillant"
+                }
+              ]
+            },
+            {
+              "has_variations": false,
+              "id": 4,
+              "name": "Couleurs",
+              "taxonomy": "pa_couleurs",
+              "terms": [
+                {
+                  "id": 194,
+                  "name": "Noir",
+                  "slug": "noir"
+                }
+              ]
+            },
+            {
+              "has_variations": false,
+              "id": 37,
+              "name": "Marque Email",
+              "taxonomy": "pa_marque-email",
+              "terms": [
+                {
+                  "id": 806,
+                  "name": "Les Cousins",
+                  "slug": "les-cousins"
+                }
+              ]
+            },
+            {
+              "has_variations": false,
+              "id": 35,
+              "name": "Opacité",
+              "taxonomy": "pa_opacite",
+              "terms": [
+                {
+                  "id": 801,
+                  "name": "opaque",
+                  "slug": "opaque"
+                }
+              ]
+            },
+            {
+              "has_variations": true,
+              "id": 54,
+              "name": "Poids",
+              "taxonomy": "pa_variation-poids",
+              "terms": [
+                {
+                  "id": 1299,
+                  "name": "1kg",
+                  "slug": "1kg"
+                },
+                {
+                  "id": 1301,
+                  "name": "25kg",
+                  "slug": "25kg"
+                },
+                {
+                  "id": 1432,
+                  "name": "500g",
+                  "slug": "500g"
+                },
+                {
+                  "id": 1300,
+                  "name": "5kg",
+                  "slug": "5kg"
+                }
+              ]
+            }
+          ],
+          "average_rating": "0",
+          "brands": [],
+          "categories": [
+            {
+              "id": 226,
+              "link": "https://lescousins.fr/product-category/emaux-et-couleurs/",
+              "name": "Emaux et couleurs",
+              "slug": "emaux-et-couleurs"
+            },
+            {
+              "id": 227,
+              "link": "https://lescousins.fr/product-category/emaux-et-couleurs/emaux/",
+              "name": "Emaux",
+              "slug": "emaux"
+            },
+            {
+              "id": 335,
+              "link": "https://lescousins.fr/product-category/emaux-et-couleurs/emaux/gres-porcelaine-poudre/",
+              "name": "Grès/porcelaine poudre",
+              "slug": "gres-porcelaine-poudre"
+            }
+          ],
+          "description": "",
+          "extensions": {},
+          "grouped_products": [],
+          "has_options": true,
+          "id": 151840,
+          "images": [],
+          "is_in_stock": false,
+          "is_on_backorder": false,
+          "is_purchasable": true,
+          "low_stock_remaining": 0,
+          "name": "EMAIL GRES NOIR EG140-05B NOIR &#8211; DESTOCKAGE",
+          "on_sale": false,
+          "parent": 0,
+          "permalink": "https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/",
+          "price_html": "<span class=\"woocommerce-Price-amount amount\">3.75<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> &ndash; <span class=\"woocommerce-Price-amount amount\">472.50<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span>",
+          "prices": {
+            "currency_code": "EUR",
+            "currency_decimal_separator": ".",
+            "currency_minor_unit": 2,
+            "currency_prefix": "",
+            "currency_suffix": "€",
+            "currency_symbol": "€",
+            "currency_thousand_separator": "",
+            "price": "375",
+            "price_range": {
+              "max_amount": "47250",
+              "min_amount": "375"
+            },
+            "regular_price": "375",
+            "sale_price": "375"
+          },
+          "review_count": 0,
+          "short_description": "",
+          "sku": "EG140-05B",
+          "slug": "email-gres-noir-eg140-05b-noir-destockage",
+          "sold_individually": false,
+          "stock_availability": {
+            "class": "",
+            "text": ""
+          },
+          "tags": [],
+          "type": "variable",
+          "variation": ""
+        },
+        "variation": {
+          "add_to_cart": {
+            "description": "Ajouter au panier : &ldquo;EMAIL GRES NOIR EG140-05B NOIR &#8211; DESTOCKAGE &#8211; 5kg&rdquo;",
+            "maximum": 1,
+            "minimum": 1,
+            "multiple_of": 0,
+            "single_text": "Ajouter au panier",
+            "text": "Ajouter au panier",
+            "url": "https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/?attribute_pa_variation-poids=5kg&#038;variation_id=151843&#038;add-to-cart=151840"
+          },
+          "attributes": [],
+          "average_rating": "0",
+          "brands": [],
+          "categories": [],
+          "description": "",
+          "extensions": {},
+          "grouped_products": [],
+          "has_options": false,
+          "id": 151843,
+          "images": [],
+          "is_in_stock": true,
+          "is_on_backorder": true,
+          "is_purchasable": true,
+          "low_stock_remaining": 0,
+          "name": "EMAIL GRES NOIR EG140-05B NOIR &#8211; DESTOCKAGE",
+          "on_sale": false,
+          "parent": 151840,
+          "permalink": "https://lescousins.fr/product/email-gres-noir-eg140-05b-noir-destockage/?attribute_pa_variation-poids=5kg",
+          "price_html": "<span class=\"woocommerce-Price-amount amount\">104.50<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> <small class=\"woocommerce-price-suffix\">HT soit <span class=\"woocommerce-Price-amount amount\">125.40<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> TTC</small>",
+          "prices": {
+            "currency_code": "EUR",
+            "currency_decimal_separator": ".",
+            "currency_minor_unit": 2,
+            "currency_prefix": "",
+            "currency_suffix": "€",
+            "currency_symbol": "€",
+            "currency_thousand_separator": "",
+            "price": "10450",
+            "price_range": null,
+            "regular_price": "10450",
+            "sale_price": "10450"
+          },
+          "review_count": 0,
+          "short_description": "",
+          "sku": "EG140-05B",
+          "slug": "eg140-05b-5kg",
+          "sold_individually": false,
+          "stock_availability": {
+            "class": "available-on-backorder",
+            "text": ""
+          },
+          "tags": [],
+          "type": "variation",
+          "variation": "Poids: 5kg",
+          "variations": []
+        }
+      },
+      "source": "les-cousins",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "EG140-05B",
+      "surface": "gloss",
+      "technical_attributes": {
+        "Aspect": "Brillant",
+        "Couleurs": "Noir",
+        "Marque Email": "Les Cousins",
+        "Opacité": "opaque",
+        "Poids": "1kg, 25kg, 500g, 5kg"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 20.9
+      },
+      "variant_title": "Poids: 5kg",
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://lescousins.fr/wp-content/uploads/2024/04/W2502.jpg"
+      ],
+      "application_methods": [
+        "pouring"
+      ],
+      "availability": "https://schema.org/OutOfStock",
+      "brand": null,
+      "brand_basis": null,
+      "category_path": [
+        "argiles",
+        "Argiles",
+        "Grès",
+        "Grès blanc"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": null,
+      "currency": "EUR",
+      "description": null,
+      "documents": null,
+      "effects": null,
+      "external_id": "les-cousins:https://lescousins.fr/product/gres-blanc-w2502-chamotte-0-02-impalpable-25/",
+      "extraction_method": "api_json",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1000 à 1300°C",
+        "max_celsius": 1300,
+        "min_celsius": 1000
+      },
+      "form": "granulate",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://lescousins.fr/wp-content/uploads/2024/04/W2502.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "min_order_quantity": null,
+      "name": "GRES BLANC W2502 CHAMOTTE 0.02 IMPALPABLE / 25%",
+      "name_parsed_from": null,
+      "name_raw": "GRES BLANC W2502 CHAMOTTE 0.02 IMPALPABLE / 25%",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "10 kg",
+        "grams": 10000.0,
+        "unit": "kg",
+        "value": 10.0
+      },
+      "parent_external_id": "les-cousins:https://lescousins.fr/product/gres-blanc-w2502-chamotte-0-02-impalpable-25/",
+      "price": 1.55,
+      "price_text": "1.55 € HT soit 1.86 € TTC",
+      "product_name": "GRES BLANC W2502 CHAMOTTE 0.02 IMPALPABLE / 25%",
+      "product_url": "https://lescousins.fr/product/gres-blanc-w2502-chamotte-0-02-impalpable-25/",
+      "raw": {
+        "_category_slug": "argiles",
+        "add_to_cart": {
+          "description": "En savoir plus sur &ldquo;GRES BLANC W2502 CHAMOTTE 0.02 IMPALPABLE / 25%&rdquo;",
+          "maximum": 0,
+          "minimum": 10,
+          "multiple_of": 10,
+          "single_text": "Ajouter au panier",
+          "text": "Lire la suite",
+          "url": "https://lescousins.fr/product/gres-blanc-w2502-chamotte-0-02-impalpable-25/"
+        },
+        "attributes": [
+          {
+            "has_variations": false,
+            "id": 6,
+            "name": "Chamotte",
+            "taxonomy": "pa_chamotte",
+            "terms": [
+              {
+                "id": 415,
+                "name": "25%",
+                "slug": "25"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 26,
+            "name": "Coefficient de dilatation",
+            "taxonomy": "pa_coefficient-de-dilatation",
+            "terms": [
+              {
+                "id": 251,
+                "name": "64 x 10-7",
+                "slug": "64-x-10-7"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 27,
+            "name": "Conditionnement",
+            "taxonomy": "pa_conditionnement",
+            "terms": [
+              {
+                "id": 252,
+                "name": "Pains de 10 kg",
+                "slug": "pains-de-10-kg"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 22,
+            "name": "Granulométrie de chamotte",
+            "taxonomy": "pa_granulometrie-de-chamotte",
+            "terms": [
+              {
+                "id": 247,
+                "name": "0 à 0.2 mm",
+                "slug": "0-a-0-2-mm"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 25,
+            "name": "Porosité",
+            "taxonomy": "pa_porosite",
+            "terms": [
+              {
+                "id": 250,
+                "name": "à 1300°C : 1.2%",
+                "slug": "a-1300c-1-2"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 21,
+            "name": "Pourcentage de chamotte",
+            "taxonomy": "pa_pourcentage-de-chamotte",
+            "terms": [
+              {
+                "id": 246,
+                "name": "25%",
+                "slug": "25"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 24,
+            "name": "Retrait cuisson",
+            "taxonomy": "pa_retrait-cuisson",
+            "terms": [
+              {
+                "id": 249,
+                "name": "1000°C: 1.4%, 1200°C: 4.5%, 1300°C: 5%",
+                "slug": "1000c-1-4-1200c-4-5-1300c-5"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 23,
+            "name": "Retrait séchage",
+            "taxonomy": "pa_retrait-sechage",
+            "terms": [
+              {
+                "id": 248,
+                "name": "5.3%",
+                "slug": "5-3"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 20,
+            "name": "Température de cuisson",
+            "taxonomy": "pa_temperature-de-cuisson",
+            "terms": [
+              {
+                "id": 245,
+                "name": "1000 à 1300°C",
+                "slug": "1000-a-1300c"
+              }
+            ]
+          },
+          {
+            "has_variations": false,
+            "id": 7,
+            "name": "Utilisation",
+            "taxonomy": "pa_utilisation",
+            "terms": [
+              {
+                "id": 798,
+                "name": "en pâte",
+                "slug": "en-pate"
+              }
+            ]
+          }
+        ],
+        "average_rating": "0",
+        "brands": [],
+        "categories": [
+          {
+            "id": 242,
+            "link": "https://lescousins.fr/product-category/argiles/",
+            "name": "Argiles",
+            "slug": "argiles"
+          },
+          {
+            "id": 243,
+            "link": "https://lescousins.fr/product-category/argiles/gres/",
+            "name": "Grès",
+            "slug": "gres"
+          },
+          {
+            "id": 244,
+            "link": "https://lescousins.fr/product-category/argiles/gres/gres-blanc/",
+            "name": "Grès blanc",
+            "slug": "gres-blanc"
+          }
+        ],
+        "description": "",
+        "extensions": {},
+        "grouped_products": [],
+        "has_options": false,
+        "id": 15347,
+        "images": [
+          {
+            "alt": "",
+            "id": 97489,
+            "name": "W2502.jpg",
+            "sizes": "(max-width: 600px) 100vw, 600px",
+            "src": "https://lescousins.fr/wp-content/uploads/2024/04/W2502.jpg",
+            "srcset": "https://lescousins.fr/wp-content/uploads/2024/04/W2502.jpg 600w, https://lescousins.fr/wp-content/uploads/2024/04/W2502-300x300.jpg 300w, https://lescousins.fr/wp-content/uploads/2024/04/W2502-150x150.jpg 150w, https://lescousins.fr/wp-content/uploads/2024/04/W2502-430x430.jpg 430w",
+            "thumbnail": "https://lescousins.fr/wp-content/uploads/2024/04/W2502-430x430.jpg"
+          }
+        ],
+        "is_in_stock": false,
+        "is_on_backorder": false,
+        "is_purchasable": true,
+        "low_stock_remaining": 0,
+        "name": "GRES BLANC W2502 CHAMOTTE 0.02 IMPALPABLE / 25%",
+        "on_sale": false,
+        "parent": 0,
+        "permalink": "https://lescousins.fr/product/gres-blanc-w2502-chamotte-0-02-impalpable-25/",
+        "price_html": "<span class=\"woocommerce-Price-amount amount\">1.55<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> <small class=\"woocommerce-price-suffix\">HT soit <span class=\"woocommerce-Price-amount amount\">1.86<span class=\"woocommerce-Price-currencySymbol\">&euro;</span></span> TTC</small>",
+        "prices": {
+          "currency_code": "EUR",
+          "currency_decimal_separator": ".",
+          "currency_minor_unit": 2,
+          "currency_prefix": "",
+          "currency_suffix": "€",
+          "currency_symbol": "€",
+          "currency_thousand_separator": "",
+          "price": "155",
+          "price_range": null,
+          "regular_price": "155",
+          "sale_price": "155"
+        },
+        "review_count": 0,
+        "short_description": "",
+        "sku": "W2502",
+        "slug": "gres-blanc-w2502-chamotte-0-02-impalpable-25",
+        "sold_individually": false,
+        "stock_availability": {
+          "class": "out-of-stock wd-style-default",
+          "text": "Rupture de stock"
+        },
+        "tags": [],
+        "type": "simple",
+        "variation": "",
+        "variations": []
+      },
+      "source": "les-cousins",
+      "source_detail_level": "api",
+      "source_updated_at": null,
+      "stock_quantity": null,
+      "supplier_reference": "W2502",
+      "surface": null,
+      "technical_attributes": {
+        "Chamotte": "25%",
+        "Coefficient de dilatation": "64 x 10-7",
+        "Conditionnement": "Pains de 10 kg",
+        "Granulométrie de chamotte": "0 à 0.2 mm",
+        "Porosité": "à 1300°C : 1.2%",
+        "Pourcentage de chamotte": "25%",
+        "Retrait cuisson": "1000°C: 1.4%, 1200°C: 4.5%, 1300°C: 5%",
+        "Retrait séchage": "5.3%",
+        "Température de cuisson": "1000 à 1300°C",
+        "Utilisation": "en pâte"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 0.155
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "woocommerce",
+  "source": "les-cousins",
+  "truncated": false
+}

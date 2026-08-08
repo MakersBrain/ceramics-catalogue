@@ -1,0 +1,893 @@
+{
+  "les-cousins": {
+    "label": "Les Cousins",
+    "url": "https://lescousins.fr/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "FR",
+    "vat_status": "inclusive",
+    "store_categories": [
+      "emaux-et-couleurs",
+      "emaux",
+      "couleurs",
+      "argiles",
+      "engobes",
+      "faience-liquide",
+      "faience-poudre",
+      "gres-porcelaine-liquide",
+      "gres-porcelaine-poudre",
+      "oxydes-et-couleurs-a-peindre",
+      "engobe-faience-liquide",
+      "engobe-faience-poudre",
+      "engobe-gres-porcelaine-liquide"
+    ],
+    "excluded_categories": [
+      "outillage",
+      "fours",
+      "materiel",
+      "librairie",
+      "pinceaux",
+      "moulage-et-biscuit"
+    ]
+  },
+  "mayco": {
+    "label": "Mayco Colors (manufacturer catalogue)",
+    "url": "https://www.maycocolors.com/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "US",
+    "identity_only": true,
+    "note": "Publishes specifications and colours with every price at zero; collected as identity records, never as offers.",
+    "brand": "Mayco",
+    "is_manufacturer": true
+  },
+  "spectrum": {
+    "label": "Spectrum Glazes",
+    "url": "https://www.spectrumglazes.com/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "CA",
+    "vat_status": "exclusive",
+    "store_categories": [
+      "glazes",
+      "high-fire-glazes",
+      "low-fire-glazes",
+      "specialty-glazes",
+      "mid-range-glazes",
+      "500-series-underglazes",
+      "2000-series-ceramic-stains",
+      "2200-series-industrial-strength-stains"
+    ],
+    "excluded_categories": [
+      "supplies",
+      "stamps",
+      "rollers",
+      "rac-pens",
+      "sample-packs"
+    ],
+    "brand": "Spectrum",
+    "is_manufacturer": true
+  },
+  "keramiekenglazuur": {
+    "label": "Keramiek en Glazuur",
+    "url": "https://keramiekenglazuur.nl/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "NL",
+    "vat_status": "inclusive",
+    "store_categories": [
+      "glazuren",
+      "aardewerk",
+      "onderglazuren"
+    ],
+    "excluded_categories": [
+      "accessoires",
+      "gereedschap",
+      "tools",
+      "carving",
+      "transfers"
+    ]
+  },
+  "menomuza": {
+    "label": "Menomuza (ceramics section)",
+    "url": "https://menomuza.lt/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "LT",
+    "vat_status": "inclusive",
+    "store_categories": [
+      "keramikams-ir-skulptoriams"
+    ]
+  },
+  "solutions-ceramiques": {
+    "label": "Solutions Céramiques",
+    "url": "https://www.solutions-ceramiques.com/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "FR",
+    "vat_status": "inclusive",
+    "store_categories": [
+      "emaux-engobes-et-oxydes"
+    ],
+    "excluded_categories": [
+      "fours",
+      "materiel",
+      "pinceau",
+      "ebauchoir"
+    ]
+  },
+  "ceradel": {
+    "label": "Ceradel",
+    "url": "https://ceradel.fr/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "FR",
+    "vat_status": "inclusive",
+    "page_limit": 60,
+    "note": "No product_type is published, so scope relies on the multilingual materials classifier over the title."
+  },
+  "penguin-pottery": {
+    "label": "Penguin Pottery",
+    "url": "https://www.penguinpottery.com/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "US",
+    "vat_status": "exclusive",
+    "collections": [
+      "full-range-glazes",
+      "low-fire-glazes",
+      "mid-high-fire-glazes",
+      "low-fire-adelie-series",
+      "low-fire-gentoo-series",
+      "low-fire-nantucket-series",
+      "low-fire-penguins-choice-series",
+      "mid-fire-celadon-series",
+      "mid-fire-matte-series",
+      "mid-fire-opaque-series",
+      "mid-fire-specialty-series",
+      "raku-glazes",
+      "glow-in-the-dark-glazes",
+      "flux-series",
+      "underglaze-series",
+      "stains-colorants",
+      "clays",
+      "additives"
+    ],
+    "brand": "Penguin Pottery",
+    "is_manufacturer": true
+  },
+  "ceramique-peinture": {
+    "label": "Céramique Peinture (colours only)",
+    "url": "https://ceramique-peinture.fr/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "FR",
+    "vat_status": "inclusive",
+    "collections": [
+      "foundations",
+      "stroke-coat",
+      "duncan-ez-stroke",
+      "fun-strokes",
+      "mayco-designer-liner",
+      "crayons-ceramiques",
+      "colorobbia-fairy-dust-1"
+    ],
+    "note": "The bulk of this shop is bisque ware, which is outside the materials scope."
+  },
+  "amaco": {
+    "label": "AMACO",
+    "url": "https://shop.amaco.com/",
+    "scraper": "bigcommerce",
+    "scope": "materials",
+    "country": "US",
+    "vat_status": "exclusive",
+    "sitemaps": [
+      "https://shop.amaco.com/xmlsitemap.php"
+    ],
+    "page_limit": 900,
+    "category_url": "https://shop.amaco.com/glazes-underglazes/",
+    "note": "The CDN fingerprints TLS and refuses Python HTTP clients, so the storefront token and GraphQL calls go through the browser transport.",
+    "brand": "AMACO",
+    "is_manufacturer": true
+  },
+  "speedball": {
+    "label": "Speedball Ceramics",
+    "url": "https://www.speedballart.com/",
+    "scraper": "bigcommerce",
+    "scope": "materials",
+    "country": "US",
+    "vat_status": "exclusive",
+    "category_url": "https://www.speedballart.com/shop/ceramics/",
+    "page_limit": 400,
+    "brand": "Speedball",
+    "is_manufacturer": true
+  },
+  "1240-design": {
+    "label": "1240.design",
+    "url": "https://1240.design/en/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "PL",
+    "vat_status": "inclusive",
+    "sitemaps": [
+      "https://1240.design/1_en_0_sitemap.xml"
+    ],
+    "product_pattern": "/en/.+\\.html$",
+    "page_limit": 1800
+  },
+  "ceram-decor": {
+    "label": "Ceram-Décor",
+    "url": "https://www.ceram-decor.fr/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "FR",
+    "vat_status": "inclusive",
+    "category_urls": [
+      "https://www.ceram-decor.fr/475-faiences",
+      "https://www.ceram-decor.fr/476-gres"
+    ],
+    "product_pattern": "^/[^/]+/[0-9]+-[^/]+\\.html$",
+    "page_limit": 800,
+    "card_links_only": true
+  },
+  "colpaert-online": {
+    "label": "Colpaert Online",
+    "url": "https://www.colpaertonline.be/fr/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "BE",
+    "vat_status": "inclusive",
+    "category_urls": [
+      "https://www.colpaertonline.be/fr/183-maux"
+    ],
+    "product_pattern": "^/fr/[^/]+/[0-9]+-[^/]+\\.html$",
+    "page_limit": 3000,
+    "card_links_only": true
+  },
+  "sio-2": {
+    "label": "SIO-2 clays, materials and glazes",
+    "url": "https://www.sio-2.com/gb/",
+    "scraper": "sio2",
+    "scope": "materials",
+    "country": "ES",
+    "vat_status": "inclusive",
+    "category_urls": [
+      "https://www.sio-2.com/gb/66-low-fire-ceramic-clays",
+      "https://www.sio-2.com/gb/74-high-fire-ceramic-clays",
+      "https://www.sio-2.com/gb/82-specialty-ceramic-clays",
+      "https://www.sio-2.com/gb/86-porcelain",
+      "https://www.sio-2.com/gb/90-3d-printing-ceramic-clays",
+      "https://www.sio-2.com/gb/94-modelling-clay",
+      "https://www.sio-2.com/gb/97-liquid-clay",
+      "https://www.sio-2.com/gb/100-other-materials",
+      "https://www.sio-2.com/gb/68-prepared-glazes",
+      "https://www.sio-2.com/gb/76-powdered-glazes",
+      "https://www.sio-2.com/gb/83-prepared-underglazes",
+      "https://www.sio-2.com/gb/87-powdered-underglazes"
+    ],
+    "product_pattern": "^/gb/[a-z0-9-]+/[0-9]+-[^/]+\\.html$",
+    "enrich_product_pages": true,
+    "page_limit": 900,
+    "card_links_only": true,
+    "use_advertised_sitemaps": false,
+    "brand": "SiO-2",
+    "is_manufacturer": true
+  },
+  "e-cibas": {
+    "label": "e-Cibas",
+    "url": "https://www.e-cibas.com/",
+    "scraper": "wix",
+    "scope": "materials",
+    "country": "IT",
+    "vat_status": "inclusive",
+    "sitemaps": [
+      "https://www.e-cibas.com/store-products-sitemap.xml"
+    ],
+    "page_limit": 1300,
+    "note": "Wix serves complete Product JSON-LD in the server response, so no rendering is needed."
+  },
+  "keramikbedarf-online": {
+    "label": "Keramikbedarf Online",
+    "url": "https://shop.keramikbedarf-online.de/",
+    "scraper": "shopware",
+    "scope": "materials",
+    "country": "DE",
+    "vat_status": "inclusive",
+    "page_limit": 900,
+    "use_advertised_sitemaps": false,
+    "category_urls": [
+      "https://shop.keramikbedarf-online.de/Glasuren/",
+      "https://shop.keramikbedarf-online.de/Tone/",
+      "https://shop.keramikbedarf-online.de/Farben/"
+    ],
+    "product_pattern": "^/[^/]+/[0-9]+-[0-9A-Za-z.\\-]+$",
+    "card_links_only": true
+  },
+  "art4fun": {
+    "label": "Art4Fun",
+    "url": "https://www.art4fun.se/en/",
+    "scraper": "starweb",
+    "scope": "materials",
+    "country": "SE",
+    "vat_status": "inclusive",
+    "category_urls": [
+      "https://www.art4fun.se/en/category/glazes",
+      "https://www.art4fun.se/en/category/clay"
+    ],
+    "product_pattern": "^/en/product/",
+    "page_limit": 3000,
+    "use_advertised_sitemaps": false,
+    "category_page_limit": 400
+  },
+  "ceramicolours": {
+    "label": "Ceramicolours",
+    "url": "https://www.ceramicolours.it/",
+    "scraper": "ceramicolours",
+    "scope": "materials",
+    "country": "IT",
+    "vat_status": "inclusive",
+    "page_limit": 900,
+    "category_ids": [
+      5101,
+      5901,
+      5102,
+      5103,
+      5903,
+      5104,
+      5904,
+      5105,
+      5301,
+      5501,
+      5502,
+      7401,
+      7402,
+      5002,
+      5001,
+      6102,
+      6104
+    ],
+    "note": "Per-pack prices are produced by the page's own updatePrice(); each pack option is selected in the browser and the displayed price recorded. Pricing is non-linear, so it is never derived by multiplication.",
+    "product_concurrency": 1
+  },
+  "keramik-kraft": {
+    "label": "Keramik-Kraft",
+    "url": "https://www.keramik-kraft.com/",
+    "scraper": "keramik_kraft",
+    "scope": "materials",
+    "country": "DE",
+    "vat_status": "inclusive",
+    "ignore_robots": true,
+    "delay": 3.0,
+    "page_limit": 4000,
+    "note": "robots.txt allows only named search engines. Collected on an explicit operator decision, at a reduced request rate, without touching logins or access controls.",
+    "category_paths": [
+      "de/Ton.html",
+      "de/Glasuren--Engoben.html",
+      "de/Farben.html",
+      "de/Rohstoffe--Spezialprodukte.html"
+    ],
+    "product_pattern": "_[A-Za-z0-9.\\-]+\\.html",
+    "vat_rate": 0.19,
+    "category_page_limit": 600
+  },
+  "corby-kilns": {
+    "label": "Corby Kilns",
+    "url": "https://corbykilns.co.uk/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "GB"
+  },
+  "argile-nl": {
+    "label": "Art d'Argile",
+    "url": "https://argile.nl/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "NL",
+    "note": "REGRESSION: Store API returned 4567 products in Aug 2026 but now serves HTML and advertises no sitemap; recheck before relying on it"
+  },
+  "at-ceramika": {
+    "label": "At Ceramika",
+    "url": "https://at-ceramika.pl/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "PL"
+  },
+  "keramikbedarf-ch": {
+    "label": "Michel Keramikbedarf",
+    "url": "https://keramikbedarf.ch/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "CH",
+    "note": "michel.ch serves the same catalogue; scrape only one"
+  },
+  "cerama-shop": {
+    "label": "Cerama S.R.L.",
+    "url": "https://cerama.shop/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "IT"
+  },
+  "marphil": {
+    "label": "Suministros Marphil",
+    "url": "https://marphil.com/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "ES"
+  },
+  "dbi-pottery": {
+    "label": "D.B.I Pottery Supplies",
+    "url": "https://dbipottery.com/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "IE"
+  },
+  "the-makers-space": {
+    "label": "The Makers Space",
+    "url": "https://themakersspace.eu/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "CY"
+  },
+  "hiclay": {
+    "label": "Hi Clay",
+    "url": "https://hiclay.pl/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "PL"
+  },
+  "esmalte-y-barro": {
+    "label": "Esmalte y Barro",
+    "url": "https://esmalteybarro.com/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "ES"
+  },
+  "keramica-info": {
+    "label": "Ravitera / Keramica",
+    "url": "https://keramica.info/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "HR"
+  },
+  "keramikfryd": {
+    "label": "Keramikfryd",
+    "url": "https://keramikfryd.dk/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "DK"
+  },
+  "ramfos": {
+    "label": "Ramfos Ylikokeramiki",
+    "url": "https://ramfos.gr/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "GR",
+    "note": "Ramfos Ylikokeramiki; eurokeramiki.gr is a separate Greek supplier (OpenCart), not this one"
+  },
+  "paraceramica": {
+    "label": "Paraceramica",
+    "url": "https://paraceramica.com/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "ES"
+  },
+  "prodesco": {
+    "label": "Prodesco",
+    "url": "https://prodesco.es/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "ES"
+  },
+  "santiago-pidal": {
+    "label": "Santiago Pidal",
+    "url": "https://santiagopidal.es/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "ES"
+  },
+  "inglet": {
+    "label": "Inglet S.L.U.",
+    "url": "https://inglet.com/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "ES",
+    "note": "general fine-art supplier; the materials classifier carries the scope"
+  },
+  "centrado": {
+    "label": "Centrado Trading",
+    "url": "https://centrado.co/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "GB",
+    "note": "general craft supplier; thin on ceramics",
+    "brand": "Centrado",
+    "is_manufacturer": true
+  },
+  "muandu-keramika": {
+    "label": "MUANDU keramika",
+    "url": "https://muandukeramika.lt/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "LT"
+  },
+  "helena-hodell": {
+    "label": "Helena Hodell Produktion",
+    "url": "https://helenahodell.se/",
+    "scraper": "woocommerce",
+    "scope": "materials",
+    "country": "SE"
+  },
+  "potterycrafts": {
+    "label": "Potterycrafts",
+    "url": "https://potterycrafts.co.uk/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "GB"
+  },
+  "kettles-pottery": {
+    "label": "Kettles Pottery Supplies",
+    "url": "https://kettlespotterysupplies.com/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "GB"
+  },
+  "taller-gingell": {
+    "label": "Taller Gingell",
+    "url": "https://tallergingell.com/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "ES"
+  },
+  "hot-clay": {
+    "label": "Hot Clay",
+    "url": "https://hot-clay.com/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "GB"
+  },
+  "ceramista-shop": {
+    "label": "Ceramista Shop",
+    "url": "https://ceramistashop.pt/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "PT",
+    "note": "ceramistashop.com is the same catalogue"
+  },
+  "barro-ro": {
+    "label": "Barro Lab",
+    "url": "https://www.barro.ro/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "RO",
+    "note": "apex barro.ro does not resolve; use www"
+  },
+  "muda-ceramica": {
+    "label": "Muda Ceramica",
+    "url": "https://mudaceramica.com/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "PT"
+  },
+  "ulster-ceramics": {
+    "label": "Ulster Ceramics",
+    "url": "https://ulsterceramicspotterysupplies.co.uk/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "GB"
+  },
+  "art-academy-direct": {
+    "label": "Art Academy Direct",
+    "url": "https://artacademydirect.com/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "MT"
+  },
+  "poterie-du-vieux-bac": {
+    "label": "Poterie du Vieux Bac",
+    "url": "https://www.poterieduvieuxbac.com/",
+    "scraper": "shopify",
+    "scope": "materials",
+    "country": "FR",
+    "note": "apex host has a bad certificate, use www; WAF needs a browser or impersonating client"
+  },
+  "peter-lavem": {
+    "label": "Societe Peter Lavem",
+    "url": "https://www.peterlavem.fr/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "FR",
+    "note": "json-ld carries a pack-size SKU such as GB106/05"
+  },
+  "eskiss972": {
+    "label": "Eskiss / Coco Cadeaux",
+    "url": "https://www.eskiss972.com/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "FR",
+    "vat_status": "exclusive"
+  },
+  "keramicke-pece": {
+    "label": "Artik Studio",
+    "url": "https://www.keramickepece.cz/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "CZ",
+    "note": "UNRESOLVED: PrestaShop discovery finds few products"
+  },
+  "como-ceramique": {
+    "label": "Como Ceramique",
+    "url": "https://www.como-ceramique.com/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "FR",
+    "vat_status": "inclusive",
+    "note": "UNRESOLVED: sitemap points at a staging host with a bad certificate"
+  },
+  "esmalty-color": {
+    "label": "Esmaltes y Colorantes de la Rambla",
+    "url": "https://www.esmaltycolor.com/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "ES"
+  },
+  "cigale-et-fourmi": {
+    "label": "Cigale et Fourmi",
+    "url": "https://www.cigaleetfourmi.fr/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "FR",
+    "vat_status": "inclusive"
+  },
+  "keramikos": {
+    "label": "Keramikos",
+    "url": "https://www.keramikos.nl/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "NL",
+    "note": "shop confirmed by hand; product discovery still needs checking"
+  },
+  "pappel": {
+    "label": "Pappel Espanola",
+    "url": "https://www.pappel.com/",
+    "scraper": "prestashop",
+    "scope": "materials",
+    "country": "ES",
+    "note": "UNRESOLVED: only 1 product URL discovered"
+  },
+  "potclays": {
+    "label": "Potclays",
+    "url": "https://www.potclays.co.uk/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "GB",
+    "note": "json-ld Product with sku; sitemap index mixes categories and blog, so the product sub-sitemaps are named explicitly",
+    "sitemaps": [
+      "https://www.potclays.co.uk/_cache/sitemap_products_1.xml",
+      "https://www.potclays.co.uk/_cache/sitemap_products_2.xml",
+      "https://www.potclays.co.uk/_cache/sitemap_products_3.xml",
+      "https://www.potclays.co.uk/_cache/sitemap_products_4.xml",
+      "https://www.potclays.co.uk/_cache/sitemap_products_5.xml"
+    ]
+  },
+  "keramik-kriese": {
+    "label": "Keramik-Kriese",
+    "url": "https://keramik-kriese-shop.gambiocloud.com/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "DE",
+    "vat_status": "exclusive"
+  },
+  "ceramiq-pl": {
+    "label": "Ceramiq.pl",
+    "url": "https://www.ceramiq.pl/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "PL",
+    "vat_status": "exclusive",
+    "product_pattern": "-p-\\d",
+    "note": "UNRESOLVED: sitemap holds categories, not products; needs a category walk"
+  },
+  "toepferbedarf-brock": {
+    "label": "MTL Brock",
+    "url": "https://www.toepferbedarf-brock.de/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "DE",
+    "sitemaps": [
+      "https://www.toepferbedarf-brock.de/export/sitemap_0.xml.gz"
+    ],
+    "note": "JTL; sitemap is almost entirely products"
+  },
+  "keramika-do-skol": {
+    "label": "Keramika do skol",
+    "url": "https://www.keramikadoskol.cz/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "CZ",
+    "product_pattern": "^/(?!znacka/)[^/]+/[^/]+/?$",
+    "note": "Shoptet; /znacka/ is a brand index"
+  },
+  "sklep-heho": {
+    "label": "HEHO sklep dla ceramika",
+    "url": "https://heho.pl/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "PL",
+    "vat_status": "exclusive",
+    "product_pattern": "^/pl/p/",
+    "note": "Shoper: /pl/p/<slug> is the product page"
+  },
+  "artequipment": {
+    "label": "Art-Equipment",
+    "url": "https://artequipment.pl/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "PL",
+    "product_pattern": "/p\\d+,",
+    "note": "UNRESOLVED: discovery finds assets, not products; needs a category walk"
+  },
+  "mayco-glasuren": {
+    "label": "Toepferstudio Alte Scheuer",
+    "url": "https://mayco-glasuren.de/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "DE",
+    "brand": "Mayco",
+    "product_pattern": "^/p/",
+    "note": "UNRESOLVED: ePages; /p/ pattern matches only 5 sitemap URLs"
+  },
+  "hobbyland": {
+    "label": "Hobbyland",
+    "url": "https://www.hobbyland.eu/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "IT",
+    "sitemaps": [
+      "https://www.hobbyland.eu/sitemap_product_it.xml"
+    ],
+    "product_pattern": "^/ita/",
+    "note": "five language mirrors; Italian is the native one"
+  },
+  "silexshop": {
+    "label": "Silex / Totaal Service",
+    "url": "https://www.silexshop.nl/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "NL",
+    "vat_status": "exclusive",
+    "sitemaps": [
+      "https://www.silexshop.nl/product-sitemap.xml",
+      "https://www.silexshop.nl/product-sitemap2.xml",
+      "https://www.silexshop.nl/product-sitemap3.xml",
+      "https://www.silexshop.nl/product-sitemap4.xml",
+      "https://www.silexshop.nl/product-sitemap5.xml",
+      "https://www.silexshop.nl/product-sitemap6.xml",
+      "https://www.silexshop.nl/product-sitemap7.xml"
+    ],
+    "product_pattern": "^/product/",
+    "note": "WooCommerce without the Store API"
+  },
+  "arte-y-ceramica": {
+    "label": "Arte y Ceramica de Galicia",
+    "url": "https://www.arteyceramica.es/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "ES",
+    "sitemaps": [
+      "https://www.arteyceramica.es/sitemap/sitemapproducts.xml"
+    ]
+  },
+  "countrylove": {
+    "label": "Country Love Crafts",
+    "url": "https://www.countrylovecrafts.com/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "GB",
+    "note": "UNRESOLVED: 18k URLs discovered, no product markup read"
+  },
+  "cromartie": {
+    "label": "Cromartie Hobbycraft",
+    "url": "https://www.cromartiehobbycraft.co.uk/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "GB",
+    "product_pattern": "^/Catalogue/",
+    "note": "UNRESOLVED: sitemap-catalogue.ashx advertises URLs that 404; needs a category walk"
+  },
+  "davaart": {
+    "label": "DAVA Art & Fun",
+    "url": "https://www.davaart.ro/",
+    "scraper": "wix",
+    "scope": "materials",
+    "country": "RO",
+    "sitemaps": [
+      "https://www.davaart.ro/store-products-sitemap.xml"
+    ],
+    "product_pattern": "^/product-page/",
+    "note": "Wix store; json-ld is rendered client-side so the wix scraper is needed"
+  },
+  "kadar-ceramica": {
+    "label": "Kadar Ceramica",
+    "url": "https://kadarceramica.com/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "ES",
+    "sitemaps": [
+      "https://kadarceramica.com/product-sitemap.xml"
+    ],
+    "product_pattern": "^/producto/"
+  },
+  "mestrebras": {
+    "label": "Loja Mestre Bras",
+    "url": "https://www.mestrebras.pt/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "PT",
+    "vat_status": "exclusive",
+    "sitemaps": [
+      "https://www.mestrebras.pt/sitemap/products_1.xml.gz"
+    ],
+    "product_pattern": "^/product/"
+  },
+  "cerama-dk": {
+    "label": "Cerama",
+    "url": "https://cerama.dk/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "DK",
+    "note": "cebex.se serves the same catalogue via cerama.se"
+  },
+  "keramik-toepfern": {
+    "label": "Borkheider Werkstatt",
+    "url": "https://www.keramik-toepfern.de/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "DE",
+    "product_pattern": "^/p/",
+    "note": "ePages"
+  },
+  "keramikbedarf-de": {
+    "label": "Hans Wolbring Keramikbedarf",
+    "url": "https://www.keramikbedarf.de/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "DE",
+    "product_pattern": "^/p/",
+    "note": "ePages"
+  },
+  "bsz-keramikbedarf": {
+    "label": "BSZ Keramikbedarf",
+    "url": "https://www.bsz-keramikbedarf.de/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "DE",
+    "vat_status": "exclusive",
+    "product_pattern": "cl=details|anid=",
+    "note": "UNRESOLVED: OXID; cl=details pattern finds nothing"
+  },
+  "toepferspass": {
+    "label": "Rantzauer Toepferbedarf",
+    "url": "https://toepferspass.de/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "DE",
+    "vat_status": "inclusive",
+    "product_pattern": "/product-",
+    "note": "UNRESOLVED: only 7 product URLs discovered"
+  },
+  "keramikams-lt": {
+    "label": "Suvena / Keramikams.lt",
+    "url": "https://keramikams.lt/",
+    "scraper": "pagecrawl",
+    "scope": "materials",
+    "country": "LT",
+    "render": true,
+    "delay": 1.0,
+    "category_urls": [
+      "https://keramikams.lt/product-catalogue/glazes-for-ceramic",
+      "https://keramikams.lt/product-catalogue/clays",
+      "https://keramikams.lt/product-catalogue/raw-materials-for-glazes-and-masses"
+    ],
+    "note": "needs --browser always (Cloudflare challenge); see distributors/scrape-candidates.md"
+  }
+}

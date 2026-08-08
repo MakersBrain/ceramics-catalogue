@@ -1,0 +1,1703 @@
+{
+  "digest": "e2c5d1c3c6d534cd1264fac41bba5fa5df1633df4cd2f6a56cb41e941d05ce9a",
+  "discovered": 807,
+  "error_count": 0,
+  "errors": [],
+  "extraction_method": "dom",
+  "field_coverage": {
+    "all_image_urls": 787,
+    "brand": 787,
+    "category_path": 787,
+    "claims": 379,
+    "colour": 782,
+    "description": 785,
+    "documents": 0,
+    "effects": 701,
+    "family": 787,
+    "firing": 672,
+    "form": 706,
+    "gtin": 0,
+    "manufacturer_sku": 461,
+    "package_size": 785,
+    "stock_quantity": 756,
+    "supplier_reference": 787,
+    "surface": 766,
+    "unit_price": 785,
+    "vat_status": 787
+  },
+  "notes": [
+    "807 product URLs from category pages"
+  ],
+  "records": 787,
+  "rendered_pages": 0,
+  "requests": 849,
+  "sample": [
+    {
+      "all_image_urls": [
+        "https://www.sio-2.com/2694-thickbox_default/pf-red-12-5kg.jpg",
+        "https://www.sio-2.com/3214-thickbox_default/pf-red-12-5kg.jpg",
+        "https://www.sio-2.com/3501-thickbox_default/pf-red-12-5kg.jpg",
+        "https://www.sio-2.com/3502-thickbox_default/pf-red-12-5kg.jpg",
+        "https://www.sio-2.com/3522-thickbox_default/pf-red-12-5kg.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "SiO-2",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "Home",
+        "Online Store",
+        "Clays & materials",
+        "Low fire ceramic clays",
+        "SIO-2 PF red 12.5kg"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "Conforms to ASTM D-4236.",
+          "type": "standard_conformity"
+        },
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "ACMI AP Seal .",
+          "type": "certification_mark"
+        }
+      ],
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "PF red"
+      },
+      "currency": "EUR",
+      "description": "Traditional red earthenware clay. It is a high quality and polyvalent clay, very popular for its fineness and plasticity. Its coefficients of thermal expansion are ideal for standard pottery glazes, in both single and twice firing processes. Incredible results in reducing atmosphere can be obtained (metallic reflection technique). Available in powder (dry form) and extruded body (moist form) in a wide range of water content depending on the shaping application: wheel-throwing, modelling and shaping processes (extruding and pressing). Firing range*: 970-1055 ºC / Cone 07-04 Water content (throwing): 22 % Plasticity (IP Atterberg): 17 Carbonate content (CaCO3): 10 % Drying shrinkage: 5.5 % Firing shrinkage 1000 ºC: 0.6 % Porosity (water absorption) 1000 ºC: 13.5 % Dry bending strength: 6.6 N/mm2 Fired bending strength 1000 ºC: 27.9 N/mm2 Thermal coefficient 1000 ºC (25-500 ºC): 77.7x10^-7 ºC^-1 Available in the United States and Canada. ACMI AP Seal . Conforms to ASTM D-4236. (*) Firing range recommended for the clay to develop its best performance, both in terms of technical and safety characteristics, under conventional firing conditions. The colour samples may show temperatures outside the recommended range to provide a broader view, but these are pieces fired under controlled conditions. Cone equivalence according to Orton table for self-supporting cones, regular-SSB and 60 ºC/hr heating rate.",
+      "documents": null,
+      "effects": null,
+      "external_id": "sio-2:https://www.sio-2.com/gb/low-fire-ceramic-clays/1670-pf-red-12-5kg-8422830101016.html#0",
+      "extraction_method": "dom",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "cone_max": "04",
+        "cone_min": "07",
+        "cone_system": "orton",
+        "evidence": "970-1055 ºC | Cone 07-04",
+        "max_celsius": 1055,
+        "min_celsius": 970
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.sio-2.com/2694-thickbox_default/pf-red-12-5kg.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "material_kind": "low-fire-ceramic-clays",
+      "min_order_quantity": null,
+      "name": "PF red",
+      "name_parsed_from": [
+        "12.5kg",
+        "SIO-2",
+        "SiO-2"
+      ],
+      "name_raw": "SIO-2 PF red 12.5kg",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "12,5 kg",
+        "grams": 12500.0,
+        "unit": "kg",
+        "value": 12.5
+      },
+      "parent_external_id": "sio-2:https://www.sio-2.com/gb/low-fire-ceramic-clays/1670-pf-red-12-5kg-8422830101016.html",
+      "price": 6.32,
+      "price_text": "€6.32",
+      "product_name": "SIO-2 PF red 12.5kg",
+      "product_url": "https://www.sio-2.com/gb/low-fire-ceramic-clays/1670-pf-red-12-5kg-8422830101016.html",
+      "raw": {
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": "0",
+        "allow_oosp": 0,
+        "attachments": [
+          {
+            "description": ".",
+            "file": "20240925285528993_65",
+            "file_name": "es_ficha técnica pf (esp-eng).pdf",
+            "file_size": "0",
+            "file_size_formatted": "0",
+            "id_attachment": "152",
+            "id_lang": "6",
+            "id_product": "1670",
+            "mime": "application/pdf",
+            "name": "Technical sheet"
+          },
+          {
+            "description": ".",
+            "file": "20240925285528911_6",
+            "file_name": "es_msds pf (esp).pdf",
+            "file_size": "0",
+            "file_size_formatted": "0",
+            "id_attachment": "174",
+            "id_lang": "6",
+            "id_product": "1670",
+            "mime": "application/pdf",
+            "name": "Safety sheet MSDS"
+          },
+          {
+            "description": ".",
+            "file": "20240925285528936_24",
+            "file_name": "fr_msds pf (fra).pdf",
+            "file_size": "0",
+            "file_size_formatted": "0",
+            "id_attachment": "195",
+            "id_lang": "6",
+            "id_product": "1670",
+            "mime": "application/pdf",
+            "name": "Safety sheet MSDS"
+          },
+          {
+            "description": ".",
+            "file": "20240925285528963_43",
+            "file_name": "gb_msds pf (eng).pdf",
+            "file_size": "0",
+            "file_size_formatted": "0",
+            "id_attachment": "214",
+            "id_lang": "6",
+            "id_product": "1670",
+            "mime": "application/pdf",
+            "name": "Safety sheet MSDS"
+          }
+        ],
+        "attribute_price": 0,
+        "availability": "available",
+        "availability_date": null,
+        "availability_message": "Disponible",
+        "available_date": "0000-00-00",
+        "available_for_order": "1",
+        "available_later": "Consultar plazo de entrega",
+        "available_now": "Disponible",
+        "cache_default_attribute": "0",
+        "category": "low-fire-ceramic-clays",
+        "category_name": "Low fire ceramic clays",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 162,
+              "url": "https://www.sio-2.com/2694-cart_default/pf-red-12-5kg.jpg",
+              "width": 125
+            },
+            "home_default": {
+              "height": 305,
+              "url": "https://www.sio-2.com/2694-home_default/pf-red-12-5kg.jpg",
+              "width": 236
+            },
+            "large_default": {
+              "height": 492,
+              "url": "https://www.sio-2.com/2694-large_default/pf-red-12-5kg.jpg",
+              "width": 381
+            },
+            "medium_default": {
+              "height": 584,
+              "url": "https://www.sio-2.com/2694-medium_default/pf-red-12-5kg.jpg",
+              "width": 452
+            },
+            "small_default": {
+              "height": 127,
+              "url": "https://www.sio-2.com/2694-small_default/pf-red-12-5kg.jpg",
+              "width": 98
+            },
+            "thickbox_default": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/2694-thickbox_default/pf-red-12-5kg.jpg",
+              "width": 1100
+            }
+          },
+          "cover": "1",
+          "id_image": "2694",
+          "large": {
+            "height": 1422,
+            "url": "https://www.sio-2.com/2694-thickbox_default/pf-red-12-5kg.jpg",
+            "width": 1100
+          },
+          "legend": "SIO-2 PF roja 12.5kg",
+          "medium": {
+            "height": 492,
+            "url": "https://www.sio-2.com/2694-large_default/pf-red-12-5kg.jpg",
+            "width": 381
+          },
+          "position": "1",
+          "small": {
+            "height": 127,
+            "url": "https://www.sio-2.com/2694-small_default/pf-red-12-5kg.jpg",
+            "width": 98
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": "0",
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2022-07-07 16:13:00",
+        "date_upd": "2026-07-11 01:44:33",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "<P>Traditional red earthenware clay. It is a high quality and polyvalent clay, very popular for its fineness and plasticity. Its coefficients of thermal expansion are ideal for standard pottery glazes, in both single and twice firing processes. Incredible results in reducing atmosphere can be obtained (metallic reflection technique). Available in powder (dry form) and extruded body (moist form) in a wide range of water content depending on the shaping application: wheel-throwing, modelling and shaping processes (extruding and pressing).</P>\n<P>Firing range*:&nbsp;<STRONG>970-1055 ºC</STRONG> /&nbsp;<STRONG>Cone 07-04</STRONG><BR>Water content (throwing): 22 %<BR>Plasticity (IP Atterberg): 17<BR>Carbonate content (CaCO3): 10 %<BR>Drying shrinkage: 5.5 %<BR>Firing shrinkage 1000 ºC: 0.6 %<BR>Porosity (water absorption)&nbsp;1000 ºC: 13.5 %<BR>Dry bending strength: 6.6 N/mm2<BR>Fired bending strength 1000 ºC: 27.9 N/mm2<BR>Thermal coefficient 1000 ºC&nbsp;(25-500 ºC): 77.7x10^-7 ºC^-1</P>\n<P>Available in the United States and Canada. ACMI <STRONG>AP Seal</STRONG>. Conforms to ASTM D-4236.</P>\n<P></P>\n<P></P>\n<P>(*) Firing range recommended for the clay to develop its best performance, both in terms of technical and safety characteristics, under conventional firing conditions. The colour samples may show temperatures outside the recommended range to provide a broader view, but these are pieces fired under controlled conditions. Cone equivalence according to Orton table for self-supporting cones, regular-SSB and 60 ºC/hr heating rate. </P>",
+        "description_short": "Red earthenware",
+        "discount_amount": "€0.00",
+        "discount_amount_to_display": "-€0.00",
+        "discount_percentage": "0%",
+        "discount_percentage_absolute": "0%",
+        "discount_type": "percentage",
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [
+          {
+            "attr": {
+              "class": "",
+              "data-iqitextra": "iqit-reviews-tab",
+              "id": "iqit-reviews-tab"
+            },
+            "content": "\n<div id=\"iqit-reviews\" class=\"mt-3\">\n\n    <div id=\"iqit-reviews-top\">\n        <div class=\"row justify-content-between align-items-center\">\n\n            <div class=\"col mb-3\">\n                                <div id=\"iqitreviews-snippet\">\n\n\n                \n                <span class=\"iqitreviews-rating\">\n                                                <i class=\"fa fa-star iqit-review-star\"></i>\n                                                                <i class=\"fa fa-star iqit-review-star\"></i>\n                                                                <i class=\"fa fa-star iqit-review-star\"></i>\n                                                                <i class=\"fa fa-star iqit-review-star\"></i>\n                                                                <i class=\"fa fa-star-o iqit-review-star\"></i>\n                                        </span>\n\n            1 Reviews\n            </div>\n                    </div>\n\n        \n    </div> <!-- / .row -->\n</div><!-- / #iqit-reviews-top -->\n\n\n<div class=\"col-xs-12 alert alert-success hidden-xs-up\"\n     id=\"iqitreviews-productreview-form-success-alert\">\n</div>\n\n\n\n\n\n    <div id=\"iqitreviews-list\">\n\n        <script type=\"application/ld+json\">\n                {\n                    \"@context\": \"http://schema.org\",\n                    \"@type\": \"Product\",\n                    \"id\": \"#product-snippet-id\",\n                    \"aggregateRating\": {\n                        \"@type\": \"AggregateRating\",\n                        \"ratingValue\": \"4\",\n                        \"reviewCount\": \"1\"\n                  }\n                }\n            </script>\n\n        \n            <script type=\"application/ld+json\">\n                {\n                    \"@context\": \"http://schema.org\",\n                    \"@type\": \"Product\",\n                    \"id\": \"#product-snippet-id\",\n                    \"review\": {\n                        \"@type\": \"Review\",\n                        \"reviewBody\": \"Cela fait un bon moment que j&#039;utilise cette pâte et elle est idéale pour mes pièces faites au tour\",\n                        \"name\": \"PF\",\n                        \"reviewRating\": {\n                            \"@type\": \"Rating\",\n                            \"ratingValue\": \"4\",\n                            \"worstRating\": \"1\",\n                            \"bestRating\": \"5\"\n                        },\n                        \"datePublished\": \"2025-06-10\",\n                        \"author\": {\n                            \"@type\": \"Person\",\n                            \"name\": \"Étienne \"\n                        }\n                    }\n                }\n            </script>\n\n            \n\n            <div class=\"iqitreviews-review\">\n                <hr />\n\n                <div class=\"title\"><strong>PF</strong></div>\n\n                <div class=\"rating\">\n\n                                                                        <i class=\"fa fa-star iqit-review-star\"></i>\n                                                                                                <i class=\"fa fa-star iqit-review-star\"></i>\n                                                                                                <i class=\"fa fa-star iqit-review-star\"></i>\n                                                                                                <i class=\"fa fa-star iqit-review-star\"></i>\n                                                                                                <i class=\"fa fa-star-o iqit-review-star\"></i>\n                                                            </div>\n\n                <div class=\"comment\">Cela fait un bon moment que j'utilise cette pâte et elle est idéale pour mes pièces faites au tour</div>\n\n                <div class=\"author\">\n                   <span >By <span>Étienne </span></span>\n\n                    on <span> 2025-06-10</span>\n                </div>\n\n            </div>\n            </div>\n\n</div>\n\n",
+            "moduleName": "iqitreviews",
+            "title": "<span class=\"iqitreviews-title float-left\">Reviews</span> <span class=\"iqitreviews-nb\">(1)</span>"
+          }
+        ],
+        "features": [
+          {
+            "id_feature": "16",
+            "name": "Brand",
+            "position": "0",
+            "value": "SIO-2"
+          },
+          {
+            "id_feature": "1",
+            "name": "Firing",
+            "position": "1",
+            "value": "Ceramic kiln low fire"
+          },
+          {
+            "id_feature": "4",
+            "name": "Weight/Volume",
+            "position": "4",
+            "value": "12,5 kg"
+          },
+          {
+            "id_feature": "5",
+            "name": "Grog",
+            "position": "5",
+            "value": "Ungrogged"
+          },
+          {
+            "id_feature": "6",
+            "name": "State",
+            "position": "6",
+            "value": "Moist form (plastic body)"
+          },
+          {
+            "id_feature": "7",
+            "name": "Stiffness",
+            "position": "7",
+            "value": "4 throwing and modelling"
+          }
+        ],
+        "has_discount": false,
+        "id": 1670,
+        "id_category_default": "66",
+        "id_customization": 0,
+        "id_image": "gb-default",
+        "id_manufacturer": "42",
+        "id_product": 1670,
+        "id_product_attribute": "0",
+        "id_shop_default": "1",
+        "id_supplier": "1",
+        "id_type_redirected": "0",
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.sio-2.com/2694-cart_default/pf-red-12-5kg.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.sio-2.com/2694-home_default/pf-red-12-5kg.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.sio-2.com/2694-large_default/pf-red-12-5kg.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.sio-2.com/2694-medium_default/pf-red-12-5kg.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.sio-2.com/2694-small_default/pf-red-12-5kg.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.sio-2.com/2694-thickbox_default/pf-red-12-5kg.jpg",
+                "width": 1100
+              }
+            },
+            "cover": "1",
+            "id_image": "2694",
+            "large": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/2694-thickbox_default/pf-red-12-5kg.jpg",
+              "width": 1100
+            },
+            "legend": "SIO-2 PF roja 12.5kg",
+            "medium": {
+              "height": 492,
+              "url": "https://www.sio-2.com/2694-large_default/pf-red-12-5kg.jpg",
+              "width": 381
+            },
+            "position": "1",
+            "small": {
+              "height": 127,
+              "url": "https://www.sio-2.com/2694-small_default/pf-red-12-5kg.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.sio-2.com/3214-cart_default/pf-red-12-5kg.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.sio-2.com/3214-home_default/pf-red-12-5kg.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.sio-2.com/3214-large_default/pf-red-12-5kg.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.sio-2.com/3214-medium_default/pf-red-12-5kg.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.sio-2.com/3214-small_default/pf-red-12-5kg.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.sio-2.com/3214-thickbox_default/pf-red-12-5kg.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "3214",
+            "large": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/3214-thickbox_default/pf-red-12-5kg.jpg",
+              "width": 1100
+            },
+            "legend": "PF 12.5kg",
+            "medium": {
+              "height": 492,
+              "url": "https://www.sio-2.com/3214-large_default/pf-red-12-5kg.jpg",
+              "width": 381
+            },
+            "position": "2",
+            "small": {
+              "height": 127,
+              "url": "https://www.sio-2.com/3214-small_default/pf-red-12-5kg.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.sio-2.com/3501-cart_default/pf-red-12-5kg.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.sio-2.com/3501-home_default/pf-red-12-5kg.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.sio-2.com/3501-large_default/pf-red-12-5kg.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.sio-2.com/3501-medium_default/pf-red-12-5kg.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.sio-2.com/3501-small_default/pf-red-12-5kg.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.sio-2.com/3501-thickbox_default/pf-red-12-5kg.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "3501",
+            "large": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/3501-thickbox_default/pf-red-12-5kg.jpg",
+              "width": 1100
+            },
+            "legend": "PF roja 12.5kg",
+            "medium": {
+              "height": 492,
+              "url": "https://www.sio-2.com/3501-large_default/pf-red-12-5kg.jpg",
+              "width": 381
+            },
+            "position": "3",
+            "small": {
+              "height": 127,
+              "url": "https://www.sio-2.com/3501-small_default/pf-red-12-5kg.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.sio-2.com/3502-cart_default/pf-red-12-5kg.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.sio-2.com/3502-home_default/pf-red-12-5kg.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.sio-2.com/3502-large_default/pf-red-12-5kg.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.sio-2.com/3502-medium_default/pf-red-12-5kg.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.sio-2.com/3502-small_default/pf-red-12-5kg.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.sio-2.com/3502-thickbox_default/pf-red-12-5kg.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "3502",
+            "large": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/3502-thickbox_default/pf-red-12-5kg.jpg",
+              "width": 1100
+            },
+            "legend": "PF 12.5kg",
+            "medium": {
+              "height": 492,
+              "url": "https://www.sio-2.com/3502-large_default/pf-red-12-5kg.jpg",
+              "width": 381
+            },
+            "position": "4",
+            "small": {
+              "height": 127,
+              "url": "https://www.sio-2.com/3502-small_default/pf-red-12-5kg.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.sio-2.com/3522-cart_default/pf-red-12-5kg.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.sio-2.com/3522-home_default/pf-red-12-5kg.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.sio-2.com/3522-large_default/pf-red-12-5kg.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.sio-2.com/3522-medium_default/pf-red-12-5kg.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.sio-2.com/3522-small_default/pf-red-12-5kg.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.sio-2.com/3522-thickbox_default/pf-red-12-5kg.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "3522",
+            "large": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/3522-thickbox_default/pf-red-12-5kg.jpg",
+              "width": 1100
+            },
+            "legend": "PF 12.5kg",
+            "medium": {
+              "height": 492,
+              "url": "https://www.sio-2.com/3522-large_default/pf-red-12-5kg.jpg",
+              "width": 381
+            },
+            "position": "5",
+            "small": {
+              "height": 127,
+              "url": "https://www.sio-2.com/3522-small_default/pf-red-12-5kg.jpg",
+              "width": 98
+            }
+          }
+        ],
+        "indexed": "1",
+        "is_customizable": false,
+        "is_virtual": "0",
+        "link": "https://www.sio-2.com/gb/low-fire-ceramic-clays/1670-pf-red-12-5kg-8422830101016.html",
+        "link_rewrite": "pf-red-12-5kg",
+        "low_stock_alert": "0",
+        "low_stock_threshold": "0",
+        "meta_description": "PF red 12.5kg",
+        "meta_keywords": "PF red 12.5kg",
+        "meta_title": "PF red 12.5kg",
+        "minimal_quantity": "1",
+        "name": "SIO-2 PF red 12.5kg",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": "0",
+        "online_only": "0",
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": "0",
+        "price": "€6.32",
+        "price_amount": 6.32,
+        "price_tax_exc": 5.22,
+        "price_without_reduction": 6.3162,
+        "quantity": 201,
+        "quantity_all_versions": 201,
+        "quantity_discounts": [
+          {
+            "discount": "€4.32",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "96",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "1",
+            "id_product": "1670",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "19402",
+            "id_specific_price_rule": "0",
+            "nextQuantity": -1,
+            "price": "2.000000",
+            "quantity": "96",
+            "real_value": 4.3162,
+            "reduction": "0.000000",
+            "reduction_tax": "0",
+            "reduction_type": "percentage",
+            "save": "€414.36",
+            "score": "34",
+            "to": "0000-00-00 00:00:00"
+          }
+        ],
+        "quantity_label": "Items",
+        "quantity_wanted": 1,
+        "rate": 21,
+        "redirect_type": "404",
+        "reduction": 0,
+        "reference": "101000130000",
+        "show_availability": true,
+        "show_condition": "0",
+        "show_price": "1",
+        "show_quantities": true,
+        "specific_prices": {
+          "from": "0000-00-00 00:00:00",
+          "from_quantity": "0",
+          "id_cart": "0",
+          "id_country": "0",
+          "id_currency": "0",
+          "id_customer": "0",
+          "id_group": "1",
+          "id_product": "1670",
+          "id_product_attribute": "0",
+          "id_shop": "0",
+          "id_shop_group": "0",
+          "id_specific_price": "21513",
+          "id_specific_price_rule": "0",
+          "price": 5.22,
+          "reduction": "0.000000",
+          "reduction_tax": "0",
+          "reduction_type": "percentage",
+          "score": "34",
+          "to": "0000-00-00 00:00:00"
+        },
+        "tax_name": "Nacional Normal",
+        "text_fields": "0",
+        "unit_price": "",
+        "unit_price_full": "",
+        "unit_price_ratio": "0.000000",
+        "unity": "",
+        "uploadable_files": "0",
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "sio-2",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-07-11 01:44:33",
+      "stock_quantity": 201,
+      "supplier_reference": "101000130000",
+      "surface": "matte",
+      "technical_attributes": {
+        "Brand": "SIO-2",
+        "Firing": "Ceramic kiln low fire",
+        "Grog": "Ungrogged",
+        "State": "Moist form (plastic body)",
+        "Stiffness": "4 throwing and modelling",
+        "Weight/Volume": "12,5 kg"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 0.5056
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.sio-2.com/2697-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+        "https://www.sio-2.com/3215-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+        "https://www.sio-2.com/2585-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/InStock",
+      "brand": "SiO-2",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "Home",
+        "Online Store",
+        "Clays & materials",
+        "Low fire ceramic clays",
+        "SIO-2 PF/CHF grogged red 0-0.5mm 12.5kg"
+      ],
+      "claims": null,
+      "coats": null,
+      "colour": {
+        "basis": "product_name",
+        "name": "PF/CHF grogged red 0-0.5mm"
+      },
+      "currency": "EUR",
+      "description": "Red earthenware clay with 20 % fine grog 0-0.5 mm (up to 35 Mesh). Ideal for medium size pieces. The presence of grog confers to the clay a very interesting textured surface (not flat) which, in turn, provides a set of suitable properties for the design of pieces in complex drying situations, thus avoiding the creation of deformations and cracks. Available in extruded body (moist form), being suitable for shaping and modelling. Firing range*: 970-1055 ºC / Cone 07-04 Water content (throwing): 19 % Plasticity (IP Atterberg): 14 Carbonate content (CaCO3): 8 % Drying shrinkage: 5.1 % Firing shrinkage 1000 ºC: 0.3 % Porosity (water absorption) 1000 ºC: 14.2 % Dry bending strength: 6.0 N/mm2 Fired bending strength 1000 ºC: 22.5 N/mm2 Thermal coefficient 1000 ºC (25-500 ºC): 73.7x10^-7 ºC^-1 (*) Firing range recommended for the clay to develop its best performance, both in terms of technical and safety characteristics, under conventional firing conditions. The colour samples may show temperatures outside the recommended range to provide a broader view, but these are pieces fired under controlled conditions. Cone equivalence according to Orton table for self-supporting cones, regular-SSB and 60 ºC/hr heating rate.",
+      "documents": null,
+      "effects": null,
+      "external_id": "sio-2:https://www.sio-2.com/gb/low-fire-ceramic-clays/1672-pfchf-red-grog-0-05mm-12-5kg-8422830101023.html#0",
+      "extraction_method": "dom",
+      "family": "clay_body",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "cone_max": "04",
+        "cone_min": "07",
+        "cone_system": "orton",
+        "evidence": "970-1055 ºC | Cone 07-04",
+        "max_celsius": 1055,
+        "min_celsius": 970
+      },
+      "form": null,
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.sio-2.com/2697-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+      "list_price": null,
+      "manufacturer_sku": null,
+      "manufacturer_sku_basis": null,
+      "material_kind": "low-fire-ceramic-clays",
+      "min_order_quantity": null,
+      "name": "PF/CHF grogged red 0-0.5mm",
+      "name_parsed_from": [
+        "12.5kg",
+        "SIO-2",
+        "SiO-2"
+      ],
+      "name_raw": "SIO-2 PF/CHF grogged red 0-0.5mm 12.5kg",
+      "package_size": {
+        "dimension": "weight",
+        "evidence": "12,5 kg",
+        "grams": 12500.0,
+        "unit": "kg",
+        "value": 12.5
+      },
+      "parent_external_id": "sio-2:https://www.sio-2.com/gb/low-fire-ceramic-clays/1672-pfchf-red-grog-0-05mm-12-5kg-8422830101023.html",
+      "price": 7.72,
+      "price_text": "€7.72",
+      "product_name": "SIO-2 PF/CHF grogged red 0-0.5mm 12.5kg",
+      "product_url": "https://www.sio-2.com/gb/low-fire-ceramic-clays/1672-pfchf-red-grog-0-05mm-12-5kg-8422830101023.html",
+      "raw": {
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": "0",
+        "allow_oosp": 0,
+        "attachments": [
+          {
+            "description": ".",
+            "file": "20240925285528994_66",
+            "file_name": "es_ficha técnica pfchf (esp-eng).pdf",
+            "file_size": "0",
+            "file_size_formatted": "0",
+            "id_attachment": "153",
+            "id_lang": "6",
+            "id_product": "1672",
+            "mime": "application/pdf",
+            "name": "Technical sheet"
+          },
+          {
+            "description": ".",
+            "file": "20240925285528913_7",
+            "file_name": "es_msds pfch (esp).pdf",
+            "file_size": "0",
+            "file_size_formatted": "0",
+            "id_attachment": "175",
+            "id_lang": "6",
+            "id_product": "1672",
+            "mime": "application/pdf",
+            "name": "Safety sheet MSDS"
+          },
+          {
+            "description": ".",
+            "file": "20240925285528938_25",
+            "file_name": "fr_msds pfch (fra).pdf",
+            "file_size": "0",
+            "file_size_formatted": "0",
+            "id_attachment": "196",
+            "id_lang": "6",
+            "id_product": "1672",
+            "mime": "application/pdf",
+            "name": "Safety sheet MSDS"
+          },
+          {
+            "description": ".",
+            "file": "20240925285528964_44",
+            "file_name": "gb_msds pfch (eng).pdf",
+            "file_size": "0",
+            "file_size_formatted": "0",
+            "id_attachment": "215",
+            "id_lang": "6",
+            "id_product": "1672",
+            "mime": "application/pdf",
+            "name": "Safety sheet MSDS"
+          }
+        ],
+        "attribute_price": 0,
+        "availability": "available",
+        "availability_date": null,
+        "availability_message": "Disponible",
+        "available_date": "0000-00-00",
+        "available_for_order": "1",
+        "available_later": "Consultar plazo de entrega",
+        "available_now": "Disponible",
+        "cache_default_attribute": "0",
+        "category": "low-fire-ceramic-clays",
+        "category_name": "Low fire ceramic clays",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 162,
+              "url": "https://www.sio-2.com/2697-cart_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 125
+            },
+            "home_default": {
+              "height": 305,
+              "url": "https://www.sio-2.com/2697-home_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 236
+            },
+            "large_default": {
+              "height": 492,
+              "url": "https://www.sio-2.com/2697-large_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 381
+            },
+            "medium_default": {
+              "height": 584,
+              "url": "https://www.sio-2.com/2697-medium_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 452
+            },
+            "small_default": {
+              "height": 127,
+              "url": "https://www.sio-2.com/2697-small_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 98
+            },
+            "thickbox_default": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/2697-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 1100
+            }
+          },
+          "cover": "1",
+          "id_image": "2697",
+          "large": {
+            "height": 1422,
+            "url": "https://www.sio-2.com/2697-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+            "width": 1100
+          },
+          "legend": "SIO-2 PF/CHF roja chamotada 0-0.5mm 12.5kg",
+          "medium": {
+            "height": 492,
+            "url": "https://www.sio-2.com/2697-large_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+            "width": 381
+          },
+          "position": "1",
+          "small": {
+            "height": 127,
+            "url": "https://www.sio-2.com/2697-small_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+            "width": 98
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": "0",
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2022-07-07 16:13:00",
+        "date_upd": "2026-07-16 01:33:48",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "<P>Red earthenware clay with 20 % fine grog 0-0.5 mm (up to 35 Mesh). Ideal for medium size pieces. The presence of grog confers to the clay a very interesting textured surface (not flat) which, in turn, provides a set of suitable properties for the design of pieces in complex drying situations, thus avoiding the creation of deformations and cracks. Available in extruded body (moist form), being suitable for shaping and modelling.</P>\n<P>Firing range*:&nbsp;<STRONG>970-1055 ºC</STRONG> / <STRONG>Cone 07-04</STRONG><BR>Water content (throwing): 19 %<BR>Plasticity (IP Atterberg): 14<BR>Carbonate content (CaCO3): 8 %<BR>Drying shrinkage: 5.1 %<BR>Firing shrinkage 1000 ºC: 0.3 %<BR>Porosity (water absorption)&nbsp;1000 ºC: 14.2 %<BR>Dry bending strength:&nbsp;6.0 N/mm2<BR>Fired bending strength 1000 ºC:&nbsp;22.5 N/mm2<BR>Thermal coefficient 1000 ºC (25-500 ºC): 73.7x10^-7 ºC^-1</P>\n<P></P>\n<P>(*) Firing range recommended for the clay to develop its best performance, both in terms of technical and safety characteristics, under conventional firing conditions. The colour samples may show temperatures outside the recommended range to provide a broader view, but these are pieces fired under controlled conditions. Cone equivalence according to Orton table for self-supporting cones, regular-SSB and 60 ºC/hr heating rate.</P>",
+        "description_short": "Grogged red earthenware 0-0.5 mm",
+        "discount_amount": "€0.00",
+        "discount_amount_to_display": "-€0.00",
+        "discount_percentage": "0%",
+        "discount_percentage_absolute": "0%",
+        "discount_type": "percentage",
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [
+          {
+            "attr": {
+              "class": "",
+              "data-iqitextra": "iqit-reviews-tab",
+              "id": "iqit-reviews-tab"
+            },
+            "content": "\n<div id=\"iqit-reviews\" class=\"mt-3\">\n\n    <div id=\"iqit-reviews-top\">\n        <div class=\"row justify-content-between align-items-center\">\n\n            <div class=\"col mb-3\">\n                            <div id=\"iqitreviews-snippet\">No reviews</div>\n                    </div>\n\n        \n    </div> <!-- / .row -->\n</div><!-- / #iqit-reviews-top -->\n\n\n<div class=\"col-xs-12 alert alert-success hidden-xs-up\"\n     id=\"iqitreviews-productreview-form-success-alert\">\n</div>\n\n\n\n\n\n</div>\n\n",
+            "moduleName": "iqitreviews",
+            "title": "<span class=\"iqitreviews-title float-left\">Reviews</span> <span class=\"iqitreviews-nb\">(0)</span>"
+          }
+        ],
+        "features": [
+          {
+            "id_feature": "16",
+            "name": "Brand",
+            "position": "0",
+            "value": "SIO-2"
+          },
+          {
+            "id_feature": "1",
+            "name": "Firing",
+            "position": "1",
+            "value": "Ceramic kiln low fire"
+          },
+          {
+            "id_feature": "4",
+            "name": "Weight/Volume",
+            "position": "4",
+            "value": "12,5 kg"
+          },
+          {
+            "id_feature": "5",
+            "name": "Grog",
+            "position": "5",
+            "value": "Fine grog"
+          },
+          {
+            "id_feature": "6",
+            "name": "State",
+            "position": "6",
+            "value": "Moist form (plastic body)"
+          },
+          {
+            "id_feature": "7",
+            "name": "Stiffness",
+            "position": "7",
+            "value": "4 throwing and modelling"
+          }
+        ],
+        "has_discount": false,
+        "id": 1672,
+        "id_category_default": "66",
+        "id_customization": 0,
+        "id_image": "gb-default",
+        "id_manufacturer": "42",
+        "id_product": 1672,
+        "id_product_attribute": "0",
+        "id_shop_default": "1",
+        "id_supplier": "1",
+        "id_type_redirected": "0",
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.sio-2.com/2697-cart_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.sio-2.com/2697-home_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.sio-2.com/2697-large_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.sio-2.com/2697-medium_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.sio-2.com/2697-small_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.sio-2.com/2697-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 1100
+              }
+            },
+            "cover": "1",
+            "id_image": "2697",
+            "large": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/2697-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 1100
+            },
+            "legend": "SIO-2 PF/CHF roja chamotada 0-0.5mm 12.5kg",
+            "medium": {
+              "height": 492,
+              "url": "https://www.sio-2.com/2697-large_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 381
+            },
+            "position": "1",
+            "small": {
+              "height": 127,
+              "url": "https://www.sio-2.com/2697-small_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.sio-2.com/3215-cart_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.sio-2.com/3215-home_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.sio-2.com/3215-large_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.sio-2.com/3215-medium_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.sio-2.com/3215-small_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.sio-2.com/3215-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "3215",
+            "large": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/3215-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 1100
+            },
+            "legend": "PF/CHF roja chamotada 0-0.5mm 12.5kg",
+            "medium": {
+              "height": 492,
+              "url": "https://www.sio-2.com/3215-large_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 381
+            },
+            "position": "2",
+            "small": {
+              "height": 127,
+              "url": "https://www.sio-2.com/3215-small_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.sio-2.com/2585-cart_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.sio-2.com/2585-home_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.sio-2.com/2585-large_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.sio-2.com/2585-medium_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.sio-2.com/2585-small_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.sio-2.com/2585-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "2585",
+            "large": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/2585-thickbox_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 1100
+            },
+            "legend": "PF/CHF roja chamotada 0-0.5mm 12.5kg",
+            "medium": {
+              "height": 492,
+              "url": "https://www.sio-2.com/2585-large_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 381
+            },
+            "position": "3",
+            "small": {
+              "height": 127,
+              "url": "https://www.sio-2.com/2585-small_default/pfchf-red-grog-0-05mm-12-5kg.jpg",
+              "width": 98
+            }
+          }
+        ],
+        "indexed": "1",
+        "is_customizable": false,
+        "is_virtual": "0",
+        "link": "https://www.sio-2.com/gb/low-fire-ceramic-clays/1672-pfchf-red-grog-0-05mm-12-5kg-8422830101023.html",
+        "link_rewrite": "pfchf-red-grog-0-05mm-12-5kg",
+        "low_stock_alert": "0",
+        "low_stock_threshold": "0",
+        "meta_description": "PF/CHF red earthenware 0-0.5mm 12.5kg",
+        "meta_keywords": "PF/CHF red earthenware 0-0.5mm 12.5kg",
+        "meta_title": "PF/CHF red earthenware 0-0.5mm 12.5kg",
+        "minimal_quantity": "1",
+        "name": "SIO-2 PF/CHF grogged red 0-0.5mm 12.5kg",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": "0",
+        "online_only": "0",
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": "0",
+        "price": "€7.72",
+        "price_amount": 7.72,
+        "price_tax_exc": 6.38,
+        "price_without_reduction": 7.7198,
+        "quantity": 70,
+        "quantity_all_versions": 70,
+        "quantity_discounts": [
+          {
+            "discount": "€4.08",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "96",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "1",
+            "id_product": "1672",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "19431",
+            "id_specific_price_rule": "0",
+            "nextQuantity": -1,
+            "price": "3.640000",
+            "quantity": "96",
+            "real_value": 4.0798000000000005,
+            "reduction": "0.000000",
+            "reduction_tax": "0",
+            "reduction_type": "percentage",
+            "save": "€391.66",
+            "score": "34",
+            "to": "0000-00-00 00:00:00"
+          }
+        ],
+        "quantity_label": "Items",
+        "quantity_wanted": 1,
+        "rate": 21,
+        "redirect_type": "404",
+        "reduction": 0,
+        "reference": "101200020000",
+        "show_availability": true,
+        "show_condition": "0",
+        "show_price": "1",
+        "show_quantities": true,
+        "specific_prices": {
+          "from": "0000-00-00 00:00:00",
+          "from_quantity": "0",
+          "id_cart": "0",
+          "id_country": "0",
+          "id_currency": "0",
+          "id_customer": "0",
+          "id_group": "1",
+          "id_product": "1672",
+          "id_product_attribute": "0",
+          "id_shop": "0",
+          "id_shop_group": "0",
+          "id_specific_price": "21540",
+          "id_specific_price_rule": "0",
+          "price": 6.38,
+          "reduction": "0.000000",
+          "reduction_tax": "0",
+          "reduction_type": "percentage",
+          "score": "34",
+          "to": "0000-00-00 00:00:00"
+        },
+        "tax_name": "Nacional Normal",
+        "text_fields": "0",
+        "unit_price": "",
+        "unit_price_full": "",
+        "unit_price_ratio": "0.000000",
+        "unity": "",
+        "uploadable_files": "0",
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "sio-2",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-07-16 01:33:48",
+      "stock_quantity": 70,
+      "supplier_reference": "101200020000",
+      "surface": "matte",
+      "technical_attributes": {
+        "Brand": "SIO-2",
+        "Firing": "Ceramic kiln low fire",
+        "Grog": "Fine grog",
+        "State": "Moist form (plastic body)",
+        "Stiffness": "4 throwing and modelling",
+        "Weight/Volume": "12,5 kg"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "kg",
+        "value": 0.6176
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    },
+    {
+      "all_image_urls": [
+        "https://www.sio-2.com/1150-thickbox_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+        "https://www.sio-2.com/1151-thickbox_default/sw004-stoneware-zinc-free-clear-378-l.jpg"
+      ],
+      "application_methods": null,
+      "availability": "https://schema.org/OutOfStock",
+      "brand": "Mayco",
+      "brand_basis": "named_in_title",
+      "category_path": [
+        "Home",
+        "Online Store",
+        "Ceramic glazes & colours",
+        "Liquid glazes",
+        "MAYCO SW004 Stoneware Zinc Free Clear 3.78l (1gal)"
+      ],
+      "claims": [
+        {
+          "basis": "published_text",
+          "claim": true,
+          "evidence": "AP no tóxicos.",
+          "type": "non_toxic"
+        }
+      ],
+      "coats": {
+        "evidence": "2-3 capas",
+        "maximum": 3,
+        "minimum": 2
+      },
+      "colour": {
+        "basis": "product_attribute",
+        "name": "Colorless"
+      },
+      "currency": "EUR",
+      "description": "MAYCO SW – Stoneware. El esmalte transparente SW004 Stoneware Sin Zinc da a sus piezas un acabado brillante y suave. Perfecto para gres y porcelana, y espcialmente para pastas coloreadas. AP no tóxicos. Además, es un esmalte transparente especial diseñado para usarse en esmaltes que contienen pigmentos a base de cromo. Asegura que obtendrá una superficie brillante, suave y cristalina sobre estos colores. Rango de cocción: cono 5 - 10 (1205ºC – 1300ºC), tanto en cocciones de oxidación como reducción. Se recomienda utilizar sobre piezas bizcochadas. Fácil de aplicar, una capa por inmersión o por aspersión y 2-3 capas a pincel. Dejar secar completamente entre capa y capa. Agitar antes de usar. La mayoría de los esmaltes de gres Mayco son aptos para vajilla (ver etiquetado), cuando se usan de acuerdo con las instrucciones del fabricante. NOTA: la muestra de color en la primera foto corresponde a una cocción a 1220°C (cono 6), mientras que la segunda imagen muestra el resultado a 1300°C (cono 10).",
+      "documents": null,
+      "effects": [
+        "transparent"
+      ],
+      "external_id": "sio-2:https://www.sio-2.com/gb/prepared-glazes/968-sw004-stoneware-zinc-free-clear-378-l-097539104668.html#0",
+      "extraction_method": "dom",
+      "family": "glaze",
+      "fetched_at": "<volatile>",
+      "firing": {
+        "basis": "published_text",
+        "evidence": "1205ºC – 1300ºC",
+        "max_celsius": 1300,
+        "min_celsius": 1205
+      },
+      "form": "liquid",
+      "format": "ceramics.catalogue_item.v2",
+      "gtin": null,
+      "image_url": "https://www.sio-2.com/1150-thickbox_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+      "list_price": null,
+      "manufacturer_sku": "SW4",
+      "manufacturer_sku_basis": "manufacturer_pattern",
+      "material_kind": "prepared-glazes",
+      "min_order_quantity": null,
+      "name": "Stoneware Zinc Free Clear 3.78l (1gal)",
+      "name_parsed_from": [
+        "MAYCO"
+      ],
+      "name_raw": "MAYCO SW004 Stoneware Zinc Free Clear 3.78l (1gal)",
+      "package_size": {
+        "dimension": "volume",
+        "evidence": "3,78 l",
+        "millilitres": 3780.0,
+        "unit": "l",
+        "value": 3.78
+      },
+      "parent_external_id": "sio-2:https://www.sio-2.com/gb/prepared-glazes/968-sw004-stoneware-zinc-free-clear-378-l-097539104668.html",
+      "price": 66.55,
+      "price_text": "€66.55",
+      "product_name": "MAYCO SW004 Stoneware Zinc Free Clear 3.78l (1gal)",
+      "product_url": "https://www.sio-2.com/gb/prepared-glazes/968-sw004-stoneware-zinc-free-clear-378-l-097539104668.html",
+      "raw": {
+        "additional_shipping_cost": "0.000000",
+        "advanced_stock_management": "0",
+        "allow_oosp": 0,
+        "attachments": [],
+        "attribute_price": 0,
+        "availability": "unavailable",
+        "availability_date": null,
+        "availability_message": "Out-of-Stock",
+        "available_date": "0000-00-00",
+        "available_for_order": "1",
+        "available_later": "Consultar plazo de entrega",
+        "available_now": "Disponible",
+        "cache_default_attribute": "0",
+        "category": "prepared-glazes",
+        "category_name": "Liquid glazes",
+        "condition": "new",
+        "cover": {
+          "associatedVariants": [],
+          "bySize": {
+            "cart_default": {
+              "height": 162,
+              "url": "https://www.sio-2.com/1150-cart_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 125
+            },
+            "home_default": {
+              "height": 305,
+              "url": "https://www.sio-2.com/1150-home_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 236
+            },
+            "large_default": {
+              "height": 492,
+              "url": "https://www.sio-2.com/1150-large_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 381
+            },
+            "medium_default": {
+              "height": 584,
+              "url": "https://www.sio-2.com/1150-medium_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 452
+            },
+            "small_default": {
+              "height": 127,
+              "url": "https://www.sio-2.com/1150-small_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 98
+            },
+            "thickbox_default": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/1150-thickbox_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 1100
+            }
+          },
+          "cover": "1",
+          "id_image": "1150",
+          "large": {
+            "height": 1422,
+            "url": "https://www.sio-2.com/1150-thickbox_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+            "width": 1100
+          },
+          "legend": "SW004 Stoneware Zinc Free Clear 3.78l (1gal)",
+          "medium": {
+            "height": 492,
+            "url": "https://www.sio-2.com/1150-large_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+            "width": 381
+          },
+          "position": "1",
+          "small": {
+            "height": 127,
+            "url": "https://www.sio-2.com/1150-small_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+            "width": 98
+          }
+        },
+        "customer_group_discount": 0,
+        "customizable": "0",
+        "customization_required": false,
+        "customizations": {
+          "fields": []
+        },
+        "date_add": "2022-07-07 16:08:00",
+        "date_upd": "2026-07-04 01:44:53",
+        "delivery_in_stock": "",
+        "delivery_out_stock": "",
+        "description": "MAYCO SW – Stoneware. El esmalte transparente SW004 Stoneware Sin Zinc da a sus piezas un acabado brillante y suave. Perfecto para gres y porcelana, y espcialmente para pastas coloreadas. AP no tóxicos. Además, es un esmalte transparente especial diseñado para usarse en esmaltes que contienen pigmentos a base de cromo. Asegura que obtendrá una superficie brillante, suave y cristalina sobre estos colores. Rango de cocción: cono 5 - 10 (1205ºC – 1300ºC), tanto en cocciones de oxidación como reducción.\n<P></P>\n<P>Se recomienda utilizar sobre piezas bizcochadas. Fácil de aplicar, una capa por inmersión o por aspersión y 2-3 capas a pincel. Dejar secar completamente entre capa y capa. Agitar antes de usar.</P>\n<P>La mayoría de los esmaltes de gres Mayco son aptos para vajilla (ver etiquetado), cuando se usan de acuerdo con las instrucciones del fabricante.</P>\n<P>NOTA: la muestra de color en la primera foto corresponde a una cocción a 1220°C (cono 6), mientras que la segunda imagen muestra el resultado a 1300°C (cono 10). </P>",
+        "description_short": "Esmalte MAYCO Stoneware. Temperatura de cocción: 1205ºC - 1300ºC",
+        "discount_amount": "€0.00",
+        "discount_amount_to_display": "-€0.00",
+        "discount_percentage": "0%",
+        "discount_percentage_absolute": "0%",
+        "discount_type": "percentage",
+        "ecotax": 0,
+        "ecotax_rate": 0,
+        "extraContent": [
+          {
+            "attr": {
+              "class": "",
+              "data-iqitextra": "iqit-reviews-tab",
+              "id": "iqit-reviews-tab"
+            },
+            "content": "\n<div id=\"iqit-reviews\" class=\"mt-3\">\n\n    <div id=\"iqit-reviews-top\">\n        <div class=\"row justify-content-between align-items-center\">\n\n            <div class=\"col mb-3\">\n                            <div id=\"iqitreviews-snippet\">No reviews</div>\n                    </div>\n\n        \n    </div> <!-- / .row -->\n</div><!-- / #iqit-reviews-top -->\n\n\n<div class=\"col-xs-12 alert alert-success hidden-xs-up\"\n     id=\"iqitreviews-productreview-form-success-alert\">\n</div>\n\n\n\n\n\n</div>\n\n",
+            "moduleName": "iqitreviews",
+            "title": "<span class=\"iqitreviews-title float-left\">Reviews</span> <span class=\"iqitreviews-nb\">(0)</span>"
+          }
+        ],
+        "features": [
+          {
+            "id_feature": "16",
+            "name": "Brand",
+            "position": "0",
+            "value": "MAYCO"
+          },
+          {
+            "id_feature": "1",
+            "name": "Firing",
+            "position": "1",
+            "value": "Ceramic kiln high fire"
+          },
+          {
+            "id_feature": "2",
+            "name": "Range",
+            "position": "2",
+            "value": "MAYCO Stoneware"
+          },
+          {
+            "id_feature": "3",
+            "name": "Colour",
+            "position": "3",
+            "value": "Colorless"
+          },
+          {
+            "id_feature": "4",
+            "name": "Weight/Volume",
+            "position": "4",
+            "value": "3,78 l (Gallon)"
+          },
+          {
+            "id_feature": "8",
+            "name": "Transparencia",
+            "position": "8",
+            "value": "Transparent"
+          },
+          {
+            "id_feature": "9",
+            "name": "Brightness",
+            "position": "9",
+            "value": "Gloss"
+          },
+          {
+            "id_feature": "10",
+            "name": "Efectos",
+            "position": "10",
+            "value": "Plain colour"
+          }
+        ],
+        "has_discount": false,
+        "id": 968,
+        "id_category_default": "68",
+        "id_customization": 0,
+        "id_image": "gb-default",
+        "id_manufacturer": "26",
+        "id_product": 968,
+        "id_product_attribute": "0",
+        "id_shop_default": "1",
+        "id_supplier": "1",
+        "id_type_redirected": "0",
+        "images": [
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.sio-2.com/1150-cart_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.sio-2.com/1150-home_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.sio-2.com/1150-large_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.sio-2.com/1150-medium_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.sio-2.com/1150-small_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.sio-2.com/1150-thickbox_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 1100
+              }
+            },
+            "cover": "1",
+            "id_image": "1150",
+            "large": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/1150-thickbox_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 1100
+            },
+            "legend": "SW004 Stoneware Zinc Free Clear 3.78l (1gal)",
+            "medium": {
+              "height": 492,
+              "url": "https://www.sio-2.com/1150-large_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 381
+            },
+            "position": "1",
+            "small": {
+              "height": 127,
+              "url": "https://www.sio-2.com/1150-small_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.sio-2.com/1151-cart_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.sio-2.com/1151-home_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.sio-2.com/1151-large_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.sio-2.com/1151-medium_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.sio-2.com/1151-small_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.sio-2.com/1151-thickbox_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "1151",
+            "large": {
+              "height": 1422,
+              "url": "https://www.sio-2.com/1151-thickbox_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 1100
+            },
+            "legend": "SW004 Stoneware Zinc Free Clear 3.78l (1gal)",
+            "medium": {
+              "height": 492,
+              "url": "https://www.sio-2.com/1151-large_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 381
+            },
+            "position": "2",
+            "small": {
+              "height": 127,
+              "url": "https://www.sio-2.com/1151-small_default/sw004-stoneware-zinc-free-clear-378-l.jpg",
+              "width": 98
+            }
+          }
+        ],
+        "indexed": "1",
+        "is_customizable": false,
+        "is_virtual": "0",
+        "link": "https://www.sio-2.com/gb/prepared-glazes/968-sw004-stoneware-zinc-free-clear-378-l-097539104668.html",
+        "link_rewrite": "sw004-stoneware-zinc-free-clear-378-l",
+        "low_stock_alert": "0",
+        "low_stock_threshold": "0",
+        "meta_description": "SW004 Stoneware Zinc Free Clear 3.78l (1gal)",
+        "meta_keywords": "SW004 Stoneware Zinc Free Clear 3.78l (1gal)",
+        "meta_title": "SW004 Stoneware Zinc Free Clear 3.78l (1gal)",
+        "minimal_quantity": "1",
+        "name": "MAYCO SW004 Stoneware Zinc Free Clear 3.78l (1gal)",
+        "new": 0,
+        "nopackprice": 0,
+        "on_sale": "0",
+        "online_only": "0",
+        "out_of_stock": 2,
+        "pack": 0,
+        "packItems": [],
+        "pack_stock_type": "0",
+        "price": "€66.55",
+        "price_amount": 66.55,
+        "price_tax_exc": 55,
+        "price_without_reduction": 66.55,
+        "quantity": -15,
+        "quantity_all_versions": -15,
+        "quantity_discounts": [],
+        "quantity_label": "Item",
+        "quantity_wanted": 1,
+        "rate": 21,
+        "redirect_type": "404",
+        "reduction": 0,
+        "reference": "303053020004",
+        "show_availability": true,
+        "show_condition": "0",
+        "show_price": "1",
+        "show_quantities": false,
+        "specific_prices": {
+          "from": "0000-00-00 00:00:00",
+          "from_quantity": "0",
+          "id_cart": "0",
+          "id_country": "0",
+          "id_currency": "0",
+          "id_customer": "0",
+          "id_group": "1",
+          "id_product": "968",
+          "id_product_attribute": "0",
+          "id_shop": "0",
+          "id_shop_group": "0",
+          "id_specific_price": "9343",
+          "id_specific_price_rule": "0",
+          "price": 55,
+          "reduction": "0.000000",
+          "reduction_tax": "0",
+          "reduction_type": "percentage",
+          "score": "34",
+          "to": "0000-00-00 00:00:00"
+        },
+        "tax_name": "Nacional Normal",
+        "text_fields": "0",
+        "unit_price": "",
+        "unit_price_full": "",
+        "unit_price_ratio": "0.000000",
+        "unity": "",
+        "uploadable_files": "0",
+        "virtual": 0,
+        "visibility": "both"
+      },
+      "source": "sio-2",
+      "source_detail_level": "product_page",
+      "source_updated_at": "2026-07-04 01:44:53",
+      "stock_quantity": -15,
+      "supplier_reference": "303053020004",
+      "surface": "gloss",
+      "technical_attributes": {
+        "Brand": "MAYCO",
+        "Brightness": "Gloss",
+        "Colour": "Colorless",
+        "Efectos": "Plain colour",
+        "Firing": "Ceramic kiln high fire",
+        "Range": "MAYCO Stoneware",
+        "Transparencia": "Transparent",
+        "Weight/Volume": "3,78 l (Gallon)"
+      },
+      "unit_price": {
+        "currency": "EUR",
+        "per": "l",
+        "value": 17.6058
+      },
+      "variant_title": null,
+      "vat_rate": null,
+      "vat_status": "inclusive"
+    }
+  ],
+  "scraper": "sio2",
+  "source": "sio-2",
+  "truncated": false
+}
