@@ -233,6 +233,51 @@ class ManufacturerCodeTests(unittest.TestCase):
                 )
 
 
+class ProductLineTests(unittest.TestCase):
+    """A product line is a trademark, so naming it names the maker.
+
+    `POTTER'S CHOICE 21 ARCTIC BLUE` on lescousins.fr is AMACO's PC-21 and the
+    page says AMACO nowhere, so the glaze never appeared beside the same glaze
+    from any other shop.
+    """
+
+    def test_a_numbered_line_gives_the_maker_and_the_code(self):
+        parsed = domain.parse_title("POTTER’S CHOICE 21 ARCTIC BLUE", supplier_sku="PC_21-0_472")
+        self.assertEqual("AMACO", parsed["brand"])
+        self.assertEqual("line_named_in_title", parsed["brand_basis"])
+        self.assertEqual("PC21", parsed["code"])
+
+    def test_the_number_is_padded_the_same_way_the_maker_pads_it(self):
+        """AMACO publishes `PC-01`; the line writes `1`. One product, one key."""
+        parsed = domain.parse_title("POTTER’S CHOICE 1 SATURATION METALLIC")
+        self.assertEqual("PC1", parsed["code"])
+
+    def test_an_unnumbered_line_still_names_the_maker(self):
+        """Colpaert keeps the number in its own reference, `APC70`.
+
+        That is the shop's numbering, so no code is invented from it — but the
+        row is still AMACO's.
+        """
+        parsed = domain.parse_title("POTTERS CHOICE COPPER RED", supplier_sku="APC70")
+        self.assertEqual("AMACO", parsed["brand"])
+        self.assertIsNone(parsed["code"])
+
+    def test_a_code_in_the_title_is_read_once_the_line_names_the_maker(self):
+        parsed = domain.parse_title("SC-58 501 Blues | Stroke & Coat", supplier_sku="100781")
+        self.assertEqual("Mayco", parsed["brand"])
+        self.assertEqual("SC58", parsed["code"])
+
+    def test_only_a_number_touching_the_line_name_is_its_number(self):
+        """`472` is the pack, further along the same title."""
+        parsed = domain.parse_title("POTTER’S CHOICE COPPER RED 472 ML")
+        self.assertEqual("AMACO", parsed["brand"])
+        self.assertIsNone(parsed["code"])
+
+    def test_the_maker_named_outright_still_wins(self):
+        parsed = domain.parse_title("AMACO Potter's Choice PC-21 Arctic Blue")
+        self.assertEqual("named_in_title", parsed["brand_basis"])
+
+
 class CodeImpliedManufacturerTests(unittest.TestCase):
     """A code specific enough to name its maker on a page that names nobody.
 

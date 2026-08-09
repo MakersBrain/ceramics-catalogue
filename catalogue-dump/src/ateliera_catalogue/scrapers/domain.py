@@ -642,6 +642,29 @@ MANUFACTURERS: dict[str, tuple[str, ...]] = {
     "Centrado": ("centrado",),
 }
 
+#: Product lines, and the maker each one belongs to.
+#:
+#: A line is a trademark, so naming it names the maker: "POTTER'S CHOICE 21
+#: ARCTIC BLUE" on lescousins.fr is AMACO's, and the page says AMACO nowhere.
+#: `MANUFACTURERS` cannot carry these — a line is not another spelling of the
+#: company — and without them 160 Potter's Choice rows across two shops and 442
+#: Stroke & Coat rows across four sat with no maker at all.
+#:
+#: The second element is the prefix the maker's codes take in that line, when
+#: the line is numbered. Les Cousins writes "POTTER'S CHOICE 21" where AMACO
+#: writes "PC-21", and the bare number is only a code once the line says which
+#: series it counts within. `None` for a line whose products are not numbered.
+MANUFACTURER_LINES: dict[str, tuple[tuple[str, str | None], ...]] = {
+    "AMACO": ((r"potter'?[’']?s?\s+choice", "PC"),),
+    "Mayco": ((r"stroke\s*&?\s*(?:and\s+)?coat", "SC"),),
+}
+
+MANUFACTURER_LINE_PATTERNS: list[tuple[str, str | None, re.Pattern[str]]] = [
+    (canonical, prefix, re.compile(rf"(?<![\w-]){expression}(?![\w-])", re.I))
+    for canonical, lines in MANUFACTURER_LINES.items()
+    for expression, prefix in lines
+]
+
 MANUFACTURER_ALIASES: list[tuple[str, re.Pattern[str]]] = [
     (canonical, re.compile(r"(?<![\w-])(?:" + "|".join(re.escape(alias) for alias in aliases) + r")(?![\w-])", re.I))
     for canonical, aliases in MANUFACTURERS.items()
@@ -657,6 +680,30 @@ def named_manufacturer(*texts: Any) -> tuple[str, str] | None:
             if match := pattern.search(text):
                 return canonical, match.group(0)
     return None
+
+def named_line(*texts: Any) -> tuple[str, str | None, str, str | None] | None:
+    """The maker, line and code a product line's name gives away.
+
+    Returns the canonical maker, the code it implies (when the line is numbered
+    and a number follows it), and the wording that said so. A number is only
+    read when it sits directly after the line name: "POTTER'S CHOICE 21 ARCTIC
+    BLUE" is PC21, while the 472 in a pack size further along the title is not.
+    """
+    for text in (clean(value) for value in texts):
+        if not text:
+            continue
+        for canonical, prefix, pattern in MANUFACTURER_LINE_PATTERNS:
+            match = pattern.search(text)
+            if not match:
+                continue
+            code = None
+            if prefix:
+                following = re.match(r"\s*(?:n[o°]?\.?\s*)?(\d{1,3})(?![\w-])", text[match.end():])
+                if following:
+                    code = f"{prefix}{int(following.group(1))}"
+            return canonical, prefix, match.group(0), code
+    return None
+
 
 COLOUR_ATTRIBUTE_NAMES = (
     "colour", "color", "couleur", "couleurs", "farbe", "kleur", "colore",
@@ -841,6 +888,15 @@ def parse_title(
         result["evidence"].append(evidence)
         if title.upper().endswith(evidence.upper()):
             title = title[: -len(evidence)].strip(" -–—,:")
+    elif line := named_line(title):
+        # A line is the maker's trademark, so naming it names them, and it is a
+        # fact about the product rather than about who is selling it — which is
+        # why it outranks the brand the shop filed the row under.
+        canonical, _prefix, evidence, line_code = line
+        result["brand"], result["brand_basis"] = canonical, "line_named_in_title"
+        result["evidence"].append(evidence)
+        if line_code:
+            result["code"], result["code_basis"] = line_code, "product_line"
     elif published_brand:
         result["brand"], result["brand_basis"] = clean(published_brand), "published"
     elif coded := manufacturer_by_code(supplier_sku, title):
