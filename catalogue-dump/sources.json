@@ -1193,7 +1193,7 @@
       "slab roller",
       "bisque"
     ],
-    "note": "Its sitemap is ordered newest-first, so taking the first `page_limit` of 18,869 product URLs collected only the 500 most recently added products — clay samples and bats — and which 500 drifted as the shop added stock. Discovery therefore walks the seven materials departments instead: each lists categories, each category lists all its products with no pagination of its own, so `pagination_patterns` is what makes the walk descend a level. Marks products up as schema.org microdata rather than JSON-LD, but the whole product is in its OpenGraph meta, which is what the nitrosell scraper reads.",
+    "note": "Its sitemap is ordered newest-first, so taking the first `page_limit` of 18,869 product URLs collected only the 500 most recently added products — clay samples and bats — and which 500 drifted as the shop added stock. Discovery therefore walks the seven materials departments instead: each lists categories, each category lists all its products with no pagination of its own, so `pagination_patterns` is what makes the walk descend a level. Marks products up as schema.org microdata rather than JSON-LD, but the whole product is in its OpenGraph meta, which is what the nitrosell scraper reads. Declines the browser fallback: measured across two runs it rendered pages that produced no additional records, while one empty page sent the whole source to the browser worker and restarted it there.",
     "use_advertised_sitemaps": false,
     "category_urls": [
       "https://www.theceramicshop.com/store/department/6/clay/",
@@ -1208,7 +1208,8 @@
       "/store/category/"
     ],
     "category_page_limit": 1500,
-    "page_limit": 9000
+    "page_limit": 9000,
+    "render": false
   },
   "glaser-ceramics": {
     "label": "Glaser Ceramics",
@@ -1239,7 +1240,8 @@
       "band",
       "musical"
     ],
-    "note": "OpenCart. Its sitemap is 57,003 entries of which 55,000 are images and index.php duplicates, so the product pattern is an allowlist of root slugs; that leaves 1,460 product pages, each carrying JSON-LD."
+    "note": "OpenCart. Its sitemap is 57,003 entries of which 55,000 are images and index.php duplicates, so the product pattern is an allowlist of root slugs; that leaves 1,460 product pages, each carrying JSON-LD. Declines the browser fallback: measured across two runs it rendered pages that produced no additional records, while one empty page sent the whole source to the browser worker and restarted it there.",
+    "render": false
   },
   "axner": {
     "label": "Axner Pottery Supply",
@@ -1268,6 +1270,7 @@
       "scoop",
       "adhesive"
     ],
-    "note": "No XML sitemap, no JSON-LD and no microdata; discovery walks the HTML department index and product links are found by their listing tile class."
+    "note": "No XML sitemap, no JSON-LD and no microdata; discovery walks the HTML department index and product links are found by their listing tile class. Declines the browser fallback: measured across two runs it rendered pages that produced no additional records, while one empty page sent the whole source to the browser worker and restarted it there.",
+    "render": false
   }
 }
