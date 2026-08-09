@@ -52,15 +52,48 @@ export type Product = {
 };
 
 /**
+ * What the detail panel needs to draw its header before the fetch lands.
+ *
+ * A subset rather than the whole `Product`, so a page holding something else —
+ * /compare holds `Offer`, which is a different shape for a different job — can
+ * open the panel without inventing thirty fields it has no answer for.
+ */
+export type ProductSeed = Pick<
+	Product,
+	'id' | 'name' | 'url' | 'brand' | 'code' | 'supplier_label' | 'country' | 'image_url'
+>;
+
+/**
+ * One reading of a shop's offer, at one moment. Typed, unlike the product and
+ * source beside it, because these columns are this codebase's own: they come
+ * from a fixed select over `catalogue.offer_observations`, not from whatever a
+ * storefront chose to publish, and the charts have to do arithmetic on them.
+ */
+export type Observation = {
+	observed_at: string;
+	price: number | null;
+	currency: string | null;
+	price_text: string | null;
+	vat_status: string | null;
+	quantity: number | null;
+	unit: string | null;
+	unit_price: number | null;
+	unit_price_per: string | null;
+	availability: string | null;
+	attributes: Record<string, unknown> | null;
+};
+
+/**
  * The whole imported record for one product, as the detail panel shows it.
- * Deliberately untyped past the top level: the point of the panel is to render
- * whatever a given storefront published, and a schema here would only describe
- * the suppliers that happened to exist when it was written.
+ * The product and the source are deliberately untyped past the top level: the
+ * point of the panel is to render whatever a given storefront published, and a
+ * schema here would only describe the suppliers that happened to exist when it
+ * was written.
  */
 export type ProductDetail = {
 	product: Record<string, unknown> | null;
 	source: Record<string, unknown> | null;
-	offers: Record<string, unknown>[];
+	offers: Observation[];
 };
 
 /**

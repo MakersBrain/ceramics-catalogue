@@ -36,6 +36,14 @@
 	   with a glyph and a word, so state never rides on hue alone. */
 	--good: #0ca30c;
 	--critical: #d03b3b;
+	/* Violet rather than the amber this slot usually takes. Amber is the
+	   classic third of a traffic light and the classic mistake: against this
+	   green it separates by ΔE 2.4 under deuteranopia, and against this red by
+	   12.1 in normal vision — below the floor where a full-colour reader can
+	   tell them apart. Violet clears every check on both surfaces (worst
+	   adjacent ΔE 24.4 protan, 12.7 tritan). The word beside it carries the
+	   meaning; the hue only has to be distinguishable. */
+	--warning: #7a5cd6;
 }
 
 @media (prefers-color-scheme: dark) {

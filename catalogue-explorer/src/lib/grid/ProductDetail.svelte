@@ -1,8 +1,11 @@
 <script lang="ts">
+	import AvailabilityBand from '$lib/charts/AvailabilityBand.svelte';
+	import SupplierDetail from './SupplierDetail.svelte';
+	import PriceHistory from '$lib/charts/PriceHistory.svelte';
 	import { countryName } from '$lib/countries';
 	// Aliased: this component is itself called ProductDetail, and the two names
 	// in one module would resolve to the component rather than to the record.
-	import type { Product, ProductDetail as Detail } from '$lib/catalogue';
+	import type { ProductDetail as Detail, ProductSeed } from '$lib/catalogue';
 
 	/**
 	 * Everything the catalogue holds about one product, over the sheet.
@@ -17,7 +20,7 @@
 	 * the price are on screen while the full record is still in flight.
 	 */
 
-	let { row, onClose }: { row: Product | null; onClose: () => void } = $props();
+	let { row, onClose }: { row: ProductSeed | null; onClose: () => void } = $props();
 
 	let dialog: HTMLDialogElement;
 	let detail = $state<Detail | null>(null);
@@ -136,6 +139,47 @@
 
 	/** The offer history, newest first, as the observations table holds it. */
 	const offers = $derived(detail?.offers ?? []);
+
+	/**
+	 * The same history as two pictures. The table below stays: it is the record,
+	 * and a chart is a reading of it — a reader checking whether a price really
+	 * moved wants the numbers, not a shape.
+	 *
+	 * Both charts read the listed currency rather than a converted one. A price
+	 * history is about what this shop did, and folding in a moving exchange rate
+	 * would show the euro wobbling as if the shop had changed its mind.
+	 */
+	const priceSeries = $derived(
+		offers
+			.filter((offer) => typeof offer.price === 'number')
+			.map((offer) => ({ at: offer.observed_at, value: offer.price as number }))
+	);
+
+	const unitPriceSeries = $derived(
+		offers
+			.filter((offer) => typeof offer.unit_price === 'number')
+			.map((offer) => ({ at: offer.observed_at, value: offer.unit_price as number }))
+	);
+
+	const stockSeries = $derived(
+		offers.map((offer) => ({ at: offer.observed_at, state: offer.availability ?? null }))
+	);
+
+	/** The currency the shop lists in; blank if it published none or several. */
+	const listedCurrency = $derived.by(() => {
+		const seen = new Set(offers.map((offer) => offer.currency).filter(Boolean));
+		return seen.size === 1 ? ([...seen][0] as string) : '';
+	});
+
+	/** The shop's catalogue id, which only the fetched record carries. */
+	const sourceId = $derived(String(detail?.product?.source_id ?? ''));
+
+	let openedSupplier = $state<{ id: string; label?: string } | null>(null);
+
+	const unitPer = $derived.by(() => {
+		const seen = new Set(offers.map((offer) => offer.unit_price_per).filter(Boolean));
+		return seen.size === 1 ? ([...seen][0] as string) : '';
+	});
 </script>
 
 <!-- Clicking the backdrop closes. The check is on the dialog itself because the
@@ -157,7 +201,18 @@
 				<div class="min-w-0 flex-1">
 					<h2 class="text-base font-semibold" style="color: var(--text-primary)">{row.name}</h2>
 					<p class="mt-1 text-xs" style="color: var(--text-secondary)">
-						{row.supplier_label}{row.country ? ` (${countryName(row.country)})` : ''}{row.brand
+						<!-- The shop is a thing in its own right, not a label on this row:
+						     whether it publishes firing ranges at all is the context for
+						     every empty field below. -->
+						<button
+							type="button"
+							class="underline decoration-dotted underline-offset-2"
+							style="color: var(--accent)"
+							onclick={() => (openedSupplier = { id: sourceId, label: row?.supplier_label })}
+							disabled={!sourceId}
+						>
+							{row.supplier_label}
+						</button>{row.country ? ` (${countryName(row.country)})` : ''}{row.brand
 							? ` - ${row.brand}`
 							: ''}{row.code ? ` - ${row.code}` : ''}
 					</p>
@@ -266,6 +321,43 @@
 				{/if}
 
 				{#if offers.length}
+					{#if priceSeries.length > 1 || stockSeries.length > 1}
+						<div class="viz-surface mt-6 rounded-lg p-3">
+							{#if priceSeries.length > 1}
+								<PriceHistory points={priceSeries} currency={listedCurrency} />
+							{/if}
+
+							{#if unitPriceSeries.length > 1}
+								<div class="mt-4">
+									<PriceHistory
+										points={unitPriceSeries}
+										currency={listedCurrency ? `${listedCurrency}/${unitPer}` : ''}
+										label="Unit price"
+									/>
+								</div>
+							{/if}
+
+							{#if stockSeries.length > 1}
+								<div class="mt-4">
+									<h4 class="text-xs font-semibold" style="color: var(--text-secondary)">
+										Availability
+									</h4>
+									<div class="mt-1">
+										<AvailabilityBand points={stockSeries} />
+									</div>
+								</div>
+							{/if}
+
+							<!-- Said plainly rather than implied by a short axis: a reader
+							     seeing four days of history should know it is four days of
+							     collection, not four days of the shop's life. -->
+							<p class="mt-3 text-[10px]" style="color: var(--text-muted)">
+								History begins when this catalogue first recorded the product, not when the
+								shop first sold it.
+							</p>
+						</div>
+					{/if}
+
 					<h3 class="mt-6 text-xs font-semibold" style="color: var(--text-secondary)">
 						Observed prices ({offers.length})
 					</h3>
@@ -356,3 +448,5 @@
 		background: rgba(0, 0, 0, 0.45);
 	}
 </style>
+
+<SupplierDetail supplier={openedSupplier} onClose={() => (openedSupplier = null)} />

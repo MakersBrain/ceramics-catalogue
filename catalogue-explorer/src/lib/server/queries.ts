@@ -205,6 +205,8 @@ export async function widestSpread(
 }
 
 export type Offer = {
+	/** The source_products row, so the compare page can open its detail panel. */
+	id: string;
 	code: string;
 	supplier: string;
 	name: string;
@@ -249,7 +251,7 @@ export async function searchOffers(query: string, limit = 200, rates: Rates | nu
 			       or name ilike ${pattern})
 			limit 40
 		)
-		select upper(p.manufacturer_sku) as code, p.source_id as supplier, p.name, p.brand, p.family,
+		select p.id, upper(p.manufacturer_sku) as code, p.source_id as supplier, p.name, p.brand, p.family,
 		       p.product_url as url, p.availability,
 		       o.price::float8 as price, o.currency, o.vat_status,
 		       (o.price / ${fx})::float8 as price_eur,

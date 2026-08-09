@@ -2,9 +2,42 @@
 	import { BANDS, bandOf } from '$lib/bands';
 	import BarChart from '$lib/charts/BarChart.svelte';
 	import ChartCard from '$lib/charts/ChartCard.svelte';
+	import ProductDetail from '$lib/grid/ProductDetail.svelte';
+	import SupplierDetail from '$lib/grid/SupplierDetail.svelte';
+	import type { ProductSeed } from '$lib/catalogue';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	/**
+	 * The comparison answers "who is cheapest"; the next question is always "and
+	 * what is it, exactly" — the pack, the firing range, whether that price has
+	 * moved. Both panels already existed for the grid on /explore and neither was
+	 * reachable from here, so a reader who found a code had to go and look it up
+	 * again somewhere else.
+	 */
+	let openedProduct = $state<ProductSeed | null>(null);
+	let openedSupplier = $state<{ id: string; label?: string } | null>(null);
+
+	type Row = PageData['groups'][number]['offers'][number];
+
+	/**
+	 * An Offer carries what a comparison needs, which is less than a grid row.
+	 * The panel fetches the rest by id; these are only the fields it paints
+	 * before that lands.
+	 */
+	function seed(offer: Row): ProductSeed {
+		return {
+			id: offer.id,
+			name: offer.name,
+			url: offer.url,
+			brand: offer.brand,
+			code: offer.code,
+			supplier_label: offer.supplier,
+			country: null,
+			image_url: null
+		};
+	}
 
 	const euros = (value: number) => `EUR ${value.toFixed(2)}`;
 
@@ -135,8 +168,26 @@
 					<tbody>
 						{#each group.offers as offer}
 							<tr>
-								<td class="py-1 pr-4">{offer.supplier}</td>
-								<td class="py-1 pr-4">{offer.name}</td>
+								<td class="py-1 pr-4">
+									<button
+										type="button"
+										class="text-left underline decoration-dotted underline-offset-2"
+										style="color: var(--accent)"
+										onclick={() => (openedSupplier = { id: offer.supplier })}
+									>
+										{offer.supplier}
+									</button>
+								</td>
+								<td class="py-1 pr-4">
+									<button
+										type="button"
+										class="text-left underline decoration-dotted underline-offset-2"
+										style="color: var(--accent)"
+										onclick={() => (openedProduct = seed(offer))}
+									>
+										{offer.name}
+									</button>
+								</td>
 								<td class="py-1 pr-4">{pack(offer.quantity, offer.unit)}</td>
 								<td class="py-1 pr-4 text-right tabular-nums">
 									{offer.price_eur ? offer.price_eur.toFixed(2) : '-'}
@@ -179,3 +230,6 @@
 		</ChartCard>
 	{/each}
 </div>
+
+<ProductDetail row={openedProduct} onClose={() => (openedProduct = null)} />
+<SupplierDetail supplier={openedSupplier} onClose={() => (openedSupplier = null)} />

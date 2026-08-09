@@ -1,4 +1,4 @@
-import type { Product, ProductDetail, Sort, SortKey } from '$lib/catalogue';
+import type { Observation, Product, ProductDetail, Sort, SortKey } from '$lib/catalogue';
 import { sql } from './db';
 import { eurRate, fxRates, type Rates } from './fx';
 
@@ -429,7 +429,7 @@ export async function productDetail(id: string): Promise<ProductDetail> {
 			left join catalogue.sources src on src.id = p.source_id
 			where p.id = ${id}
 		`,
-		sql<Record<string, unknown>[]>`
+		sql<Observation[]>`
 			select observed_at, price::float8 as price, currency, price_text, vat_status,
 			       quantity::float8 as quantity, unit,
 			       unit_price::float8 as unit_price, unit_price_per,
@@ -474,4 +474,102 @@ export async function products(
 		`
 	]);
 	return { rows, total };
+}
+
+/**
+ * A shop, and what it turns out to be carrying.
+ *
+ * Assembled here rather than read from a view because none of it is stored: the
+ * catalogue holds products, and "who is this supplier" is a question about the
+ * shape of the rows they contributed. Every figure is therefore a count over
+ * `source_products`, which also means every figure is as current as the last
+ * successful crawl and no more — hence `last_seen`, which says when that was.
+ *
+ * Coverage is the part worth reading. A shop that publishes a firing schedule
+ * and one that publishes a price and a photograph are both in this catalogue,
+ * and the difference between them decides what can be asked of their rows.
+ */
+export type SupplierTotals = {
+	products: number;
+	active: number;
+	brands: number;
+	with_code: number;
+	observations: number;
+	first_seen: string | null;
+	last_seen: string | null;
+};
+
+export type SupplierDetail = {
+	source: Record<string, unknown> | null;
+	totals: SupplierTotals | null;
+	families: Facet[];
+	brands: Facet[];
+	coverage: { field: string; products: number }[];
+	currencies: { value: string; products: number }[];
+};
+
+export async function supplierDetail(id: string): Promise<SupplierDetail> {
+	const [[source], [totals], families, brands, [coverage], currencies] = await Promise.all([
+		sql<Record<string, unknown>[]>`
+			select id, label, homepage_url, created_at, updated_at, metadata
+			from catalogue.sources where id = ${id}
+		`,
+		sql<SupplierTotals[]>`
+			select count(*)::int as products,
+			       count(*) filter (where active)::int as active,
+			       count(distinct brand)::int as brands,
+			       count(manufacturer_sku)::int as with_code,
+			       (select count(*)::int from catalogue.offer_observations o
+			         join catalogue.source_products sp on sp.id = o.source_product_id
+			        where sp.source_id = ${id}) as observations,
+			       min(first_seen_at) as first_seen,
+			       max(last_seen_at) as last_seen
+			from catalogue.source_products where source_id = ${id}
+		`,
+		sql<Facet[]>`
+			select family as value, family as label, count(*)::int as products
+			from catalogue.source_products
+			where source_id = ${id} and family is not null
+			group by 1 order by 3 desc limit 12
+		`,
+		sql<Facet[]>`
+			select brand as value, brand as label, count(*)::int as products
+			from catalogue.source_products
+			where source_id = ${id} and brand is not null and brand <> ''
+			group by 1 order by 3 desc limit 12
+		`,
+		// One row of counts rather than a row per field: the panel reads them as
+		// a set of bars against the same total, so they have to come from one
+		// scan of the same rows or they would not add up against each other.
+		sql<Record<string, number>[]>`
+			select count(*) filter (where manufacturer_sku is not null)::int as "manufacturer code",
+			       count(*) filter (where brand is not null and brand <> '')::int as brand,
+			       count(*) filter (where image_url is not null)::int as image,
+			       count(*) filter (where description is not null and description <> '')::int as description,
+			       count(*) filter (where firing_range is not null)::int as "firing range",
+			       count(*) filter (where family is not null)::int as family,
+			       count(*) filter (where availability is not null)::int as "stock state"
+			from catalogue.source_products where source_id = ${id}
+		`,
+		sql<{ value: string; products: number }[]>`
+			select o.currency as value, count(distinct sp.id)::int as products
+			from catalogue.offer_observations o
+			join catalogue.source_products sp on sp.id = o.source_product_id
+			where sp.source_id = ${id} and o.currency is not null
+			group by 1 order by 2 desc limit 6
+		`
+	]);
+
+	if (!source) return { source: null, totals: null, families: [], brands: [], coverage: [], currencies: [] };
+
+	return {
+		source,
+		totals: totals ?? null,
+		families,
+		brands,
+		coverage: Object.entries(coverage ?? {})
+			.map(([field, products]) => ({ field, products: Number(products) }))
+			.sort((a, b) => b.products - a.products),
+		currencies
+	};
 }
