@@ -7,7 +7,9 @@
 		COLUMNS,
 		DEFAULT_COLUMNS,
 		arrange,
+		fit,
 		isDefaultColumns,
+		merge,
 		readColumns,
 		type ColumnKey
 	} from '$lib/columns';
@@ -106,11 +108,19 @@
 		}
 	}
 
-	/** Told by the sheet when the reader drags a column somewhere else. */
+	/**
+	 * Told by the sheet when the reader drags a column somewhere else.
+	 *
+	 * The sheet reports the order of the columns it was given, which on a narrow
+	 * screen is fewer than the reader has chosen. Merging rather than assigning is
+	 * what keeps a drag on a phone from deleting the columns that phone could not
+	 * show in the first place.
+	 */
 	function arranged(next: ColumnKey[]) {
-		remembered = next;
-		remember(next);
-		replaceState(href({}, next), page.state);
+		const whole = merge(columns, next);
+		remembered = whole;
+		remember(whole);
+		replaceState(href({}, whole), page.state);
 	}
 
 	/** The one-value filters, each a select. Supplier and country are lists and
@@ -226,18 +236,49 @@
 	/** Only used to say "8 of 15" on the column picker; the sheet reads the set. */
 	const visible = $derived(columns.length);
 
+	/**
+	 * The viewport, so the sheet can drop the columns this screen cannot show and
+	 * the filter row can fold itself away. Starts at a desktop width rather than
+	 * zero: the first server-rendered paint has no window to measure, and guessing
+	 * narrow would make every desktop load flash a two-column table.
+	 */
+	let viewport = $state(1280);
+
+	/** What the sheet actually draws: the reader's arrangement, minus what does
+	    not fit. The arrangement itself is untouched and comes back on rotation. */
+	const shown = $derived(fit(columns, viewport));
+
+	/** Said out loud, because a column silently missing reads as a bug. */
+	const dropped = $derived(columns.length - shown.length);
+
+	/**
+	 * On a phone the eight filter controls are taller than the results they scope,
+	 * so they fold behind one button. From `sm` up the row is always open and this
+	 * has no effect.
+	 */
+	let filtersOpen = $state(false);
+
+	/** For the fold's own label: everything currently narrowing the selection. */
+	const activeCount = $derived(
+		active.length + (data.filters.q ? 1 : 0) + (data.filters.stock ? 1 : 0)
+	);
 </script>
 
 <!-- The page is a column: everything that scopes the selection sits at a fixed
      height at the top, and the selection itself takes whatever is left. In the
      table view that makes the sheet the full width and depth of the viewport,
      with the filters staying put while it scrolls. -->
+<svelte:window bind:innerWidth={viewport} />
+
 <div class="flex h-full flex-col">
 <div
-	class="shrink-0 px-4 sm:px-6"
-	class:pt-3={data.view === 'table'}
-	class:pb-3={data.view === 'table'}
-	class:pt-6={data.view !== 'table'}
+	class="shrink-0 px-3 sm:px-6"
+	class:pt-2={data.view === 'table'}
+	class:pb-2={data.view === 'table'}
+	class:sm:pt-3={data.view === 'table'}
+	class:sm:pb-3={data.view === 'table'}
+	class:pt-5={data.view !== 'table'}
+	class:sm:pt-6={data.view !== 'table'}
 >
 <!-- Two headers for two jobs. Over the cards there is room to say what the
      catalogue is and where the prices come from; over the sheet every line
@@ -257,12 +298,14 @@
 		</p>
 	</div>
 {:else}
-	<h1 class="text-2xl font-semibold" style="color: var(--text-primary)">Catalogue explorer</h1>
-	<p class="mt-1 text-sm" style="color: var(--text-secondary)">
+	<h1 class="text-xl font-semibold sm:text-2xl" style="color: var(--text-primary)">
+		Catalogue explorer
+	</h1>
+	<p class="measure mt-1 text-sm" style="color: var(--text-secondary)">
 		{count(data.total)} products match. Every facet is derived by the importer from what the storefront
 		published, so coverage differs per supplier.
 	</p>
-	<p class="mt-1 text-xs" style="color: var(--text-muted)">
+	<p class="measure mt-1 text-xs" style="color: var(--text-muted)">
 		Prices are shown in EUR at the ECB reference rate{data.fx.date
 			? ` of ${data.fx.date}`
 			: ''}{data.fx.stale ? ' (last stored rates - the ECB was unreachable)' : ''}. A converted
@@ -271,13 +314,18 @@
 {/if}
 
 <!-- One filter row, above everything it scopes. Plain GET form: every state of
-     this page is a URL that can be shared or bookmarked. On a phone the row
-     becomes two columns of full-width controls rather than a squeezed row. -->
+     this page is a URL that can be shared or bookmarked.
+     The search and the commit buttons stay on screen at every width; the eight
+     facet controls fold behind one button below `lg`. The fold is about height,
+     not about phones: at 700px those controls wrap to four rows and leave the
+     sheet 200px to draw 67,000 products in. From `lg` up the row fits on one or
+     two lines and is always open. -->
 <form
 	method="GET"
-	class="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap"
-	class:mt-3={data.view === 'table'}
-	class:mt-6={data.view !== 'table'}
+	class:mt-2={data.view === 'table'}
+	class:lg:mt-3={data.view === 'table'}
+	class:mt-4={data.view !== 'table'}
+	class:lg:mt-6={data.view !== 'table'}
 >
 	<!-- Carried through the form so applying a filter keeps the current view. -->
 	{#if data.view !== 'grid'}<input type="hidden" name="view" value={data.view} />{/if}
@@ -287,25 +335,56 @@
 		{#each columns as key (key)}<input type="hidden" name="col" value={key} />{/each}
 	{/if}
 
-	<label class="col-span-2 flex flex-col gap-1 text-xs" style="color: var(--text-secondary)">
-		Name contains
-		<input
-			type="search"
-			name="q"
-			value={data.filters.q}
-			placeholder="celadon, rutile, chamotte"
-			autocomplete="off"
-			class="w-full rounded-lg px-3 py-2 text-sm sm:w-56"
-			style="background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--hairline)"
-		/>
-	</label>
+	<div class="flex items-end gap-2">
+		<label
+			class="flex min-w-0 flex-1 flex-col gap-1 text-xs lg:flex-none"
+			style="color: var(--text-secondary)"
+		>
+			<span class="hidden lg:inline">Name contains</span>
+			<input
+				type="search"
+				name="q"
+				value={data.filters.q}
+				placeholder="celadon, rutile, chamotte"
+				autocomplete="off"
+				class="w-full rounded-lg px-3 py-2 text-sm lg:w-56"
+				style="background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--hairline)"
+				aria-label="Name contains"
+			/>
+		</label>
 
+		<!-- The fold. It counts what is already narrowing the selection, so a reader
+		     arriving on a shared link can see there are filters in force without
+		     having to open anything. -->
+		<button
+			type="button"
+			class="shrink-0 rounded-lg px-3 py-2 text-sm whitespace-nowrap lg:hidden"
+			style="border: 1px solid var(--hairline); color: var(--text-secondary)"
+			aria-expanded={filtersOpen}
+			onclick={() => (filtersOpen = !filtersOpen)}
+		>
+			Filters{activeCount ? ` (${activeCount})` : ''}
+			<span aria-hidden="true">{filtersOpen ? '▴' : '▾'}</span>
+		</button>
+
+		<button
+			type="submit"
+			class="shrink-0 rounded-lg px-4 py-2 text-sm font-medium lg:hidden"
+			style="background: var(--accent); color: #ffffff">Apply</button
+		>
+	</div>
+
+	<div
+		class="mt-3 grid-cols-2 items-end gap-3 sm:grid-cols-3 lg:flex lg:flex-wrap {filtersOpen
+			? 'grid'
+			: 'hidden'}"
+	>
 	{#each FACETS as facet (facet.key)}
 		<label class="flex min-w-0 flex-col gap-1 text-xs" style="color: var(--text-secondary)">
 			{facet.label}
 			<select
 				name={facet.key}
-				class="w-full rounded-lg px-3 py-2 text-sm sm:max-w-56"
+				class="w-full rounded-lg px-3 py-2 text-sm lg:max-w-56"
 				style="background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--hairline)"
 				value={data.filters[facet.key] ?? ''}
 				onchange={(event) => event.currentTarget.form?.requestSubmit()}
@@ -428,7 +507,10 @@
 		</details>
 	</div>
 
-	<label class="flex items-center gap-2 text-xs" style="color: var(--text-secondary)">
+	<label
+		class="col-span-2 flex items-center gap-2 py-1 text-xs sm:col-span-1 lg:py-0"
+		style="color: var(--text-secondary)"
+	>
 		<input
 			type="checkbox"
 			name="stock"
@@ -439,14 +521,21 @@
 		In stock only
 	</label>
 
+	<!-- The phone has its own Apply up beside the search box, where it is reachable
+	     without scrolling past eight controls first. -->
 	<button
 		type="submit"
-		class="rounded-lg px-4 py-2 text-sm font-medium"
+		class="hidden rounded-lg px-4 py-2 text-sm font-medium lg:block"
 		style="background: var(--accent); color: #ffffff">Apply</button
 	>
 	{#if active.length || data.filters.q}
-		<a href="/explore" class="px-2 py-2 text-sm" style="color: var(--text-secondary)">Clear all</a>
+		<a
+			href="/explore"
+			class="col-span-2 px-2 py-2 text-sm sm:col-span-1"
+			style="color: var(--text-secondary)">Clear all</a
+		>
 	{/if}
+	</div>
 </form>
 
 {#if active.length}
@@ -466,12 +555,13 @@
 
 
 <div
-	class="flex flex-wrap items-center justify-between gap-3"
-	class:mt-3={data.view === 'table'}
+	class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2"
+	class:mt-2={data.view === 'table'}
+	class:sm:mt-3={data.view === 'table'}
 	class:mt-6={data.view !== 'table'}
 >
 	<div class="flex gap-1 rounded-lg p-1" style="border: 1px solid var(--hairline)">
-		{#each [{ id: 'grid', label: 'Grid' }, { id: 'table', label: 'Table' }] as mode (mode.id)}
+		{#each [{ id: 'grid', label: 'Cards' }, { id: 'table', label: 'Table' }] as mode (mode.id)}
 			<a
 				href={href({ view: mode.id === 'grid' ? null : mode.id })}
 				class="rounded px-3 py-1 text-xs"
@@ -560,6 +650,18 @@
 					</div>
 				</form>
 			</details>
+			<!-- A column that is simply missing reads as a bug, so the sheet says how
+			     many this screen could not take. The arrangement itself is untouched:
+			     widening the window brings them straight back. -->
+			{#if dropped > 0}
+				<span
+					class="text-xs"
+					style="color: var(--text-muted)"
+					title="Your column arrangement is kept. Widen the window, or turn the phone on its side, and these come back."
+				>
+					{dropped} too wide for this screen
+				</span>
+			{/if}
 		{/if}
 		<!-- The sheet says this in its own column header; only the card view,
 		     which has no header to click, needs it spelled out. -->
@@ -581,7 +683,8 @@
 	     header and the filters above it never move. -->
 	<div class="min-h-0 flex-1" style="border-top: 1px solid var(--gridline)">
 		<ProductGrid
-			{columns}
+			columns={shown}
+			width={viewport}
 			query={pageQuery}
 			total={data.total}
 			{sort}
@@ -593,7 +696,7 @@
 {:else}
 	<!-- The card view keeps the page's own margins: cards want air around them,
 	     which is exactly what the sheet does not want. -->
-	<div class="min-h-0 flex-1 overflow-y-auto px-4 pb-8 sm:px-6">
+	<div class="min-h-0 flex-1 overflow-y-auto px-3 pb-8 sm:px-6">
 	<!-- Only over the card view: in the table view the sheet is the point of the
 	     page, and the same breakdown is on the overview page where it has room.
 	     It scrolls with the cards rather than sitting in the fixed chrome, so it
@@ -628,7 +731,10 @@
 			</ChartCard>
 		</div>
 	{/if}
-	<div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+	<!-- The cards are a fixed size and the column count follows the window, so a
+	     wide monitor shows more of the catalogue rather than four stretched cards.
+	     Capped at five: past that the eye has to track too far to compare two. -->
+	<div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
 	{#each data.rows as row (row.id)}
 		<!-- Clicking a card opens the same detail panel a row in the sheet does.
 		     A plain div rather than an article, because this is a control now and

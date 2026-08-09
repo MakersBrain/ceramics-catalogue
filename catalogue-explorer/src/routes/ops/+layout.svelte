@@ -31,18 +31,28 @@
 	const busy = $derived(stream.workers.filter((w) => w.status === 'busy').length);
 </script>
 
-<div class="min-h-screen bg-base-200/40">
+<div class="bg-base-200/40 min-h-dvh">
 	<header class="border-base-300 bg-base-100 border-b">
-		<div class="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-3">
-			<a href="/" class="text-base-content/60 hover:text-base-content text-sm">catalogue</a>
-			<span class="text-base-content/30">/</span>
-			<span class="font-semibold">operations</span>
+		<!-- The breadcrumb and the worker count are the first things to go on a
+		     phone: the tabs and the connection state are what this header is for. -->
+		<div class="mx-auto flex max-w-(--shell) items-center gap-3 px-3 py-2 sm:gap-4 sm:px-4 sm:py-3">
+			<a href="/" class="text-base-content/60 hover:text-base-content shrink-0 text-sm">
+				<span class="hidden sm:inline">catalogue</span>
+				<span class="sm:hidden">&larr;</span>
+			</a>
+			<span class="text-base-content/30 hidden sm:inline">/</span>
+			<span class="hidden font-semibold sm:inline">operations</span>
 
-			<nav class="ml-4 flex flex-wrap gap-1">
+			<!-- Five tabs plus a breadcrumb and a badge do not fit until about 900px,
+			     so the strip keeps its own scroll container up to `lg`. Releasing it at
+			     `sm` let the header overflow its box between 640 and 900. -->
+			<nav
+				class="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 lg:ml-4 lg:flex-none [scrollbar-width:none]"
+			>
 				{#each tabs as tab (tab.href)}
 					<a
 						href={tab.href}
-						class="rounded px-3 py-1 text-sm transition-colors
+						class="rounded px-2.5 py-1 text-sm whitespace-nowrap transition-colors sm:px-3
 						{current === tab.href || (tab.href !== '/ops' && current.startsWith(tab.href))
 							? 'bg-primary text-primary-content'
 							: 'hover:bg-base-200'}"
@@ -55,8 +65,8 @@
 				{/each}
 			</nav>
 
-			<div class="ml-auto flex items-center gap-3 text-sm">
-				<span class="text-base-content/60">
+			<div class="ml-auto flex shrink-0 items-center gap-3 text-sm">
+				<span class="text-base-content/60 hidden lg:inline">
 					{busy}/{stream.workers.length} workers busy
 				</span>
 				<ConnectionBadge state={stream.connection} />
@@ -64,7 +74,7 @@
 		</div>
 	</header>
 
-	<main class="mx-auto max-w-7xl px-4 py-6">
+	<main class="mx-auto max-w-(--shell) px-3 py-5 sm:px-4 sm:py-6">
 		{@render children()}
 	</main>
 </div>

@@ -6,6 +6,22 @@
 		dark --prefersdark;
 }
 
+/* How wide the reading pages get before they stop growing.
+   These pages are dashboards, not articles: their content is charts and tables
+   side by side, and the old 72rem cap left a 2560px monitor showing two thirds
+   grey. The measure that matters for text is kept by `.measure` below, applied
+   to the prose itself, so a wide window lengthens the charts rather than the
+   sentences. */
+:root {
+	--shell: 90rem;
+}
+
+/* The comfortable line length for a paragraph, independent of how wide the page
+   around it has grown. */
+.measure {
+	max-width: 62ch;
+}
+
 /* Chart palette. Roles, not raw hex, are used in the components, so the two
    modes swap in one place. Values are the validated data-viz reference
    palette; the categorical slots are taken in fixed order and never cycled. */

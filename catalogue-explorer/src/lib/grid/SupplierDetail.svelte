@@ -84,9 +84,9 @@
 	}}
 >
 	{#if supplier}
-		<article class="flex max-h-[85vh] flex-col">
+		<article class="flex max-h-[calc(100dvh-1rem)] flex-col sm:max-h-[85dvh]">
 			<header
-				class="flex items-start gap-4 px-5 py-4"
+				class="flex items-start gap-2 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4"
 				style="border-bottom: 1px solid var(--hairline)"
 			>
 				<div class="min-w-0 flex-1">
@@ -102,20 +102,23 @@
 						href={String(source.homepage_url)}
 						target="_blank"
 						rel="noreferrer noopener"
-						class="rounded-lg px-3 py-1.5 text-xs whitespace-nowrap"
-						style="border: 1px solid var(--hairline); color: var(--accent)">Visit shop</a
+						class="shrink-0 rounded-lg px-2.5 py-1.5 text-xs whitespace-nowrap sm:px-3"
+						style="border: 1px solid var(--hairline); color: var(--accent)"
 					>
+						<span class="hidden sm:inline">Visit shop</span>
+						<span class="sm:hidden">Shop</span>
+					</a>
 				{/if}
 				<button
 					type="button"
 					onclick={onClose}
-					class="rounded-lg px-2 py-1.5 text-xs"
+					class="shrink-0 rounded-lg px-2 py-1.5 text-xs"
 					style="border: 1px solid var(--hairline); color: var(--text-secondary)"
 					aria-label="Close">Close</button
 				>
 			</header>
 
-			<div class="overflow-y-auto px-5 py-4">
+			<div class="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
 				{#if failed}
 					<p class="text-sm" style="color: var(--critical)">
 						This supplier could not be loaded.
@@ -153,8 +156,8 @@
 						<ul class="mt-2 flex flex-col gap-1.5">
 							{#each coverage as entry (entry.field)}
 								<li class="flex items-center gap-2 text-xs">
-									<span class="w-32 shrink-0" style="color: var(--text-secondary)"
-										>{entry.field}</span
+									<span class="w-20 shrink-0 truncate sm:w-32" style="color: var(--text-secondary)"
+										title={entry.field}>{entry.field}</span
 									>
 									<span
 										class="h-2 flex-1 overflow-hidden rounded"
@@ -166,7 +169,7 @@
 										></span>
 									</span>
 									<span
-										class="w-20 shrink-0 text-right tabular-nums"
+										class="w-16 shrink-0 text-right tabular-nums sm:w-20"
 										style="color: var(--text-primary)"
 									>
 										{entry.share.toFixed(0)}% ({number(entry.products)})
@@ -236,12 +239,18 @@
 		/* What centres a dialog in the top layer; without it the sheet sits in
 		   the corner. The product panel has always had it. */
 		margin: auto;
-		width: min(56rem, calc(100vw - 2rem));
+		width: calc(100vw - 0.75rem);
 		padding: 0;
 		border: 1px solid var(--hairline);
 		border-radius: 0.75rem;
 		background: var(--surface-1);
 		color: var(--text-primary);
+	}
+
+	@media (min-width: 640px) {
+		dialog.detail {
+			width: min(56rem, calc(100vw - 2rem));
+		}
 	}
 
 	dialog.detail::backdrop {

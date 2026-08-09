@@ -193,9 +193,12 @@
 	}}
 >
 	{#if row}
-		<article class="flex max-h-[85vh] flex-col">
+		<!-- Nearly the whole window on a phone, a centred sheet from `sm` up. The
+		     panel is a record with a dozen sections in it, so on a small screen the
+		     honest thing is to take the screen rather than show a third of it. -->
+		<article class="flex max-h-[calc(100dvh-1rem)] flex-col sm:max-h-[85dvh]">
 			<header
-				class="flex items-start gap-4 px-5 py-4"
+				class="flex items-start gap-2 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4"
 				style="border-bottom: 1px solid var(--hairline)"
 			>
 				<div class="min-w-0 flex-1">
@@ -221,24 +224,26 @@
 					href={row.url}
 					target="_blank"
 					rel="noreferrer noopener"
-					class="rounded-lg px-3 py-1.5 text-xs whitespace-nowrap"
+					class="shrink-0 rounded-lg px-2.5 py-1.5 text-xs whitespace-nowrap sm:px-3"
 					style="border: 1px solid var(--hairline); color: var(--accent)"
 				>
-					Open on storefront
+					<!-- The full phrase costs a phone most of the title's line. -->
+					<span class="hidden sm:inline">Open on storefront</span>
+					<span class="sm:hidden">Shop</span>
 				</a>
 				<button
 					type="button"
 					onclick={onClose}
 					aria-label="Close"
-					class="rounded-lg px-2 py-1 text-sm"
+					class="shrink-0 rounded-lg px-2 py-1 text-base"
 					style="color: var(--text-secondary)">&times;</button
 				>
 			</header>
 
-			<div class="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-				<div class="flex flex-col gap-5 sm:flex-row">
+			<div class="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+				<div class="flex flex-col gap-4 sm:flex-row sm:gap-5">
 					{#if usable.length}
-						<div class="shrink-0">
+						<div class="shrink-0 self-center sm:self-start">
 							<!-- Keyed on the url so a change of picture remounts the element;
 							     a plain src swap keeps the previous image's error state. -->
 							{#key large}
@@ -361,7 +366,11 @@
 					<h3 class="mt-6 text-xs font-semibold" style="color: var(--text-secondary)">
 						Observed prices ({offers.length})
 					</h3>
-					<table class="mt-2 w-full text-xs" style="color: var(--text-secondary)">
+					<!-- Five columns of numbers do not fold, so on a narrow screen the
+					     table scrolls inside its own box rather than making the panel
+					     scroll sideways under the reader. -->
+					<div class="mt-2 -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+					<table class="w-full min-w-[26rem] text-xs" style="color: var(--text-secondary)">
 						<thead>
 							<tr class="text-left" style="border-bottom: 1px solid var(--hairline)">
 								<th class="py-1 pr-4 font-medium">Seen</th>
@@ -392,6 +401,7 @@
 							{/each}
 						</tbody>
 					</table>
+					</div>
 				{/if}
 			</div>
 		</article>
@@ -436,12 +446,20 @@
 <style>
 	.detail {
 		margin: auto;
-		width: min(56rem, calc(100vw - 2rem));
+		/* Almost the whole width on a phone; the gutter only has to show that
+		   something is behind it. */
+		width: calc(100vw - 0.75rem);
 		padding: 0;
 		border: 1px solid var(--hairline);
 		border-radius: 0.75rem;
 		background: var(--surface-1);
 		color: var(--text-primary);
+	}
+
+	@media (min-width: 640px) {
+		.detail {
+			width: min(56rem, calc(100vw - 2rem));
+		}
 	}
 
 	.detail::backdrop {

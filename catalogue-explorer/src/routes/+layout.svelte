@@ -38,6 +38,23 @@
 			active ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent'
 		}`;
 	}
+
+	/**
+	 * The tabs, each with the short label a phone gets. The operations section has
+	 * its own layout and its own live stream, so it is a link out of this shell
+	 * rather than a tab inside it - but it belongs in the same row, because to the
+	 * reader it is one of four places to be.
+	 */
+	const TABS = [
+		{ href: '/', label: 'Overview', short: 'Overview', exact: true },
+		{ href: '/explore', label: 'Explore', short: 'Explore', exact: false },
+		{ href: '/compare', label: 'Compare', short: 'Compare', exact: false },
+		{ href: '/ops', label: 'Operations', short: 'Ops', exact: false }
+	];
+
+	const here = $derived((entry: (typeof TABS)[number]) =>
+		entry.exact ? page.url.pathname === entry.href : page.url.pathname.startsWith(entry.href)
+	);
 </script>
 
 <svelte:head>
@@ -51,48 +68,50 @@
 	remaining height to the sheet, which has to know how tall it is before it can
 	decide how many rows to draw.
 -->
-<div class="flex h-screen flex-col">
+<div class="flex h-dvh flex-col">
 	<header class="shrink-0 border-b" style="border-color: var(--hairline)">
-		<nav class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:gap-6 sm:px-6 sm:py-4">
-			<span class="text-sm font-semibold" style="color: var(--text-primary)">
-				Ceramics catalogue
+		<!--
+			One row at every width. It used to wrap, which on a phone cost three lines
+			of a viewport that has about twelve - and the thing pushed down the screen
+			was the table the reader came for. Now the title shortens, the tabs shorten,
+			and if it still does not fit the tab strip scrolls sideways on its own
+			rather than taking the page with it.
+		-->
+		<nav
+			class="mx-auto flex w-full max-w-(--shell) items-center gap-3 px-3 py-2 sm:gap-6 sm:px-6 sm:py-3"
+		>
+			<span
+				class="shrink-0 text-sm font-semibold"
+				style="color: var(--text-primary)"
+				title="Ceramics catalogue"
+			>
+				<span class="hidden sm:inline">Ceramics catalogue</span>
+				<span class="sm:hidden">Ceramics</span>
 			</span>
-			<div class="flex gap-1">
-				<a href="/" class="rounded-lg px-3 py-1.5 text-sm" style={tab(page.url.pathname === '/')}>
-					Overview
-				</a>
-				<a
-					href="/explore"
-					class="rounded-lg px-3 py-1.5 text-sm"
-					style={tab(page.url.pathname.startsWith('/explore'))}
-				>
-					Explore
-				</a>
-				<a
-					href="/compare"
-					class="rounded-lg px-3 py-1.5 text-sm"
-					style={tab(page.url.pathname.startsWith('/compare'))}
-				>
-					Compare
-				</a>
-				<!-- The operations section has its own layout and its own live
-				     stream, so it is a link out of this shell rather than a tab
-				     inside it. -->
-				<a
-					href="/ops"
-					class="rounded-lg px-3 py-1.5 text-sm"
-					style={tab(page.url.pathname.startsWith('/ops'))}
-				>
-					Operations
-				</a>
+			<div class="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
+				{#each TABS as entry (entry.href)}
+					<a
+						href={entry.href}
+						class="rounded-lg px-2.5 py-1.5 text-sm whitespace-nowrap sm:px-3"
+						style={tab(here(entry))}
+						aria-current={here(entry) ? 'page' : undefined}
+					>
+						<span class="hidden sm:inline">{entry.label}</span>
+						<span class="sm:hidden">{entry.short}</span>
+					</a>
+				{/each}
 			</div>
+			<!-- A glyph on a phone, where the words would cost a tab. The accessible
+			     name says which theme the press moves to either way. -->
 			<button
 				type="button"
-				class="ml-auto rounded-lg px-3 py-1.5 text-xs"
+				class="shrink-0 rounded-lg px-2.5 py-1.5 text-xs sm:px-3"
 				style="color: var(--text-secondary); border: 1px solid var(--hairline)"
 				onclick={toggle}
+				aria-label={theme === 'dark' ? 'Switch to the light theme' : 'Switch to the dark theme'}
 			>
-				{theme === 'dark' ? 'Light theme' : 'Dark theme'}
+				<span class="hidden sm:inline">{theme === 'dark' ? 'Light theme' : 'Dark theme'}</span>
+				<span aria-hidden="true" class="sm:hidden">{theme === 'dark' ? '☀' : '☽'}</span>
 			</button>
 		</nav>
 	</header>
@@ -103,15 +122,9 @@
 		makes prose and charts legible.
 	-->
 	<main
-		class="min-h-0 flex-1"
-		class:overflow-hidden={sheet}
-		class:mx-auto={!sheet}
-		class:max-w-6xl={!sheet}
-		class:overflow-y-auto={!sheet}
-		class:px-4={!sheet}
-		class:py-6={!sheet}
-		class:sm:px-6={!sheet}
-		class:sm:py-8={!sheet}
+		class="min-h-0 w-full flex-1 {sheet
+			? 'overflow-hidden'
+			: 'mx-auto max-w-(--shell) overflow-y-auto px-4 py-5 sm:px-6 sm:py-8'}"
 	>
 		{@render children()}
 	</main>

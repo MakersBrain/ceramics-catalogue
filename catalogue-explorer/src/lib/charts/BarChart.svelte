@@ -71,9 +71,47 @@
 	// bars stretching to fill a fixed chart: ten suppliers and three suppliers
 	// should draw the same bar, not one three times the other's thickness.
 	const height = $derived(Math.max(rows.length * 28 + 36, 96));
+
+	/**
+	 * How wide the chart actually is, so the label gutter can be a share of it
+	 * rather than a fixed count of pixels.
+	 *
+	 * `labelWidth` is chosen for the widest label a panel expects - 240 on the
+	 * comparison page, where a label is "supplier - 4.5 l". On a phone that left
+	 * about a hundred pixels for the bars themselves, so every bar in the chart
+	 * was a stub and the length comparison the chart exists for was gone. The
+	 * caller's figure is now a ceiling: the gutter never takes more than half the
+	 * width, so the bars always have the longer half.
+	 */
+	let width = $state(0);
+
+	const gutter = $derived(width > 0 ? Math.min(labelWidth, Math.max(64, width * 0.42)) : labelWidth);
+
+	/**
+	 * SVG text does not clip itself, so a label longer than the gutter would run
+	 * straight over the bars. Cut it to what fits, at roughly 5.6px per character
+	 * for the 11px face the axis uses. The full text is on the tooltip.
+	 */
+	const chars = $derived(Math.max(6, Math.floor((gutter - 8) / 5.6)));
+
+	const clip = $derived((label: string) =>
+		label.length > chars ? `${label.slice(0, chars - 1)}…` : label
+	);
+
+	/**
+	 * How many ticks the value axis can carry without its labels colliding.
+	 *
+	 * Four is right on a laptop and unreadable on a phone: a currency format is
+	 * about seventy pixels of text, so four of them across the 170px a phone
+	 * leaves for the bars comes out as one smear along the bottom of the chart.
+	 * Two ticks and a gridline are still a scale; overlapping labels are not.
+	 */
+	const ticks = $derived(
+		Math.max(2, Math.min(4, Math.floor(Math.max(0, width - gutter - 12) / 70)))
+	);
 </script>
 
-<div style="height: {height}px">
+<div style="height: {height}px" bind:clientWidth={width}>
 	<Bars
 		data={rows}
 		orientation="horizontal"
@@ -82,7 +120,7 @@
 		yScale={scaleBand().padding(0.25)}
 		{series}
 		seriesLayout="overlap"
-		padding={{ left: labelWidth, bottom: 24, top: 4, right: 12 }}
+		padding={{ left: gutter, bottom: 24, top: 4, right: 12 }}
 		axis
 		grid
 		props={{
@@ -91,12 +129,12 @@
 			// carries names, so it needs neither ticks nor a line of its own.
 			xAxis: {
 				format,
-				ticks: 4,
+				ticks,
 				rule: { class: 'stroke-[var(--baseline)]' },
 				classes: { tickLabel: 'fill-[var(--text-muted)] text-[10px]' }
 			},
 			yAxis: {
-				format: (key: string) => rows[Number(key)]?.label ?? '',
+				format: (key: string) => clip(rows[Number(key)]?.label ?? ''),
 				tickLength: 0,
 				rule: false,
 				classes: { tickLabel: 'fill-[var(--text-secondary)] text-[11px]' }

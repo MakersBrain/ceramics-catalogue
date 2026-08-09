@@ -33,6 +33,9 @@
 		query,
 		total,
 		sort,
+		/** How wide the sheet is, so the name column's floor can give way to a
+		    phone rather than pushing the price beyond the edge. */
+		width,
 		/** Told when the reader sorts, so the URL keeps matching what is on screen. */
 		onSort,
 		/** Told when the reader drags a column somewhere else. */
@@ -44,6 +47,7 @@
 		query: string;
 		total: number;
 		sort: Sort;
+		width: number;
 		onSort: (sort: Sort) => void;
 		onArrange: (columns: ColumnKey[]) => void;
 		onOpen: (row: Product) => void;
@@ -83,7 +87,7 @@
 	function mount(node: HTMLDivElement) {
 		api = createGrid<Product>(node, {
 			theme: gridTheme,
-			columnDefs: productColumns(columns, sort),
+			columnDefs: productColumns(columns, sort, width),
 			defaultColDef: {
 				// One sort at a time, matching what the URL can carry and what the
 				// server's ORDER BY allows.
@@ -139,12 +143,17 @@
 	 * A column set is a different sheet, not different data: swap the definitions
 	 * in place rather than tearing the grid down and losing the scroll position.
 	 *
+	 * The width is tracked alongside the column set, because turning a phone on
+	 * its side changes what the name column's floor should be as surely as adding
+	 * a column does.
+	 *
 	 * The sort is read back off the grid rather than off the prop, and untracked,
 	 * so that adding a column keeps whatever the reader had sorted by and so that
 	 * sorting does not itself rebuild the columns.
 	 */
 	$effect(() => {
 		const next = columns;
+		const room = width;
 		untrack(() => {
 			if (!api) return;
 			const live = api.getColumnState().find((state) => state.sort);
@@ -154,7 +163,8 @@
 					next,
 					live?.colId
 						? { key: live.colId as SortKey, dir: live.sort === 'desc' ? 'desc' : 'asc' }
-						: sort
+						: sort,
+					room
 				)
 			);
 		});

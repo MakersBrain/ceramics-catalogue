@@ -81,31 +81,34 @@
 	}
 </script>
 
-<h1 class="text-2xl font-semibold" style="color: var(--text-primary)">Compare suppliers</h1>
-<p class="mt-1 text-sm" style="color: var(--text-secondary)">
+<h1 class="text-xl font-semibold sm:text-2xl" style="color: var(--text-primary)">
+	Compare suppliers
+</h1>
+<p class="measure mt-1 text-sm" style="color: var(--text-secondary)">
 	Search a manufacturer code (<code>PC-20</code>, <code>CG-1013</code>, <code>UG51</code>) or a
 	product name.
 </p>
-<p class="mt-1 text-xs" style="color: var(--text-muted)">
+<p class="measure mt-1 text-xs" style="color: var(--text-muted)">
 	Every price is converted to EUR at the ECB reference rate{data.fx.date
 		? ` of ${data.fx.date}`
 		: ''}{data.fx.stale ? ' (last stored rates - the ECB was unreachable)' : ''}; the listed
 	currency stays in the table.
 </p>
 
-<form method="GET" class="mt-6 flex flex-wrap gap-2">
+<form method="GET" class="mt-6 flex gap-2">
 	<input
 		type="search"
 		name="q"
 		value={data.query}
 		placeholder="PC-20"
 		autocomplete="off"
-		class="w-72 rounded-lg px-3 py-2 text-sm"
+		aria-label="Manufacturer code or product name"
+		class="min-w-0 flex-1 rounded-lg px-3 py-2 text-sm sm:w-72 sm:flex-none"
 		style="background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--hairline)"
 	/>
 	<button
 		type="submit"
-		class="rounded-lg px-4 py-2 text-sm font-medium"
+		class="shrink-0 rounded-lg px-4 py-2 text-sm font-medium"
 		style="background: var(--accent); color: #ffffff">Search</button
 	>
 </form>

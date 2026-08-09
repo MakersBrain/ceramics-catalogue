@@ -125,8 +125,21 @@ function linkCell(href: string, label: string, colour: string) {
  * exists means it sorts once with the default order, asks the server for that
  * block, then sorts again - two requests for one view, and the answer to the
  * first can land after the second and leave the sheet showing empty rows.
+ *
+ * @param available how wide the sheet is. Only the name column's floor reads it:
+ * 300px is the right floor for a glaze name on a laptop, but on a 390px phone it
+ * is the whole screen, and the price - the other column that survived to that
+ * width - ends up beyond a horizontal scroll that nothing advertises. The floor
+ * gives way to the screen rather than the screen to the floor.
  */
-export function productColumns(chosen: readonly ColumnKey[], sort: Sort): ColDef<Product>[] {
+export function productColumns(
+	chosen: readonly ColumnKey[],
+	sort: Sort,
+	available = Infinity
+): ColDef<Product>[] {
+	const floor = (declared: number | undefined) =>
+		declared === undefined ? undefined : Math.max(120, Math.min(declared, available * 0.5));
+
 	// Mapped over the chosen list rather than filtered out of COLUMNS, so the
 	// sheet is laid out in the reader's order and not in this file's.
 	return chosen
@@ -145,7 +158,7 @@ export function productColumns(chosen: readonly ColumnKey[], sort: Sort): ColDef
 				resizable: true,
 				width: cell.width,
 				flex: cell.flex,
-				minWidth: cell.minWidth,
+				minWidth: floor(cell.minWidth),
 				// Values are read through the cell table rather than off the row, so the
 				// clipboard gets what the eye got.
 				valueGetter: (params) => (params.data ? cell.text(params.data) : null),
