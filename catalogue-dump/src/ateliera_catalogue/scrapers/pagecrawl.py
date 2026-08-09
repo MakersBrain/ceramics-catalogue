@@ -185,19 +185,19 @@ class PageScraper(Scraper):
         concurrency = int(self.config.get("product_concurrency", 4))
         semaphore = asyncio.Semaphore(concurrency)
 
-        async def handle(url: str) -> None:
+        async def handle(url: str) -> list[tuple[dict[str, Any], bool | None]]:
             async with semaphore:
                 # One product page, already listed. A failure here costs that
                 # row and says nothing about whether the listing was complete.
                 with self.extracting():
                     document = await self.load(url)
                     if document is None:
-                        return
+                        return []
                     try:
                         rows = await self.parse_page(document, url)
                     except Exception as error:  # noqa: BLE001 - one bad page must not stop a source
                         self.fail(url, error)
-                        return
+                        return []
                     if (
                         not rows
                         and not self.always_render
@@ -210,11 +210,17 @@ class PageScraper(Scraper):
                                 rows = await self.parse_page(rendered, url)
                             except Exception as error:  # noqa: BLE001
                                 self.fail(url, error)
-                                return
-                    for row, category_match in rows:
-                        self.add(row, category_match)
+                                return []
+                    return rows
 
-        await asyncio.gather(*(handle(url) for url in selected))
+        # Gathered concurrently, added in the order the pages were listed.
+        # Appending as each task finishes made the dump's record order a
+        # function of how fast each page answered, so two runs over identical
+        # data produced different files — which is a real difference for any
+        # diff of two dumps, and made the golden digest flaky under load.
+        for rows in await asyncio.gather(*(handle(url) for url in selected)):
+            for row, category_match in rows:
+                self.add(row, category_match)
         return self.result
 
     # -- parsing ----------------------------------------------------------

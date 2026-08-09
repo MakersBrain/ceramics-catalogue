@@ -1,5 +1,5 @@
 {
-  "digest": "9e6fa2f931f36ed7ec03347f6aa2ffeab7b31b88b529de6f772107e2333e2698",
+  "digest": "bfe29aa006d3270adb3d22b8dd09e943b043f73018a70e25264705f956f4f447",
   "discovered": 41,
   "error_count": 1,
   "errors": [
@@ -1220,7 +1220,9 @@
     },
     {
       "all_image_urls": [
-        "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg"
+        "https://www.ceram-decor.fr/39532-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+        "https://www.ceram-decor.fr/7467-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+        "https://www.ceram-decor.fr/25483-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg"
       ],
       "application_methods": [
         "pouring"
@@ -1233,58 +1235,52 @@
         "NOS PRODUITS",
         "ARGILES",
         "FAIENCES",
-        "FAIENCES DE COULAGE",
-        "Faïence rouge clair de coulage en poudre Barroco | VICAR"
+        "FAIENCES COLOREES",
+        "Faïence vert lisse qualité Beck | RAOULT & BECK"
       ],
       "claims": null,
       "coats": null,
       "colour": {
         "basis": "product_attribute",
-        "name": "Rouge"
+        "name": "Vert"
       },
       "currency": "EUR",
-      "description": "Photo du pain de terre avec étiquette non contractuelle",
-      "documents": [
-        {
-          "name": "FICHE TECHNIQUE BARROCO-AT.pdf",
-          "type": "technical_sheet",
-          "url": "https://www.ceram-decor.fr/index.php?controller=attachment&id_attachment=1730"
-        }
-      ],
+      "description": "Petites astuces: Température de biscuit maximum à 980°C afin de pouvoir garder une meilleure porosité et faciliter votre émaillage. Cette pâte se mélange très bien avec les terres de Beck ocre et bleue pour faire du nériage . Photo du pain de terre avec étiquette non contractuelle",
+      "documents": null,
       "effects": null,
-      "external_id": "ceram-decor:https://www.ceram-decor.fr/faiences-de-coulage/11822-2759-faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.html#2763",
+      "external_id": "ceram-decor:https://www.ceram-decor.fr/faiencescolorees/6237-faience-vert-lisse-qualite-beck-raoult-beck.html#0",
       "extraction_method": "dom",
       "family": "clay_body",
       "fetched_at": "<volatile>",
       "firing": {
         "basis": "published_text",
-        "evidence": "1000°C",
-        "max_celsius": 1000,
-        "min_celsius": 1000
+        "evidence": "980°C - 1020°C",
+        "max_celsius": 1020,
+        "min_celsius": 980
       },
-      "form": "powder",
+      "form": null,
       "format": "ceramics.catalogue_item.v2",
       "gtin": null,
-      "image_url": "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+      "image_url": "https://www.ceram-decor.fr/39532-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
       "list_price": null,
       "manufacturer_sku": null,
       "manufacturer_sku_basis": null,
       "min_order_quantity": null,
-      "name": "Faïence rouge clair de coulage en poudre Barroco | VICAR",
+      "name": "Faïence vert lisse qualité Beck | RAOULT & BECK",
       "name_parsed_from": null,
-      "name_raw": "Faïence rouge clair de coulage en poudre Barroco | VICAR",
+      "name_raw": "Faïence vert lisse qualité Beck | RAOULT & BECK",
       "package_size": {
         "dimension": "weight",
-        "evidence": "100 KG",
-        "grams": 100000.0,
+        "evidence": "5 kg",
+        "grams": 5000.0,
         "unit": "kg",
-        "value": 100.0
+        "value": 5.0
       },
-      "parent_external_id": "ceram-decor:https://www.ceram-decor.fr/faiences-de-coulage/11822-2759-faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.html",
-      "price": 211.2,
-      "price_text": "211,20 €",
-      "product_name": "Faïence rouge clair de coulage en poudre Barroco | VICAR",
-      "product_url": "https://www.ceram-decor.fr/faiences-de-coulage/11822-faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.html",
+      "parent_external_id": "ceram-decor:https://www.ceram-decor.fr/faiencescolorees/6237-faience-vert-lisse-qualite-beck-raoult-beck.html",
+      "price": 29.76,
+      "price_text": "29,76 €",
+      "product_name": "Faïence vert lisse qualité Beck | RAOULT & BECK",
+      "product_url": "https://www.ceram-decor.fr/faiencescolorees/6237-faience-vert-lisse-qualite-beck-raoult-beck.html",
       "raw": {
         "additional_shipping_cost": "0.000000",
         "advanced_stock_management": "0",
@@ -1292,103 +1288,92 @@
         "attachments": [
           {
             "description": "",
-            "file": "334e8bde0ce257b445b2e061d5e5f2eca4657ed9",
-            "file_name": "FICHE TECHNIQUE BARROCO-AT.pdf",
-            "file_size": "43370",
-            "id_attachment": "1730",
+            "file": "891e88dd1583133bcbf57432052deabcb1b30c18",
+            "file_name": "FDS BECK VERTE.pdf",
+            "file_size": "143473",
+            "file_size_formatted": "140.11KB",
+            "id_attachment": "592",
             "id_lang": "1",
-            "id_product": "11822",
+            "id_product": "6237",
             "mime": "application/pdf",
-            "name": "FICHE TECHNIQUE BAROCCO"
+            "name": "FDS Beck Verte"
           },
           {
             "description": "",
-            "file": "d1f66147a767dc102fafcc17e40f76fd5b7abc6c",
-            "file_name": "FDS BARROCO AT.pdf",
-            "file_size": "658145",
-            "id_attachment": "2161",
+            "file": "1a8455373a7902e2454b4c311874ed493d0ad874",
+            "file_name": "BECK VERTE.pdf",
+            "file_size": "69322",
+            "file_size_formatted": "67.7KB",
+            "id_attachment": "1072",
             "id_lang": "1",
-            "id_product": "11822",
+            "id_product": "6237",
             "mime": "application/pdf",
-            "name": "FDS BARROCO"
+            "name": "FT BECK VERTE"
           }
         ],
-        "attribute_price": 174.24,
-        "attributes": {
-          "30": {
-            "ean13": "",
-            "group": "CONDITIONNEMENT",
-            "id_attribute": "228",
-            "id_attribute_group": "30",
-            "isbn": "",
-            "mpn": "",
-            "name": "PAR 100 KG",
-            "reference": "COULBAROC/100",
-            "upc": ""
-          }
-        },
-        "availability": "last_remaining_items",
+        "attribute_price": 0,
+        "availability": "available",
         "availability_date": null,
-        "availability_message": "Derniers articles en stock",
-        "available_date": null,
+        "availability_message": "En stock",
+        "available_date": "0000-00-00",
         "available_for_order": "1",
         "available_later": "",
         "available_now": "",
-        "cache_default_attribute": "2759",
-        "category": "faiences-de-coulage",
-        "category_name": "FAIENCES DE COULAGE",
+        "cache_default_attribute": "0",
+        "category": "faiencescolorees",
+        "category_name": "FAIENCES COLOREES",
         "condition": "new",
         "cover": {
           "associatedVariants": [],
           "bySize": {
             "cart_default": {
               "height": 162,
-              "url": "https://www.ceram-decor.fr/18849-cart_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "url": "https://www.ceram-decor.fr/39532-cart_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
               "width": 125
             },
             "home_default": {
               "height": 305,
-              "url": "https://www.ceram-decor.fr/18849-home_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "url": "https://www.ceram-decor.fr/39532-home_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
               "width": 236
             },
             "large_default": {
               "height": 492,
-              "url": "https://www.ceram-decor.fr/18849-large_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "url": "https://www.ceram-decor.fr/39532-large_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
               "width": 381
             },
             "medium_default": {
               "height": 584,
-              "url": "https://www.ceram-decor.fr/18849-medium_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "url": "https://www.ceram-decor.fr/39532-medium_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
               "width": 452
             },
             "small_default": {
               "height": 127,
-              "url": "https://www.ceram-decor.fr/18849-small_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "url": "https://www.ceram-decor.fr/39532-small_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
               "width": 98
             },
             "thickbox_default": {
               "height": 1422,
-              "url": "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "url": "https://www.ceram-decor.fr/39532-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
               "width": 1100
             }
           },
           "cover": "1",
-          "id_image": "18849",
+          "id_image": "39532",
           "large": {
             "height": 1422,
-            "url": "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+            "url": "https://www.ceram-decor.fr/39532-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
             "width": 1100
           },
-          "legend": "FAIENCE ROUGE CLAIRE EN POUDRE POUR COULAGE -BAROCCO ",
+          "legend": "",
           "medium": {
             "height": 492,
-            "url": "https://www.ceram-decor.fr/18849-large_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+            "url": "https://www.ceram-decor.fr/39532-large_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
             "width": 381
           },
           "position": "1",
           "small": {
             "height": 127,
-            "url": "https://www.ceram-decor.fr/18849-small_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+            "url": "https://www.ceram-decor.fr/39532-small_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
             "width": 98
           }
         },
@@ -1398,12 +1383,12 @@
         "customizations": {
           "fields": []
         },
-        "date_add": "2020-10-07 13:10:47",
-        "date_upd": "2026-07-07 22:00:31",
+        "date_add": "2017-03-05 23:55:28",
+        "date_upd": "2026-07-02 15:54:05",
         "delivery_in_stock": "",
         "delivery_out_stock": "",
-        "description": "<p><span style=\"font-size: 9pt; font-family: Poppins,sans-serif; color: #000000; background-color: transparent; font-weight: 400; font-style: italic; font-variant: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;\" id=\"docs-internal-guid-b9caa356-7fff-ae8d-00ab-99488cc69993\">Photo du pain de terre avec étiquette non contractuelle</span></p>",
-        "description_short": "<p>Faïence rouge en poudre préparée pour la technique du coulage. <br />Très appréciée pour la fabrication de céramique utilitaire mais aussi décorative aussi bien artistique que structurelle.  <br />Poudre atomisée et défloculée.</p>",
+        "description": "<p><span><span style=\"text-decoration: underline;\">Petites astuces:</span></span><img src=\"https://www.ceram-decor.fr/img/cms/product_1_1_11-38-020_2.jpg\" alt=\"\" width=\"90\" height=\"68\" style=\"float: right;\" /></p>\r\n<ul>\r\n<li><span> Température de biscuit maximum à 980°C afin de pouvoir garder une meilleure porosité et faciliter votre émaillage.</span></li>\r\n</ul>\r\n<ul>\r\n<li><span> </span><span>Cette pâte se mélange très bien avec les terres de Beck <a href=\"https://www.ceram-decor.fr/fr/argiles/6233-faience-ocre-jaune-lisse-qualite-beck.html\"><strong>ocre </strong></a>et <a href=\"https://www.ceram-decor.fr/fr/argiles/6229-FAIENCE-BLEU-LISSE---QUALITE-BECK.html\"><strong>bleue </strong></a>pour faire du <strong><a href=\"https://www.ceram-decor.fr/fr/librairie/5904-TERRES-MELEES---M-DE-REILHAN.html?search_query=melees&amp;results=1\">nériage</a>.</strong></span></li>\r\n</ul>\r\n<p><span style=\"font-size: 9pt; font-family: Poppins,sans-serif; color: #000000; background-color: transparent; font-weight: 400; font-style: italic; font-variant: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;\" id=\"docs-internal-guid-b9caa356-7fff-ae8d-00ab-99488cc69993\">Photo du pain de terre avec étiquette non contractuelle</span></p>",
+        "description_short": "<p>Pâte idéale pour le travail du tournage, de l'estampage et du travail à la plaque. Excellent comportement lors des collages à la barbotine, elle ne fissure pas et assure séchage sans déformation. <br />Broyée en Alsing, tamisée finement puis filtre-pressée, les terres BECK vous garantissent une régularité ainsi qu’une finesse optimale. <br /><span></span></p>\r\n<p></p>",
         "discount_amount": null,
         "discount_amount_to_display": null,
         "discount_percentage": null,
@@ -1414,40 +1399,40 @@
         "extraContent": [],
         "features": [
           {
+            "id_feature": "44",
+            "name": "Température de biscuit/dégourdi recommandée (°C)",
+            "position": "37",
+            "value": "980°C"
+          },
+          {
             "id_feature": "46",
             "name": "Retrait de séchage (%)",
             "position": "40",
-            "value": "3.5 - 4.5%"
+            "value": "5%"
           },
           {
             "id_feature": "47",
             "name": "Retrait de cuisson à 1000°C (%)",
             "position": "41",
-            "value": "0.5-1.5%"
+            "value": "1.2%"
           },
           {
             "id_feature": "50",
             "name": "Coéfficient de dilatation ",
             "position": "53",
-            "value": "76 - 78 x 10-7"
-          },
-          {
-            "id_feature": "78",
-            "name": "Absorption d'eau à 980°C",
-            "position": "64",
-            "value": "23-25%"
+            "value": "85"
           },
           {
             "id_feature": "8",
             "name": "Marque",
             "position": "65",
-            "value": "VICAR"
+            "value": "RAOULT & BECK"
           },
           {
             "id_feature": "115",
             "name": "Conditionnement",
             "position": "100",
-            "value": "sac de 25 kg"
+            "value": "5 kg "
           },
           {
             "id_feature": "142",
@@ -1456,10 +1441,22 @@
             "value": "faïence "
           },
           {
+            "id_feature": "151",
+            "name": "Fabrication Française 🇫🇷",
+            "position": "132",
+            "value": "oui"
+          },
+          {
             "id_feature": "153",
             "name": "Technique de façonnage",
             "position": "134",
-            "value": "Coulage"
+            "value": "Tournage"
+          },
+          {
+            "id_feature": "153",
+            "name": "Technique de façonnage",
+            "position": "134",
+            "value": "Estampage"
           },
           {
             "id_feature": "154",
@@ -1471,72 +1468,186 @@
             "id_feature": "164",
             "name": "Couleur",
             "position": "145",
-            "value": "Rouge"
+            "value": "Vert"
+          },
+          {
+            "id_feature": "170",
+            "name": "Plage de température",
+            "position": "150",
+            "value": "980°C - 1020°C"
           }
         ],
         "has_discount": false,
-        "id": 11822,
-        "id_category_default": "489",
+        "id": 6237,
+        "id_category_default": "488",
         "id_customization": 0,
         "id_image": "fr-default",
-        "id_manufacturer": "28",
-        "id_product": 11822,
-        "id_product_attribute": 2763,
+        "id_manufacturer": "4",
+        "id_product": 6237,
+        "id_product_attribute": "0",
         "id_shop_default": "1",
         "id_supplier": "0",
-        "id_type_redirected": "489",
+        "id_type_redirected": "488",
         "images": [
           {
             "associatedVariants": [],
             "bySize": {
               "cart_default": {
                 "height": 162,
-                "url": "https://www.ceram-decor.fr/18849-cart_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "url": "https://www.ceram-decor.fr/39532-cart_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
                 "width": 125
               },
               "home_default": {
                 "height": 305,
-                "url": "https://www.ceram-decor.fr/18849-home_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "url": "https://www.ceram-decor.fr/39532-home_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
                 "width": 236
               },
               "large_default": {
                 "height": 492,
-                "url": "https://www.ceram-decor.fr/18849-large_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "url": "https://www.ceram-decor.fr/39532-large_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
                 "width": 381
               },
               "medium_default": {
                 "height": 584,
-                "url": "https://www.ceram-decor.fr/18849-medium_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "url": "https://www.ceram-decor.fr/39532-medium_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
                 "width": 452
               },
               "small_default": {
                 "height": 127,
-                "url": "https://www.ceram-decor.fr/18849-small_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "url": "https://www.ceram-decor.fr/39532-small_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
                 "width": 98
               },
               "thickbox_default": {
                 "height": 1422,
-                "url": "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+                "url": "https://www.ceram-decor.fr/39532-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
                 "width": 1100
               }
             },
             "cover": "1",
-            "id_image": "18849",
+            "id_image": "39532",
             "large": {
               "height": 1422,
-              "url": "https://www.ceram-decor.fr/18849-thickbox_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "url": "https://www.ceram-decor.fr/39532-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
               "width": 1100
             },
-            "legend": "FAIENCE ROUGE CLAIRE EN POUDRE POUR COULAGE -BAROCCO ",
+            "legend": "",
             "medium": {
               "height": 492,
-              "url": "https://www.ceram-decor.fr/18849-large_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "url": "https://www.ceram-decor.fr/39532-large_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
               "width": 381
             },
             "position": "1",
             "small": {
               "height": 127,
-              "url": "https://www.ceram-decor.fr/18849-small_default/faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.jpg",
+              "url": "https://www.ceram-decor.fr/39532-small_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.ceram-decor.fr/7467-cart_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.ceram-decor.fr/7467-home_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.ceram-decor.fr/7467-large_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.ceram-decor.fr/7467-medium_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.ceram-decor.fr/7467-small_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.ceram-decor.fr/7467-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "7467",
+            "large": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/7467-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+              "width": 1100
+            },
+            "legend": "FAIENCE VERTE LISSE - QUALITE BECK",
+            "medium": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/7467-large_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+              "width": 381
+            },
+            "position": "2",
+            "small": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/7467-small_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+              "width": 98
+            }
+          },
+          {
+            "associatedVariants": [],
+            "bySize": {
+              "cart_default": {
+                "height": 162,
+                "url": "https://www.ceram-decor.fr/25483-cart_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 125
+              },
+              "home_default": {
+                "height": 305,
+                "url": "https://www.ceram-decor.fr/25483-home_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 236
+              },
+              "large_default": {
+                "height": 492,
+                "url": "https://www.ceram-decor.fr/25483-large_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 381
+              },
+              "medium_default": {
+                "height": 584,
+                "url": "https://www.ceram-decor.fr/25483-medium_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 452
+              },
+              "small_default": {
+                "height": 127,
+                "url": "https://www.ceram-decor.fr/25483-small_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 98
+              },
+              "thickbox_default": {
+                "height": 1422,
+                "url": "https://www.ceram-decor.fr/25483-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+                "width": 1100
+              }
+            },
+            "cover": null,
+            "id_image": "25483",
+            "large": {
+              "height": 1422,
+              "url": "https://www.ceram-decor.fr/25483-thickbox_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+              "width": 1100
+            },
+            "legend": "",
+            "medium": {
+              "height": 492,
+              "url": "https://www.ceram-decor.fr/25483-large_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
+              "width": 381
+            },
+            "position": "3",
+            "small": {
+              "height": 127,
+              "url": "https://www.ceram-decor.fr/25483-small_default/faience-vert-lisse-qualite-beck-raoult-beck.jpg",
               "width": 98
             }
           }
@@ -1544,15 +1655,15 @@
         "indexed": "1",
         "is_customizable": false,
         "is_virtual": "0",
-        "link": "https://www.ceram-decor.fr/faiences-de-coulage/11822-faience-rouge-clair-de-coulage-en-poudre-barroco-vicar.html",
-        "link_rewrite": "faience-rouge-clair-de-coulage-en-poudre-barroco-vicar",
+        "link": "https://www.ceram-decor.fr/faiencescolorees/6237-faience-vert-lisse-qualite-beck-raoult-beck.html",
+        "link_rewrite": "faience-vert-lisse-qualite-beck-raoult-beck",
         "low_stock_alert": "0",
         "low_stock_threshold": null,
-        "meta_description": "Faïence rouge en poudre préparée pour la technique du coulage.\r\nTrès appréciée pour la fabrication de céramique utilitaire mais aussi décorative aussi bien artistique que structurelle.",
+        "meta_description": "Pâte idéale pour le travail du tournage, de l'estampage et du travail à la plaque. Excellent comportement lors des collages à la barbotine, elle ne fissure pas et assure séchage sans déformation.",
         "meta_keywords": "",
         "meta_title": "",
         "minimal_quantity": 1,
-        "name": "Faïence rouge clair de coulage en poudre Barroco |  VICAR",
+        "name": "Faïence vert lisse qualité Beck | RAOULT & BECK",
         "new": 0,
         "nopackprice": 0,
         "on_sale": "0",
@@ -1561,19 +1672,101 @@
         "pack": 0,
         "packItems": [],
         "pack_stock_type": "3",
-        "price": "211,20 €",
-        "price_amount": 211.2,
-        "price_tax_exc": 176,
-        "price_without_reduction": 211.2,
-        "quantity": 1,
-        "quantity_all_versions": 231,
-        "quantity_discounts": [],
+        "price": "29,76 €",
+        "price_amount": 29.76,
+        "price_tax_exc": 24.8,
+        "price_without_reduction": 29.76,
+        "quantity": 54,
+        "quantity_all_versions": 54,
+        "quantity_discounts": [
+          {
+            "discount": "28,98 €",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "20.000000",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "0",
+            "id_product": "6237",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "12131007",
+            "id_specific_price_rule": "0",
+            "nextQuantity": 200,
+            "price": "24.150000",
+            "quantity": "20.000000",
+            "real_value": 0.7800000000000047,
+            "reduction": 0,
+            "reduction_tax": "1",
+            "reduction_type": "amount",
+            "reduction_with_tax": 0,
+            "save": "15,60 €",
+            "score": "32",
+            "to": "0000-00-00 00:00:00"
+          },
+          {
+            "discount": "25,44 €",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "200.000000",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "0",
+            "id_product": "6237",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "12131008",
+            "id_specific_price_rule": "0",
+            "nextQuantity": 600,
+            "price": "21.200000",
+            "quantity": "200.000000",
+            "real_value": 4.320000000000004,
+            "reduction": 0,
+            "reduction_tax": "1",
+            "reduction_type": "amount",
+            "reduction_with_tax": 0,
+            "save": "864,00 €",
+            "score": "32",
+            "to": "0000-00-00 00:00:00"
+          },
+          {
+            "discount": "22,50 €",
+            "from": "0000-00-00 00:00:00",
+            "from_quantity": "600.000000",
+            "id_cart": "0",
+            "id_country": "0",
+            "id_currency": "0",
+            "id_customer": "0",
+            "id_group": "0",
+            "id_product": "6237",
+            "id_product_attribute": "0",
+            "id_shop": "0",
+            "id_shop_group": "0",
+            "id_specific_price": "12131009",
+            "id_specific_price_rule": "0",
+            "nextQuantity": -1,
+            "price": "18.750000",
+            "quantity": "600.000000",
+            "real_value": 7.260000000000002,
+            "reduction": 0,
+            "reduction_tax": "1",
+            "reduction_type": "amount",
+            "reduction_with_tax": 0,
+            "save": "4 356,00 €",
+            "score": "32",
+            "to": "0000-00-00 00:00:00"
+          }
+        ],
         "quantity_label": "Produits",
         "quantity_wanted": 1,
         "rate": 20,
         "redirect_type": "301-category",
         "reduction": 0,
-        "reference": "COULBAROC",
+        "reference": "BECKV",
         "show_availability": true,
         "show_condition": "0",
         "show_price": "1",
@@ -1581,44 +1774,40 @@
         "specific_prices": false,
         "tax_name": "TVA FR 20%",
         "text_fields": "0",
-        "unit_price": "",
-        "unit_price_full": "",
-        "unit_price_ratio": "0.000000",
-        "unity": "",
+        "unit_price": "5,95 €",
+        "unit_price_full": "5,95 € kg",
+        "unit_price_ratio": "5.000000",
+        "unity": "kg",
         "uploadable_files": "0",
         "virtual": 0,
         "visibility": "both"
       },
       "source": "ceram-decor",
       "source_detail_level": "product_page",
-      "source_updated_at": "2026-07-07 22:00:31",
-      "stock_quantity": 1,
-      "supplier_reference": "COULBAROC/100",
+      "source_updated_at": "2026-07-02 15:54:05",
+      "stock_quantity": 54,
+      "supplier_reference": "BECKV",
       "surface": null,
       "technical_attributes": {
-        "Absorption d'eau à 980°C": "23-25%",
-        "CONDITIONNEMENT": "Prix unitaire Disponible Acheter",
-        "Conditionnement": "sac de 25 kg",
-        "Couleur": "Rouge",
-        "Coéfficient de dilatation": "76 - 78 x 10-7",
-        "Marque": "VICAR",
-        "PAR 1 KG": "2,51 € Total :",
-        "PAR 10 KG": "25,08 € Total :",
-        "PAR 100 KG": "211,20 € Total :",
-        "PAR 25 KG": "62,70 € Total :",
-        "PAR 5 KG": "12,54 € Total :",
-        "Retrait de cuisson à 1000°C (%)": "0.5-1.5%",
-        "Retrait de séchage (%)": "3.5 - 4.5%",
-        "Technique de façonnage": "Coulage",
+        "Conditionnement": "5 kg",
+        "Couleur": "Vert",
+        "Coéfficient de dilatation": "85",
+        "Fabrication Française 🇫🇷": "oui",
+        "Marque": "RAOULT & BECK",
+        "Plage de température": "980°C - 1020°C",
+        "Retrait de cuisson à 1000°C (%)": "1.2%",
+        "Retrait de séchage (%)": "5%",
+        "Technique de façonnage": "Estampage Tournage",
         "Température": "Basse (faïence)",
+        "Température de biscuit/dégourdi recommandée (°C)": "980°C",
         "Type de terre": "faïence"
       },
       "unit_price": {
         "currency": "EUR",
         "per": "kg",
-        "value": 2.112
+        "value": 5.952
       },
-      "variant_title": "CONDITIONNEMENT: PAR 100 KG",
+      "variant_title": null,
       "vat_rate": null,
       "vat_status": "inclusive"
     }

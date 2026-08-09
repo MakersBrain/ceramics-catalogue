@@ -1,5 +1,6 @@
 """Offline tests for the ceramics field parsing and the record contract."""
 
+import asyncio
 import json
 import tempfile
 import time
@@ -1522,6 +1523,55 @@ class PerSourceRobotsTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(
                 await fetcher.may_fetch("https://shop.test/catalogue", obey_robots=True)
             )
+
+
+class RecordOrderTests(unittest.IsolatedAsyncioTestCase):
+    """A dump's record order must come from the listing, not from the network.
+
+    Product pages are fetched concurrently and were appended as each finished,
+    so the order of rows in the file was a function of how fast each page
+    answered. Two runs over identical data produced different files: a real
+    difference to anyone diffing two dumps, and the reason the golden digest
+    failed under load and passed on a quiet machine.
+    """
+
+    PRODUCT = (
+        '<script type="application/ld+json">'
+        '{{"@type":"Product","name":"{name}","offers":'
+        '{{"price":"1.00","priceCurrency":"EUR"}}}}</script>'
+    )
+
+    async def test_rows_follow_the_order_the_pages_were_listed(self):
+        from ateliera_catalogue.scrapers.pagecrawl import PageScraper
+
+        class Shop(PageScraper):
+            async def discover(self, limit=None):
+                return [f"https://shop.test/product/{i}" for i in range(8)]
+
+        async def handler(request):
+            if request.url.path == "/robots.txt":
+                return httpx.Response(404, text="")
+            index = int(request.url.path.rsplit("/", 1)[-1])
+            # The last page listed answers first, so completion order is the
+            # reverse of the order the pages were discovered in.
+            await asyncio.sleep(0.005 * (8 - index))
+            return httpx.Response(200, text=self.PRODUCT.format(name=f"P{index}"))
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        fetcher = base.Fetcher(
+            client, base.HostLimiter(0.0, 8), base.BrowserRenderer(False), "never",
+            impersonate_policy="never",
+        )
+        config = {"url": "https://shop.test/", "scope": "all", "product_concurrency": 8}
+        scraper = Shop("shop", config, fetcher)
+        async with client:
+            result = await scraper.scrape()
+
+        self.assertEqual(
+            [f"P{i}" for i in range(8)],
+            [row["name"] for row in result.records],
+            "record order followed how fast each page answered",
+        )
 
 
 if __name__ == "__main__":
