@@ -55,6 +55,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--impersonate", choices=("never", "auto"), default="auto",
         help="retry a refused request with a browser TLS handshake (needs the impersonate extra)",
     )
+    parser.add_argument(
+        "--robots", choices=("obey", "ignore"), default="ignore",
+        help="whether robots.txt Disallow binds; pace comes from the rate limiter either way",
+    )
     parser.add_argument("--source-timeout", type=float, default=DEFAULT_SOURCE_TIMEOUT,
                         metavar="SECONDS",
                         help="how long one source may run before the crawl gives up on it "

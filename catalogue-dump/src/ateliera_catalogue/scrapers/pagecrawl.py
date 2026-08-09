@@ -38,7 +38,13 @@ class PageScraper(Scraper):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.product_pattern = re.compile(self.config["product_pattern"]) if self.config.get("product_pattern") else None
-        self.always_render = bool(self.config.get("render"))
+        # Three states, not two. `render: true` renders every page; `render`
+        # unset leaves the fallback available for a page that parses to
+        # nothing; `render: false` declines it outright, which is the setting
+        # for a source measured to gain nothing from rendering — it otherwise
+        # sends the whole job to the browser worker on one empty page.
+        self.always_render = self.config.get("render") is True
+        self.never_render = self.config.get("render") is False
 
     # -- discovery --------------------------------------------------------
 
@@ -127,6 +133,10 @@ class PageScraper(Scraper):
         if not await self.fetcher.may_fetch(url, self.ignore_robots):
             self.fail(url, "robots.txt disallows this URL")
             return None
+        if self.never_render and render:
+            # Asked to render a source that has declined it. Not an error and
+            # not a browser request: the page simply has nothing more to give.
+            return None
         if render or (render is None and self.always_render):
             try:
                 document = await self.fetcher.render(url, wait_for=self.render_wait_for)
@@ -146,7 +156,7 @@ class PageScraper(Scraper):
             self.result.requests += 1
             return document
         except (httpx.HTTPError, Blocked, UnicodeError) as error:
-            if self.fetcher.browser_policy == "never":
+            if self.never_render or self.fetcher.browser_policy == "never":
                 self.fail(url, error)
                 return None
             try:
@@ -178,7 +188,12 @@ class PageScraper(Scraper):
                 except Exception as error:  # noqa: BLE001 - one bad page must not stop a source
                     self.fail(url, error)
                     return
-                if not rows and not self.always_render and self.fetcher.browser_policy != "never":
+                if (
+                    not rows
+                    and not self.always_render
+                    and not self.never_render
+                    and self.fetcher.browser_policy != "never"
+                ):
                     rendered = await self.load(url, render=True)
                     if rendered:
                         try:

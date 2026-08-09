@@ -66,6 +66,7 @@ async def open_session(
         fetcher = Fetcher(
             client, limiter, browser, params.browser, cache=cache,
             impersonate_policy=params.impersonate,
+            robots_policy=params.robots,
         )
         session = CrawlSession(
             client=client, limiter=limiter, browser=browser, cache=cache, fetcher=fetcher
@@ -105,6 +106,7 @@ def describe(params: CrawlParams) -> dict[str, Any]:
         "delay": params.delay,
         "browser": params.browser,
         "impersonate": params.impersonate,
+        "robots": params.robots,
         "cache_mode": params.cache_mode,
         "cache_max_age_hours": params.cache_max_age_hours,
         "limit": params.limit,

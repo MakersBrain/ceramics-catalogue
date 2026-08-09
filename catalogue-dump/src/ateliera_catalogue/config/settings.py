@@ -27,6 +27,15 @@ BrowserPolicy = Literal["never", "auto", "always"]
 #: "auto" is the last rung of the fallback ladder in `Fetcher.response`;
 #: "never" leaves a refusal as a refusal.
 ImpersonatePolicy = Literal["never", "auto"]
+#: Whether robots.txt Disallow is treated as binding.
+#:
+#: "ignore" is the default, and it is a deliberate policy rather than an
+#: oversight. What replaces it is pace: the limiter reads a host's own
+#: `X-RateLimit-*` accounting and its `Retry-After`, halves its slots and opens
+#: a gap on any error, and adopts a published `Crawl-delay` as that gap. robots
+#: is still fetched under either setting, because its `Crawl-delay` and
+#: `Sitemap` lines are the two most useful things in it.
+RobotsPolicy = Literal["obey", "ignore"]
 CacheMode = Literal["off", "auto", "replay", "refresh"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 
@@ -53,6 +62,7 @@ class CrawlParams(BaseModel):
     delay: float = Field(default=0.0, ge=0)
     browser: BrowserPolicy = "auto"
     impersonate: ImpersonatePolicy = "auto"
+    robots: RobotsPolicy = "ignore"
 
     cache_mode: CacheMode = "auto"
     #: How old a stored response may be before `auto` refetches it. Zero means
@@ -112,6 +122,7 @@ class CrawlParams(BaseModel):
             delay=options.delay,
             browser=options.browser,
             impersonate=options.impersonate,
+            robots=options.robots,
             cache_mode=options.cache_mode if options.cache else "off",
             cache_max_age_hours=options.cache_max_age,
             source_timeout_seconds=options.source_timeout,
@@ -158,6 +169,18 @@ class Settings(BaseSettings):
     #: that will eventually be killed by the OOM reaper mid-write. Recycling on
     #: a count turns that into a scheduled, graceful restart between jobs.
     max_jobs: int = 0
+    #: How many jobs one worker runs at once.
+    #:
+    #: Sources are independent — different shops, different hosts — and a worker
+    #: doing one at a time spends most of a run waiting on someone else's TLS
+    #: handshake. What stops two jobs pounding one shop is `catalogue.hosts` and
+    #: its leases, which are per host and cross-process, so they are just as
+    #: effective within a process as between two of them.
+    #:
+    #: The browser worker is the reason this defaults to 1 rather than to
+    #: something ambitious: each concurrent job there is another camoufox, and
+    #: that is measured in hundreds of megabytes rather than in sockets.
+    job_slots: int = 1
     #: Bearer token `catalogue-control` requires on every /v1 route.
     control_token: str = ""
 

@@ -142,6 +142,25 @@ class TestClaiming:
 
 
 class TestCapabilities:
+
+    async def test_one_worker_may_hold_several_jobs_at_once(self, db):
+        """`job_slots` lets one process carry several sources.
+
+        The queue's own safety does not depend on a worker doing one at a time —
+        `skip locked` stops two claims colliding, and `catalogue.host_leases`
+        stops two jobs landing on one shop. What a second slot changes is only
+        how much of a run is spent waiting on somebody else's network.
+        """
+        worker = await register_worker(db)
+        await queued_run(db, ["ceradel", "spectrum"])
+
+        first = await queue.claim(db, worker, [])
+        second = await queue.claim(db, worker, [])
+
+        assert first is not None and second is not None
+        assert {first.source_id, second.source_id} == {"ceradel", "spectrum"}
+        assert first.id != second.id
+
     async def test_a_plain_worker_cannot_take_a_browser_job(self, db):
         """camoufox makes the image large and the process memory-hungry, so most
         workers do not have one."""

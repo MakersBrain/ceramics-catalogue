@@ -34,6 +34,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--impersonate", choices=("never", "auto"), default="auto",
         help="retry a refused request with a browser TLS handshake (needs the impersonate extra)",
     )
+    parser.add_argument(
+        "--robots", choices=("obey", "ignore"), default="ignore",
+        help="whether robots.txt Disallow binds; pace comes from the rate limiter either way",
+    )
     parser.add_argument("--cache", nargs="?", const=".cache", default=None, metavar="DIR")
     parser.add_argument("--cache-mode", choices=CACHE_MODES, default="auto")
     parser.add_argument("--show", type=int, default=2, help="how many sample rows to print")
@@ -54,6 +58,7 @@ async def run(options: argparse.Namespace) -> int:
         concurrency=4,
         browser=options.browser,
         impersonate=options.impersonate,
+        robots=options.robots,
         cache_mode=options.cache_mode if options.cache else "off",
         # A probe wants what is on the site now, not what was there last week.
         cache_max_age_hours=0 if options.cache_mode == "replay" else 1,

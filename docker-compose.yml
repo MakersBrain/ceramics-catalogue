@@ -144,6 +144,11 @@ services:
         condition: service_healthy
     environment:
       CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      # Sources are independent and mostly waiting on someone else's network, so
+      # one at a time leaves the process idle for most of a run. Two jobs on one
+      # shop are still prevented by catalogue.host_leases, which is per host and
+      # cross-process rather than per worker.
+      CATALOGUE_JOB_SLOTS: ${CATALOGUE_JOB_SLOTS:-4}
     volumes:
       # Shared, so a replay works across workers and a run's artifacts are all
       # in one place. The cache is sharded per host and the dumps are namespaced

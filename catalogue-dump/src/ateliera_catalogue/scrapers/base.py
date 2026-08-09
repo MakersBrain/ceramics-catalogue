@@ -94,6 +94,11 @@ class HostLimiter:
     BACKOFF_START = 0.5
     BACKOFF_MAX = 8.0
 
+    #: Fraction of a published rate limit below which we start pacing. Well
+    #: under half: the point is to glide down to the limit rather than discover
+    #: it, and a shop that meters per minute gives no warning once it is spent.
+    HEADROOM = 0.35
+
     def __init__(self, delay: float, concurrency: int, *, start: int | None = None) -> None:
         self.delay = delay
         self.maximum = max(1, concurrency)
@@ -101,6 +106,8 @@ class HostLimiter:
         self.floors: dict[str, float] = {}
         self.backoff: dict[str, float] = {}
         self.published: dict[str, float] = {}
+        #: Gap derived from a host's own rate-limit headers, not from a failure.
+        self.metered: dict[str, float] = {}
         self.slots: dict[str, int] = {}
         self.streaks: dict[str, int] = {}
         self.gates: dict[str, _Gate] = {}
@@ -124,6 +131,7 @@ class HostLimiter:
         return max(
             self.floors.get(host, 0.0),
             self.backoff.get(host, 0.0),
+            self.metered.get(host, 0.0),
             self.delay / self.slots.get(host, self.initial),
         )
 
@@ -132,7 +140,7 @@ class HostLimiter:
         if gap <= 0:
             return 0.0
         # A floor is a minimum, so jitter around one may only ever add time.
-        floored = host in self.floors or host in self.backoff
+        floored = host in self.floors or host in self.backoff or host in self.metered
         low, high = (1.0, 1.35) if floored else (0.7, 1.3)
         return gap * random.uniform(low, high)
 
@@ -202,6 +210,74 @@ class HostLimiter:
             "host=%s failed (%s); slots %d -> %d, waiting %.1fs between requests",
             host, reason, current, self.slots[host], self.backoff[host],
         )
+
+    # -- what the host says about itself ----------------------------------
+
+    def observe_headers(self, url: str, headers: Any) -> None:
+        """Take a pace from the host's own rate-limit accounting.
+
+        Backing off after an error is reactive: the 429 has already been spent,
+        and on a shop that counts requests per minute the run has already lost
+        the window. Most storefronts that meter say so on every response, and
+        the useful moment to slow down is while there is still budget left
+        rather than once it is gone.
+
+        Two families cover what these shops actually send. `X-RateLimit-*` is a
+        budget and a window, and Shopify's `X-Shopify-Shop-Api-Call-Limit` is
+        the same idea written `used/total`. Either way the interesting figure is
+        how much is left, and the response to nearly-empty is a gap, not a stop.
+
+        Nothing here ever *lowers* an existing floor: a source's configured
+        delay and a backoff already earned are minimums, and a host claiming a
+        generous budget is not a reason to overrule an operator who asked for a
+        slow rate.
+        """
+        remaining = _header_int(headers, "x-ratelimit-remaining", "ratelimit-remaining")
+        limit = _header_int(headers, "x-ratelimit-limit", "ratelimit-limit")
+        window = _header_float(headers, "x-ratelimit-reset", "ratelimit-reset")
+
+        shopify = headers.get("x-shopify-shop-api-call-limit") if hasattr(headers, "get") else None
+        if shopify and "/" in str(shopify):
+            used, _, total = str(shopify).partition("/")
+            try:
+                remaining, limit = int(total) - int(used), int(total)
+            except ValueError:
+                pass
+
+        if remaining is None or limit is None or limit <= 0:
+            return
+        host = urlparse(url).netloc
+        headroom = remaining / limit
+        if headroom > self.HEADROOM:
+            self.metered.pop(host, None)
+            return
+        # Spread whatever is left across the window the host named, defaulting
+        # to a minute — the usual period when none is given.
+        seconds = window if window and window > 0 else 60.0
+        gap = seconds / max(1, remaining)
+        previous = self.metered.get(host, 0.0)
+        self.metered[host] = min(self.BACKOFF_MAX, max(previous, gap))
+        if self.metered[host] != previous:
+            LOGGER.info(
+                "host=%s reports %d/%d of its rate limit left; pacing at %.2fs",
+                host, remaining, limit, self.metered[host],
+            )
+
+
+def _header_int(headers: Any, *names: str) -> int | None:
+    for name in names:
+        value = headers.get(name) if hasattr(headers, "get") else None
+        if value is not None:
+            try:
+                return int(str(value).strip())
+            except ValueError:
+                continue
+    return None
+
+
+def _header_float(headers: Any, *names: str) -> float | None:
+    value = _header_int(headers, *names)
+    return float(value) if value is not None else None
 
 
 class _Gate:
@@ -461,12 +537,14 @@ class Fetcher:
         cache: ResponseCache | None = None,
         impersonate_policy: str = "auto",
         impersonator: ImpersonatingClient | None = None,
+        robots_policy: str = "ignore",
     ) -> None:
         self.client = client
         self.limiter = limiter
         self.browser = browser
         self.browser_policy = browser_policy
         self.impersonate_policy = impersonate_policy
+        self.robots_policy = robots_policy
         self.impersonator = impersonator or ImpersonatingClient(impersonate_policy != "never")
         self.cache = cache or ResponseCache(".", mode="off")
         self._robots: dict[str, urllib.robotparser.RobotFileParser] = {}
@@ -530,14 +608,32 @@ class Fetcher:
         return parser, []
 
     async def may_fetch(self, url: str, ignore_robots: bool = False) -> bool:
-        if ignore_robots:
-            return True
+        """Whether to fetch this URL, and at what pace to remember it wants.
+
+        robots.txt is read under either policy, because `Crawl-delay` and
+        `Sitemap` are worth having whatever we do about `Disallow`. Only the
+        Disallow is conditional: under `robots=ignore` the rate limiter is what
+        keeps us welcome — a host's own `X-RateLimit` accounting, its
+        `Retry-After`, and slots that halve on any error — rather than a file
+        that cannot express any of that.
+        """
         parser, _ = await self.robots(url)
         # A published Crawl-delay is remembered, not applied: a host that is
         # answering happily is crawled at the operator's pace, and only one
         # that starts erroring gets the pace it asked for. Disallow is a rule
         # and is obeyed either way.
-        self.limiter.remember_crawl_delay(url, parser.crawl_delay(USER_AGENT))
+        published = parser.crawl_delay(USER_AGENT)
+        self.limiter.remember_crawl_delay(url, published)
+        if ignore_robots or self.robots_policy == "ignore":
+            # Not obeying Disallow and also ignoring the pace the host asked for
+            # would be taking the whole file as noise. A Crawl-delay is the one
+            # thing in robots.txt that says what the shop can actually stand, so
+            # it becomes a floor here rather than something only adopted after
+            # the host has started refusing us. It is a floor, so it can only
+            # ever slow us down relative to the configured delay.
+            if published:
+                self.limiter.set_delay(url, float(published))
+            return True
         return parser.can_fetch(USER_AGENT, url)
 
     async def text(
@@ -627,10 +723,24 @@ class Fetcher:
                     )
                     await asyncio.sleep(pause)
                     continue
+            # Read the meter on every answer, including the refusals: a 429
+            # usually carries the same headers and is the clearest statement of
+            # the pace a host wants.
+            self.limiter.observe_headers(url, response.headers)
             if response.status_code != 429 and response.status_code < 500:
                 self.limiter.record_success(url)
                 break
             self.limiter.record_failure(url, response.status_code)
+            if response.status_code == 429:
+                # A host that says how long to wait has said what its limit is.
+                # Hold that as a floor rather than only sleeping once, so the
+                # rest of the source is paced instead of racing back into it.
+                retry_after = response.headers.get("retry-after")
+                try:
+                    if retry_after and float(retry_after) > 0:
+                        self.limiter.set_delay(url, min(float(retry_after), HostLimiter.BACKOFF_MAX))
+                except ValueError:
+                    pass
             if attempt == 3:
                 break
             retry_after = response.headers.get("retry-after")

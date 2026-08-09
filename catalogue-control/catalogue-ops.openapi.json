@@ -252,6 +252,15 @@
             "title": "Log Level",
             "type": "string"
           },
+          "robots": {
+            "default": "ignore",
+            "enum": [
+              "obey",
+              "ignore"
+            ],
+            "title": "Robots",
+            "type": "string"
+          },
           "source_timeout_seconds": {
             "default": 3600.0,
             "exclusiveMinimum": 0,

@@ -91,8 +91,17 @@ class WorkerState:
     capabilities: list[str] = field(default_factory=list)
     status: str = "starting"
     desired_state: str = "running"
-    current_job: queue.ClaimedJob | None = None
+    #: Jobs this process is running right now, by job id. A worker may hold
+    #: several: they are different sources on different hosts, and the thing
+    #: that stops two of them hammering one shop is `catalogue.host_leases`,
+    #: not the fact that a process happened to do one at a time.
+    current_jobs: dict[UUID, queue.ClaimedJob] = field(default_factory=dict)
     stopping: bool = False
+
+    @property
+    def current_job(self) -> queue.ClaimedJob | None:
+        """The job to name in single-valued places, e.g. `workers.current_job_id`."""
+        return next(iter(self.current_jobs.values()), None)
 
 
 class Worker:
@@ -114,7 +123,10 @@ class Worker:
         self.once = once
         self._task: asyncio.Task[Any] | None = None
         self._heartbeat: asyncio.Task[None] | None = None
-        self._cancel_current = asyncio.Event()
+        #: One cancel flag per running job: cancelling one source must not
+        #: tear down the others this process is carrying.
+        self._cancels: dict[UUID, asyncio.Event] = {}
+        self._slots = asyncio.Semaphore(max(1, settings.job_slots))
         # Negative, so the first tick leads immediately rather than waiting out
         # the interval: a worker starting after downtime should notice a missed
         # schedule now, not in thirty seconds.
@@ -226,7 +238,7 @@ class Worker:
                     for job in held:
                         if job["cancel_requested"]:
                             LOGGER.info("job.cancel_requested", job_id=str(job["id"]))
-                            self._cancel_current.set()
+                            self._cancel(job["id"])
                         elif job["pause_requested"]:
                             # Pause is implemented as a cancel that keeps the
                             # partial artifact and leaves the job resumable,
@@ -235,7 +247,7 @@ class Worker:
                             # for an unbounded time is a much worse failure than
                             # restarting the source.
                             LOGGER.info("job.pause_requested", job_id=str(job["id"]))
-                            self._cancel_current.set()
+                            self._cancel(job["id"])
             except psycopg.Error:
                 # A heartbeat that cannot reach the database is exactly when the
                 # worker must not fall over: the database may be restarting, and
@@ -250,9 +262,9 @@ class Worker:
         self.state.desired_state = desired
         LOGGER.info("worker.desired_state", desired=desired)
         if desired == "stopping":
-            # Cancels the current source through the same safe partial-artifact
-            # path a per-job cancel uses, then exits.
-            self._cancel_current.set()
+            # Cancels every source in flight through the same safe
+            # partial-artifact path a per-job cancel uses, then exits.
+            self._cancel_all()
             self.state.stopping = True
         elif desired == "draining":
             self.state.stopping = True
@@ -270,13 +282,39 @@ class Worker:
         LOGGER.info("worker.ready", capabilities=self.state.capabilities)
 
         completed = 0
+        running: set[asyncio.Task[bool]] = set()
         try:
             while not self.state.stopping:
                 if self.state.desired_state in ("paused",):
                     await asyncio.sleep(IDLE_SECONDS)
                     continue
 
-                worked = await self.tick()
+                # Fill the free slots before waiting on any of them. Sources are
+                # independent and mostly waiting on someone else's network, so a
+                # worker that runs them one at a time is idle for most of a run;
+                # `catalogue.host_leases` is what keeps two jobs off one shop,
+                # and it works within a process exactly as it does between two.
+                while len(running) < self.settings.job_slots and not self.state.stopping:
+                    claimed = await self.tick(spawn=running)
+                    if not claimed:
+                        break
+
+                if not running:
+                    if self.once:
+                        break
+                    await asyncio.sleep(IDLE_SECONDS)
+                    continue
+
+                done, running = await asyncio.wait(running, return_when=asyncio.FIRST_COMPLETED)
+                worked = False
+                for task in done:
+                    try:
+                        worked = task.result() or worked
+                    except Exception:
+                        # execute() already recorded the job's own outcome; this
+                        # is the task machinery failing, which is ours not the
+                        # source's, and must not stop the other slots.
+                        LOGGER.exception("worker.job_task_failed")
                 if worked:
                     completed += 1
                     if self.once:
@@ -290,11 +328,13 @@ class Worker:
                                     max_jobs=self.settings.max_jobs)
                         self.state.desired_state = "draining"
                         break
-                else:
-                    if self.once:
-                        break
-                    await asyncio.sleep(IDLE_SECONDS)
         finally:
+            # Let whatever is still in flight finish its own cancellation path
+            # before the connection pool goes away underneath it.
+            for task in running:
+                task.cancel()
+            if running:
+                await asyncio.gather(*running, return_exceptions=True)
             await self.shutdown()
         return completed
 
@@ -326,8 +366,14 @@ class Worker:
             # crawling; another worker will hold the lock next tick.
             LOGGER.warning("worker.lead_failed", exc_info=True)
 
-    async def tick(self) -> bool:
-        """One pass: lead, recover, claim, run. Returns whether a job was run."""
+    async def tick(self, spawn: set[asyncio.Task[bool]] | None = None) -> bool:
+        """One pass: lead, recover, claim, run.
+
+        With `spawn`, the claimed job is started as a task in that set and this
+        returns whether one was claimed; the caller decides when to wait. Without
+        it the job is run to completion inline, which is what `--once` and the
+        tests want.
+        """
         await self.lead()
         async with self.pool.connection() as connection:
             await queue.reap_expired(connection)
@@ -336,13 +382,19 @@ class Worker:
         if job is None:
             return False
 
-        with obs.bound(job_id=str(job.id), run_id=str(job.run_id), source=job.source_id):
-            return await self.execute(job)
+        async def run_one() -> bool:
+            with obs.bound(job_id=str(job.id), run_id=str(job.run_id), source=job.source_id):
+                return await self.execute(job)
+
+        if spawn is None:
+            return await run_one()
+        spawn.add(asyncio.create_task(run_one(), name=f"job:{job.source_id}"))
+        return True
 
     async def execute(self, job: queue.ClaimedJob) -> bool:
         """Take a claimed job all the way to a terminal state."""
-        self.state.current_job = job
-        self._cancel_current.clear()
+        self.state.current_jobs[job.id] = job
+        self._cancels[job.id] = asyncio.Event()
 
         async with self.pool.connection() as connection:
             slot = await leases.acquire(connection, job.host, job.id, self.state.id)
@@ -350,7 +402,7 @@ class Worker:
                 # Another worker is crawling this shop. Not an attempt: being
                 # polite must not spend a source's retry budget.
                 await queue.release(connection, job, self.state.id, reason="host busy")
-                self.state.current_job = None
+                self._forget(job)
                 return False
 
         started = time.monotonic()
@@ -366,7 +418,7 @@ class Worker:
             async with self.pool.connection() as connection:
                 if not await queue.start(connection, job, self.state.id, trace_id=trace_id):
                     await leases.release(connection, job.host, job.id)
-                    self.state.current_job = None
+                    self._forget(job)
                     return False
                 # Whichever worker gets there first moves the run out of
                 # `queued`. It is conditional on the current status, so the
@@ -392,7 +444,7 @@ class Worker:
                 async with self.pool.connection() as connection:
                     await leases.release(connection, job.host, job.id)
                 metrics.job_duration(job.source_id, time.monotonic() - started)
-                self.state.current_job = None
+                self._forget(job)
                 await self.set_status("idle")
         return True
 
@@ -418,7 +470,7 @@ class Worker:
                             run_source(job.source_id, config, session, params, progress, None),
                             name=f"job:{job.source_id}",
                         )
-                        watcher = asyncio.create_task(self._watch_for_cancel(task))
+                        watcher = asyncio.create_task(self._watch_for_cancel(job.id, task))
                         try:
                             outcome = await task
                         except asyncio.CancelledError:
@@ -494,11 +546,26 @@ class Worker:
                 connection, job, self.state.id, "browser", reason=str(error)[:200]
             )
 
-    async def _watch_for_cancel(self, task: asyncio.Task[Any]) -> None:
-        """Cancel the running source once the heartbeat sees the flag."""
-        await self._cancel_current.wait()
+    async def _watch_for_cancel(self, job_id: UUID, task: asyncio.Task[Any]) -> None:
+        """Cancel one running source once the heartbeat sees its flag."""
+        await self._cancels[job_id].wait()
         if not task.done():
             task.cancel()
+
+    def _cancel(self, job_id: Any) -> None:
+        """Raise the cancel flag for one job, if this process is running it."""
+        event = self._cancels.get(UUID(str(job_id)))
+        if event is not None:
+            event.set()
+
+    def _cancel_all(self) -> None:
+        """Stop every source this process is carrying, e.g. on a second signal."""
+        for event in self._cancels.values():
+            event.set()
+
+    def _forget(self, job: queue.ClaimedJob) -> None:
+        self.state.current_jobs.pop(job.id, None)
+        self._cancels.pop(job.id, None)
 
     async def _load(self, job: queue.ClaimedJob, outcome: Any, *, whole: bool) -> postgres.SourceReport:
         """Load this source's records, in a thread so the loop keeps beating.
@@ -565,8 +632,7 @@ class Worker:
 
         try:
             async with self.pool.connection() as connection:
-                job = self.state.current_job
-                if job is not None:
+                for job in list(self.state.current_jobs.values()):
                     # Requeued rather than failed: the worker is going away, and
                     # that is not the source's fault, so no attempt is spent.
                     await leases.release(connection, job.host, job.id)
@@ -611,13 +677,13 @@ class Worker:
             # A second signal means "now". Cancel the source through the safe
             # partial path rather than waiting out the grace period.
             LOGGER.warning("worker.stop_forced", signal=name)
-            self._cancel_current.set()
+            self._cancel_all()
             return
         LOGGER.info("worker.stopping", signal=name, grace=DRAIN_GRACE_SECONDS)
         self.state.stopping = True
         self.state.desired_state = "draining"
         loop = asyncio.get_running_loop()
-        loop.call_later(DRAIN_GRACE_SECONDS, self._cancel_current.set)
+        loop.call_later(DRAIN_GRACE_SECONDS, self._cancel_all)
 
 
 def _first_error(summary: dict[str, Any]) -> str | None:

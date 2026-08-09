@@ -1113,5 +1113,92 @@ class BrowserRoutingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1, len(scraper.result.errors))
 
 
+class RenderPolicyTests(unittest.IsolatedAsyncioTestCase):
+    """`render: false` declines the browser rather than being merely unset.
+
+    An unset `render` leaves the fallback available, and one page that parses to
+    nothing then sends the entire source to the browser worker and restarts it
+    there. For a source measured to gain nothing from rendering that is a large
+    bill for no rows, so declining has to be sayable.
+    """
+
+    def _scraper(self, render):
+        from ateliera_catalogue.scrapers.pagecrawl import PageScraper
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(
+            lambda request: httpx.Response(403, text="refused")))
+        fetcher = base.Fetcher(
+            client, base.HostLimiter(0.0, 4), base.BrowserRenderer(True), "auto",
+            impersonate_policy="never",
+        )
+        config = {"url": "https://shop.test/", "scope": "all"}
+        if render is not None:
+            config["render"] = render
+        return client, PageScraper("shop", config, fetcher)
+
+    async def test_declining_never_reaches_the_browser(self):
+        async def must_not_render(*args, **kwargs):
+            raise AssertionError("a source that declined rendering asked for it anyway")
+
+        client, scraper = self._scraper(False)
+        scraper.fetcher.browser.render = must_not_render
+        async with client:
+            self.assertIsNone(await scraper.load("https://shop.test/product/1"))
+            self.assertIsNone(await scraper.load("https://shop.test/product/1", render=True))
+        self.assertEqual(1, len(scraper.result.errors), "the refusal is still recorded once")
+
+    async def test_leaving_it_unset_still_escalates(self):
+        called = []
+
+        async def render(*args, **kwargs):
+            called.append(args)
+            return "<html>rendered</html>"
+
+        client, scraper = self._scraper(None)
+        scraper.fetcher.browser.render = render
+        async with client:
+            self.assertEqual("<html>rendered</html>", await scraper.load("https://shop.test/p/1"))
+        self.assertEqual(1, len(called))
+
+
+class RateLimitHeaderTests(unittest.TestCase):
+    """Pace from what the host publishes, before it has to refuse anything."""
+
+    def setUp(self):
+        self.limiter = base.HostLimiter(0.0, 8)
+        self.url = "https://shop.test/products.json"
+
+    def test_plenty_of_headroom_sets_no_gap(self):
+        self.limiter.observe_headers(self.url, {"x-ratelimit-limit": "40", "x-ratelimit-remaining": "38"})
+        self.assertEqual(0.0, self.limiter.spacing("shop.test"))
+
+    def test_a_nearly_spent_budget_spreads_what_is_left_over_the_window(self):
+        self.limiter.observe_headers(self.url, {
+            "x-ratelimit-limit": "40", "x-ratelimit-remaining": "4", "x-ratelimit-reset": "20",
+        })
+        self.assertAlmostEqual(5.0, self.limiter.spacing("shop.test"))
+
+    def test_shopify_writes_the_same_thing_as_used_over_total(self):
+        self.limiter.observe_headers(self.url, {"x-shopify-shop-api-call-limit": "38/40"})
+        # Two calls left of forty, and no window given, so the default minute
+        # spread over them is 30s — clamped to BACKOFF_MAX, because a header is
+        # a reason to slow down and never a reason to stall a run outright.
+        self.assertEqual(base.HostLimiter.BACKOFF_MAX, self.limiter.spacing("shop.test"))
+
+    def test_a_429_turns_retry_after_into_a_lasting_floor(self):
+        self.limiter.observe_headers(self.url, {"x-ratelimit-limit": "40", "x-ratelimit-remaining": "0"})
+        self.assertGreater(self.limiter.spacing("shop.test"), 0.0)
+
+    def test_a_configured_delay_is_never_lowered_by_a_generous_host(self):
+        self.limiter.set_delay(self.url, 2.0)
+        self.limiter.observe_headers(self.url, {"x-ratelimit-limit": "40", "x-ratelimit-remaining": "40"})
+        self.assertEqual(2.0, self.limiter.spacing("shop.test"))
+
+    def test_nonsense_headers_are_ignored_rather_than_raising(self):
+        self.limiter.observe_headers(self.url, {"x-ratelimit-limit": "many", "x-ratelimit-remaining": ""})
+        self.limiter.observe_headers(self.url, {"x-shopify-shop-api-call-limit": "not/a/number"})
+        self.assertEqual(0.0, self.limiter.spacing("shop.test"))
+
+
 if __name__ == "__main__":
     unittest.main()
