@@ -1090,8 +1090,9 @@
       "ware cart",
       "damp box"
     ],
-    "note": "263 overlapping collections; scoped by classification over the whole products.json feed. Answered 429 partway through products.json on the first run at no delay; a one-second floor is a hard minimum per request to this host and is never divided by the slot count, so it holds however many workers are running.",
-    "delay": 1.0
+    "note": "263 overlapping collections; scoped by classification over the whole products.json feed. Answered 429 partway through products.json on the first run at no delay; a one-second floor is a hard minimum per request to this host and is never divided by the slot count, so it holds however many workers are running. Currency is declared rather than read from meta.json: that one request answered 429 on the first run, products.json carries no currency of its own, and the resulting priced rows were rejected by load_record for having none — one transient refusal cost the whole source's load.",
+    "delay": 1.0,
+    "currency": "CAD"
   },
   "sheffield-pottery": {
     "label": "Sheffield Pottery",
