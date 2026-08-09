@@ -318,15 +318,21 @@ def is_valid(record: dict[str, Any]) -> bool:
 def in_scope(record: dict[str, Any], strict: bool = True) -> bool:
     """Apply the ceramic-materials scope decided for this catalogue.
 
-    Judged on the product's identity only. The description is deliberately
-    excluded: glaze copy mentions brushes, kilns and shelves constantly.
+    The keyword tests still read the identity only: glaze copy mentions brushes,
+    kilns and shelves constantly, and running those words over free prose rejects
+    the very products we want. The description is passed all the same, because
+    the one thing it can be read for is a published electrical rating — a machine
+    announces itself with a kilowatt in any language, and no glaze has one.
     """
     if not strict:
         return True
+    categories = record.get("category_path") or []
     return domain.is_material(
         record.get("family"),
         record.get("name"),
-        " ".join(record.get("category_path") or []),
+        " ".join(categories),
+        categories=categories,
+        description=record.get("description") or "",
     )
 
 

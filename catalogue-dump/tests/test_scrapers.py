@@ -260,6 +260,78 @@ class ClassificationTests(unittest.TestCase):
         # ...but a printed transfer is a material.
         self.assertFalse(domain.looks_non_material("Printed decal paper A4"))
 
+    def test_the_shops_own_department_decides_scope(self):
+        """A category is a classification, so it can be read more broadly."""
+        for categories in (
+            ["Maquinaria, accesorios y seguridad"],
+            ["Machinery", "Machinery (New)"],
+            ["equipment"],
+            ["Ferramentas para cerâmica"],
+            ["Hornos y pirometría", "Refractario"],
+            ["Fours céramiques"],
+            ["Inne narzędzia"],
+            ["set draaigereedschap"],
+            ["Utensili per modellare", "Strumenti"],
+            ["Carts & Ceramic Furniture", "Equipment"],
+        ):
+            with self.subTest(categories=categories):
+                self.assertTrue(domain.names_non_material_department(categories))
+
+    def test_a_department_that_only_looks_like_equipment(self):
+        """Each of these cost a real product to find.
+
+        "torno" is the wheel, but "arcilla roja torno" is a clay *for* it;
+        "refractaria" is fireclay, not a kiln shelf; and "peci" hides inside the
+        Spanish "especiales", which is where a shop files its speciality glazes.
+        """
+        for categories in (
+            ["arcilla roja torno pf"],
+            ["pastas refractarias"],
+            ["arcilla refractaria"],
+            ["especiales sin plomo"],
+            ["Speciality glazes"],
+            ["Fournitures"],
+            ["Glazes", "Stoneware"],
+        ):
+            with self.subTest(categories=categories):
+                self.assertFalse(domain.names_non_material_department(categories))
+
+    def test_a_published_wattage_names_a_machine_in_any_language(self):
+        for description in (
+            "Potenza/Consumo 15,0 kW - 400 Volt Trifase",
+            "Anschluss 9,0 kW, Dreiphasen",
+            "230v single phase",
+            "Rated 3 phase supply",
+        ):
+            with self.subTest(description=description):
+                self.assertTrue(domain.publishes_machine_specification(description))
+
+    def test_a_product_code_is_not_a_voltage(self):
+        """"Email grès vert EK320V" is a glaze; the V is part of the code."""
+        for description in (
+            "Email gres vert EK081V, 1240°C",
+            "VERT D'EAU (978320) 320V",
+            "Fires to 1240°C, apply 2 coats",
+        ):
+            with self.subTest(description=description):
+                self.assertFalse(domain.publishes_machine_specification(description))
+
+    def test_scope_reads_three_kinds_of_evidence(self):
+        # A kiln whose name says nothing, caught by its specification alone.
+        self.assertFalse(
+            domain.describe("KMT1027", "Toploader 11,0 kW 400 Volt Trifase")["is_material"]
+        )
+        # Orton cones in Spanish, caught by the department alone.
+        self.assertFalse(
+            domain.describe("Conos ORTON SMALL(SRB)", "", ["Pirometría"])["is_material"]
+        )
+        # ...and a glaze filed under glazes is still a glaze.
+        self.assertTrue(
+            domain.describe(
+                "Botz Steinzeugglasur 9101", "Brennen 1220-1250°C", ["Glasuren"]
+            )["is_material"]
+        )
+
     def test_hematite_is_a_colourant_not_a_pencil(self):
         """"matite" is Italian for pencils and hides inside "hematite"."""
         self.assertFalse(domain.looks_non_material("Hematite"))

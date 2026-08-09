@@ -585,9 +585,90 @@ def _word_start(keywords: tuple[str, ...]) -> re.Pattern[str]:
     return re.compile(rf"\b(?:{'|'.join(re.escape(k) for k in keywords)})")
 
 
-def is_material(family_label: str | None, *texts: Any) -> bool:
-    """Decide whether a row belongs in a ceramic-materials scope."""
+#: Department names that say the shop filed this under something other than
+#: materials. Matched against the category path only, never against a name or a
+#: description.
+#:
+#: A category is the shop's own classification rather than its prose, which is
+#: what makes this list safe to keep broad where the name-based one has to stay
+#: narrow: a product filed under "Maquinaria" or "Ferramentas para cerâmica" has
+#: been declared equipment by the person selling it.
+#:
+#: Three words that look like they belong here are deliberately absent, and each
+#: cost a real product to discover: "torno" is in "arcilla roja torno", a red
+#: clay *for the wheel*; "refractaria" is in "pastas refractarias", which is
+#: fireclay and very much a material; and "peci" hides inside the Spanish
+#: "especiales", which is how a shelf of speciality glazes gets filed.
+NON_MATERIAL_DEPARTMENTS: tuple[str, ...] = (
+    "equipment", "equipamento", "equipamentos", "equipamiento", "equipos",
+    "machinery", "maquinaria", "macchinari",
+    "ferramenta", "ferramentas", "herramienta", "herramientas",
+    "outillage", "outils", "attrezzatur", "utensili",
+    "narzedzia", "narzędzia", "werkzeug", "gereedschap", "verktyg", "tools",
+    # French and Spanish file kilns in the plural, which keeps this clear of the
+    # "fourniture" that a singular "four" would catch.
+    "fours", "hornos", "pirometria",
+    "materiel d'enfournement", "randerscheiben",
+)
+
+
+def names_non_material_department(categories: Iterable[str]) -> bool:
+    """True when the shop's own category path files this outside materials.
+
+    Matched as plain substrings, so Dutch "set draaigereedschap" is reached the
+    same way German "Muffelofen" is. Checked against all 7,032 distinct category
+    values in the catalogue: substring matching finds exactly one value that a
+    word-boundary rule misses, that one is a true positive, and it produces no
+    false positives at all. The collision-prone words are kept out of the list
+    above rather than guarded here.
+    """
+    text = fold(" ".join(clean(value) for value in categories if value))
+    return any(department in text for department in NON_MATERIAL_DEPARTMENTS)
+
+
+#: A published electrical rating. No glaze has a wattage, and no clay body draws
+#: three-phase current, so this is a machine however its name is spelled - which
+#: is the point, because the names arrive in fifteen languages and the
+#: specification does not.
+#:
+#: The wattage and the phase wording carry their own units. A bare three-digit
+#: voltage does not and is deliberately excluded: it matches the product codes
+#: "EK081V" and "EK320V", which are stoneware glazes.
+_MACHINE_SPECIFICATION = re.compile(
+    r"\b\d+(?:[.,]\d+)?\s?kw\b"
+    r"|\b\d+(?:[.,]\d+)?\s?kwh\b"
+    r"|\b\d{3}\s?volt"
+    r"|\btrifase|\btrifasico|\bdreiphasen|\btrojfazowy"
+    r"|\bsingle phase\b|\b3 phase\b|\bthree phase\b",
+    re.I,
+)
+
+
+def publishes_machine_specification(description: Any) -> bool:
+    """True when the description publishes an electrical rating."""
+    return _MACHINE_SPECIFICATION.search(fold(description)) is not None
+
+
+def is_material(
+    family_label: str | None,
+    *texts: Any,
+    categories: Iterable[str] = (),
+    description: Any = "",
+) -> bool:
+    """Decide whether a row belongs in a ceramic-materials scope.
+
+    Three tests, on three different kinds of evidence, because no one of them
+    reaches far enough. The name catches what a shop calls a thing, but only in
+    the languages the keyword lists happen to cover. The category catches what
+    the shop filed it under, which is a classification and so can be read
+    broadly. The specification catches a machine in any language at all, because
+    a kilowatt is a kilowatt in all of them.
+    """
     if looks_non_material(*texts):
+        return False
+    if names_non_material_department(categories):
+        return False
+    if publishes_machine_specification(description):
         return False
     return family_label is not None
 
@@ -1260,7 +1341,10 @@ def describe(
     colour_hint: Any = None,
 ) -> dict[str, Any]:
     """Derive the full ceramics field block from a product's published text."""
-    categories = " ".join(clean(value) for value in category_path)
+    # Materialised once: this is read twice below, and a caller passing a
+    # generator would find it exhausted the second time.
+    path = tuple(category_path)
+    categories = " ".join(clean(value) for value in path)
     corpus = (clean(name), clean(description), categories, clean(extra))
     # Descriptive marketing prose names every property a product does *not* have
     # ("unlike glazes", "apply a clear glaze on top"), so classification reads the
@@ -1284,5 +1368,10 @@ def describe(
         # a positive claim.
         "claims": claims(clean(name), clean(description)),
         "package_size": package,
-        "is_material": is_material(family_label, *identity),
+        # The scope decision reads the categories and the description as separate
+        # evidence rather than as more identity text: a department name may be
+        # judged broadly, and a specification is not prose at all.
+        "is_material": is_material(
+            family_label, *identity, categories=path, description=description
+        ),
     }

@@ -1,34 +1,34 @@
 {
-  "digest": "7145275ea5fb9ffee4a25140cefee88fa9e904f7d87fb0d562c3b59d46e017b0",
+  "digest": "776498568e66058f4258b78b2fd522eddf31809dcab9af2dcfff60845dbcc071",
   "discovered": 1007,
   "error_count": 0,
   "errors": [],
   "extraction_method": "dom",
   "field_coverage": {
-    "all_image_urls": 732,
+    "all_image_urls": 731,
     "brand": 72,
     "category_path": 0,
     "claims": 291,
-    "colour": 689,
-    "description": 732,
+    "colour": 688,
+    "description": 731,
     "documents": 0,
     "effects": 7,
-    "family": 732,
+    "family": 731,
     "firing": 457,
     "form": 3,
     "gtin": 0,
     "manufacturer_sku": 16,
-    "package_size": 400,
+    "package_size": 399,
     "stock_quantity": 0,
     "supplier_reference": 725,
     "surface": 71,
-    "unit_price": 400,
-    "vat_status": 732
+    "unit_price": 399,
+    "vat_status": 731
   },
   "notes": [
     "1007 product URLs from the sitemap"
   ],
-  "records": 732,
+  "records": 731,
   "rendered_pages": 0,
   "requests": 1008,
   "sample": [
