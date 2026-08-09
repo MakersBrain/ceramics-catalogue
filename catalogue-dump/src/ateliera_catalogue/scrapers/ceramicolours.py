@@ -40,7 +40,7 @@ class CeramicoloursScraper(PageScraper):
         if home is None:
             # Every category is discovered from this one page, so failing it is
             # failing to enumerate the shop rather than finding it empty.
-            self.enumeration_failed(self.base_url, "the category index could not be read")
+            self.fail(self.base_url, "the category index could not be read")
             return []
         categories = []
         for href in re.findall(r'href="(Articoli\.php\?[^"]+)"', home, re.I):
@@ -59,7 +59,7 @@ class CeramicoloursScraper(PageScraper):
                     # Ending the walk here leaves the rest of this category
                     # unseen, and a dump missing them is not a shop that stopped
                     # selling them — `plan_load` would retire every one.
-                    self.enumeration_failed(f"{category}&page={page}", "category page could not be read")
+                    self.fail(f"{category}&page={page}", "category page could not be read")
                     break
                 found = [
                     canonical(urljoin(self.base_url, html_lib.unescape(match.group(1))))

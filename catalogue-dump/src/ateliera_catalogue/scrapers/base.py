@@ -12,6 +12,8 @@ import time
 import urllib.robotparser
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urljoin, urlparse
@@ -971,6 +973,9 @@ class Scraper(ABC):
         self.config = config
         self.fetcher = fetcher
         self.result = ScrapeResult()
+        #: Whether a failure right now means the catalogue was not fully listed.
+        #: True by default, and see `extracting` for why that direction.
+        self._enumerating = True
         self.base_url = config.get("url", "")
         if delay := config.get("delay"):
             fetcher.limiter.set_delay(self.base_url, float(delay))
@@ -993,8 +998,39 @@ class Scraper(ABC):
         LOGGER.info("source=%s %s", self.name, message)
         self.result.notes.append(message)
 
+    @contextmanager
+    def extracting(self) -> Iterator[None]:
+        """Mark work that reads one already-listed product, not the listing.
+
+        Failures divide in two, and only one of them bears on retirement. A
+        *listing* request that fails — a sitemap, a category page, a page of
+        pagination — leaves an unknown number of products unseen, so the dump is
+        not the catalogue and `plan_load` must not retire against it. A *product
+        page* that fails costs one row we already knew about.
+
+        Enumeration is therefore the default and this is the exception, which is
+        the safe direction round. The same bug was fixed three times in three
+        places — Shopify and Woo pagination, `pagecrawl` discovery, then the
+        three scrapers overriding discovery that the second fix missed — and
+        every fix was a call site remembering to say something. A scraper
+        written tomorrow will not remember and has no reason to know the rule
+        exists. Getting this wrong now means over-reporting truncation, which
+        costs a retirement that waits for the next run; the other direction
+        withdraws a live catalogue.
+        """
+        previous = self._enumerating
+        self._enumerating = False
+        try:
+            yield
+        finally:
+            self._enumerating = previous
+
     def fail(self, url: str, error: Exception | str) -> None:
         self.result.errors.append({"url": url, "error": str(error)})
+        if self._enumerating:
+            # Not a judgement about this page. While enumerating, a page we
+            # could not read is a branch of the catalogue nobody listed.
+            self.result.truncated = True
         LOGGER.warning("source=%s url=%s error=%s", self.name, url, error)
 
     def enumeration_failed(self, url: str, error: Exception | str) -> None:

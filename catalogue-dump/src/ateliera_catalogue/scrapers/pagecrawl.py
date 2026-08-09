@@ -59,7 +59,7 @@ class PageScraper(Scraper):
         if not urls and not self.config.get("category_urls") and self.config.get("sitemaps"):
             # A source that names its sitemaps and got nothing from them has not
             # found an empty shop; it has failed to look.
-            self.result.truncated = True
+            self.enumeration_failed(self.base_url, "configured sitemaps yielded no product URLs")
         if urls:
             self.note(f"{len(urls)} product URLs from the sitemap")
             return urls
@@ -98,11 +98,6 @@ class PageScraper(Scraper):
             seen.add(url)
             document = await self.load(url)
             if document is None:
-                # A seed or category page that could not be read is a branch of
-                # the catalogue nobody enumerated, not an empty one. Saying so
-                # is what stops a blocked shop reporting an empty catalogue as
-                # a complete one and inviting the loader to retire it.
-                self.result.truncated = True
                 continue
             for link in self.links(document, url):
                 if self.is_product_url(link):
@@ -183,35 +178,41 @@ class PageScraper(Scraper):
         self.result.discovered = len(urls)
         page_limit = limit if limit is not None else self.config.get("page_limit", 500)
         selected = urls[:page_limit]
-        self.result.truncated = len(urls) > len(selected)
+        # `or`, not `=`. Discovery may already have found the listing
+        # incomplete, and a page limit that happens not to bite is not evidence
+        # that it was complete after all.
+        self.result.truncated = self.result.truncated or len(urls) > len(selected)
         concurrency = int(self.config.get("product_concurrency", 4))
         semaphore = asyncio.Semaphore(concurrency)
 
         async def handle(url: str) -> None:
             async with semaphore:
-                document = await self.load(url)
-                if document is None:
-                    return
-                try:
-                    rows = await self.parse_page(document, url)
-                except Exception as error:  # noqa: BLE001 - one bad page must not stop a source
-                    self.fail(url, error)
-                    return
-                if (
-                    not rows
-                    and not self.always_render
-                    and not self.never_render
-                    and self.fetcher.browser_policy != "never"
-                ):
-                    rendered = await self.load(url, render=True)
-                    if rendered:
-                        try:
-                            rows = await self.parse_page(rendered, url)
-                        except Exception as error:  # noqa: BLE001
-                            self.fail(url, error)
-                            return
-                for row, category_match in rows:
-                    self.add(row, category_match)
+                # One product page, already listed. A failure here costs that
+                # row and says nothing about whether the listing was complete.
+                with self.extracting():
+                    document = await self.load(url)
+                    if document is None:
+                        return
+                    try:
+                        rows = await self.parse_page(document, url)
+                    except Exception as error:  # noqa: BLE001 - one bad page must not stop a source
+                        self.fail(url, error)
+                        return
+                    if (
+                        not rows
+                        and not self.always_render
+                        and not self.never_render
+                        and self.fetcher.browser_policy != "never"
+                    ):
+                        rendered = await self.load(url, render=True)
+                        if rendered:
+                            try:
+                                rows = await self.parse_page(rendered, url)
+                            except Exception as error:  # noqa: BLE001
+                                self.fail(url, error)
+                                return
+                    for row, category_match in rows:
+                        self.add(row, category_match)
 
         await asyncio.gather(*(handle(url) for url in selected))
         return self.result

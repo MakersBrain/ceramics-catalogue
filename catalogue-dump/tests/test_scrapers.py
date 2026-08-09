@@ -1313,5 +1313,67 @@ class BlockPageTests(unittest.TestCase):
         self.assertIsNone(base.looks_like_a_block("<html><body>403 Forbidden</body></html>", "text/html"))
 
 
+class EnumerationInvariantTests(unittest.IsolatedAsyncioTestCase):
+    """A failure while listing truncates; a failure reading one product does not.
+
+    The point of the phase is that a scraper gets this right without knowing the
+    rule exists, so the first test writes a new scraper the way someone would
+    tomorrow — an overridden `discover` with a plain `self.fail` and no mention
+    of truncation anywhere — and expects the safe answer regardless.
+    """
+
+    def _fetcher(self, handler):
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        return client, base.Fetcher(
+            client, base.HostLimiter(0.0, 4), base.BrowserRenderer(False), "never",
+            impersonate_policy="never",
+        )
+
+    async def test_a_new_scraper_that_says_nothing_still_reports_truncation(self):
+        from ateliera_catalogue.scrapers.pagecrawl import PageScraper
+
+        class NewShopScraper(PageScraper):
+            """Written by someone who has never heard of `truncated`."""
+
+            async def discover(self, limit=None):
+                document = await self.load("https://shop.test/catalogue")
+                if document is None:
+                    return []
+                return ["https://shop.test/product/1"]
+
+        async def _no_wait(_seconds):
+            return None
+
+        client, fetcher = self._fetcher(lambda request: httpx.Response(500, text="boom"))
+        scraper = NewShopScraper("shop", {"url": "https://shop.test/", "scope": "all"}, fetcher)
+        with unittest.mock.patch("asyncio.sleep", _no_wait):
+            async with client:
+                result = await scraper.scrape()
+        self.assertTrue(result.truncated, "a listing that could not be read is not a whole catalogue")
+
+    async def test_one_bad_product_page_does_not_truncate(self):
+        from ateliera_catalogue.scrapers.pagecrawl import PageScraper
+
+        class NewShopScraper(PageScraper):
+            async def discover(self, limit=None):
+                return ["https://shop.test/product/1", "https://shop.test/product/2"]
+
+        def handler(request):
+            if request.url.path.endswith("/2"):
+                return httpx.Response(500, text="boom")
+            return httpx.Response(200, text="<html><body>nothing parseable</body></html>")
+
+        async def _no_wait(_seconds):
+            return None
+
+        client, fetcher = self._fetcher(handler)
+        scraper = NewShopScraper("shop", {"url": "https://shop.test/", "scope": "all"}, fetcher)
+        with unittest.mock.patch("asyncio.sleep", _no_wait):
+            async with client:
+                result = await scraper.scrape()
+        self.assertTrue(result.errors, "the bad page is still recorded")
+        self.assertFalse(result.truncated, "one unreadable product is not an unlisted catalogue")
+
+
 if __name__ == "__main__":
     unittest.main()

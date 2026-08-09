@@ -53,7 +53,7 @@ class AxnerScraper(PageScraper):
         if document is None:
             # Discovery starts and ends with this page, so an unreadable one is
             # an unknown catalogue rather than an empty one.
-            self.enumeration_failed(index, "the HTML department index could not be read")
+            self.fail(index, "the HTML department index could not be read")
             return []
         origin = urlparse(self.base_url).netloc
         departments = [
@@ -76,7 +76,7 @@ class AxnerScraper(PageScraper):
             seen_pages.add(url)
             listing = await self.load(url)
             if listing is None:
-                self.enumeration_failed(url, "department listing could not be read")
+                self.fail(url, "department listing could not be read")
                 continue
             for href in LISTING_LINK.findall(listing):
                 candidate = canonical(urljoin(url, html_lib.unescape(href)))
