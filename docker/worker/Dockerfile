@@ -56,6 +56,21 @@ FROM base AS worker-browser
 
 # camoufox pulls a full browser. Kept in its own stage so the plain worker's
 # image does not carry it.
+# Camoufox ships a Firefox binary and none of the system libraries it links
+# against, and python:3.12-slim carries none of them either. Without these the
+# package imports, `camoufox fetch` reports a version, and the browser dies at
+# launch with "libgtk-3.so.0: cannot open shared object file" — which reads as a
+# per-page error and is really this image being unable to render anything at
+# all. The set is the one catalogue-dump/flake.nix already lists for the
+# development shell, in Debian package names.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      libgtk-3-0 libx11-6 libxcb1 libxcomposite1 libxdamage1 libxext6 \
+      libxfixes3 libxrandr2 libxt6 libnss3 libnspr4 libpango-1.0-0 \
+      libcairo2 libasound2t64 libdbus-glib-1-2 libfontconfig1 libfreetype6 \
+      libglib2.0-0 libxkbcommon0 libdrm2 libgbm1 fonts-liberation \
+ && rm -rf /var/lib/apt/lists/*
+
 RUN pip install --no-cache-dir ".[postgres,otel,browser,impersonate]" \
  && python -c "import camoufox" \
  && rm -rf /root/.cache
@@ -73,6 +88,28 @@ WORKDIR /var/lib/catalogue
 # process cannot read and leave the image just as broken.
 RUN python -m camoufox fetch \
  && python -c "from camoufox.pkgman import installed_verstr; print(installed_verstr())"
+
+# The two checks above both passed on an image whose browser could not start:
+# the package imported, `fetch` reported 152.0.4-beta.28, and every launch died
+# on a missing libgtk. A version string is not a working browser, so the build
+# now starts one and loads a page. It is the only check here that would have
+# caught it, and it fails the build rather than the 03:00 run.
+RUN python - <<'SMOKE'
+import asyncio
+from camoufox.async_api import AsyncCamoufox
+
+
+async def main() -> None:
+    async with AsyncCamoufox(headless=True, block_images=False, humanize=False) as browser:
+        page = await browser.new_page()
+        await page.goto("data:text/html,<title>ok</title>", wait_until="domcontentloaded")
+        assert await page.title() == "ok"
+        await page.close()
+    print("camoufox launches and renders")
+
+
+asyncio.run(main())
+SMOKE
 
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["catalogue-worker", "--capabilities", "browser"]
