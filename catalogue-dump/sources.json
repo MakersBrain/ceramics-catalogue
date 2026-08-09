@@ -875,21 +875,6 @@
     "product_pattern": "/product-",
     "note": "UNRESOLVED: only 7 product URLs discovered"
   },
-  "keramikams-lt": {
-    "label": "Suvena / Keramikams.lt",
-    "url": "https://keramikams.lt/",
-    "scraper": "pagecrawl",
-    "scope": "materials",
-    "country": "LT",
-    "render": true,
-    "delay": 1.0,
-    "category_urls": [
-      "https://keramikams.lt/product-catalogue/glazes-for-ceramic",
-      "https://keramikams.lt/product-catalogue/clays",
-      "https://keramikams.lt/product-catalogue/raw-materials-for-glazes-and-masses"
-    ],
-    "note": "needs --browser always (Cloudflare challenge); see distributors/scrape-candidates.md"
-  },
   "sounding-stone": {
     "label": "Sounding Stone",
     "url": "https://soundingstone.com/",

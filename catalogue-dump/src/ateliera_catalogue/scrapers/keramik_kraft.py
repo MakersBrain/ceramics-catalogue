@@ -63,6 +63,7 @@ class KeramikKraftScraper(PageScraper):
             seen.add(url)
             document = await self.load(url)
             if document is None:
+                self.enumeration_failed(url, "listing page could not be read")
                 continue
             found = self.read_cards(document, url)
             self.result.discovered += found
