@@ -67,7 +67,14 @@ class CeramicoloursScraper(PageScraper):
                 ]
                 fresh = [url for url in found if url not in products]
                 products.extend(fresh)
-                if not fresh:
+                # Stop on a page that listed *nothing*, which is how this shop
+                # says there is no page N. Stopping on "nothing new" instead
+                # reads an overlap as an ending: `products` accumulates across
+                # every category, so a category whose first page repeats one
+                # already walked was abandoned at page 1 and the rest of it
+                # never read — no error, no truncation, just missing products
+                # that the loader then retired as delisted.
+                if not found:
                     break
         return products
 

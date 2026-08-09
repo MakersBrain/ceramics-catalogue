@@ -1375,5 +1375,61 @@ class EnumerationInvariantTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result.truncated, "one unreadable product is not an unlisted catalogue")
 
 
+class CeramicoloursPaginationTests(unittest.IsolatedAsyncioTestCase):
+    """A category that repeats an earlier one must still be walked to its end.
+
+    `products` accumulates across every category, so stopping when a page
+    brings nothing new treats an overlap as the end of the listing. It cost
+    ceramicolours 416 products, which the loader then retired as delisted while
+    they were still on sale.
+    """
+
+    HOME = (
+        '<a href="Articoli.php?Id=5101">A</a>'
+        '<a href="Articoli.php?Id=5102">B</a>'
+    )
+
+    def _card(self, code):
+        return f'<a href="Articolo.php?cod={code}&Name=x&Lang=IT" class="product-name">{code}</a>'
+
+    async def test_an_overlapping_category_is_walked_past_its_first_page(self):
+        from ateliera_catalogue.scrapers.ceramicolours import CeramicoloursScraper
+
+        pages = {
+            ("5101", "1"): [self._card("A1"), self._card("A2")],
+            ("5101", "2"): [],
+            # B's first page repeats A's products entirely; its second page is
+            # where its own stock lives.
+            ("5102", "1"): [self._card("A1"), self._card("A2")],
+            ("5102", "2"): [self._card("B1")],
+            ("5102", "3"): [],
+        }
+
+        def handler(request):
+            params = dict(request.url.params)
+            if "Articoli.php" not in request.url.path and not params.get("Id"):
+                return httpx.Response(200, text=self.HOME)
+            cards = pages.get((params.get("Id"), params.get("page")), [])
+            return httpx.Response(200, text="<html>" + "".join(cards) + "</html>")
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        fetcher = base.Fetcher(
+            client, base.HostLimiter(0.0, 4), base.BrowserRenderer(False), "never",
+            impersonate_policy="never",
+        )
+        config = {
+            "url": "https://www.ceramicolours.it/", "scope": "all",
+            "category_ids": [5101, 5102], "category_page_limit": 5,
+        }
+        scraper = CeramicoloursScraper("ceramicolours", config, fetcher)
+        async with client:
+            found = await scraper.discover_from_categories()
+
+        self.assertTrue(
+            any("B1" in url for url in found),
+            "the second category was abandoned on an overlap with the first",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
