@@ -28,6 +28,11 @@ REGISTRY: dict[str, str] = {
     # generic json-ld page crawler, for storefronts with no public API.
     # Reads schema.org json-ld only; a microdata-only storefront yields nothing.
     "pagecrawl": ".pagecrawl:PageScraper",
+    # NitroSell publishes the whole product as OpenGraph meta; its
+    # schema.org scope carries only the name, so pagecrawl finds no price.
+    "nitrosell": ".nitrosell:NitroSellScraper",
+    # AmeriCommerce with no feed and no structured data at all.
+    "axner": ".axner:AxnerScraper",
     "sio2": ".prestashop:Sio2Scraper",
     "wix": ".wix:WixScraper",
     "shopware": ".shopware:ShopwareScraper",
