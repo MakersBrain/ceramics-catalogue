@@ -38,7 +38,11 @@ RUN mkdir -p /var/lib/catalogue/cache /var/lib/catalogue/dumps \
 
 FROM base AS worker
 
-RUN pip install --no-cache-dir ".[postgres,otel]" && rm -rf /root/.cache
+# curl_cffi is a few megabytes and no browser, so the plain worker carries it:
+# without it every source behind a TLS-fingerprinting WAF fails on this worker
+# and only succeeds on the browser one, which is the expensive way to fetch a
+# page that a handshake alone would have opened.
+RUN pip install --no-cache-dir ".[postgres,otel,impersonate]" && rm -rf /root/.cache
 USER catalogue
 WORKDIR /var/lib/catalogue
 # SIGTERM is handled as a drain: it finishes the current source, requeues
@@ -52,7 +56,7 @@ FROM base AS worker-browser
 
 # camoufox pulls a full browser. Kept in its own stage so the plain worker's
 # image does not carry it.
-RUN pip install --no-cache-dir ".[postgres,otel,browser]" \
+RUN pip install --no-cache-dir ".[postgres,otel,browser,impersonate]" \
  && python -c "import camoufox" \
  && rm -rf /root/.cache
 USER catalogue
