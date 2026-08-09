@@ -1,12 +1,12 @@
 {
-  "digest": "1f12f37d723e727539263aaf5a40fd19b0b941b017cf6c8c551d5290b4bb63a7",
+  "digest": "764a0cdc92b3824a3132f3b85a91a20e5988c35fcdb6735d578ad74155337585",
   "discovered": 1125,
   "error_count": 0,
   "errors": [],
   "extraction_method": "dom",
   "field_coverage": {
     "all_image_urls": 256,
-    "brand": 6,
+    "brand": 148,
     "category_path": 256,
     "claims": 0,
     "colour": 44,

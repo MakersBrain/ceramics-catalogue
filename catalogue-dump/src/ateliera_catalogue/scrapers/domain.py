@@ -640,6 +640,18 @@ MANUFACTURERS: dict[str, tuple[str, ...]] = {
     "Rohde": ("rohde",),
     "Royal & Langnickel": ("royal & langnickel", "royal and langnickel"),
     "Centrado": ("centrado",),
+    # Named in titles all over the dumps and missing from this list, so the
+    # rows said who made them and nothing read it. Same two-or-more-shops bar
+    # as the block above: Orton appears unbranded in 9 shops, Schjerning and
+    # Heraeus in 2 each.
+    #
+    # Lascaux (297 rows) and Bergoin (222) are deliberately *not* here. Both
+    # are real makers and both appear in exactly one shop, which is the shape
+    # of a house label as much as of a manufacturer — and this list cannot tell
+    # them apart on one shop's word. They want a second source, not a guess.
+    "Orton": ("orton",),
+    "Schjerning": ("schjerning",),
+    "Heraeus": ("heraeus",),
 }
 
 #: Product lines, and the maker each one belongs to.
@@ -654,9 +666,17 @@ MANUFACTURERS: dict[str, tuple[str, ...]] = {
 #: the line is numbered. Les Cousins writes "POTTER'S CHOICE 21" where AMACO
 #: writes "PC-21", and the bare number is only a code once the line says which
 #: series it counts within. `None` for a line whose products are not numbered.
+#: `None` is not "unknown", it is "this line's products are not numbered in
+#: their titles", and getting that wrong invents codes. Designer Liner is the
+#: worked example: its titles read "DESIGNER LINER 37 ML BLANC", where 37 is the
+#: pack and the code is `SG402` in the shop's reference. A prefix here would
+#: have made every colour in the line the same product, `SG37`.
 MANUFACTURER_LINES: dict[str, tuple[tuple[str, str | None], ...]] = {
     "AMACO": ((r"potter'?[’']?s?\s+choice", "PC"),),
-    "Mayco": ((r"stroke\s*&?\s*(?:and\s+)?coat", "SC"),),
+    "Mayco": (
+        (r"stroke\s*&?\s*(?:and\s+)?coat", "SC"),
+        (r"designer\s+liner", None),
+    ),
 }
 
 MANUFACTURER_LINE_PATTERNS: list[tuple[str, str | None, re.Pattern[str]]] = [

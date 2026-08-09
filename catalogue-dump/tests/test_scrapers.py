@@ -277,6 +277,37 @@ class ProductLineTests(unittest.TestCase):
         parsed = domain.parse_title("AMACO Potter's Choice PC-21 Arctic Blue")
         self.assertEqual("named_in_title", parsed["brand_basis"])
 
+    def test_an_unnumbered_line_never_reads_the_pack_as_a_code(self):
+        """Designer Liner titles read "DESIGNER LINER 37 ML BLANC".
+
+        37 is the pack; the code is `SG402` in the shop's reference. Giving the
+        line a prefix would make every colour in it the one product `SG37`.
+        """
+        white = domain.parse_title("DESIGNER LINER 37 ML BLANC", supplier_sku="SG402")
+        black = domain.parse_title("DESIGNER LINER 37 ML NOIR", supplier_sku="SG401")
+        self.assertEqual("Mayco", white["brand"])
+        self.assertEqual("SG402", white["code"])
+        self.assertNotEqual(white["code"], black["code"], "two colours are two products")
+
+
+class NamedManufacturerTests(unittest.TestCase):
+    """Makers written into titles all over the dumps and absent from the list.
+
+    The row said who made it and nothing read it.
+    """
+
+    def test_makers_seen_in_two_or_more_shops_are_recognised(self):
+        for name, expected in (
+            ("Segerkegel Orton Standard Nr.03 1085°C", "Orton"),
+            ("COULEUR DECOR PORCELAINE SCHJERNING N°102 VERT", "Schjerning"),
+            ("COULEUR VITRIFIABLE HERAEUS 64115 BLEU – 10 G", "Heraeus"),
+        ):
+            with self.subTest(name=name):
+                self.assertEqual(expected, domain.parse_title(name)["brand"])
+
+    def test_a_maker_is_not_matched_inside_a_longer_word(self):
+        self.assertIsNone(domain.parse_title("Norton abrasive disc")["brand"])
+
 
 class CodeImpliedManufacturerTests(unittest.TestCase):
     """A code specific enough to name its maker on a page that names nobody.
