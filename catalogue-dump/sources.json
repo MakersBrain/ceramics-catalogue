@@ -1216,5 +1216,49 @@
     ],
     "note": "No XML sitemap, no JSON-LD and no microdata; discovery walks the HTML department index and product links are found by their listing tile class. Declines the browser fallback: measured across two runs it rendered pages that produced no additional records, while one empty page sent the whole source to the browser worker and restarted it there.",
     "render": false
+  },
+  "the-ceramic-shop": {
+    "label": "The Ceramic Shop",
+    "url": "https://www.theceramicshop.com/",
+    "scraper": "nitrosell",
+    "scope": "materials",
+    "country": "US",
+    "vat_status": "exclusive",
+    "product_pattern": "/product/",
+    "excluded_categories": [
+      "kiln",
+      "wheel",
+      "tools",
+      "brush",
+      "books",
+      "equipment",
+      "shelf",
+      "mold",
+      "stamp",
+      "sponge",
+      "extruder",
+      "slab roller",
+      "bisque"
+    ],
+    "note": "Blocked us at the address level after being crawled hard in a short window while its discovery was being worked out. Restored on terms that should not have provoked it: one request in flight, five seconds between them, and robots.txt obeyed for this source even though the run ignores it by default. Nothing will be collected until they lift the block — every URL, robots.txt included, currently answers a 403 document with status 200, which the fetcher now recognises — so each run knocks a few times, records the refusal and stops. That is also how we find out when it lifts.",
+    "use_advertised_sitemaps": false,
+    "category_urls": [
+      "https://www.theceramicshop.com/store/department/6/clay/",
+      "https://www.theceramicshop.com/store/department/7/dry-materials/",
+      "https://www.theceramicshop.com/store/department/10/glazes-underglazes/",
+      "https://www.theceramicshop.com/store/department/40/surface-decoration/",
+      "https://www.theceramicshop.com/store/department/55/liquid-materials/",
+      "https://www.theceramicshop.com/store/department/57/stains/",
+      "https://www.theceramicshop.com/store/department/60/luster-overglazes/"
+    ],
+    "pagination_patterns": [
+      "/store/category/"
+    ],
+    "category_page_limit": 1500,
+    "page_limit": 9000,
+    "render": false,
+    "obey_robots": true,
+    "delay": 5.0,
+    "product_concurrency": 1
   }
 }

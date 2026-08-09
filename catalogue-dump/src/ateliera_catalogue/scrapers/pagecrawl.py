@@ -134,7 +134,7 @@ class PageScraper(Scraper):
 
     async def load(self, url: str, render: bool | None = None) -> str | None:
         """Fetch a page, falling back to the browser when the server refuses."""
-        if not await self.fetcher.may_fetch(url, self.ignore_robots):
+        if not await self.fetcher.may_fetch(url, self.ignore_robots, self.obey_robots):
             self.fail(url, "robots.txt disallows this URL")
             return None
         if self.never_render and render:

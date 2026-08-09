@@ -662,7 +662,9 @@ class Fetcher:
         parser.disallow_all = True
         return parser, []
 
-    async def may_fetch(self, url: str, ignore_robots: bool = False) -> bool:
+    async def may_fetch(
+        self, url: str, ignore_robots: bool = False, obey_robots: bool = False
+    ) -> bool:
         """Whether to fetch this URL, and at what pace to remember it wants.
 
         robots.txt is read under either policy, because `Crawl-delay` and
@@ -679,6 +681,11 @@ class Fetcher:
         # and is obeyed either way.
         published = parser.crawl_delay(USER_AGENT)
         self.limiter.remember_crawl_delay(url, published)
+        if obey_robots:
+            # A source may ask to be held to the file even where the fleet is
+            # not. The strictest request wins, which is the same rule
+            # `set_delay` already follows for pace.
+            return parser.can_fetch(USER_AGENT, url)
         if ignore_robots or self.robots_policy == "ignore":
             # Not obeying Disallow and also ignoring the pace the host asked for
             # would be taking the whole file as noise. A Crawl-delay is the one
@@ -987,6 +994,11 @@ class Scraper(ABC):
         return bool(self.config.get("ignore_robots"))
 
     @property
+    def obey_robots(self) -> bool:
+        """This source obeys Disallow even where the run policy does not."""
+        return bool(self.config.get("obey_robots"))
+
+    @property
     def strict_scope(self) -> bool:
         return self.config.get("scope", "materials") == "materials"
 
@@ -1138,7 +1150,7 @@ class Scraper(ABC):
 
     async def run(self, limit: int | None = None) -> ScrapeResult:
         start = self.base_url
-        if start and not await self.fetcher.may_fetch(start, self.ignore_robots):
+        if start and not await self.fetcher.may_fetch(start, self.ignore_robots, self.obey_robots):
             self.result.errors.append({"url": start, "error": "robots.txt disallows this crawler"})
             self.note("skipped: robots.txt disallows this crawler")
             return self.result

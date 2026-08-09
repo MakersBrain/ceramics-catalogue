@@ -332,6 +332,60 @@ class ClassificationTests(unittest.TestCase):
             )["is_material"]
         )
 
+    def test_a_maker_who_only_makes_machines(self):
+        """The last machines had only a brand name left to give them away."""
+        for text in (
+            "Nabertherm N 140E Modell",
+            "Kittec Squadro Modell: SQ 11",
+            "Shimpo Whisper Economy RK 3T",
+            "Skutt Relay – Solid State for Firebox",
+            "Gladstone Vibratory Sifter",
+            "brent Leg Extension Kit",
+        ):
+            with self.subTest(text=text):
+                self.assertTrue(domain.looks_non_material(text))
+
+    def test_a_maker_who_sells_both_is_no_evidence(self):
+        """Rohde and Laguna sell clay as well as kilns, so the brand proves nothing.
+
+        "Brentwood" and "Paragon" are ordinary words that a wheel maker's name
+        would otherwise swallow.
+        """
+        for text in (
+            "Rohde Tonmasse rot",
+            "Laguna B-Mix 5 with grog",
+            "Brentwood stoneware clay",
+            "Paragon blue glaze",
+        ):
+            with self.subTest(text=text):
+                self.assertFalse(domain.looks_non_material(text))
+
+    def test_machines_named_in_the_remaining_languages(self):
+        for text in (
+            "BOUDINEUSE G51E (220V)",
+            "Impastatrice Shimpo NVS-07A",
+            "Vakuummischer NVS 07",
+            "Ton 3D Drucker PAW42 St",
+            "ECOTOP200S",
+            "Cabină de glazurat ROHDE SK66",
+            "Cabine de Vidragem Kittec SB1",
+        ):
+            with self.subTest(text=text):
+                self.assertTrue(domain.looks_non_material(text))
+
+    def test_a_print_shop_is_not_a_clay_printer(self):
+        """"Drucker" sits inside "Druckerei", which is where a decal comes from."""
+        self.assertFalse(domain.looks_non_material("Druckerei transfer paper A4"))
+
+    def test_the_category_alone_can_name_the_machine(self):
+        """A spray gun filed under Spray Booths is still not a glaze."""
+        self.assertTrue(
+            domain.looks_non_material("Paasche LXG-20 HVLP Spray Gun", "Spray Booths")
+        )
+        self.assertTrue(
+            domain.looks_non_material("Anbauplatten Blue-Star", "Tonplattenwalze")
+        )
+
     def test_hematite_is_a_colourant_not_a_pencil(self):
         """"matite" is Italian for pencils and hides inside "hematite"."""
         self.assertFalse(domain.looks_non_material("Hematite"))
@@ -1429,6 +1483,45 @@ class CeramicoloursPaginationTests(unittest.IsolatedAsyncioTestCase):
             any("B1" in url for url in found),
             "the second category was abandoned on an overlap with the first",
         )
+
+
+class PerSourceRobotsTests(unittest.IsolatedAsyncioTestCase):
+    """A source may be held to robots.txt even where the run ignores it.
+
+    `robots=ignore` is a policy about the fleet. Whether one shop is crawled by
+    its own rules is a fact about that shop — one that has already objected, or
+    one worth staying on good terms with — so the two settings are separate and
+    the stricter wins.
+    """
+
+    ROBOTS = "User-agent: *\nDisallow: /private/\n"
+
+    def _fetcher(self):
+        def handler(request):
+            if request.url.path == "/robots.txt":
+                return httpx.Response(200, text=self.ROBOTS)
+            return httpx.Response(200, text="<html></html>")
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        return client, base.Fetcher(
+            client, base.HostLimiter(0.0, 4), base.BrowserRenderer(False), "never",
+            impersonate_policy="never", robots_policy="ignore",
+        )
+
+    async def test_the_run_policy_ignores_disallow_by_default(self):
+        client, fetcher = self._fetcher()
+        async with client:
+            self.assertTrue(await fetcher.may_fetch("https://shop.test/private/x"))
+
+    async def test_a_source_may_opt_back_in(self):
+        client, fetcher = self._fetcher()
+        async with client:
+            self.assertFalse(
+                await fetcher.may_fetch("https://shop.test/private/x", obey_robots=True)
+            )
+            self.assertTrue(
+                await fetcher.may_fetch("https://shop.test/catalogue", obey_robots=True)
+            )
 
 
 if __name__ == "__main__":

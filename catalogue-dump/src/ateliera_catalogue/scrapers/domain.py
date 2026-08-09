@@ -113,7 +113,10 @@ NON_MATERIAL_KEYWORDS: tuple[str, ...] = (
     # dead on arrival; the text reads "topferscheibe" by the time it gets here.
     "topferscheibe", "segerkegel",
     # German names a kiln by how it loads as often as by the word "Ofen".
-    "toplader", "frontlader", "kammerofen", "muffelofen",
+    "toplader", "frontlader", "kammerofen", "muffelofen", "tonplattenwalze",
+    # Qualified rather than bare: "Drucker" alone also sits inside "Druckerei",
+    # a print shop, which is exactly where transfer paper would come from.
+    "3d drucker", "tondrucker",
 )
 
 #: The same exclusion, for the languages that do not weld nouns together.
@@ -576,7 +579,9 @@ def looks_non_material(*texts: Any) -> bool:
     text = fold(" ".join(clean(value) for value in texts if value))
     if any(keyword in text for keyword in NON_MATERIAL_KEYWORDS):
         return True
-    return _word_start(NON_MATERIAL_WORDS).search(text) is not None
+    return _word_start(NON_MATERIAL_WORDS + EQUIPMENT_ONLY_MAKERS + MACHINE_NAMES).search(
+        text
+    ) is not None
 
 
 @cache
@@ -584,6 +589,35 @@ def _word_start(keywords: tuple[str, ...]) -> re.Pattern[str]:
     """Match any of these where a word begins, leaving the ending free."""
     return re.compile(rf"\b(?:{'|'.join(re.escape(k) for k in keywords)})")
 
+
+#: Manufacturers who make equipment and nothing else.
+#:
+#: The last machines standing were the ones whose supplier publishes neither an
+#: equipment department nor a wattage, which leaves only the name — and the name
+#: arrives in Romanian, Italian and German. A maker, though, is spelled the same
+#: in all of them: Nabertherm builds kilns and has never sold a glaze, so its
+#: name on a row is as good as a category.
+#:
+#: Only makers with no materials line at all belong here. Rohde and Laguna are
+#: deliberately absent: both sell clay and glaze alongside their machinery, so
+#: for them the brand is no evidence either way. "Paragon" is absent for a
+#: different reason - it is an ordinary English word, and there is nothing in
+#: this catalogue to check a guess against.
+EQUIPMENT_ONLY_MAKERS: tuple[str, ...] = (
+    "nabertherm", "kittec", "shimpo", "peter pugger", "skutt", "gladstone",
+    # The space keeps the wheel maker clear of Brentford, Brentwood and the rest.
+    "brent ",
+)
+
+#: Machines named in languages the lists above do not reach. Kept short and
+#: specific on purpose: this is the residue after the department and
+#: specification tests, not a general vocabulary.
+MACHINE_NAMES: tuple[str, ...] = (
+    "boudineuse", "impastatrice", "vakuummischer", "vakuumpresse",
+    "vacuum power wedger", "spray booth", "ecotop",
+    # Written with the diacritic, which fold() leaves alone.
+    "cabină de glazurat", "cabine de vidragem", "cabina de esmaltar",
+)
 
 #: Department names that say the shop filed this under something other than
 #: materials. Matched against the category path only, never against a name or a

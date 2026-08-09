@@ -58,6 +58,15 @@ class SourceConfig(BaseModel):
     delay: float | None = Field(default=None, ge=0)
     #: Deliberate, and only with a `note` saying why and a `delay` of at least 2s.
     ignore_robots: bool = False
+    #: Obey robots.txt Disallow for this source even when the run ignores it.
+    #:
+    #: The run-level default is `robots=ignore`, which is a policy about the
+    #: fleet. This is the other direction and belongs to the source: a shop we
+    #: want to stay on good terms with, or one that has already objected, is
+    #: crawled by its own rules whatever the fleet does.
+    #: `None`, not `False`: an unset optional must be absent from
+    #: `as_scraper_config`, not present and falsy — see that method's docstring.
+    obey_robots: bool | None = None
     #: Force the browser renderer for a source whose pages are built client-side.
     render: bool | None = None
     product_concurrency: int | None = Field(default=None, ge=1)
