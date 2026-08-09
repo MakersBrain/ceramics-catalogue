@@ -1272,5 +1272,46 @@ class RateLimitHeaderTests(unittest.TestCase):
         self.assertEqual(0.0, self.limiter.spacing("shop.test"))
 
 
+class BlockPageTests(unittest.TestCase):
+    """A refusal served with HTTP 200 must not read as an empty page.
+
+    theceramicshop.com answers every URL with a 2,471-byte "403 Forbidden"
+    document and a 200 status. Nothing keyed on the status noticed, the crawl
+    discovered nothing, and the source reported success — with `truncated`
+    false, which is exactly the shape that invites retirement of a live
+    catalogue.
+    """
+
+    def test_a_403_document_served_as_200_is_recognised(self):
+        body = "<html><head><title>403 Forbidden</title></head><body>no</body></html>"
+        self.assertIsNotNone(base.looks_like_a_block(body, "text/html"))
+
+    def test_the_usual_interstitials_are_recognised(self):
+        for title in ("Just a moment...", "Attention Required! | Cloudflare",
+                      "Access denied", "Your access to this site has been limited"):
+            with self.subTest(title=title):
+                body = f"<html><head><title>{title}</title></head><body></body></html>"
+                self.assertIsNotNone(base.looks_like_a_block(body, "text/html"))
+
+    def test_a_real_page_about_the_subject_is_not_a_block(self):
+        """The phrases are ordinary; only a title plus a small body is a refusal."""
+        body = (
+            "<html><head><title>Cloudflare for Potters, a book</title></head><body>"
+            + "Access denied is a phrase discussed at length. " * 40
+            + "</body></html>"
+        )
+        self.assertIsNone(base.looks_like_a_block(body, "text/html"))
+
+    def test_a_large_document_is_never_a_block_page(self):
+        body = "<html><head><title>403 Forbidden</title></head><body>" + ("x" * 40_000) + "</body></html>"
+        self.assertIsNone(base.looks_like_a_block(body, "text/html"))
+
+    def test_non_html_is_left_alone(self):
+        self.assertIsNone(base.looks_like_a_block('{"title": "403 Forbidden"}', "application/json"))
+
+    def test_a_page_with_no_title_is_left_alone(self):
+        self.assertIsNone(base.looks_like_a_block("<html><body>403 Forbidden</body></html>", "text/html"))
+
+
 if __name__ == "__main__":
     unittest.main()

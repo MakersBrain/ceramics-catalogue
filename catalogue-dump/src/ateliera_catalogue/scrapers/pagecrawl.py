@@ -56,6 +56,10 @@ class PageScraper(Scraper):
 
     async def discover(self, limit: int | None = None) -> list[str]:
         urls = await self.discover_from_sitemaps()
+        if not urls and not self.config.get("category_urls") and self.config.get("sitemaps"):
+            # A source that names its sitemaps and got nothing from them has not
+            # found an empty shop; it has failed to look.
+            self.result.truncated = True
         if urls:
             self.note(f"{len(urls)} product URLs from the sitemap")
             return urls
@@ -94,6 +98,11 @@ class PageScraper(Scraper):
             seen.add(url)
             document = await self.load(url)
             if document is None:
+                # A seed or category page that could not be read is a branch of
+                # the catalogue nobody enumerated, not an empty one. Saying so
+                # is what stops a blocked shop reporting an empty catalogue as
+                # a complete one and inviting the loader to retire it.
+                self.result.truncated = True
                 continue
             for link in self.links(document, url):
                 if self.is_product_url(link):

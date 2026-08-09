@@ -33,6 +33,59 @@ class Blocked(Exception):
     """Raised when a site's own rules or defences stop a fetch."""
 
 
+#: Block pages that arrive with a 200. Matched against the document title only,
+#: because the phrases themselves are ordinary enough to appear in the prose of a
+#: real page — a shop may well sell a book about Cloudflare — while a *title* of
+#: "403 Forbidden" is never a product.
+BLOCK_TITLES = (
+    "403 forbidden",
+    "401 unauthorized",
+    "access denied",
+    "attention required",
+    "just a moment",
+    "checking your browser",
+    "you have been blocked",
+    "access to this site has been limited",
+    "request unsuccessful",
+    "are you a robot",
+    "pardon our interruption",
+)
+
+TITLE_TAG = re.compile(r"<title[^>]*>(.*?)</title>", re.I | re.S)
+
+#: A block page is small. Above this a title match is far more likely to be a
+#: real page about the subject than a refusal wearing a 200.
+BLOCK_MAX_BYTES = 32_768
+
+
+def looks_like_a_block(body: str, content_type: str = "") -> str | None:
+    """Name the refusal if this 200 is really a block page, else None.
+
+    theceramicshop.com serves an entire "403 Forbidden" document with HTTP 200.
+    Nothing keyed on the status code notices, so the fetcher returned it as a
+    successful page, `pagecrawl` read a page with no links as a page with no
+    links, and the source reported success having discovered nothing — with
+    `truncated` false, which is the one combination that invites the loader to
+    retire a live catalogue.
+
+    The status code is not a reliable statement of what a server did, so the
+    body has to be read. Two conditions together, because either alone is
+    wrong: the document has to be small, and its *title* has to be a refusal.
+    """
+    if content_type and "html" not in content_type.lower():
+        return None
+    if len(body) > BLOCK_MAX_BYTES:
+        return None
+    match = TITLE_TAG.search(body)
+    if not match:
+        return None
+    title = " ".join(match.group(1).split()).casefold()
+    for phrase in BLOCK_TITLES:
+        if phrase in title:
+            return title[:120]
+    return None
+
+
 class NotCached(Blocked):
     """Raised in replay mode when a request was never recorded.
 
@@ -768,6 +821,12 @@ class Fetcher:
             if impersonated is not None:
                 response = impersonated
         response.raise_for_status()
+        if refusal := looks_like_a_block(response.text, response.headers.get("content-type", "")):
+            # A refusal wearing a 200. Raised rather than returned so it travels
+            # the same path as any other Blocked — recorded against the source,
+            # survivable page by page — instead of being mistaken for a real
+            # page that happens to contain nothing.
+            raise Blocked(f"{url} returned a block page with status 200: {refusal!r}")
         # Only a response the site actually completed is worth replaying; a
         # retry-exhausted 5xx would otherwise be served back as if it were the
         # page. Recording the final URL keeps redirects out of the next run.
