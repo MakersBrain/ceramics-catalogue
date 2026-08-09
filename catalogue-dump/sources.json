@@ -1170,47 +1170,6 @@
     ],
     "note": "Mostly a paint and watercolour retailer: only fifteen of its 212 collections are ceramics, so this one is an allowlist rather than a full crawl."
   },
-  "the-ceramic-shop": {
-    "label": "The Ceramic Shop",
-    "url": "https://www.theceramicshop.com/",
-    "scraper": "nitrosell",
-    "scope": "materials",
-    "country": "US",
-    "vat_status": "exclusive",
-    "product_pattern": "/product/",
-    "excluded_categories": [
-      "kiln",
-      "wheel",
-      "tools",
-      "brush",
-      "books",
-      "equipment",
-      "shelf",
-      "mold",
-      "stamp",
-      "sponge",
-      "extruder",
-      "slab roller",
-      "bisque"
-    ],
-    "note": "Its sitemap is ordered newest-first, so taking the first `page_limit` of 18,869 product URLs collected only the 500 most recently added products — clay samples and bats — and which 500 drifted as the shop added stock. Discovery therefore walks the seven materials departments instead: each lists categories, each category lists all its products with no pagination of its own, so `pagination_patterns` is what makes the walk descend a level. Marks products up as schema.org microdata rather than JSON-LD, but the whole product is in its OpenGraph meta, which is what the nitrosell scraper reads. Declines the browser fallback: measured across two runs it rendered pages that produced no additional records, while one empty page sent the whole source to the browser worker and restarted it there.",
-    "use_advertised_sitemaps": false,
-    "category_urls": [
-      "https://www.theceramicshop.com/store/department/6/clay/",
-      "https://www.theceramicshop.com/store/department/7/dry-materials/",
-      "https://www.theceramicshop.com/store/department/10/glazes-underglazes/",
-      "https://www.theceramicshop.com/store/department/40/surface-decoration/",
-      "https://www.theceramicshop.com/store/department/55/liquid-materials/",
-      "https://www.theceramicshop.com/store/department/57/stains/",
-      "https://www.theceramicshop.com/store/department/60/luster-overglazes/"
-    ],
-    "pagination_patterns": [
-      "/store/category/"
-    ],
-    "category_page_limit": 1500,
-    "page_limit": 9000,
-    "render": false
-  },
   "glaser-ceramics": {
     "label": "Glaser Ceramics",
     "url": "https://glaserceramics.com/",
