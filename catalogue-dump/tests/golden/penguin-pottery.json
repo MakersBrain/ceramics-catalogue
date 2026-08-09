@@ -1,5 +1,5 @@
 {
-  "digest": "77493aa1f49379550c7b404a13ae0aaa7f12ac755cb9ed2cc07704a37a110c0b",
+  "digest": "98e7a41d4de30525d25313d2801bc15da833eafbf53c39167f211f6848b8cc09",
   "discovered": 241,
   "error_count": 0,
   "errors": [],
@@ -21,7 +21,7 @@
     "package_size": 124,
     "stock_quantity": 0,
     "supplier_reference": 126,
-    "surface": 27,
+    "surface": 20,
     "unit_price": 124,
     "vat_status": 126
   },

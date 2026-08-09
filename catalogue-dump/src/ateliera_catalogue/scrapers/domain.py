@@ -112,6 +112,8 @@ NON_MATERIAL_KEYWORDS: tuple[str, ...] = (
     # keyword that keeps its accent can never match. "töpferscheibe" would be
     # dead on arrival; the text reads "topferscheibe" by the time it gets here.
     "topferscheibe", "segerkegel",
+    # German names a kiln by how it loads as often as by the word "Ofen".
+    "toplader", "frontlader", "kammerofen", "muffelofen",
 )
 
 #: The same exclusion, for the languages that do not weld nouns together.
@@ -135,6 +137,17 @@ NON_MATERIAL_WORDS: tuple[str, ...] = (
     "spugne", "matita", "matite", "bilancia", "setaccio", "stampo", "stampi",
     "colonnine", "piastra refrattaria", "piastre refrattarie",
     "cortador", "cortante", "vaciador", "herramienta",
+    # Slavic and Nordic. Polish "piec" is a kiln and also the first four letters
+    # of the English "piece", which appears in half the product copy in this
+    # catalogue - so it is written with the space that a following model name or
+    # "do ceramiki" always supplies. Croatian keeps its diacritic through fold(),
+    # hence both spellings.
+    "piec ", "piece do", "peci ", "peci za", "peći ", "peći za",
+    "drejskiva", "drejskivor", "keramikugn", "brannugn",
+    # Studio machinery. A pug mill and a slab roller are no more a clay body
+    # than a kiln is, and they cost as much.
+    "pugmill", "pug mill", "pugger", "laminadora", "galletera", "extrusora",
+    "ball mill", "3d printer", "printer",
     # Pyrometric cones are a firing accessory, not a material.
     "pyrometric cone", "cono pirometrico", "coni pirometrici", "coni orton",
     "cono orton", "montre fusible",

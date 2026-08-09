@@ -1,34 +1,34 @@
 {
-  "digest": "764a0cdc92b3824a3132f3b85a91a20e5988c35fcdb6735d578ad74155337585",
+  "digest": "a0d6e09c40616518303e9e49825140d5dfd45101335743a8d51fbbe12859bee4",
   "discovered": 1125,
   "error_count": 0,
   "errors": [],
   "extraction_method": "dom",
   "field_coverage": {
-    "all_image_urls": 256,
-    "brand": 148,
-    "category_path": 256,
+    "all_image_urls": 153,
+    "brand": 45,
+    "category_path": 153,
     "claims": 0,
     "colour": 44,
     "description": 0,
     "documents": 0,
     "effects": 1,
-    "family": 256,
-    "firing": 144,
+    "family": 153,
+    "firing": 43,
     "form": 14,
     "gtin": 0,
     "manufacturer_sku": 0,
     "package_size": 58,
     "stock_quantity": 0,
-    "supplier_reference": 256,
+    "supplier_reference": 153,
     "surface": 3,
     "unit_price": 58,
-    "vat_status": 256
+    "vat_status": 153
   },
   "notes": [
     "robots.txt intentionally not applied for this source (operator decision)"
   ],
-  "records": 256,
+  "records": 153,
   "rendered_pages": 0,
   "requests": 600,
   "sample": [

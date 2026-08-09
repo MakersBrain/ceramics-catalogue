@@ -227,6 +227,39 @@ class ClassificationTests(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertTrue(domain.looks_non_material(text))
 
+    def test_the_scope_filter_reaches_slavic_and_nordic_kilns(self):
+        for text in (
+            "Piec do ceramiki Kittec Squadro SQ 11",
+            "Piec Kittec RAKU CBR 80 T",
+            "Električne peći za keramiku BC 1200/1250",
+            "Drejskiva Brent CXC",
+            "Kittec X-Line Toplader Modell: X 215",
+            "Hobby-Frontlader Modell: N 100 E",
+        ):
+            with self.subTest(text=text):
+                self.assertTrue(domain.looks_non_material(text))
+
+    def test_a_piece_is_not_a_polish_kiln(self):
+        """"piec" is a kiln in Polish and the first four letters of "piece"."""
+        for text in ("a piece of clay", "Masterpiece glaze 500ml", "Centrepiece stoneware"):
+            with self.subTest(text=text):
+                self.assertFalse(domain.looks_non_material(text))
+
+    def test_studio_machinery_is_not_a_clay_body(self):
+        """A pug mill costs more than a pallet of clay and is not clay."""
+        for text in (
+            "Peter Pugger VPM-7 Vacuum Power Wedger",
+            "Shimpo Ball Mill PTA-02",
+            "3D PotterBot Scara Elite Printer",
+            "LAMINADORA XLAM 1600 COLD&HOT",
+            "Galletera Rohde TS 20",
+            "Fieira - Extrusora SHIMPO NRA-04S",
+        ):
+            with self.subTest(text=text):
+                self.assertTrue(domain.looks_non_material(text))
+        # ...but a printed transfer is a material.
+        self.assertFalse(domain.looks_non_material("Printed decal paper A4"))
+
     def test_hematite_is_a_colourant_not_a_pencil(self):
         """"matite" is Italian for pencils and hides inside "hematite"."""
         self.assertFalse(domain.looks_non_material("Hematite"))
