@@ -23,6 +23,10 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BrowserPolicy = Literal["never", "auto", "always"]
+#: When to fall back to a browser TLS handshake for a host that refuses ours.
+#: "auto" is the last rung of the fallback ladder in `Fetcher.response`;
+#: "never" leaves a refusal as a refusal.
+ImpersonatePolicy = Literal["never", "auto"]
 CacheMode = Literal["off", "auto", "replay", "refresh"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 
@@ -48,6 +52,7 @@ class CrawlParams(BaseModel):
     #: Seconds one crawling slot waits between its requests to a host.
     delay: float = Field(default=0.0, ge=0)
     browser: BrowserPolicy = "auto"
+    impersonate: ImpersonatePolicy = "auto"
 
     cache_mode: CacheMode = "auto"
     #: How old a stored response may be before `auto` refetches it. Zero means
@@ -106,6 +111,7 @@ class CrawlParams(BaseModel):
             concurrency=options.concurrency,
             delay=options.delay,
             browser=options.browser,
+            impersonate=options.impersonate,
             cache_mode=options.cache_mode if options.cache else "off",
             cache_max_age_hours=options.cache_max_age,
             source_timeout_seconds=options.source_timeout,

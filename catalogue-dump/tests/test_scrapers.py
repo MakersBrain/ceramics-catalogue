@@ -7,6 +7,8 @@ import timeit
 import unittest
 from pathlib import Path
 
+import httpx
+
 from ateliera_catalogue import scrapers
 from ateliera_catalogue.scrapers import base, domain, jsonld
 from ateliera_catalogue.scrapers import cache as cache_module
@@ -783,6 +785,123 @@ class JsonLdTests(unittest.TestCase):
         item = jsonld.products(self.DOCUMENT)[0]
         self.assertEqual("14.26", jsonld.offer(item)["price"])
         self.assertEqual("1234567890123", jsonld.gtin(item))
+
+
+class ImpersonationLadderTests(unittest.IsolatedAsyncioTestCase):
+    """The three rungs of `Fetcher.response` when a host says 403.
+
+    The order matters and is cheapest-first: the declared research agent, then a
+    browser User-Agent, and only then a browser TLS handshake, which costs a
+    thread and an optional dependency.
+    """
+
+    def _fetcher(self, handler, *, impersonator=None, policy="auto"):
+        transport = httpx.MockTransport(handler)
+        client = httpx.AsyncClient(transport=transport, headers={"user-agent": base.USER_AGENT})
+        return client, base.Fetcher(
+            client,
+            base.HostLimiter(0.0, 4),
+            base.BrowserRenderer(False),
+            "never",
+            impersonate_policy=policy,
+            impersonator=impersonator,
+        )
+
+    async def test_a_browser_user_agent_is_tried_before_the_handshake(self):
+        seen = []
+
+        def handler(request):
+            seen.append(request.headers.get("user-agent"))
+            if request.headers.get("user-agent") == base.BROWSER_USER_AGENT:
+                return httpx.Response(200, text="served")
+            return httpx.Response(403, text="refused")
+
+        impersonator = _NeverCalled()
+        client, fetcher = self._fetcher(handler, impersonator=impersonator)
+        async with client:
+            self.assertEqual("served", await fetcher.text("https://example.test/x"))
+        self.assertEqual([base.USER_AGENT, base.BROWSER_USER_AGENT], seen)
+        self.assertFalse(impersonator.called, "the handshake rung must not be reached")
+
+    async def test_the_handshake_is_used_when_headers_are_not_enough(self):
+        impersonator = _Serves(httpx.Response(200, text="handshake"))
+        client, fetcher = self._fetcher(
+            lambda request: httpx.Response(403, text="refused"), impersonator=impersonator,
+        )
+        async with client:
+            self.assertEqual("handshake", await fetcher.text("https://example.test/x"))
+        self.assertTrue(impersonator.called)
+
+    async def test_the_site_s_refusal_survives_when_the_handshake_also_fails(self):
+        """The caller must see the host's 403, not a complaint about our tooling."""
+        impersonator = _Serves(httpx.Response(403, text="still refused"))
+        client, fetcher = self._fetcher(
+            lambda request: httpx.Response(403, text="refused"), impersonator=impersonator,
+        )
+        async with client:
+            with self.assertRaises(httpx.HTTPStatusError) as raised:
+                await fetcher.text("https://example.test/x")
+        self.assertEqual(403, raised.exception.response.status_code)
+
+    async def test_a_missing_dependency_is_not_an_error_of_its_own(self):
+        impersonator = _Raises(ImportError("no curl_cffi here"))
+        client, fetcher = self._fetcher(
+            lambda request: httpx.Response(403, text="refused"), impersonator=impersonator,
+        )
+        async with client:
+            with self.assertRaises(httpx.HTTPStatusError):
+                await fetcher.text("https://example.test/x")
+
+    async def test_never_skips_the_rung_entirely(self):
+        impersonator = _NeverCalled()
+        client, fetcher = self._fetcher(
+            lambda request: httpx.Response(403, text="refused"),
+            impersonator=impersonator, policy="never",
+        )
+        impersonator.enabled = False
+        async with client:
+            with self.assertRaises(httpx.HTTPStatusError):
+                await fetcher.text("https://example.test/x")
+        self.assertFalse(impersonator.called)
+
+
+class _Stub:
+    def __init__(self):
+        self.called = False
+        self.enabled = True
+
+    @property
+    def available(self):
+        return self.enabled
+
+
+class _NeverCalled(_Stub):
+    async def request(self, url, **kwargs):
+        self.called = True
+        raise AssertionError("the handshake rung should not have been reached")
+
+
+class _Serves(_Stub):
+    def __init__(self, response):
+        super().__init__()
+        self.response = response
+
+    async def request(self, url, **kwargs):
+        self.called = True
+        # The real client always attaches the request it made, and
+        # `raise_for_status` needs it; a stub that omits it tests nothing real.
+        self.response._request = httpx.Request(kwargs.get("method", "GET"), url)
+        return self.response
+
+
+class _Raises(_Stub):
+    def __init__(self, error):
+        super().__init__()
+        self.error = error
+
+    async def request(self, url, **kwargs):
+        self.called = True
+        raise self.error
 
 
 if __name__ == "__main__":

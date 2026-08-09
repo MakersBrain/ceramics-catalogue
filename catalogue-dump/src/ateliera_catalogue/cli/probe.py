@@ -30,6 +30,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--limit", type=int, default=40)
     parser.add_argument("--delay", type=float, default=1.0)
     parser.add_argument("--browser", choices=("never", "auto", "always"), default="auto")
+    parser.add_argument(
+        "--impersonate", choices=("never", "auto"), default="auto",
+        help="retry a refused request with a browser TLS handshake (needs the impersonate extra)",
+    )
     parser.add_argument("--cache", nargs="?", const=".cache", default=None, metavar="DIR")
     parser.add_argument("--cache-mode", choices=CACHE_MODES, default="auto")
     parser.add_argument("--show", type=int, default=2, help="how many sample rows to print")
@@ -49,6 +53,7 @@ async def run(options: argparse.Namespace) -> int:
         delay=options.delay,
         concurrency=4,
         browser=options.browser,
+        impersonate=options.impersonate,
         cache_mode=options.cache_mode if options.cache else "off",
         # A probe wants what is on the site now, not what was there last week.
         cache_max_age_hours=0 if options.cache_mode == "replay" else 1,

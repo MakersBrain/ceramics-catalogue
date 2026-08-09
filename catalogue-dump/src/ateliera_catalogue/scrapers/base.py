@@ -228,6 +228,100 @@ class _Gate:
             self.condition.notify()
 
 
+class ImpersonatingClient:
+    """A real browser's TLS handshake, for hosts that reject Python's.
+
+    Several CDNs decide before a single header is read. They fingerprint the TLS
+    ClientHello — cipher order, extensions, ALPN, the JA3 of it — and refuse
+    anything that is not a browser, which is why `BROWSER_USER_AGENT` alone gets
+    a 403 from clay-king.com and nmclay.com while an ordinary Chrome sails
+    through. Sending a browser's *name* is not sending a browser's *handshake*.
+
+    It is worth being exact about what this is not. It is **not** a challenge
+    solver and holds no cookies: measured against nmclay.com, a `cf_clearance`
+    taken from a browser that had solved the challenge made no difference in
+    either direction — `httpx` was refused with it and this client was served
+    without it. The handshake is the whole of the difference, so there is
+    nothing to harvest, store or keep fresh.
+
+    curl_cffi is an optional dependency for the same reason camoufox is: most
+    sources never need it, and an image that does not carry it should degrade to
+    "this host refuses us" rather than fail to import.
+    """
+
+    #: curl-impersonate target. A major-version name ("chrome") tracks whatever
+    #: the installed curl_cffi considers current, which is what we want: a
+    #: fingerprint pinned to a browser three years out of date is its own tell.
+    PROFILE = "chrome"
+
+    #: Socket timeout for one impersonated request. A plain attribute rather
+    #: than a parameter: this is curl's own timeout, not an asyncio deadline,
+    #: and taking it as an argument to an async def invites the two to be
+    #: confused for one another.
+    REQUEST_TIMEOUT = 30.0
+
+    def __init__(self, enabled: bool = True) -> None:
+        self.enabled = enabled
+        self._unavailable: str | None = None
+
+    @property
+    def available(self) -> bool:
+        return self.enabled and self._unavailable is None
+
+    def _session(self) -> Any:
+        try:
+            from curl_cffi import requests as curl_requests
+        except ImportError as error:  # pragma: no cover - environment dependent
+            self._unavailable = str(error)
+            raise Blocked(
+                "curl_cffi is not installed; run 'uv sync --directory catalogue-dump "
+                "--extra impersonate' to reach hosts that fingerprint the TLS handshake"
+            ) from error
+        return curl_requests
+
+    def _blocking_get(
+        self,
+        method: str,
+        url: str,
+        params: dict[str, Any] | None,
+        headers: dict[str, str] | None,
+        json_body: Any,
+        timeout: float,
+    ) -> tuple[int, bytes, dict[str, str], str]:
+        requests = self._session()
+        response = requests.request(
+            method, url, params=params, headers=headers, json=json_body,
+            impersonate=self.PROFILE, timeout=timeout,
+        )
+        return response.status_code, response.content, dict(response.headers), str(response.url)
+
+    async def request(
+        self,
+        url: str,
+        *,
+        method: str = "GET",
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        json_body: Any = None,
+    ) -> httpx.Response:
+        """Issue one request and return it in the shape every caller expects.
+
+        curl_cffi is synchronous, so it runs on a worker thread; the alternative
+        is blocking the event loop for every other source in the run.
+        """
+        if not self.enabled:
+            raise Blocked("TLS impersonation disabled (use --impersonate auto or always)")
+        status, content, response_headers, final_url = await asyncio.to_thread(
+            self._blocking_get, method, url, params, headers, json_body, self.REQUEST_TIMEOUT,
+        )
+        return httpx.Response(
+            status,
+            content=content,
+            headers=response_headers,
+            request=httpx.Request(method, final_url or url),
+        )
+
+
 class BrowserRenderer:
     """One lazily started Camoufox instance, shared by the scrapers that need it."""
 
@@ -365,11 +459,15 @@ class Fetcher:
         browser: BrowserRenderer,
         browser_policy: str = "auto",
         cache: ResponseCache | None = None,
+        impersonate_policy: str = "auto",
+        impersonator: ImpersonatingClient | None = None,
     ) -> None:
         self.client = client
         self.limiter = limiter
         self.browser = browser
         self.browser_policy = browser_policy
+        self.impersonate_policy = impersonate_policy
+        self.impersonator = impersonator or ImpersonatingClient(impersonate_policy != "never")
         self.cache = cache or ResponseCache(".", mode="off")
         self._robots: dict[str, urllib.robotparser.RobotFileParser] = {}
         self._sitemaps: dict[str, list[str]] = {}
@@ -543,13 +641,22 @@ class Fetcher:
             LOGGER.warning("status=%d url=%s retry=%d pause=%.1fs", response.status_code, url, attempt + 1, pause)
             await asyncio.sleep(max(0.0, pause))
         assert response is not None
-        if response.status_code in (401, 403, 406) and not browser_user_agent:
-            # Several CDNs reject a declared research agent but serve the same
-            # public page to an ordinary browser string.
-            return await self.response(
-                url, browser_user_agent=True, params=params, accept=accept,
-                method=method, json_body=json_body, headers=headers,
+        if response.status_code in (401, 403, 406):
+            # Three rungs, cheapest first. Several CDNs reject a declared
+            # research agent but serve the same public page to an ordinary
+            # browser string; the ones that are still refusing after that are
+            # usually reading the TLS handshake rather than any header, and the
+            # only answer to that is a real browser's handshake.
+            if not browser_user_agent:
+                return await self.response(
+                    url, browser_user_agent=True, params=params, accept=accept,
+                    method=method, json_body=json_body, headers=headers,
+                )
+            impersonated = await self._impersonate(
+                url, method=method, params=params, headers=request_headers, json_body=json_body,
             )
+            if impersonated is not None:
+                response = impersonated
         response.raise_for_status()
         # Only a response the site actually completed is worth replaying; a
         # retry-exhausted 5xx would otherwise be served back as if it were the
@@ -564,6 +671,45 @@ class Fetcher:
             },
             fetched_at=time.time(),
         ))
+        return response
+
+    async def _impersonate(
+        self,
+        url: str,
+        *,
+        method: str,
+        params: dict[str, Any] | None,
+        headers: dict[str, str],
+        json_body: Any,
+    ) -> httpx.Response | None:
+        """Re-ask with a browser's TLS fingerprint. None means it did not help.
+
+        Deliberately quiet about failure: this is the last rung of a fallback
+        ladder, and the caller already holds a 403 to raise. Whatever goes wrong
+        here — the package missing, the host refusing this handshake too — the
+        honest outcome is the refusal the site gave us, not an error about our
+        own tooling.
+        """
+        if not self.impersonator.available:
+            return None
+        target = str(httpx.URL(url, params=params)) if params else url
+        ACTIVITY.started(target)
+        async with self.limiter.gate(url):
+            await self.limiter.wait(url)
+            try:
+                response = await self.impersonator.request(
+                    url, method=method, params=params,
+                    headers={**headers, "user-agent": BROWSER_USER_AGENT},
+                    json_body=json_body,
+                )
+            except (Blocked, Exception) as error:  # noqa: BLE001 - curl_cffi raises its own
+                ACTIVITY.finished(target, "impersonate-error")
+                LOGGER.debug("impersonation failed for %s (%s)", url, error)
+                return None
+        ACTIVITY.finished(target, f"{response.status_code} (impersonated)")
+        if response.status_code >= 400:
+            return None
+        LOGGER.info("host=%s served an impersonated handshake after refusing ours", urlparse(url).netloc)
         return response
 
     async def render(self, url: str, wait_ms: int = 1500, wait_for: str | None = None) -> str:

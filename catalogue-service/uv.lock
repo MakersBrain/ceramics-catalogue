@@ -82,9 +82,10 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ateliera-catalogue", extras = ["tui", "postgres", "browser", "otel"], marker = "extra == 'all'" },
+    { name = "ateliera-catalogue", extras = ["tui", "postgres", "browser", "impersonate", "otel"], marker = "extra == 'all'" },
     { name = "camoufox", marker = "extra == 'browser'", specifier = ">=0.5,<0.6" },
     { name = "croniter", specifier = ">=6.0" },
+    { name = "curl-cffi", marker = "extra == 'impersonate'", specifier = ">=0.7,<1" },
     { name = "httpx", specifier = ">=0.27,<1" },
     { name = "opentelemetry-api", marker = "extra == 'otel'", specifier = ">=1.27" },
     { name = "opentelemetry-exporter-otlp-proto-http", marker = "extra == 'otel'", specifier = ">=1.27" },
@@ -97,11 +98,11 @@ requires-dist = [
     { name = "structlog", specifier = ">=24.4" },
     { name = "textual", marker = "extra == 'tui'", specifier = ">=8.2.8" },
 ]
-provides-extras = ["tui", "postgres", "browser", "otel", "all"]
+provides-extras = ["tui", "postgres", "browser", "impersonate", "otel", "all"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "ateliera-catalogue", extras = ["tui", "postgres", "browser", "otel"] },
+    { name = "ateliera-catalogue", extras = ["tui", "postgres", "browser", "impersonate", "otel"] },
     { name = "mypy", specifier = ">=1.13" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "pytest-asyncio", specifier = ">=0.24" },

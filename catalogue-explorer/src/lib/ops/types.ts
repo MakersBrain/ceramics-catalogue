@@ -45,6 +45,7 @@ export interface CrawlParams {
 	concurrency?: number | null;
 	delay?: number | null;
 	browser?: 'never' | 'auto' | 'always' | null;
+	impersonate?: 'never' | 'auto' | null;
 	cache_mode?: 'off' | 'auto' | 'replay' | 'refresh' | null;
 	cache_max_age_hours?: number | null;
 	source_timeout_seconds?: number | null;

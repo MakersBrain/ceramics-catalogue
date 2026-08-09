@@ -219,6 +219,15 @@
             "title": "Dry Run",
             "type": "boolean"
           },
+          "impersonate": {
+            "default": "auto",
+            "enum": [
+              "never",
+              "auto"
+            ],
+            "title": "Impersonate",
+            "type": "string"
+          },
           "limit": {
             "anyOf": [
               {

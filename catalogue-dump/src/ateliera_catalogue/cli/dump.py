@@ -51,6 +51,10 @@ def build_parser() -> argparse.ArgumentParser:
                              "gap between requests until it recovers")
     parser.add_argument("--sources", type=int, default=4, help="sources crawled at once")
     parser.add_argument("--browser", choices=("never", "auto", "always"), default="auto")
+    parser.add_argument(
+        "--impersonate", choices=("never", "auto"), default="auto",
+        help="retry a refused request with a browser TLS handshake (needs the impersonate extra)",
+    )
     parser.add_argument("--source-timeout", type=float, default=DEFAULT_SOURCE_TIMEOUT,
                         metavar="SECONDS",
                         help="how long one source may run before the crawl gives up on it "

@@ -28,6 +28,12 @@ postgres = [
 browser = [
   "camoufox>=0.5,<0.6",
 ]
+# A browser TLS handshake for the handful of hosts that fingerprint ours and
+# refuse it. Optional for the same reason camoufox is: most sources never need
+# it, and a worker without it degrades to "this host refuses us".
+impersonate = [
+  "curl-cffi>=0.7,<1",
+]
 # Wired always, exporting only when OTEL_EXPORTER_OTLP_ENDPOINT is set (§4.7).
 otel = [
   "opentelemetry-api>=1.27",
@@ -36,7 +42,7 @@ otel = [
   "opentelemetry-exporter-otlp-proto-http>=1.27",
 ]
 all = [
-  "ateliera-catalogue[tui,postgres,browser,otel]",
+  "ateliera-catalogue[tui,postgres,browser,impersonate,otel]",
 ]
 
 [project.scripts]
@@ -51,7 +57,7 @@ dev = [
   "pytest-asyncio>=0.24",
   "ruff>=0.8",
   "mypy>=1.13",
-  "ateliera-catalogue[tui,postgres,browser,otel]",
+  "ateliera-catalogue[tui,postgres,browser,impersonate,otel]",
 ]
 
 [build-system]

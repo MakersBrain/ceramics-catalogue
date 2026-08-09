@@ -63,7 +63,10 @@ async def open_session(
     async with httpx.AsyncClient(
         headers={"user-agent": USER_AGENT}, timeout=REQUEST_TIMEOUT, follow_redirects=True
     ) as client:
-        fetcher = Fetcher(client, limiter, browser, params.browser, cache=cache)
+        fetcher = Fetcher(
+            client, limiter, browser, params.browser, cache=cache,
+            impersonate_policy=params.impersonate,
+        )
         session = CrawlSession(
             client=client, limiter=limiter, browser=browser, cache=cache, fetcher=fetcher
         )
@@ -101,6 +104,7 @@ def describe(params: CrawlParams) -> dict[str, Any]:
         "host_concurrency": params.concurrency,
         "delay": params.delay,
         "browser": params.browser,
+        "impersonate": params.impersonate,
         "cache_mode": params.cache_mode,
         "cache_max_age_hours": params.cache_max_age_hours,
         "limit": params.limit,
