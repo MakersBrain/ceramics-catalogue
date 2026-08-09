@@ -64,7 +64,9 @@ class ShopifyScraper(Scraper):
                 payload = await self.fetcher.json(endpoint, params={"limit": PAGE_SIZE, "page": page})
                 self.result.requests += 1
             except (httpx.HTTPError, Blocked) as error:
-                self.fail(f"{endpoint}?page={page}", error)
+                # Not `fail`: everything after this page went unseen, and a
+                # shop that 429s at page 8 of 14 must not read as complete.
+                self.enumeration_failed(f"{endpoint}?page={page}", error)
                 return
             products = payload.get("products") if isinstance(payload, dict) else None
             if not products:

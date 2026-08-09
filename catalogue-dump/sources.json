@@ -938,7 +938,8 @@
       "ware cart",
       "damp box"
     ],
-    "note": "372 collections that overlap heavily, so the whole catalogue is read through products.json (15 requests) and scoped by classification rather than a collection allowlist."
+    "note": "372 collections that overlap heavily, so the whole catalogue is read through products.json (15 requests) and scoped by classification rather than a collection allowlist. Answered 429 partway through products.json on the first run at no delay; a one-second floor is a hard minimum per request to this host and is never divided by the slot count, so it holds however many workers are running.",
+    "delay": 1.0
   },
   "seattle-pottery-supply": {
     "label": "Seattle Pottery Supply",
@@ -988,7 +989,8 @@
       "ware cart",
       "damp box"
     ],
-    "note": "279 overlapping collections; scoped by classification over the whole products.json feed."
+    "note": "279 overlapping collections; scoped by classification over the whole products.json feed. Answered 429 partway through products.json on the first run at no delay; a one-second floor is a hard minimum per request to this host and is never divided by the slot count, so it holds however many workers are running.",
+    "delay": 1.0
   },
   "krueger-pottery": {
     "label": "Krueger Pottery Supply",
@@ -1088,7 +1090,8 @@
       "ware cart",
       "damp box"
     ],
-    "note": "263 overlapping collections; scoped by classification over the whole products.json feed."
+    "note": "263 overlapping collections; scoped by classification over the whole products.json feed. Answered 429 partway through products.json on the first run at no delay; a one-second floor is a hard minimum per request to this host and is never divided by the slot count, so it holds however many workers are running.",
+    "delay": 1.0
   },
   "sheffield-pottery": {
     "label": "Sheffield Pottery",

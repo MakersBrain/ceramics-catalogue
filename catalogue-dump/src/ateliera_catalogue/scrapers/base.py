@@ -828,6 +828,27 @@ class Scraper(ABC):
         self.result.errors.append({"url": url, "error": str(error)})
         LOGGER.warning("source=%s url=%s error=%s", self.name, url, error)
 
+    def enumeration_failed(self, url: str, error: Exception | str) -> None:
+        """Record a failure that ended the walk before the catalogue did.
+
+        The distinction from `fail` is not about severity, it is about what the
+        file that comes out means. A product page that fails costs one known
+        row. A *listing* request that fails costs an unknown number of rows
+        nobody ever enumerated, so the dump is no longer the whole catalogue —
+        and `plan_load` reads `truncated` as its permission to retire anything
+        missing from it. Leaving the flag off after a failed page of pagination
+        hands the loader a half-catalogue labelled complete, and everything past
+        the failure gets withdrawn as though the shop had stopped selling it.
+
+        This is not hypothetical: soundingstone.com and seattlepotterysupply.com
+        both answered 429 partway through their pagination on the first run of
+        the US sources, returned about two thirds of their rows, and reported
+        `truncated: false`. Nothing was retired only because both were new
+        sources with nothing yet to retire.
+        """
+        self.fail(url, error)
+        self.result.truncated = True
+
     def category_allows(self, *values: Any) -> bool | None:
         """Match a product's categories against this source's materials allowlist.
 

@@ -5,6 +5,7 @@ import tempfile
 import time
 import timeit
 import unittest
+import unittest.mock
 from pathlib import Path
 
 import httpx
@@ -973,6 +974,68 @@ class _Raises(_Stub):
     async def request(self, url, **kwargs):
         self.called = True
         raise self.error
+
+
+class TruncationTests(unittest.IsolatedAsyncioTestCase):
+    """A run that stopped early must say so, because retirement reads the flag.
+
+    `plan_load` refuses to retire against a dump marked `truncated`. The inverse
+    is the whole risk: a dump that stopped at page 8 of 14 and reports complete
+    invites the loader to withdraw the six pages it never saw.
+    """
+
+    def _shopify(self, handler):
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        fetcher = base.Fetcher(
+            client, base.HostLimiter(0.0, 4), base.BrowserRenderer(False), "never",
+            impersonate_policy="never",
+        )
+        from ateliera_catalogue.scrapers.shopify import ShopifyScraper
+
+        config = {"url": "https://shop.test/", "scope": "all", "vat_status": "exclusive"}
+        return client, ShopifyScraper("shop", config, fetcher)
+
+    @staticmethod
+    def _product(index):
+        return {
+            "handle": f"p{index}", "title": f"Glaze {index}", "vendor": "Mayco",
+            "variants": [{"id": index, "price": "10.00", "available": True, "title": "Default Title"}],
+        }
+
+    async def test_a_429_partway_through_marks_the_dump_truncated(self):
+        # The retry ladder waits 1s, 2s then 4s before giving up on a 429, which
+        # is right in a run and seven wasted seconds in the fast suite.
+        async def _no_wait(_seconds):
+            return None
+
+        def handler(request):
+            if request.url.path == "/meta.json":
+                return httpx.Response(200, json={"currency": "USD"})
+            if request.url.params.get("page") == "1":
+                return httpx.Response(200, json={"products": [self._product(i) for i in range(250)]})
+            return httpx.Response(429, json={})
+
+        client, scraper = self._shopify(handler)
+        with unittest.mock.patch("asyncio.sleep", _no_wait):
+            async with client:
+                result = await scraper.scrape()
+        self.assertTrue(result.truncated, "a refused page of pagination is not a complete catalogue")
+        self.assertEqual(250, len(result.records))
+        self.assertEqual(1, len(result.errors))
+
+    async def test_a_short_last_page_is_complete_not_truncated(self):
+        def handler(request):
+            if request.url.path == "/meta.json":
+                return httpx.Response(200, json={"currency": "USD"})
+            page = request.url.params.get("page")
+            products = [self._product(i) for i in range(250)] if page == "1" else [self._product(999)]
+            return httpx.Response(200, json={"products": products})
+
+        client, scraper = self._shopify(handler)
+        async with client:
+            result = await scraper.scrape()
+        self.assertFalse(result.truncated, "reaching the end of the pages is not truncation")
+        self.assertEqual(251, len(result.records))
 
 
 if __name__ == "__main__":

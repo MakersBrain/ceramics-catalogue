@@ -88,11 +88,13 @@ class WooCommerceScraper(Scraper):
                 self.result.requests += 1
             except httpx.HTTPStatusError as error:
                 if error.response.status_code == 400 and page > 1:
+                    # Woo answers 400 past the last page; that is the end of the
+                    # catalogue, not a hole in it, so it stays a plain break.
                     break
-                self.fail(f"{self.store_api()} page={page}", error)
+                self.enumeration_failed(f"{self.store_api()} page={page}", error)
                 break
             except (httpx.HTTPError, Blocked) as error:
-                self.fail(f"{self.store_api()} page={page}", error)
+                self.enumeration_failed(f"{self.store_api()} page={page}", error)
                 break
             if not isinstance(payload, list) or not payload:
                 break
