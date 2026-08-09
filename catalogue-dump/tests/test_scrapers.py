@@ -160,6 +160,77 @@ class ClassificationTests(unittest.TestCase):
         self.assertTrue(domain.looks_non_material("Kiln shelf 30cm"))
         self.assertFalse(domain.is_material(None, "Rohde kiln KE 250N"))
 
+    def test_a_kiln_is_not_a_clay_body(self):
+        """A Nabertherm furnace reached the catalogue at 37 EUR/kg.
+
+        Two independent failures had to line up. "gres" is the Italian for
+        stoneware and was matched as a bare substring, so the "ingresso" of
+        "valvola ingresso aria" in the specification classified the kiln as a
+        clay body; and the scope filter had no Italian in it, so the word
+        "forno" in the very first line was never looked for.
+        """
+        described = domain.describe(
+            "N 100 (5 lati)",
+            "Forno elettrico con apertura frontale Nabertherm N 100. "
+            "Temperatura massima 1300°C - 9,0 kW. Peso: 275 kg. "
+            "valvola ingresso aria; collettore per uscita fumi.",
+        )
+        self.assertIsNone(described["family"])
+        self.assertFalse(described["is_material"])
+
+    def test_a_short_keyword_may_not_match_inside_a_word(self):
+        self.assertIsNone(domain.family("valvola ingresso aria"))
+        self.assertIsNone(domain.family("lavori in progresso"))
+        self.assertEqual("clay_body", domain.family("Gres blanc chamotté"))
+
+    def test_a_material_may_be_the_tail_of_a_compound(self):
+        """Germanic catalogues weld the material onto the end of the word."""
+        for text, expected in (
+            ("Lertøjsglasur 1925 Blågrøn", "glaze"),
+            ("Penselglasur 33 Turkis", "glaze"),
+            ("84210-5 Transparent Porzellanglasur", "glaze"),
+            ("2S Aufbaumasse, Lederfarben, 1000-1280°C", "clay_body"),
+            ("32SF40 Plattenmasse Weiß 40 %", "clay_body"),
+            ("Eisenoxid rot", "oxide"),
+            ("Steinzeugton weiß", "clay_body"),
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(expected, domain.family(text))
+
+    def test_a_material_may_be_the_middle_of_a_compound(self):
+        """Danish welds on both sides: under + glasur + farver."""
+        self.assertEqual("underglaze", domain.family("underglasurfarver til keramik"))
+
+    def test_polish_inflections_still_match(self):
+        for text in ("szkliwo transparentne", "szkliwa białe", "szkliwie"):
+            with self.subTest(text=text):
+                self.assertEqual("glaze", domain.family(text))
+
+    def test_the_scope_filter_reaches_romance_equipment(self):
+        for text in (
+            "Forno elettrico Nabertherm N 100",
+            "Forno Kittec CL-5 330 litros",
+            "HORNO PLUTON (23 a 200lt)",
+            "Cuptor ROHDE Raku seria TR",
+            "Tornio Elettrico RK-3E",
+            "Coni Orton Self Supporting (coppia)",
+            "Matita sottosmalto Chrysanthos viola",
+            "Spugne Diamantate",
+        ):
+            with self.subTest(text=text):
+                self.assertTrue(domain.looks_non_material(text))
+
+    def test_the_scope_filter_still_reaches_germanic_compounds(self):
+        """German names the equipment at the end, so these need a substring."""
+        for text in ("Muffelofen 230V", "Kammerofen", "Keramikofen", "Töpferscheibe Shimpo"):
+            with self.subTest(text=text):
+                self.assertTrue(domain.looks_non_material(text))
+
+    def test_hematite_is_a_colourant_not_a_pencil(self):
+        """"matite" is Italian for pencils and hides inside "hematite"."""
+        self.assertFalse(domain.looks_non_material("Hematite"))
+        self.assertTrue(domain.is_material("oxide", "Hematite"))
+
 
 class ManufacturerCodeTests(unittest.TestCase):
     def test_code_requires_a_named_manufacturer(self):

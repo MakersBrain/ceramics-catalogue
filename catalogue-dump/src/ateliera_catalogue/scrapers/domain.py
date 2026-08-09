@@ -10,6 +10,7 @@ from __future__ import annotations
 import html
 import re
 from collections.abc import Iterable
+from functools import cache
 from typing import Any
 from urllib.parse import urljoin, urlparse
 
@@ -58,7 +59,10 @@ FAMILY_KEYWORDS: list[tuple[str, tuple[str, ...]]] = [
     ("underglaze", (
         "underglaze", "under glaze", "sous-email", "sous email", "sous-emaux",
         "unterglasur", "onderglazuur", "sottosmalto", "bajo cubierta",
-        "podglazur", "underglasyr", "engobe de decor",
+        # "underglasyr" is the Swedish; Danish and Norwegian spell it with a u
+        # and were reaching only the "glasur" in the middle, which reads as a
+        # plain glaze.
+        "podglazur", "underglasyr", "underglasur", "engobe de decor",
     )),
     ("engobe", ("engobe", "angobe", "angoba", "slip trailing", "barbotine", "casting slip")),
     ("glaze", (
@@ -88,6 +92,12 @@ FAMILY_KEYWORDS: list[tuple[str, tuple[str, ...]]] = [
 ]
 
 # Categories and products that are outside a ceramic-materials scope.
+#
+# Unlike the tables above, these are matched as plain substrings, and that is
+# deliberate: German names the equipment at the *end* of a compound, so only a
+# substring test reaches the "ofen" in Muffelofen, Kammerofen and Keramikofen.
+# The asymmetry is the safe one — over-rejecting a tool costs a row, while
+# under-rejecting one puts a kiln in the price-per-litre comparisons.
 NON_MATERIAL_KEYWORDS: tuple[str, ...] = (
     "kiln", "four ", "ofen", "brennofen", "oven", "wheel", "tour de potier",
     "drehscheibe", "draaischijf", "extruder", "pugmill", "slab roller",
@@ -98,6 +108,36 @@ NON_MATERIAL_KEYWORDS: tuple[str, ...] = (
     "sieve", "tamis", "sieb", "scale", "balance", "waage", "respirator",
     "masque", "gloves", "gants", "sponge", "eponge", "schwamm", "turntable",
     "gift card", "carte cadeau", "voucher", "sample pack", "spare part",
+    # Written without the umlaut: these are matched against fold()ed text, so a
+    # keyword that keeps its accent can never match. "töpferscheibe" would be
+    # dead on arrival; the text reads "topferscheibe" by the time it gets here.
+    "topferscheibe", "segerkegel",
+)
+
+#: The same exclusion, for the languages that do not weld nouns together.
+#:
+#: Kept apart from the tuple above because these must touch a word boundary
+#: rather than match as bare substrings. The Italian for "pencils" is "matite",
+#: and hematite is a glaze colourant sold across this catalogue — as a
+#: substring, the pencil throws out the colourant. Germanic compounds are why
+#: the tuple above cannot take this treatment, and Romance vocabulary is why it
+#: must not be denied this one.
+#:
+#: The boundary is required only at the start, so plurals and diminutives still
+#: come along: "forno" reaches fornos, "spugna" reaches spugne.
+NON_MATERIAL_WORDS: tuple[str, ...] = (
+    # This scope filter was English, French, German and Dutch, so an Italian
+    # shop's kilns were never even tested for: the word is "forno", and nothing
+    # here looked for it. The same held for Spanish "horno", Portuguese
+    # "fornos" and Romanian "cuptor".
+    "forno", "fornetto", "horno", "cuptor", "tornio", "tornietto",
+    "torno de oleiro", "termocoppia", "pennello", "pennelli", "spugna",
+    "spugne", "matita", "matite", "bilancia", "setaccio", "stampo", "stampi",
+    "colonnine", "piastra refrattaria", "piastre refrattarie",
+    "cortador", "cortante", "vaciador", "herramienta",
+    # Pyrometric cones are a firing accessory, not a material.
+    "pyrometric cone", "cono pirometrico", "coni pirometrici", "coni orton",
+    "cono orton", "montre fusible",
 )
 
 SURFACE_KEYWORDS: list[tuple[str, tuple[str, ...]]] = [
@@ -449,15 +489,60 @@ def unit_price(price: float | None, currency: str | None, package: dict[str, Any
     return None
 
 
+#: A keyword this short can land inside an unrelated word by accident, so it
+#: has to touch a word edge. Anything longer is matched as a plain substring.
+_COLLIDABLE = 4
+
+
+@cache
+def _keyword_pattern(keywords: tuple[str, ...]) -> re.Pattern[str]:
+    """Compile a keyword tuple, guarding only the keywords short enough to collide.
+
+    A bare substring test is unsafe for the shortest keywords here. The Italian
+    for stoneware is "gres", and `"gres" in text` is also true of "ingresso" —
+    so an air inlet valve in a kiln's specification ("valvola ingresso aria")
+    classified the kiln as a clay body, which is how a 27,000-euro Nabertherm
+    furnace arrived in a materials catalogue priced at 37 EUR/kg. The same trap
+    is set for "opak" by the Polish "opakowanie" (packaging) and for "pour" by
+    the French "pourpre".
+
+    The guard is deliberately not applied to every keyword. These are
+    compounding languages and the material word can sit anywhere in the
+    compound: Lertøjsglasur and Penselglasur are glazes, Aufbaumasse is a clay
+    body, and the Danish "underglasurfarver" carries "glasur" in the middle with
+    letters on both sides. Guarding those would throw away real products to fix
+    a problem they do not have — a six-letter keyword does not land inside an
+    unrelated word by chance.
+
+    So: short keywords must begin or end a word, long ones match anywhere.
+    """
+    guarded = [k for k in keywords if len(k.strip()) <= _COLLIDABLE]
+    loose = [k for k in keywords if len(k.strip()) > _COLLIDABLE]
+    branches = []
+    if guarded:
+        alts = "|".join(re.escape(k) for k in guarded)
+        # Beginning a word (open to inflection) or ending one (open to
+        # compounding), but never buried with letters on both sides.
+        branches.append(rf"\b(?:{alts})")
+        branches.append(rf"(?:{alts})\b")
+    if loose:
+        branches.append("|".join(re.escape(k) for k in loose))
+    return re.compile("|".join(branches))
+
+
+def _matches(text: str, keywords: tuple[str, ...]) -> bool:
+    return _keyword_pattern(keywords).search(text) is not None
+
+
 def _first_keyword(text: str, table: Iterable[tuple[str, tuple[str, ...]]]) -> str | None:
     for label, keywords in table:
-        if any(keyword in text for keyword in keywords):
+        if _matches(text, keywords):
             return label
     return None
 
 
 def _all_keywords(text: str, table: Iterable[tuple[str, tuple[str, ...]]]) -> list[str]:
-    return [label for label, keywords in table if any(keyword in text for keyword in keywords)]
+    return [label for label, keywords in table if _matches(text, keywords)]
 
 
 def family(*texts: Any) -> str | None:
@@ -476,7 +561,15 @@ def looks_non_material(*texts: Any) -> bool:
     keywords over free description text rejects the very products we want.
     """
     text = fold(" ".join(clean(value) for value in texts if value))
-    return any(keyword in text for keyword in NON_MATERIAL_KEYWORDS)
+    if any(keyword in text for keyword in NON_MATERIAL_KEYWORDS):
+        return True
+    return _word_start(NON_MATERIAL_WORDS).search(text) is not None
+
+
+@cache
+def _word_start(keywords: tuple[str, ...]) -> re.Pattern[str]:
+    """Match any of these where a word begins, leaving the ending free."""
+    return re.compile(rf"\b(?:{'|'.join(re.escape(k) for k in keywords)})")
 
 
 def is_material(family_label: str | None, *texts: Any) -> bool:
