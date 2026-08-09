@@ -1038,5 +1038,47 @@ class TruncationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(251, len(result.records))
 
 
+class BrowserRoutingTests(unittest.IsolatedAsyncioTestCase):
+    """A process with no browser must reroute the job, not lose the page.
+
+    `BrowserUnavailable` is deliberately not a `Blocked`: a Blocked is the site
+    refusing this page, which a source records and carries on from. This is the
+    image being wrong for the job, and it is equally true of every remaining
+    page, so it has to escape to the worker that can requeue it.
+    """
+
+    def _scraper(self, handler):
+        from ateliera_catalogue.scrapers.pagecrawl import PageScraper
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        fetcher = base.Fetcher(
+            client, base.HostLimiter(0.0, 4), base.BrowserRenderer(True), "auto",
+            impersonate_policy="never",
+        )
+        config = {"url": "https://shop.test/", "scope": "all"}
+        return client, PageScraper("shop", config, fetcher)
+
+    async def test_a_missing_browser_escapes_the_page_handler(self):
+        async def no_browser(*args, **kwargs):
+            raise base.BrowserUnavailable("camoufox is not installed")
+
+        client, scraper = self._scraper(lambda request: httpx.Response(403, text="refused"))
+        scraper.fetcher.browser.render = no_browser
+        async with client:
+            with self.assertRaises(base.BrowserUnavailable):
+                await scraper.load("https://shop.test/product/1")
+        self.assertEqual([], scraper.result.errors, "a routing fault is not the source's failure")
+
+    async def test_an_ordinary_browser_error_is_still_recorded_and_survived(self):
+        async def broken(*args, **kwargs):
+            raise RuntimeError("the page crashed the renderer")
+
+        client, scraper = self._scraper(lambda request: httpx.Response(403, text="refused"))
+        scraper.fetcher.browser.render = broken
+        async with client:
+            self.assertIsNone(await scraper.load("https://shop.test/product/1"))
+        self.assertEqual(1, len(scraper.result.errors))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -18,7 +18,7 @@ import httpx
 
 from . import domain, jsonld, microdata
 from . import record as record_module
-from .base import Blocked, Scraper
+from .base import Blocked, BrowserUnavailable, Scraper
 
 
 def canonical(url: str) -> str:
@@ -132,7 +132,13 @@ class PageScraper(Scraper):
                 document = await self.fetcher.render(url, wait_for=self.render_wait_for)
                 self.result.rendered_pages += 1
                 return document
-            except (Blocked, Exception) as error:  # noqa: BLE001 - browser errors vary
+            except BrowserUnavailable:
+                # This process cannot start a browser at all, which is true of
+                # every remaining page too. It has to reach the worker, which
+                # requeues the job for one that has a browser; swallowing it
+                # here turns a routing decision into 77 lost pages.
+                raise
+            except Exception as error:  # noqa: BLE001 - browser errors vary
                 self.fail(url, error)
                 return None
         try:
@@ -147,6 +153,8 @@ class PageScraper(Scraper):
                 document = await self.fetcher.render(url, wait_for=self.render_wait_for)
                 self.result.rendered_pages += 1
                 return document
+            except BrowserUnavailable:
+                raise
             except Exception as browser_error:  # noqa: BLE001
                 self.fail(url, f"{error} / browser: {browser_error}")
                 return None
