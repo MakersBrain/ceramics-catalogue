@@ -1,34 +1,34 @@
 {
-  "digest": "a0d6e09c40616518303e9e49825140d5dfd45101335743a8d51fbbe12859bee4",
+  "digest": "50c868805e41fba93724715fac111405f20a665d70d9b4823c81c87e030bb3e7",
   "discovered": 1125,
   "error_count": 0,
   "errors": [],
   "extraction_method": "dom",
   "field_coverage": {
-    "all_image_urls": 153,
+    "all_image_urls": 151,
     "brand": 45,
-    "category_path": 153,
+    "category_path": 151,
     "claims": 0,
     "colour": 44,
     "description": 0,
     "documents": 0,
     "effects": 1,
-    "family": 153,
+    "family": 151,
     "firing": 43,
     "form": 14,
     "gtin": 0,
     "manufacturer_sku": 0,
     "package_size": 58,
     "stock_quantity": 0,
-    "supplier_reference": 153,
+    "supplier_reference": 151,
     "surface": 3,
     "unit_price": 58,
-    "vat_status": 153
+    "vat_status": 151
   },
   "notes": [
     "robots.txt intentionally not applied for this source (operator decision)"
   ],
-  "records": 153,
+  "records": 151,
   "rendered_pages": 0,
   "requests": 600,
   "sample": [
@@ -183,14 +183,14 @@
     },
     {
       "all_image_urls": [
-        "https://www.keramik-kraft.com/Thumbs/E5210.jpg"
+        "https://www.keramik-kraft.com/Thumbs/B9006010-1.jpg"
       ],
       "application_methods": null,
       "availability": "https://schema.org/InStock",
-      "brand": null,
-      "brand_basis": null,
+      "brand": "Orton",
+      "brand_basis": "named_in_title",
       "category_path": [
-        "Einrichtung Maschinen"
+        "Brennhilfen"
       ],
       "claims": null,
       "coats": null,
@@ -199,44 +199,51 @@
       "description": null,
       "documents": null,
       "effects": null,
-      "external_id": "keramik-kraft:https://www.keramik-kraft.com/de/Einrichtung-Maschinen/Ton-3D-Drucker/Ton-3D-Drucker-duesenmobil/Ton-3D-Drucker-PAW60_St_E5210.html?sel=2",
+      "external_id": "keramik-kraft:https://www.keramik-kraft.com/de/Brennhilfen/Mess-Laborkegel.html",
       "extraction_method": "dom",
       "family": "clay_body",
       "fetched_at": "<volatile>",
-      "firing": null,
+      "firing": {
+        "basis": "published_text",
+        "evidence": "830°C",
+        "max_celsius": 830,
+        "min_celsius": 830
+      },
       "form": null,
       "format": "ceramics.catalogue_item.v2",
       "gtin": null,
-      "image_url": "https://www.keramik-kraft.com/Thumbs/E5210.jpg",
+      "image_url": "https://www.keramik-kraft.com/Thumbs/B9006010-1.jpg",
       "list_price": null,
       "manufacturer_sku": null,
       "manufacturer_sku_basis": null,
       "min_order_quantity": null,
-      "name": "Ton 3D Drucker PAW60 St",
-      "name_parsed_from": null,
-      "name_raw": "Ton 3D Drucker PAW60 St",
+      "name": "Temperaturstäbchen Orton NR.014 830°C",
+      "name_parsed_from": [
+        "Orton"
+      ],
+      "name_raw": "Temperaturstäbchen Orton NR.014 830°C",
       "package_size": null,
-      "parent_external_id": "keramik-kraft:https://www.keramik-kraft.com/de/Einrichtung-Maschinen/Ton-3D-Drucker/Ton-3D-Drucker-duesenmobil/Ton-3D-Drucker-PAW60_St_E5210.html?sel=2",
-      "price": 10289.0,
-      "price_text": "10 289,00 €",
-      "product_name": "Ton 3D Drucker PAW60",
-      "product_url": "https://www.keramik-kraft.com/de/Einrichtung-Maschinen/Ton-3D-Drucker/Ton-3D-Drucker-duesenmobil/Ton-3D-Drucker-PAW60_St_E5210.html?sel=2",
+      "parent_external_id": "keramik-kraft:https://www.keramik-kraft.com/de/Brennhilfen/Mess-Laborkegel.html",
+      "price": 27.25,
+      "price_text": "27,25 €",
+      "product_name": "Temperaturstäbchen Orton NR.014 830°C",
+      "product_url": "https://www.keramik-kraft.com/de/Brennhilfen/Mess-Laborkegel.html",
       "raw": {
-        "code": "E5210",
-        "gross": 10289.0,
+        "code": "B9006014-50",
+        "gross": 27.25,
         "net": null,
-        "page": "https://www.keramik-kraft.com/de/Einrichtung-Maschinen/Ton-3D-Drucker.html",
-        "variant": "St"
+        "page": "https://www.keramik-kraft.com/de/Brennhilfen/Mess-Laborkegel.html",
+        "variant": ""
       },
       "source": "keramik-kraft",
       "source_detail_level": "listing",
       "source_updated_at": null,
       "stock_quantity": null,
-      "supplier_reference": "E5210",
+      "supplier_reference": "B9006014-50",
       "surface": null,
       "technical_attributes": null,
       "unit_price": null,
-      "variant_title": "St",
+      "variant_title": null,
       "vat_rate": 0.19,
       "vat_status": "inclusive"
     }

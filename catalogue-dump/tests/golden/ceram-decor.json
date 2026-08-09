@@ -1625,5 +1625,5 @@
   ],
   "scraper": "prestashop",
   "source": "ceram-decor",
-  "truncated": false
+  "truncated": true
 }
