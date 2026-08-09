@@ -104,9 +104,16 @@ NON_MATERIAL_KEYWORDS: tuple[str, ...] = (
     "brush", "pinceau", "pinsel", "penseel", "tool", "outil", "werkzeug",
     "book", "livre", "buch", "dvd", "apron", "tablier", "banding wheel",
     "bisque", "biscuit", "shelf", "plaque d'enfournement", "regal", "prop",
-    "element", "resistance", "thermocouple", "controller", "regulateur",
+    # Qualified, not bare. "Element" alone is a kiln's heating element and also
+    # the Mayco Elements line, which is fifty-odd glazes; "masque" alone is a
+    # dust mask and also the Mayco glaze Masquerade. Both words are common
+    # enough in a colour range's name that the bare form cannot be trusted.
+    "heating element", "kiln element", "heizelement", "elemento calefactor",
+    "element de chauffe", "element chauffant", "elemento riscaldante",
+    "resistance", "thermocouple", "controller", "regulateur",
     "sieve", "tamis", "sieb", "scale", "balance", "waage", "respirator",
-    "masque", "gloves", "gants", "sponge", "eponge", "schwamm", "turntable",
+    "masque de protection", "masque respiratoire", "masque anti-poussiere",
+    "gloves", "gants", "sponge", "eponge", "schwamm", "turntable",
     "gift card", "carte cadeau", "voucher", "sample pack", "spare part",
     # Written without the umlaut: these are matched against fold()ed text, so a
     # keyword that keeps its accent can never match. "töpferscheibe" would be
@@ -577,11 +584,28 @@ def looks_non_material(*texts: Any) -> bool:
     keywords over free description text rejects the very products we want.
     """
     text = fold(" ".join(clean(value) for value in texts if value))
+    # "kiln" has to stay a keyword - it is how half the equipment in this
+    # catalogue is named - but it is also the first word of Amaco's Kiln Ice
+    # glaze. When the same text says outright that the thing is a glaze, that
+    # is the stronger claim: a kiln shelf is never called a glaze, while a
+    # glaze is quite often named after the kiln it goes into. Only "kiln" gets
+    # this treatment; a Glaze Tong is still a tong.
+    if "kiln" in text and _SAYS_FAMILY.search(text):
+        text = text.replace("kiln", " ")
     if any(keyword in text for keyword in NON_MATERIAL_KEYWORDS):
         return True
     return _word_start(NON_MATERIAL_WORDS + EQUIPMENT_ONLY_MAKERS + MACHINE_NAMES).search(
         text
     ) is not None
+
+
+#: An unambiguous statement of what the product is, used only to overrule the
+#: "kiln" keyword above. Deliberately just the family nouns - not "glazing",
+#: which is a department full of tools.
+_SAYS_FAMILY = re.compile(
+    r"\b(glaze|glazes|email|emaux|glasur|glazuur|esmalte|smalto|engobe"
+    r"|underglaze|szkliw|angobe)"
+)
 
 
 @cache
@@ -860,7 +884,6 @@ MANUFACTURERS: dict[str, tuple[str, ...]] = {
     "Carl Jäger": ("carl jäger", "carl jaeger"),
     "Rohde": ("rohde",),
     "Royal & Langnickel": ("royal & langnickel", "royal and langnickel"),
-    "Centrado": ("centrado",),
     # Named in titles all over the dumps and missing from this list, so the
     # rows said who made them and nothing read it. Same two-or-more-shops bar
     # as the block above: Orton appears unbranded in 9 shops, Schjerning and

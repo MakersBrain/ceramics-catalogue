@@ -387,6 +387,42 @@ class ClassificationTests(unittest.TestCase):
             domain.looks_non_material("Anbauplatten Blue-Star", "Tonplattenwalze")
         )
 
+    def test_a_glaze_may_be_named_after_the_kiln(self):
+        """Amaco's Kiln Ice is a glaze, and "kiln" must not veto it.
+
+        A kiln shelf is never called a glaze, but a glaze is quite often named
+        after the kiln it goes into, so an explicit family word is the stronger
+        claim of the two. Only "kiln" is overruled this way.
+        """
+        for text in (
+            "Amaco Kiln Ice Glaze KI11 Snow Drift, Pint",
+            "Amaco Kiln Ice Glaze KI46 Frozen Fern",
+        ):
+            with self.subTest(text=text):
+                self.assertFalse(domain.looks_non_material(text))
+        # The override is not a licence: these are still equipment.
+        for text in ("Kiln shelf 30cm", "Rohde kiln KE 250N", "Kiln furniture set"):
+            with self.subTest(text=text):
+                self.assertTrue(domain.looks_non_material(text))
+
+    def test_a_colour_range_may_be_called_elements(self):
+        """Mayco Elements is fifty glazes; a kiln's element is a wire."""
+        for text in (
+            "Émail brilliant Mayco Elements® - EL101 Oyster Shell",
+            "Assorted Mayco Elements Glazes - 4 oz Samples EL-133",
+            "Masquerade CG970 Jungle Gems (Mayco) 16oz",
+        ):
+            with self.subTest(text=text):
+                self.assertFalse(domain.looks_non_material(text))
+        for text in (
+            "Kiln heating element 230V",
+            "Element de chauffe four 230V",
+            "Heizelement fuer Brennofen",
+            "masque de protection FFP2",
+        ):
+            with self.subTest(text=text):
+                self.assertTrue(domain.looks_non_material(text))
+
     def test_hematite_is_a_colourant_not_a_pencil(self):
         """"matite" is Italian for pencils and hides inside "hematite"."""
         self.assertFalse(domain.looks_non_material("Hematite"))

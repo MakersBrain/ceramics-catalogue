@@ -493,16 +493,6 @@
     "country": "ES",
     "note": "general fine-art supplier; the materials classifier carries the scope"
   },
-  "centrado": {
-    "label": "Centrado Trading",
-    "url": "https://centrado.co/",
-    "scraper": "woocommerce",
-    "scope": "materials",
-    "country": "GB",
-    "note": "general craft supplier; thin on ceramics",
-    "brand": "Centrado",
-    "is_manufacturer": true
-  },
   "muandu-keramika": {
     "label": "MUANDU keramika",
     "url": "https://muandukeramika.lt/",
