@@ -68,6 +68,10 @@ def registry() -> Registry:
             tags=("catalogue",),
             parameters=(
                 Parameter("q", description="Free text over name, brand and code."),
+                Parameter(
+                    "barcode",
+                    description="Exact valid GTIN-8/12/13/14, compared as canonical GTIN-14.",
+                ),
                 Parameter("manufacturer", description="Restrict to one manufacturer id."),
                 Parameter("family", description="Restrict to one product family."),
                 Parameter(

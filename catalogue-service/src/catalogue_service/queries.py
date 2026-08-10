@@ -36,7 +36,7 @@ REFERENCE_RATES: dict[str, float] = {
 }
 REFERENCE_RATE_DATE = date(2026, 1, 1)
 
-SEARCH = """
+SEARCH = r"""
 select c.id::text            as canonical_product_id,
        c.brand,
        c.manufacturer_sku,
@@ -73,6 +73,14 @@ select c.id::text            as canonical_product_id,
           and c.sku_key like catalogue.sku_key(%(query)s::text) || '%%')))
    and (%(manufacturer)s::text is null or c.manufacturer_id = %(manufacturer)s::text)
    and (%(family)s::text is null or c.family = %(family)s::text)
+   and (%(barcode)s::text is null or exists (
+       select 1
+         from catalogue.source_products barcode_product
+        where barcode_product.canonical_product_id = c.id
+          and barcode_product.active
+          and lpad(regexp_replace(coalesce(barcode_product.gtin, ''), '\D', '', 'g'), 14, '0')
+              = %(barcode)s::text
+   ))
  group by c.id
  -- Best carried first: a code eleven shops sell is more likely the one someone
  -- means than a code one shop sells. Deterministic, which is what makes the
@@ -129,6 +137,7 @@ async def search(
     connection: Connection,
     *,
     text: str | None,
+    barcode: str | None,
     manufacturer: str | None,
     family: str | None,
     limit: int,
@@ -142,6 +151,7 @@ async def search(
                 "like": f"%{text}%" if text else None,
                 "manufacturer": manufacturer,
                 "family": family,
+                "barcode": barcode,
                 "limit": limit,
                 "cursor_count": cursor[0] if cursor else None,
                 "cursor_brand": cursor[1] if cursor else None,

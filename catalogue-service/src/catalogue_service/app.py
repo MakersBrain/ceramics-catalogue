@@ -46,6 +46,17 @@ MAX_BATCH = 200
 UUID_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
 
 
+def normalize_gtin(value: str | None) -> str | None:
+    digits = re.sub(r"[\s-]", "", value or "")
+    if len(digits) not in {8, 12, 13, 14} or not digits.isdigit():
+        return None
+    check = (10 - sum(
+        int(digit) * (3 if index % 2 == 0 else 1)
+        for index, digit in enumerate(reversed(digits[:-1]))
+    ) % 10) % 10
+    return digits.zfill(14) if check == int(digits[-1]) else None
+
+
 def problem(status: int, title: str, detail: str | None = None) -> Response:
     body: dict[str, Any] = {"type": "about:blank", "title": title, "status": status}
     if detail:
@@ -107,11 +118,15 @@ async def search(request: Request) -> Response:
         return problem(400, "Bad Request", "cursor is not a cursor this API issued")
 
     text = params.get("q")
+    barcode = normalize_gtin(params.get("barcode")) if params.get("barcode") else None
+    if params.get("barcode") and barcode is None:
+        return problem(400, "Bad Request", "barcode must be a valid GTIN-8/12/13/14")
     try:
         async with request.app.state.pool.connection() as connection:
             rows = await queries.search(
                 connection,
                 text=text,
+                barcode=barcode,
                 manufacturer=params.get("manufacturer"),
                 family=params.get("family"),
                 limit=limit + 1,

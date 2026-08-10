@@ -689,6 +689,15 @@
             }
           },
           {
+            "description": "Exact valid GTIN-8/12/13/14, compared as canonical GTIN-14.",
+            "in": "query",
+            "name": "barcode",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Restrict to one manufacturer id.",
             "in": "query",
             "name": "manufacturer",

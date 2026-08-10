@@ -73,6 +73,10 @@ class TestShapeCorrections:
         assert any(p["name"] == "cursor" for p in search["parameters"])
         assert "next_cursor" in document["components"]["schemas"]["SearchResponse"]["properties"]
 
+    def test_search_documents_exact_barcode_lookup(self, document):
+        search = document["paths"]["/v1/canonical-products"]["get"]
+        assert any(parameter["name"] == "barcode" for parameter in search["parameters"])
+
     def test_a_price_range_states_its_currency_and_rate_date(self, document):
         """It was a bare number over a mixture of EUR, USD and GBP, which made
         "cheapest per litre" quietly wrong for anything sold in two countries."""
