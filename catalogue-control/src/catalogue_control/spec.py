@@ -227,6 +227,12 @@ class LogPage(BaseModel):
     next_after: int | None = None
 
 
+class WorkerJob(BaseModel):
+    job_id: str
+    run_id: str
+    source: str
+
+
 class Worker(BaseModel):
     worker_id: str
     hostname: str
@@ -245,6 +251,10 @@ class Worker(BaseModel):
     )
     current_job_id: str | None = None
     current_source: str | None = None
+    current_jobs: list[WorkerJob] = Field(
+        default_factory=list,
+        description="Every source currently leased to this process; a plain worker may run several.",
+    )
     heartbeat_age_seconds: float | None = None
 
 

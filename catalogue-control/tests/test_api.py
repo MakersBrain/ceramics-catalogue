@@ -160,6 +160,17 @@ class TestWorkers:
         assert response.status_code == 202
         assert response.json()["desired_state"] == "draining"
 
+    async def test_the_roster_lists_every_job_owned_by_one_worker(self, client, db):
+        worker_id = await self.register(db, status="busy")
+        run = await make_run(client)
+        await db.execute(
+            "update catalogue.jobs set state = 'running', lease_owner = %(worker)s "
+            "where run_id = %(run)s",
+            {"worker": worker_id, "run": run["run_id"]},
+        )
+        worker = (await client.get("/v1/workers")).json()["workers"][0]
+        assert {job["source"] for job in worker["current_jobs"]} == {"ceradel", "spectrum"}
+
     async def test_a_stopped_worker_cannot_be_controlled(self, client, db):
         worker_id = await self.register(db, status="stopped")
         assert (await client.post(f"/v1/workers/{worker_id}/pause")).status_code == 409

@@ -1965,6 +1965,14 @@
             "default": null,
             "title": "Current Job Id"
           },
+          "current_jobs": {
+            "description": "Every source currently leased to this process; a plain worker may run several.",
+            "items": {
+              "$ref": "#/components/schemas/WorkerJob"
+            },
+            "title": "Current Jobs",
+            "type": "array"
+          },
           "current_source": {
             "anyOf": [
               {
@@ -2123,6 +2131,29 @@
           "worker_id"
         ],
         "title": "WorkerChanged",
+        "type": "object"
+      },
+      "WorkerJob": {
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "run_id",
+          "source"
+        ],
+        "title": "WorkerJob",
         "type": "object"
       },
       "WorkerList": {

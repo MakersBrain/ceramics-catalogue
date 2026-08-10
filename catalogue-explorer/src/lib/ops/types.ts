@@ -342,6 +342,8 @@ export interface Worker {
 	last_heartbeat_at: string;
 	current_job_id?: string | null;
 	current_source?: string | null;
+	/** Every source currently leased to this process; a plain worker may run several. */
+	current_jobs?: WorkerJob[] | null;
 	heartbeat_age_seconds?: number | null;
 }
 
@@ -354,6 +356,12 @@ export interface WorkerChanged {
 	status?: string | null;
 	current_job_id?: string | null;
 	desired_state?: string | null;
+}
+
+export interface WorkerJob {
+	job_id: string;
+	run_id: string;
+	source: string;
 }
 
 export interface WorkerList {

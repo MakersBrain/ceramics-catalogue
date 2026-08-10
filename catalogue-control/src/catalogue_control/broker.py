@@ -402,7 +402,17 @@ class Broker:
 WORKER_ROSTER = """
 select w.id, w.hostname, w.pid, w.version, w.capabilities, w.status, w.desired_state,
        w.started_at, w.last_heartbeat_at, w.current_job_id,
-       j.source_id as current_source
+       j.source_id as current_source,
+       coalesce((
+         select jsonb_agg(jsonb_build_object(
+                  'job_id', active.id::text,
+                  'run_id', active.run_id::text,
+                  'source', active.source_id
+                ) order by active.source_id)
+           from catalogue.jobs active
+          where active.lease_owner = w.id
+            and active.state in ('leased', 'running', 'paused')
+       ), '[]'::jsonb) as current_jobs
   from catalogue.workers w
   left join catalogue.jobs j on j.id = w.current_job_id
  where w.status <> 'stopped' or w.last_heartbeat_at > now() - interval '1 hour'
@@ -425,6 +435,7 @@ def _worker(row: dict[str, Any]) -> dict[str, Any]:
         "last_heartbeat_at": row["last_heartbeat_at"],
         "current_job_id": str(row["current_job_id"]) if row["current_job_id"] else None,
         "current_source": row["current_source"],
+        "current_jobs": list(row["current_jobs"] or []),
     }
 
 

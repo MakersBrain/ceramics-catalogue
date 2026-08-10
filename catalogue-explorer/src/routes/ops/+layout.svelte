@@ -29,6 +29,9 @@
 	const current = $derived(page.url.pathname);
 	const unacknowledged = $derived(stream.unacknowledged.length);
 	const busy = $derived(stream.workers.filter((w) => w.status === 'busy').length);
+	const activeJobs = $derived(
+		stream.workers.reduce((total, worker) => total + (worker.current_jobs?.length ?? 0), 0)
+	);
 </script>
 
 <div class="bg-base-200/40 min-h-dvh">
@@ -67,7 +70,7 @@
 
 			<div class="ml-auto flex shrink-0 items-center gap-3 text-sm">
 				<span class="text-base-content/60 hidden lg:inline">
-					{busy}/{stream.workers.length} workers busy
+					{busy}/{stream.workers.length} workers busy · {activeJobs} active jobs
 				</span>
 				<ConnectionBadge state={stream.connection} />
 			</div>

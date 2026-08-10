@@ -159,6 +159,16 @@ returning id, run_id, source_id
 
 WORKERS = """
 select w.*, j.source_id as current_source,
+       coalesce((
+         select jsonb_agg(jsonb_build_object(
+                  'job_id', active.id::text,
+                  'run_id', active.run_id::text,
+                  'source', active.source_id
+                ) order by active.source_id)
+           from catalogue.jobs active
+          where active.lease_owner = w.id
+            and active.state in ('leased', 'running', 'paused')
+       ), '[]'::jsonb) as current_jobs,
        extract(epoch from (now() - w.last_heartbeat_at)) as heartbeat_age_seconds
   from catalogue.workers w
   left join catalogue.jobs j on j.id = w.current_job_id
