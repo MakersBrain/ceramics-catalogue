@@ -3114,7 +3114,7 @@
     },
     "/v1/workers/{id}/{action}": {
       "post": {
-        "description": "Controls the registered process, not the deployment's replica count: a restart policy may create a new worker afterwards, so persistently removing capacity is a scale operation this API does not pretend to guarantee.",
+        "description": "Controls the registered process, not the deployment's replica count: a restart policy may create a new worker afterwards, so persistently removing capacity is a scale operation this API does not pretend to guarantee. Hide is different: it only removes a registration from the roster after its heartbeat is already stale; the audit row is retained.",
         "operationId": "controlWorker",
         "parameters": [
           {
@@ -3136,7 +3136,8 @@
                 "pause",
                 "resume",
                 "drain",
-                "stop"
+                "stop",
+                "hide"
               ],
               "type": "string"
             }
@@ -3151,7 +3152,7 @@
                 }
               }
             },
-            "description": "pause, resume, drain or stop one worker"
+            "description": "pause, resume, drain or stop a worker, or hide a lost registration"
           },
           "400": {
             "content": {
@@ -3194,7 +3195,7 @@
             "description": "Conflict"
           }
         },
-        "summary": "pause, resume, drain or stop one worker",
+        "summary": "pause, resume, drain or stop a worker, or hide a lost registration",
         "tags": [
           "workers"
         ]

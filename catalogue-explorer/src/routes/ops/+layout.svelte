@@ -10,7 +10,7 @@
 	// One subscription for the whole section. Every page reads from this store;
 	// only /ops/runs/[id] opens a second, narrower one, so a browser never has
 	// more than two streams open against the six-per-origin cap.
-	const stream = new OpsStream('workers,notifications,runs');
+	const stream = new OpsStream('workers,notifications,runs,progress');
 	setContext('ops-stream', stream);
 
 	onMount(() => {

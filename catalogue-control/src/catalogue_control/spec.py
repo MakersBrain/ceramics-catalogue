@@ -537,17 +537,18 @@ def registry() -> Registry:
     api.add(
         Operation(
             "post", "/v1/workers/{id}/{action}", "controlWorker",
-            "pause, resume, drain or stop one worker",
+            "pause, resume, drain or stop a worker, or hide a lost registration",
             description=(
                 "Controls the registered process, not the deployment's replica count: a "
                 "restart policy may create a new worker afterwards, so persistently "
                 "removing capacity is a scale operation this API does not pretend to "
-                "guarantee."
+                "guarantee. Hide is different: it only removes a registration from the "
+                "roster after its heartbeat is already stale; the audit row is retained."
             ),
             parameters=(
                 Parameter("id", location="path"),
                 Parameter("action", location="path",
-                          schema={"type": "string", "enum": ["pause", "resume", "drain", "stop"]}),
+                          schema={"type": "string", "enum": ["pause", "resume", "drain", "stop", "hide"]}),
             ),
             response=Accepted, status=202, errors=(400, 401, 404, 409), tags=("workers",),
         )

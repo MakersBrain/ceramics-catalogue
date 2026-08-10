@@ -162,6 +162,7 @@ select w.*, j.source_id as current_source,
        extract(epoch from (now() - w.last_heartbeat_at)) as heartbeat_age_seconds
   from catalogue.workers w
   left join catalogue.jobs j on j.id = w.current_job_id
+ where w.status <> 'stopped' or w.last_heartbeat_at > now() - interval '1 hour'
  order by w.started_at desc
 """
 
@@ -169,6 +170,19 @@ SET_WORKER_STATE = """
 update catalogue.workers
    set desired_state = %(desired)s
  where id = %(id)s and status <> 'stopped'
+returning id, status, desired_state
+"""
+
+#: Hiding is a roster operation, not a signal to a process. Only an instance
+#: that has already missed the UI's lost-heartbeat threshold may be hidden;
+#: this prevents an operator from making healthy capacity disappear while it
+#: continues to claim work.
+HIDE_LOST_WORKER = """
+update catalogue.workers
+   set status = 'stopped', current_job_id = null
+ where id = %(id)s
+   and status <> 'stopped'
+   and last_heartbeat_at < now() - interval '30 seconds'
 returning id, status, desired_state
 """
 

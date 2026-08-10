@@ -135,14 +135,15 @@ class TestJobControls:
 
 
 class TestWorkers:
-    async def register(self, db, status="idle"):
+    async def register(self, db, status="idle", *, stale=False):
         from uuid import uuid4
 
         worker_id = uuid4()
         await db.execute(
-            "insert into catalogue.workers (id, hostname, pid, status) "
-            "values (%(id)s, 'test', 1, %(status)s)",
-            {"id": worker_id, "status": status},
+            "insert into catalogue.workers (id, hostname, pid, status, last_heartbeat_at) "
+            "values (%(id)s, 'test', 1, %(status)s, "
+            "case when %(stale)s then now() - interval '1 minute' else now() end)",
+            {"id": worker_id, "status": status, "stale": stale},
         )
         return worker_id
 
@@ -162,6 +163,18 @@ class TestWorkers:
     async def test_a_stopped_worker_cannot_be_controlled(self, client, db):
         worker_id = await self.register(db, status="stopped")
         assert (await client.post(f"/v1/workers/{worker_id}/pause")).status_code == 409
+
+    async def test_a_lost_worker_can_be_hidden_without_deleting_its_audit_row(self, client, db):
+        worker_id = await self.register(db, stale=True)
+        response = await client.post(f"/v1/workers/{worker_id}/hide")
+        assert response.status_code == 202
+        assert response.json()["hidden"] is True
+        row = await db.execute("select status from catalogue.workers where id = %(id)s", {"id": worker_id})
+        assert (await row.fetchone())["status"] == "stopped"
+
+    async def test_a_healthy_worker_cannot_be_hidden(self, client, db):
+        worker_id = await self.register(db)
+        assert (await client.post(f"/v1/workers/{worker_id}/hide")).status_code == 409
 
 
 class TestSources:

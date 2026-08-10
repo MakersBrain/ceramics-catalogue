@@ -295,7 +295,7 @@ async def list_workers(request: Request) -> Response:
 
 
 async def worker_action(request: Request) -> Response:
-    """pause, resume, drain or stop one worker.
+    """Pause, resume, drain or stop a worker, or hide a lost registration.
 
     This controls the registered process, not the deployment's replica count. A
     restart policy may well create a new worker afterwards, so persistently
@@ -307,10 +307,23 @@ async def worker_action(request: Request) -> Response:
     desired = {"pause": "paused", "resume": "running", "drain": "draining", "stop": "stopping"}
     if worker_id is None:
         return problem(400, "Bad Request", "id must be a uuid")
-    if action not in desired:
+    if action not in {*desired, "hide"}:
         return problem(404, "Not Found", f"unknown action {action!r}")
 
     async with request.app.state.pool.connection() as connection:
+        if action == "hide":
+            row = await queries.one(connection, queries.HIDE_LOST_WORKER, {"id": worker_id})
+            if row is None:
+                return problem(409, "Conflict", "only a lost worker can be hidden")
+            await events.emit(
+                connection, events.Topic.WORKER, "worker.changed",
+                worker_id=worker_id, payload={"status": "stopped", "hidden": True},
+            )
+            return JSONResponse(
+                {"worker_id": str(worker_id), "status": "stopped", "hidden": True},
+                status_code=202,
+            )
+
         row = await queries.one(
             connection, queries.SET_WORKER_STATE, {"id": worker_id, "desired": desired[action]}
         )

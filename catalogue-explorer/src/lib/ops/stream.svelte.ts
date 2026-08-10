@@ -26,6 +26,7 @@ import type { JobProgress, Notification, Worker } from './types';
 export type { JobProgress, Notification, Worker };
 
 export type ConnectionState = 'connecting' | 'live' | 'reconnecting' | 'offline';
+export type JobRate = { records: number; requests: number };
 
 /** Milliseconds between polls while the stream is down. */
 const POLL_INTERVAL = 5000;
@@ -41,6 +42,7 @@ export class OpsStream {
 	queue = $state<Record<string, number>>({});
 	activeRuns = $state<{ id: string; kind: string; status: string; started_at: string }[]>([]);
 	progress = $state<Record<string, JobProgress>>({});
+	rates = $state<Record<string, JobRate>>({});
 	jobEvents = $state<{ id: number; type: string; job_id: string | null; source: string | null }[]>(
 		[]
 	);
@@ -106,6 +108,16 @@ export class OpsStream {
 
 		this.source.addEventListener('job.progress', (event) => {
 			const data = JSON.parse((event as MessageEvent).data) as JobProgress;
+			const previous = this.progress[data.job_id];
+			if (previous) {
+				const seconds = (new Date(data.at).getTime() - new Date(previous.at).getTime()) / 1000;
+				if (seconds > 0) {
+					this.rates[data.job_id] = {
+						records: Math.max(0, ((data.records ?? 0) - (previous.records ?? 0)) / seconds),
+						requests: Math.max(0, ((data.requests ?? 0) - (previous.requests ?? 0)) / seconds)
+					};
+				}
+			}
 			this.progress[data.job_id] = data;
 		});
 
@@ -181,6 +193,10 @@ export class OpsStream {
 		if (age > HEARTBEAT_LOST_SECONDS) return 'lost';
 		if (age > HEARTBEAT_WARN_SECONDS) return 'suspect';
 		return 'ok';
+	}
+
+	jobRate(jobId: string | null | undefined): JobRate | undefined {
+		return jobId ? this.rates[jobId] : undefined;
 	}
 
 	get unacknowledged(): Notification[] {
