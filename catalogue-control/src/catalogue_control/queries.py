@@ -107,6 +107,20 @@ select id, at, level, event, message, data
  limit %(limit)s
 """
 
+PREVIOUS_SUCCESSFUL_JOB = """
+select id, run_id, source_id, finished_at, artifact_path, artifact_sha256, artifact_size
+  from catalogue.jobs
+ where source_id = %(source)s
+   and state = 'succeeded'
+   and artifact_path is not null
+   and summary->>'write_status' = 'replaced'
+   and not coalesce((summary->>'truncated')::boolean, false)
+   and not coalesce((summary->>'interrupted')::boolean, false)
+   and finished_at < %(finished)s
+ order by finished_at desc
+ limit 1
+"""
+
 # Conditional on the state, so pressing a button twice is a no-op rather than
 # an error, and so a job that finished a second ago is not "paused".
 PAUSE_JOB = """
@@ -228,6 +242,10 @@ history as (
            filter (where j.state = 'succeeded'))[1] as last_records,
          (array_agg((j.summary->>'records')::int order by j.finished_at desc)
            filter (where j.state = 'succeeded'))[2] as previous_records,
+         (array_agg(j.id order by j.finished_at desc)
+           filter (where j.state = 'succeeded'))[1] as last_job_id,
+         (array_agg(j.run_id order by j.finished_at desc)
+           filter (where j.state = 'succeeded'))[1] as last_run_id,
          count(*) filter (where j.finished_at > now() - interval '7 days') as runs_7d,
          count(*) filter (where j.state = 'failed'
                             and j.finished_at > now() - interval '7 days') as failures_7d
@@ -242,6 +260,8 @@ select k.source_id,
        h.last_success_at,
        h.last_records,
        h.previous_records,
+       h.last_job_id,
+       h.last_run_id,
        coalesce(h.runs_7d, 0)     as runs_7d,
        coalesce(h.failures_7d, 0) as failures_7d,
        extract(epoch from (now() - h.last_success_at)) as staleness_seconds

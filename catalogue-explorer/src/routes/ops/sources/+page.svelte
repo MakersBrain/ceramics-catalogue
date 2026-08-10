@@ -75,7 +75,11 @@
 					{@const change = delta(source.last_records, source.previous_records)}
 					<tr class="hover">
 						<td>
-							<div class="font-medium">{source.source_id}</div>
+							{#if source.last_job_id && source.last_run_id}
+								<a class="link font-medium" href="/ops/runs/{source.last_run_id}/jobs/{source.last_job_id}">{source.source_id}</a>
+							{:else}
+								<div class="font-medium">{source.source_id}</div>
+							{/if}
 							<div class="text-base-content/40 max-w-56 truncate text-xs">{source.label}</div>
 						</td>
 						<td class="text-xs">{source.scraper}</td>

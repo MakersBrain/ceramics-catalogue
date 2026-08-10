@@ -123,6 +123,11 @@ services:
       # No default. The service refuses to start without it, because the one
       # thing worse than having no cancel-run endpoint is an unauthenticated one.
       CATALOGUE_CONTROL_TOKEN: ${CATALOGUE_CONTROL_TOKEN:?set a control token in .env}
+      CATALOGUE_ARTIFACTS_DIR: /var/lib/catalogue/dumps
+    volumes:
+      # Comparison endpoints read immutable scrape artifacts; the control plane
+      # never needs permission to alter the audit trail.
+      - dumps:/var/lib/catalogue/dumps:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8687/health')\""]

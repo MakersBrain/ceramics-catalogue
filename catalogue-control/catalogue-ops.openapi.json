@@ -166,6 +166,27 @@
         "title": "Bootstrap",
         "type": "object"
       },
+      "ChangedField": {
+        "properties": {
+          "after": {
+            "default": null,
+            "title": "After"
+          },
+          "before": {
+            "default": null,
+            "title": "Before"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field"
+        ],
+        "title": "ChangedField",
+        "type": "object"
+      },
       "CrawlParams": {
         "additionalProperties": false,
         "description": "Everything that decides how a run collects. Validated once, used twice.",
@@ -666,6 +687,67 @@
           "scheduled_for"
         ],
         "title": "Job",
+        "type": "object"
+      },
+      "JobChanges": {
+        "properties": {
+          "added": {
+            "default": 0,
+            "title": "Added",
+            "type": "integer"
+          },
+          "changed": {
+            "default": 0,
+            "title": "Changed",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecordChange"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "matched": {
+            "default": 0,
+            "title": "Matched",
+            "type": "integer"
+          },
+          "previous_finished_at": {
+            "format": "date-time",
+            "title": "Previous Finished At",
+            "type": "string"
+          },
+          "previous_job_id": {
+            "title": "Previous Job Id",
+            "type": "string"
+          },
+          "previous_run_id": {
+            "title": "Previous Run Id",
+            "type": "string"
+          },
+          "removed": {
+            "default": 0,
+            "title": "Removed",
+            "type": "integer"
+          },
+          "unchanged": {
+            "default": 0,
+            "title": "Unchanged",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "previous_job_id",
+          "previous_run_id",
+          "previous_finished_at"
+        ],
+        "title": "JobChanges",
         "type": "object"
       },
       "JobDetail": {
@@ -1351,6 +1433,48 @@
         "title": "Problem",
         "type": "object"
       },
+      "RecordChange": {
+        "properties": {
+          "external_id": {
+            "title": "External Id",
+            "type": "string"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/ChangedField"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "added",
+              "removed",
+              "changed"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          }
+        },
+        "required": [
+          "kind",
+          "external_id"
+        ],
+        "title": "RecordChange",
+        "type": "object"
+      },
       "Resync": {
         "description": "The gap was too large to replay. Refetch over the JSON endpoints.",
         "properties": {
@@ -1770,6 +1894,18 @@
             "title": "Label",
             "type": "string"
           },
+          "last_job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Job Id"
+          },
           "last_records": {
             "anyOf": [
               {
@@ -1781,6 +1917,18 @@
             ],
             "default": null,
             "title": "Last Records"
+          },
+          "last_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Run Id"
           },
           "last_success_at": {
             "anyOf": [
@@ -2366,6 +2514,113 @@
           }
         },
         "summary": "One job",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/v1/jobs/{id}/changes": {
+      "get": {
+        "description": "Compares the job's immutable NDJSON artifact with the immediately preceding successful artifact. Collection timestamps and raw scraper evidence are ignored so they do not make every record look changed.",
+        "operationId": "getJobChanges",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "",
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "enum": [
+                "added",
+                "removed",
+                "changed"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Substring match on product name or external id.",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 1000,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobChanges"
+                }
+              }
+            },
+            "description": "Changes from this source's previous successful scrape"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Changes from this source's previous successful scrape",
         "tags": [
           "jobs"
         ]

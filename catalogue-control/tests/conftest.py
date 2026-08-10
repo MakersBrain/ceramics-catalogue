@@ -64,7 +64,7 @@ async def db() -> AsyncIterator:
 
 
 @pytest.fixture
-async def client(db) -> AsyncIterator:
+async def client(db, tmp_path: Path) -> AsyncIterator:
     """An HTTP client against the real app, with a real database behind it.
 
     Deliberately not a mocked pool: most of what is worth testing here is the
@@ -76,7 +76,9 @@ async def client(db) -> AsyncIterator:
     from catalogue_control.app import create_app
     from catalogue_control.settings import Settings
 
-    settings = Settings(dsn=postgres_dsn() or "", control_token=TOKEN)
+    settings = Settings(
+        dsn=postgres_dsn() or "", control_token=TOKEN, artifacts_dir=tmp_path
+    )
     app = create_app(settings)
 
     transport = httpx.ASGITransport(app=app)

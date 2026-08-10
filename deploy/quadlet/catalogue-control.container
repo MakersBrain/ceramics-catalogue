@@ -11,6 +11,8 @@ ContainerName=catalogue-control
 # because the one thing worse than having no cancel-run endpoint is an
 # unauthenticated one.
 EnvironmentFile=/etc/catalogue/catalogue.env
+Environment=CATALOGUE_ARTIFACTS_DIR=/var/lib/catalogue/dumps
+Volume=catalogue-dumps.volume:/var/lib/catalogue/dumps:ro
 # Loopback only: the explorer proxies it server-side with the token attached.
 # That is defence in depth — the token is the authentication boundary.
 PublishPort=127.0.0.1:8687:8687

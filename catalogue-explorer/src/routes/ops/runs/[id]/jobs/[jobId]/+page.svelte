@@ -8,6 +8,8 @@
 	const job = $derived(data.job);
 	const coverage = $derived(Object.entries(job?.summary?.field_coverage ?? {}) as [string, number][]);
 	const errors = $derived((job?.summary?.errors ?? []) as { url: string; error: string }[]);
+	const changes = $derived(data.changes);
+	const changeItems = $derived(changes?.items ?? []);
 
 	const levelTone: Record<string, string> = {
 		error: 'text-error',
@@ -15,6 +17,12 @@
 		info: '',
 		debug: 'text-base-content/40'
 	};
+
+	function value(value: unknown): string {
+		if (value == null) return '—';
+		if (typeof value === 'string') return value;
+		return JSON.stringify(value);
+	}
 </script>
 
 <svelte:head><title>{job?.source_id ?? 'Job'} · operations</title></svelte:head>
@@ -89,6 +97,102 @@
 			</div>
 		</div>
 	</div>
+
+	<section class="mb-6">
+		<div class="mb-2 flex flex-wrap items-baseline gap-2">
+			<h2 class="text-sm font-semibold uppercase opacity-60">Changes since previous scrape</h2>
+			{#if changes}
+				<a
+					class="link text-xs"
+					href="/ops/runs/{changes.previous_run_id}/jobs/{changes.previous_job_id}"
+				>
+					previous artifact · {relative(changes.previous_finished_at)}
+				</a>
+			{/if}
+		</div>
+
+		{#if changes}
+			<div class="stats stats-horizontal bg-base-100 mb-3 shadow-sm">
+				<div class="stat px-4 py-2">
+					<div class="stat-title text-xs">Added</div><div class="stat-value text-success text-lg">{count(changes.added)}</div>
+				</div>
+				<div class="stat px-4 py-2">
+					<div class="stat-title text-xs">Removed</div><div class="stat-value text-error text-lg">{count(changes.removed)}</div>
+				</div>
+				<div class="stat px-4 py-2">
+					<div class="stat-title text-xs">Changed</div><div class="stat-value text-warning text-lg">{count(changes.changed)}</div>
+				</div>
+				<div class="stat px-4 py-2">
+					<div class="stat-title text-xs">Unchanged</div><div class="stat-value text-lg">{count(changes.unchanged)}</div>
+				</div>
+			</div>
+
+			<form method="GET" class="mb-2 flex flex-wrap items-center gap-2">
+				<select name="change_kind" class="select select-bordered select-xs" value={data.changeKind ?? ''}>
+					<option value="">all changes</option>
+					<option value="added">added</option>
+					<option value="removed">removed</option>
+					<option value="changed">changed</option>
+				</select>
+				<input
+					name="change_q"
+					class="input input-bordered input-xs"
+					placeholder="product name or id"
+					value={data.changeSearch ?? ''}
+				/>
+				<button class="btn btn-xs" type="submit">Filter</button>
+				<span class="text-base-content/50 text-xs">
+					{count(changes.matched)} matching{(changes.matched ?? 0) > changeItems.length ? ` · showing first ${changeItems.length}` : ''}
+				</span>
+			</form>
+
+			<div class="overflow-x-auto rounded bg-base-100 shadow-sm">
+				<table class="table table-sm">
+					<thead><tr><th>Change</th><th>Product</th><th>Fields</th></tr></thead>
+					<tbody>
+						{#each changeItems as change (change.kind + change.external_id)}
+							{@const fields = change.fields ?? []}
+							<tr class="align-top">
+								<td>
+									<span class="badge badge-sm {change.kind === 'added' ? 'badge-success' : change.kind === 'removed' ? 'badge-error' : 'badge-warning'}">
+										{change.kind}
+									</span>
+								</td>
+								<td>
+									<div>{change.name ?? 'unnamed record'}</div>
+									<div class="text-base-content/40 break-all font-mono text-xs">{change.external_id}</div>
+								</td>
+								<td class="min-w-80">
+									{#if fields.length}
+										<dl class="space-y-1 text-xs">
+											{#each fields as field (field.field)}
+												<div class="grid grid-cols-[8rem_1fr] gap-2">
+													<dt class="font-medium">{field.field}</dt>
+													<dd class="min-w-0 break-all">
+														<span class="text-error line-through">{value(field.before)}</span>
+														<span class="mx-1 opacity-40">→</span>
+														<span class="text-success">{value(field.after)}</span>
+													</dd>
+												</div>
+											{/each}
+										</dl>
+									{:else}
+										<span class="text-base-content/40 text-xs">whole record</span>
+									{/if}
+								</td>
+							</tr>
+						{:else}
+							<tr><td colspan="3" class="text-base-content/50">No matching changes.</td></tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{:else}
+			<div class="bg-base-100 text-base-content/50 rounded p-4 text-sm shadow-sm">
+				{data.changesUnavailable ?? 'Comparison is not available yet.'}
+			</div>
+		{/if}
+	</section>
 
 	{#if coverage.length}
 		<section class="mb-6">

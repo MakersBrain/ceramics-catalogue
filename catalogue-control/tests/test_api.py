@@ -7,6 +7,9 @@ one with fewer buttons.
 
 from __future__ import annotations
 
+import hashlib
+import json
+
 import pytest
 
 from .conftest import TOKEN, requires_postgres
@@ -132,6 +135,72 @@ class TestJobControls:
         body = (await client.get(f"/v1/jobs/{job}/logs")).json()
         assert body["lines"] == []
         assert body["next_after"] is None
+
+
+class TestJobChanges:
+    async def test_a_completed_job_is_compared_with_the_previous_artifact(
+        self, client, db, tmp_path
+    ):
+        previous_run = await make_run(client, "ceradel")
+        current_run = await make_run(client, "ceradel")
+        previous_job = (
+            await client.get(f"/v1/runs/{previous_run['run_id']}")
+        ).json()["jobs"][0]["id"]
+        current_job = (
+            await client.get(f"/v1/runs/{current_run['run_id']}")
+        ).json()["jobs"][0]["id"]
+
+        old = b'{"external_id":"ceradel:a","name":"A","price":10}\n'
+        new = b'{"external_id":"ceradel:a","name":"A","price":12}\n'
+        old_path = tmp_path / "old.ndjson"
+        new_path = tmp_path / "new.ndjson"
+        old_path.write_bytes(old)
+        new_path.write_bytes(new)
+        summary = json.dumps({"write_status": "replaced", "truncated": False})
+        await db.execute(
+            "update catalogue.jobs set state = 'succeeded', finished_at = now() - interval '1 hour', "
+            "artifact_path = %(path)s, artifact_sha256 = %(sha)s, summary = %(summary)s::jsonb "
+            "where id = %(id)s",
+            {
+                "id": previous_job,
+                "path": str(old_path),
+                "sha": hashlib.sha256(old).hexdigest(),
+                "summary": summary,
+            },
+        )
+        await db.execute(
+            "update catalogue.jobs set state = 'succeeded', finished_at = now(), "
+            "artifact_path = %(path)s, artifact_sha256 = %(sha)s, summary = %(summary)s::jsonb "
+            "where id = %(id)s",
+            {
+                "id": current_job,
+                "path": str(new_path),
+                "sha": hashlib.sha256(new).hexdigest(),
+                "summary": summary,
+            },
+        )
+
+        response = await client.get(f"/v1/jobs/{current_job}/changes")
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["previous_job_id"] == previous_job
+        assert body["changed"] == 1
+        assert body["items"][0]["fields"] == [
+            {"field": "price", "before": 10, "after": 12}
+        ]
+
+    async def test_an_incomplete_scrape_is_not_presented_as_a_real_diff(self, client, db):
+        run = await make_run(client, "ceradel")
+        job = (await client.get(f"/v1/runs/{run['run_id']}")).json()["jobs"][0]["id"]
+        await db.execute(
+            "update catalogue.jobs set state = 'succeeded', finished_at = now(), "
+            "artifact_path = '/tmp/partial.ndjson', "
+            "summary = '{\"write_status\":\"replaced\",\"truncated\":true}'::jsonb "
+            "where id = %(id)s",
+            {"id": job},
+        )
+        response = await client.get(f"/v1/jobs/{job}/changes")
+        assert response.status_code == 409
 
 
 class TestWorkers:

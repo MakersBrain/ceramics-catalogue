@@ -271,6 +271,79 @@ async def get_job(request: Request) -> Response:
     return _json_response({"job": row})
 
 
+async def get_job_changes(request: Request) -> Response:
+    """Compare one completed source artifact with its previous successful one."""
+    from catalogue_control.changes import ArtifactError, compare, read_artifact
+
+    job_id = _uuid(request, "id")
+    if job_id is None:
+        return problem(400, "Bad Request", "id must be a uuid")
+    kind = request.query_params.get("kind") or None
+    if kind not in {None, "added", "removed", "changed"}:
+        return problem(400, "Bad Request", "kind must be added, removed, or changed")
+
+    async with request.app.state.pool.connection() as connection:
+        job = await queries.one(connection, queries.JOB, {"id": job_id})
+        if job is None:
+            return problem(404, "Not Found", "no such job")
+        summary = job["summary"] or {}
+        complete = (
+            summary.get("write_status") == "replaced"
+            and not summary.get("truncated")
+            and not summary.get("interrupted")
+        )
+        if (
+            job["state"] != "succeeded"
+            or not job["finished_at"]
+            or not job["artifact_path"]
+            or not complete
+        ):
+            return problem(409, "Comparison unavailable", "this job has no completed artifact")
+        previous = await queries.one(
+            connection,
+            queries.PREVIOUS_SUCCESSFUL_JOB,
+            {"source": job["source_id"], "finished": job["finished_at"]},
+        )
+    if previous is None:
+        return problem(409, "Comparison unavailable", "this is the first successful scrape")
+
+    try:
+        before, after = await asyncio.gather(
+            asyncio.to_thread(
+                read_artifact,
+                request.app.state.settings.artifacts_dir,
+                previous["artifact_path"],
+                previous["artifact_sha256"],
+            ),
+            asyncio.to_thread(
+                read_artifact,
+                request.app.state.settings.artifacts_dir,
+                job["artifact_path"],
+                job["artifact_sha256"],
+            ),
+        )
+    except ArtifactError as error:
+        return problem(409, "Comparison unavailable", str(error))
+
+    result = await asyncio.to_thread(
+        compare,
+        before,
+        after,
+        kind=kind,
+        search=request.query_params.get("q"),
+        limit=_limit(request, default=200, maximum=1000),
+    )
+    return _json_response(
+        {
+            "job_id": job_id,
+            "previous_job_id": previous["id"],
+            "previous_run_id": previous["run_id"],
+            "previous_finished_at": previous["finished_at"],
+            **result,
+        }
+    )
+
+
 async def list_workers(request: Request) -> Response:
     """The roster, in exactly the shape the stream pushes it.
 
@@ -367,6 +440,8 @@ async def list_sources(request: Request) -> Response:
                 "staleness_seconds": row.get("staleness_seconds"),
                 "runs_7d": row.get("runs_7d", 0),
                 "failures_7d": row.get("failures_7d", 0),
+                "last_job_id": row.get("last_job_id"),
+                "last_run_id": row.get("last_run_id"),
             }
         )
     return _json_response({"sources": payload})
@@ -581,6 +656,7 @@ def create_app(settings: Settings | None = None) -> Starlette:
         Route("/v1/runs/{id}", get_run),
         Route("/v1/runs/{id}/cancel", cancel_run, methods=["POST"]),
         Route("/v1/jobs/{id}", get_job),
+        Route("/v1/jobs/{id}/changes", get_job_changes),
         Route("/v1/jobs/{id}/logs", job_logs),
         Route("/v1/jobs/{id}/{action}", job_action, methods=["POST"]),
         Route("/v1/workers", list_workers),

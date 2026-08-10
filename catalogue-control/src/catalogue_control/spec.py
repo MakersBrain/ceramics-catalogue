@@ -203,6 +203,32 @@ class JobDetail(BaseModel):
     job: Job
 
 
+class ChangedField(BaseModel):
+    field: str
+    before: Any = None
+    after: Any = None
+
+
+class RecordChange(BaseModel):
+    kind: Literal["added", "removed", "changed"]
+    external_id: str
+    name: str | None = None
+    fields: list[ChangedField] = Field(default_factory=list)
+
+
+class JobChanges(BaseModel):
+    job_id: str
+    previous_job_id: str
+    previous_run_id: str
+    previous_finished_at: datetime
+    added: int = 0
+    removed: int = 0
+    changed: int = 0
+    unchanged: int = 0
+    matched: int = 0
+    items: list[RecordChange] = Field(default_factory=list)
+
+
 class Accepted(BaseModel):
     """A control was applied. 202 rather than 200: the worker acts on it later."""
 
@@ -279,6 +305,8 @@ class Source(BaseModel):
     staleness_seconds: float | None = None
     runs_7d: int = 0
     failures_7d: int = 0
+    last_job_id: str | None = None
+    last_run_id: str | None = None
 
 
 class SourceList(BaseModel):
@@ -500,6 +528,24 @@ def registry() -> Registry:
             "get", "/v1/jobs/{id}", "getJob", "One job",
             parameters=(Parameter("id", location="path"),),
             response=JobDetail, errors=(400, 401, 404), tags=("jobs",),
+        )
+    )
+    api.add(
+        Operation(
+            "get", "/v1/jobs/{id}/changes", "getJobChanges",
+            "Changes from this source's previous successful scrape",
+            description=(
+                "Compares the job's immutable NDJSON artifact with the immediately "
+                "preceding successful artifact. Collection timestamps and raw scraper "
+                "evidence are ignored so they do not make every record look changed."
+            ),
+            parameters=(
+                Parameter("id", location="path"),
+                Parameter("kind", schema={"type": "string", "enum": ["added", "removed", "changed"]}),
+                Parameter("q", description="Substring match on product name or external id."),
+                Parameter("limit", schema={"type": "integer", "maximum": 1000, "default": 200}),
+            ),
+            response=JobChanges, errors=(400, 401, 404, 409), tags=("jobs",),
         )
     )
     api.add(

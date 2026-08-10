@@ -38,6 +38,12 @@ export interface Bootstrap {
 	jobs?: Job[] | null;
 }
 
+export interface ChangedField {
+	field: string;
+	before?: unknown | null;
+	after?: unknown | null;
+}
+
 /** Everything that decides how a run collects. Validated once, used twice. */
 export interface CrawlParams {
 	limit?: number | null;
@@ -111,6 +117,19 @@ export interface Job {
 	in_flight?: InFlight[] | null;
 	/** The previous successful run's record count, so a progress bar has a scale. */
 	previous_records?: number | null;
+}
+
+export interface JobChanges {
+	job_id: string;
+	previous_job_id: string;
+	previous_run_id: string;
+	previous_finished_at: string;
+	added?: number | null;
+	removed?: number | null;
+	changed?: number | null;
+	unchanged?: number | null;
+	matched?: number | null;
+	items?: RecordChange[] | null;
 }
 
 export interface JobDetail {
@@ -222,6 +241,13 @@ export interface Problem {
 	detail?: string | null;
 }
 
+export interface RecordChange {
+	kind: 'added' | 'removed' | 'changed';
+	external_id: string;
+	name?: string | null;
+	fields?: ChangedField[] | null;
+}
+
 /** The gap was too large to replay. Refetch over the JSON endpoints. */
 export interface Resync {
 	reason: string;
@@ -310,6 +336,8 @@ export interface Source {
 	staleness_seconds?: number | null;
 	runs_7d?: number | null;
 	failures_7d?: number | null;
+	last_job_id?: string | null;
+	last_run_id?: string | null;
 }
 
 export interface SourceList {

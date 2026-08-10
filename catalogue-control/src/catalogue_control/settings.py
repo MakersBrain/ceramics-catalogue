@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +24,7 @@ class Settings(BaseSettings):
     port: int = 8687
     log_level: str = "INFO"
     log_json: bool | None = None
+    artifacts_dir: Path = Path("/var/lib/catalogue/dumps")
 
     #: Refuse to start without a token rather than serving an open control
     #: plane. The one thing worse than no run-cancel endpoint is an
