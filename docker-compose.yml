@@ -161,9 +161,9 @@ services:
     # four-thousand-record artifact.
     stop_grace_period: 150s
 
-  # The two sources that need camoufox, on a separate image so the plain worker
-  # does not carry a browser. One replica: it is memory-hungry, and there are
-  # only two such sources.
+  # Sources that need camoufox, on a separate image so the plain worker does not
+  # carry a browser. Keep four replicas so browser-backed runs can make progress
+  # across independent shops concurrently.
   worker-browser:
     build:
       context: .
@@ -178,6 +178,8 @@ services:
       - cache:/var/lib/catalogue/cache
       - dumps:/var/lib/catalogue/dumps
     restart: unless-stopped
+    deploy:
+      replicas: 4
     stop_grace_period: 150s
 
   # The catalogue explorer, including the /ops pages. Published on loopback for
