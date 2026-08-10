@@ -185,7 +185,9 @@ class Worker:
             version=__version__,
         )
 
-    async def set_status(self, status: str, *, job_id: UUID | None = None) -> None:
+    async def set_status(
+        self, status: str, *, job_id: UUID | None = None, force: bool = False
+    ) -> None:
         """Record a status change, and emit it as an edge.
 
         Status is an edge — `idle -> busy` is discrete and worth pushing to a
@@ -194,7 +196,11 @@ class Worker:
         therefore goes stale on its own, without any event arriving — which is
         precisely the case where waiting for an event cannot work.
         """
-        if self.state.status == status and job_id == getattr(self.state.current_job, "id", None):
+        if (
+            not force
+            and self.state.status == status
+            and job_id == getattr(self.state.current_job, "id", None)
+        ):
             return
         self.state.status = status
         async with self.pool.connection() as connection:
@@ -445,7 +451,16 @@ class Worker:
                     await leases.release(connection, job.host, job.id)
                 metrics.job_duration(job.source_id, time.monotonic() - started)
                 self._forget(job)
-                await self.set_status("idle")
+                # Another slot may still be crawling. A completed job used to
+                # unconditionally publish `idle`, and the in-memory shortcut in
+                # set_status could also leave current_job_id pointing at the job
+                # that just finished. Re-project the aggregate process state.
+                remaining = self.state.current_job
+                await self.set_status(
+                    "busy" if remaining else "idle",
+                    job_id=remaining.id if remaining else None,
+                    force=True,
+                )
         return True
 
     async def _crawl_and_load(self, job: queue.ClaimedJob) -> None:

@@ -174,6 +174,7 @@ class TestWorkers:
     async def test_a_stopped_worker_cannot_be_controlled(self, client, db):
         worker_id = await self.register(db, status="stopped")
         assert (await client.post(f"/v1/workers/{worker_id}/pause")).status_code == 409
+        assert (await client.get("/v1/workers")).json()["workers"] == []
 
     async def test_a_lost_worker_can_be_hidden_without_deleting_its_audit_row(self, client, db):
         worker_id = await self.register(db, stale=True)

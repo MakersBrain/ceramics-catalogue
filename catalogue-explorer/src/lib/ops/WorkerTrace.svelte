@@ -41,7 +41,7 @@
 		<div class="grid grid-cols-[3.8rem_4.5rem_1fr] gap-1 {tones[line.level] ?? ''}">
 			<span class="opacity-40">{new Date(line.at).toLocaleTimeString('en-GB')}</span>
 			<span class="truncate opacity-60" title={line.event ?? line.level}>{line.event ?? line.level}</span>
-			<span class="break-all">{line.message}</span>
+			<span class="min-w-0 break-words">{line.message}</span>
 		</div>
 	{:else}
 		<p class="text-base-content/50">Waiting for log lines…</p>

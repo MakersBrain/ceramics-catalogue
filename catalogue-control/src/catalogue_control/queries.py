@@ -172,7 +172,7 @@ select w.*, j.source_id as current_source,
        extract(epoch from (now() - w.last_heartbeat_at)) as heartbeat_age_seconds
   from catalogue.workers w
   left join catalogue.jobs j on j.id = w.current_job_id
- where w.status <> 'stopped' or w.last_heartbeat_at > now() - interval '1 hour'
+ where w.status <> 'stopped'
  order by w.started_at desc
 """
 

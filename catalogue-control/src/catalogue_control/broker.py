@@ -415,7 +415,7 @@ select w.id, w.hostname, w.pid, w.version, w.capabilities, w.status, w.desired_s
        ), '[]'::jsonb) as current_jobs
   from catalogue.workers w
   left join catalogue.jobs j on j.id = w.current_job_id
- where w.status <> 'stopped' or w.last_heartbeat_at > now() - interval '1 hour'
+ where w.status <> 'stopped'
  order by w.started_at
 """
 
