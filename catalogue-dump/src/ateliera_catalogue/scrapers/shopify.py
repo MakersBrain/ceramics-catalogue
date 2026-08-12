@@ -24,14 +24,26 @@ class ShopifyScraper(Scraper):
     platform = "shopify"
     method = "api_json"
     currency: str | None = None
+    #: Variants seen while the shop's currency was unknown. Counted rather than
+    #: logged per row: it is one fact about the shop, not five thousand.
+    _priceless: int = 0
 
     async def scrape(self, limit: int | None = None) -> Any:
+        self._priceless = 0
         await self._resolve_currency()
         collections = self.config.get("collections") or []
         if collections:
             await self._scrape_collections(collections, limit)
         else:
             await self._scrape_all(limit)
+        if self._priceless:
+            # Said once, and loudly enough to be the reason the job fails: a
+            # shop whose currency could not be read has no usable prices at all,
+            # and reporting that as an empty success is how it goes unnoticed.
+            self.note(
+                f"{self._priceless} variants dropped without a price: "
+                "the shop's currency could not be read from meta.json"
+            )
         return self.result
 
     async def _resolve_currency(self) -> None:
@@ -110,6 +122,17 @@ class ShopifyScraper(Scraper):
             price, currency = record_module.parse_price(variant.get("price"))
             if price is None:
                 continue
+            money = currency or self.currency
+            if money is None:
+                # products.json states an amount and never the unit it is in, so
+                # without meta.json there is no currency to publish this price
+                # in — and a price with no currency is not a weaker fact, it is
+                # a meaningless one. `record.is_valid` says the same and drops
+                # the row; what matters here is not emitting it as though the
+                # number meant something, because the database refuses it and
+                # the refusal used to cost the whole source's load.
+                self._priceless += 1
+                price = None
             compare_at, _ = record_module.parse_price(variant.get("compare_at_price"))
             variant_title = domain.clean(variant.get("title"))
             variant_title = "" if variant_title.casefold() == "default title" else variant_title
@@ -130,9 +153,11 @@ class ShopifyScraper(Scraper):
                 image_url=(variant.get("featured_image") or {}).get("src") if isinstance(variant.get("featured_image"), dict) else (images[0] if images else None),
                 all_image_urls=images or None,
                 price=price,
-                currency=currency or self.currency,
-                price_text=f"{variant.get('price')} {currency or self.currency or ''}".strip(),
-                list_price=compare_at if compare_at and compare_at != price else None,
+                currency=money,
+                price_text=f"{variant.get('price')} {money}".strip() if money else None,
+                list_price=(
+                    compare_at if money and compare_at and compare_at != price else None
+                ),
                 vat=self.config.get("vat_status"),
                 availability=(
                     "https://schema.org/InStock" if variant.get("available")

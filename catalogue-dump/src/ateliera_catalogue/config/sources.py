@@ -183,6 +183,15 @@ class SourcesFile(RootModel[dict[str, SourceConfig]]):
     def __contains__(self, name: str) -> bool:
         return name in self.root
 
+    def get(self, name: str) -> SourceConfig | None:
+        """The config for a source, or None if this build has never heard of it.
+
+        A worker can be handed a job for a source that has since been removed
+        from the file — the queue outlives a deploy. Asking with this rather
+        than indexing keeps that a job that fails where failures are recorded.
+        """
+        return self.root.get(name)
+
     def __len__(self) -> int:
         return len(self.root)
 

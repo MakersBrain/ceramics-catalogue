@@ -64,6 +64,25 @@ select catalogue.load_record(record, %(run)s::uuid)
  order by line_number
 """
 
+# The same call for one staged row, used only after the set-based one has
+# failed. `catalogue.load_record` enforces real invariants — a price with no
+# currency, a quantity with no unit — and raises on the row that breaks one.
+# Raising is right; what was wrong is that it happened inside a single statement
+# covering the whole source, so one unpriceable variant discarded every other
+# record with it. On 2026-08-11 that cost art-academy-direct all 4,980 of its
+# rows, and gwn-pottery and sheffield-pottery a run each in the days before.
+LOAD_ONE = """
+select catalogue.load_record(record, %(run)s::uuid)
+  from import_staging
+ where line_number = %(line)s
+"""
+
+STAGED_LINES = "select line_number from import_staging order by line_number"
+
+#: Rejected rows quoted in the report. Enough to see the shape of the problem;
+#: a source where every row is rejected does not need six thousand copies of it.
+REJECT_SAMPLE = 5
+
 RETIRE = """
 update catalogue.source_products p
    set active = false
@@ -209,6 +228,11 @@ class SourceReport:
     records: int = 0
     retired: int = 0
     error: str | None = None
+    #: Rows `catalogue.load_record` refused. The rest of the source still
+    #: loaded; see `LOAD_ONE`.
+    rejected: int = 0
+    #: Why, for the first few. One line each, for the run summary and the job log.
+    rejects: list[str] = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
@@ -246,6 +270,62 @@ def ensure_staging(connection: Connection) -> None:
     """Create this connection's private staging table."""
     with connection.cursor() as cursor:
         cursor.execute(CREATE_STAGING)
+
+
+def _load_staged(
+    connection: Connection, cursor: Any, report: SourceReport, run_id: UUID | None
+) -> None:
+    """Load every staged row, and let a row the database refuses cost only itself.
+
+    The fast path is unchanged and is what nearly every source takes: one
+    statement, one `load_record` call per row, no round trip per record. It runs
+    inside a savepoint so that failing does not poison the transaction the
+    caller is holding — which still has the retire step to do.
+
+    Only when that statement fails is the source re-loaded a row at a time, each
+    under its own savepoint, so the rows that are fine land and the ones that
+    are not are counted and named. It is a round trip per record and it is only
+    ever paid by a source that has something wrong with it.
+
+    Rejected rows stay in staging deliberately. Retirement asks "what did this
+    dump not list", and a row we failed to load was still listed — dropping it
+    from the question would retire a product the shop still sells.
+    """
+    try:
+        with connection.transaction():
+            cursor.execute(LOAD, {"run": run_id})
+        return
+    except psycopg.Error as error:
+        LOGGER.warning(
+            "load.batch_refused",
+            source=report.source,
+            error=_reason(error),
+            detail="reloading one record at a time",
+        )
+
+    cursor.execute(STAGED_LINES)
+    for line in [row["line_number"] for row in cursor.fetchall()]:
+        try:
+            with connection.transaction():
+                cursor.execute(LOAD_ONE, {"run": run_id, "line": line})
+        except psycopg.Error as error:
+            report.rejected += 1
+            if len(report.rejects) < REJECT_SAMPLE:
+                report.rejects.append(f"line {line}: {_reason(error)}")
+
+    if report.rejected:
+        LOGGER.warning(
+            "load.records_refused",
+            source=report.source,
+            rejected=report.rejected,
+            of=report.records,
+            reasons=report.rejects,
+        )
+
+
+def _reason(error: psycopg.Error) -> str:
+    """The first line of a database error: the condition, without the context."""
+    return str(error).strip().splitlines()[0] if str(error).strip() else error.__class__.__name__
 
 
 def read_ndjson(path: Path) -> Iterator[dict[str, Any]]:
@@ -293,7 +373,7 @@ def load_source(
                 copy.write_row((source, json.dumps(record, ensure_ascii=False, default=str)))
                 report.records += 1
 
-        cursor.execute(LOAD, {"run": run_id})
+        _load_staged(connection, cursor, report, run_id)
 
         if whole:
             # Asked while this file is still staged, so "not in the dump" is a
@@ -307,7 +387,12 @@ def load_source(
 
     metrics.offers_written(report.records)
     LOGGER.info(
-        "load.source", source=source, records=report.records, retired=report.retired, whole=whole
+        "load.source",
+        source=source,
+        records=report.records,
+        rejected=report.rejected,
+        retired=report.retired,
+        whole=whole,
     )
     return report
 

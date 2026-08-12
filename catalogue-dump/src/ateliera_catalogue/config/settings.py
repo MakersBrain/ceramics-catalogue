@@ -177,10 +177,22 @@ class Settings(BaseSettings):
     #: its leases, which are per host and cross-process, so they are just as
     #: effective within a process as between two of them.
     #:
-    #: The browser worker is the reason this defaults to 1 rather than to
-    #: something ambitious: each concurrent job there is another camoufox, and
-    #: that is measured in hundreds of megabytes rather than in sockets.
+    #: The browser worker used to be the reason this defaults to 1 rather than
+    #: to something ambitious: each concurrent job there was another camoufox,
+    #: and that is measured in hundreds of megabytes rather than in sockets. A
+    #: worker now starts one browser and shares it, so the cost of a slot there
+    #: is a page rather than a program — see `browser_pages`.
     job_slots: int = 1
+    #: How many pages this process will render at once, across every job it is
+    #: running. One browser per worker, this many pages in it.
+    #:
+    #: It is a separate figure from `job_slots` because the two bound different
+    #: things and the browser is by far the scarcer: raising slots to run more
+    #: shops concurrently is cheap, and raising this is what actually decides
+    #: how much of a machine the renders take. Four browser workers each running
+    #: four jobs with a browser apiece is how a three-second render became nine
+    #: minutes on 2026-08-10.
+    browser_pages: int = 2
     #: Bearer token `catalogue-control` requires on every /v1 route.
     control_token: str = ""
 

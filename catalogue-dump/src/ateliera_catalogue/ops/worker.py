@@ -43,18 +43,20 @@ from uuid import UUID, uuid4
 
 import psycopg
 
-from ateliera_catalogue import __version__
+from ateliera_catalogue import __version__, scrapers
 from ateliera_catalogue.config.settings import CrawlParams, Settings
 from ateliera_catalogue.config.sources import SourcesFile
 from ateliera_catalogue.crawl import artifacts
 from ateliera_catalogue.crawl.progress import Progress
+from ateliera_catalogue.crawl.runner import barren as run_source_barren
 from ateliera_catalogue.crawl.runner import run_source
 from ateliera_catalogue.crawl.session import open_session
 from ateliera_catalogue.observability import logging as obs
 from ateliera_catalogue.observability import metrics, tracing
 from ateliera_catalogue.ops import events, leases, monitor, queue, runs, schedule
 from ateliera_catalogue.ops.sink import JobLogHandler, PostgresSink
-from ateliera_catalogue.scrapers.base import BrowserUnavailable
+from ateliera_catalogue.scrapers.activity import CURRENT_JOB
+from ateliera_catalogue.scrapers.base import BrowserRenderer, BrowserUnavailable
 from ateliera_catalogue.scrapers.record import RecordBuilder
 from ateliera_catalogue.storage import postgres
 from ateliera_catalogue.storage.db import DictPool
@@ -127,6 +129,10 @@ class Worker:
         #: tear down the others this process is carrying.
         self._cancels: dict[UUID, asyncio.Event] = {}
         self._slots = asyncio.Semaphore(max(1, settings.job_slots))
+        #: One camoufox for this process, shared by every job that renders and
+        #: started on the first one that does. Per job it was sixteen across the
+        #: fleet; see `BrowserRenderer`.
+        self._browser: BrowserRenderer | None = None
         # Negative, so the first tick leads immediately rather than waiting out
         # the interval: a worker starting after downtime should notice a missed
         # schedule now, not in thirty seconds.
@@ -389,6 +395,10 @@ class Worker:
             return False
 
         async def run_one() -> bool:
+            # Set inside the task, so every line logged under this job — and
+            # under any task it starts — carries the job it belongs to and no
+            # other job's log sink accepts it. See `sink.JobLogHandler.emit`.
+            CURRENT_JOB.set(str(job.id))
             with obs.bound(job_id=str(job.id), run_id=str(job.run_id), source=job.source_id):
                 return await self.execute(job)
 
@@ -402,14 +412,31 @@ class Worker:
         self.state.current_jobs[job.id] = job
         self._cancels[job.id] = asyncio.Event()
 
+        # Both keys this job has to be polite under: its own shop, and — for a
+        # storefront family that answers from one provider's edge — that edge.
+        # Taken in a fixed order, shop first, so two workers claiming the same
+        # pair cannot deadlock against each other.
+        # Asked of the source only if this worker still has one for it. A job
+        # queued before a source was removed from sources.json is a job that
+        # fails, further down and where a failure is recorded — not one that
+        # raises out here, before the try, holding a lease nobody releases.
+        keys = [job.host]
+        known = self.sources.get(job.source_id)
+        if known and (edge := scrapers.shared_edge(known.scraper)):
+            keys.append(edge)
+
         async with self.pool.connection() as connection:
-            slot = await leases.acquire(connection, job.host, job.id, self.state.id)
-            if slot is None:
-                # Another worker is crawling this shop. Not an attempt: being
-                # polite must not spend a source's retry budget.
-                await queue.release(connection, job, self.state.id, reason="host busy")
-                self._forget(job)
-                return False
+            for key in keys:
+                if await leases.acquire(connection, key, job.id, self.state.id) is None:
+                    # Another worker is crawling this shop, or another shop on
+                    # the same edge. Not an attempt: being polite must not spend
+                    # a source's retry budget. Anything already taken for this
+                    # job goes back, or the second key's contention would leak
+                    # the first key's slot until its lease expired.
+                    await leases.release_all(connection, job.id)
+                    await queue.release(connection, job, self.state.id, reason="host busy")
+                    self._forget(job)
+                    return False
 
         started = time.monotonic()
         with tracing.span(
@@ -423,7 +450,7 @@ class Worker:
             trace_id = tracing.trace_id()
             async with self.pool.connection() as connection:
                 if not await queue.start(connection, job, self.state.id, trace_id=trace_id):
-                    await leases.release(connection, job.host, job.id)
+                    await leases.release_all(connection, job.id)
                     self._forget(job)
                     return False
                 # Whichever worker gets there first moves the run out of
@@ -448,7 +475,7 @@ class Worker:
                 await self._finish(job, "failed", error=str(error)[:2000])
             finally:
                 async with self.pool.connection() as connection:
-                    await leases.release(connection, job.host, job.id)
+                    await leases.release_all(connection, job.id)
                 metrics.job_duration(job.source_id, time.monotonic() - started)
                 self._forget(job)
                 # Another slot may still be crawling. A completed job used to
@@ -462,6 +489,32 @@ class Worker:
                     force=True,
                 )
         return True
+
+    def _renderer(self, params: CrawlParams) -> BrowserRenderer | None:
+        """This process's one browser, started on the first job that needs it.
+
+        Returning None for a job that has rendering switched off lets the
+        session build its own disabled renderer, so `--browser never` still
+        means "this crawl does not render" rather than "this crawl may use the
+        shared one".
+        """
+        if params.browser == "never":
+            return None
+        if self._browser is None:
+            self._browser = BrowserRenderer(True, pages=self.settings.browser_pages)
+        return self._browser
+
+    async def _close_browser(self) -> None:
+        """Shut the shared browser down. Idempotent, and never fatal."""
+        browser, self._browser = self._browser, None
+        if browser is None:
+            return
+        try:
+            await browser.close()
+        except Exception:
+            # A stuck browser must not block a drain: the jobs are already back
+            # on the queue and the process is about to exit regardless.
+            LOGGER.warning("worker.browser_close_failed", exc_info=True)
 
     async def _crawl_and_load(self, job: queue.ClaimedJob) -> None:
         """Collect one source, write its artifact, load it, and finish the job."""
@@ -478,7 +531,9 @@ class Worker:
                 sink = PostgresSink(connection, job.run_id, {job.source_id: job.id})
                 with RecordBuilder(self.sources.as_scraper_configs()):
                     async with (
-                        open_session(params, self.settings.cache_dir) as session,
+                        open_session(
+                            params, self.settings.cache_dir, browser=self._renderer(params)
+                        ) as session,
                         Progress(1, [sink]) as progress,
                     ):
                         task = asyncio.create_task(
@@ -526,14 +581,27 @@ class Worker:
             loaded = await self._load(job, outcome, whole=artifact.status == "replaced")
             outcome.summary["loaded"] = loaded.records
             outcome.summary["retired"] = loaded.retired
+            if loaded.rejected:
+                # On the summary rather than only in the log: a source quietly
+                # dropping rows at the database is exactly the kind of thing
+                # that goes unnoticed while every job stays green.
+                outcome.summary["rejected"] = loaded.rejected
+                outcome.summary["rejects"] = loaded.rejects
 
-            failed = outcome.summary["error_count"] and not outcome.summary["records"]
+            # Two ways to have collected nothing. The first is the loud one:
+            # something refused us and said so. The second is silent — every
+            # request answered, nothing recognised — and used to report success.
+            error = None
+            if outcome.summary["error_count"] and not outcome.summary["records"]:
+                error = _first_error(outcome.summary)
+            elif nothing := run_source_barren(outcome.summary):
+                error = nothing
             await self._finish(
                 job,
-                "failed" if failed else "succeeded",
+                "failed" if error else "succeeded",
                 summary=outcome.summary,
                 artifact=artifact,
-                error=_first_error(outcome.summary) if failed else None,
+                error=error,
             )
         finally:
             obs.detach(log_handler)
@@ -650,7 +718,7 @@ class Worker:
                 for job in list(self.state.current_jobs.values()):
                     # Requeued rather than failed: the worker is going away, and
                     # that is not the source's fault, so no attempt is spent.
-                    await leases.release(connection, job.host, job.id)
+                    await leases.release_all(connection, job.id)
                     await queue.release(
                         connection, job, self.state.id, delay=0, reason="worker stopping"
                     )
@@ -668,6 +736,11 @@ class Worker:
             # worker will pick the job up, which is the whole reason leases
             # expire rather than being released.
             LOGGER.warning("worker.shutdown_incomplete", exc_info=True)
+
+        # After the jobs are back on the queue, and outside the database's
+        # error path: a browser this process leaves running outlives the
+        # container's stop grace period as an orphan.
+        await self._close_browser()
 
         obs.unbind("worker_id")
         LOGGER.info("worker.stopping", reason=self.state.desired_state)

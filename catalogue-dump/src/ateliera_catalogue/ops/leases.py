@@ -62,6 +62,13 @@ update catalogue.host_leases
 returning slot
 """
 
+RELEASE_ALL = """
+update catalogue.host_leases
+   set job_id = null, leased_by = null, leased_until = null
+ where job_id = %(job)s
+returning host, slot
+"""
+
 RENEW = """
 update catalogue.host_leases
    set leased_until = now() + make_interval(secs => %(seconds)s)
@@ -115,6 +122,22 @@ async def release(connection: Connection, host: str, job_id: UUID) -> bool:
     if row is not None:
         LOGGER.debug("host.lease.released", host=host, slot=row["slot"])
     return row is not None
+
+
+async def release_all(connection: Connection, job_id: UUID) -> list[str]:
+    """Give back every slot this job holds, whichever key it holds them under.
+
+    A job takes one slot per politeness key — its shop, and the shared edge that
+    shop sits behind, if any — so releasing by hostname alone would strand the
+    other. The job id is what they have in common, and it is unique to one job,
+    so asking by it needs no caller to remember what was taken.
+    """
+    async with connection.cursor() as cursor:
+        await cursor.execute(RELEASE_ALL, {"job": job_id})
+        rows = await cursor.fetchall()
+    for row in rows:
+        LOGGER.debug("host.lease.released", host=row["host"], slot=row["slot"])
+    return [str(row["host"]) for row in rows]
 
 
 async def renew(connection: Connection, worker_id: UUID, *, seconds: int = SLOT_SECONDS) -> int:

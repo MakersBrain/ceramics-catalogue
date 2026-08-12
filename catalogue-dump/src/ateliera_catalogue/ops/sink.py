@@ -32,7 +32,7 @@ from psycopg.types.json import Jsonb
 
 from ateliera_catalogue.observability import logging as obs
 from ateliera_catalogue.ops import events
-from ateliera_catalogue.scrapers.activity import ACTIVITY, describe
+from ateliera_catalogue.scrapers.activity import ACTIVITY, CURRENT_JOB, describe
 
 LOGGER = obs.get_logger("catalogue.sink")
 
@@ -205,6 +205,12 @@ class JobLogHandler(logging.Handler):
     Records are queued rather than written inline: `emit` is called from
     synchronous logging code inside the event loop's thread, and awaiting a
     database round trip there would make every log call a scheduling point.
+
+    A handler on the root logger is offered *every* record in the process, and a
+    worker with four job slots has four of these attached at once. Without the
+    `CURRENT_JOB` check below, each job's log page showed all four jobs' lines —
+    with the other jobs' ids inside the messages — which is at its most
+    misleading exactly when someone is reading it to find out why a job failed.
     """
 
     def __init__(self, job_id: UUID, level: int = logging.INFO, capacity: int = 2000) -> None:
@@ -213,8 +219,15 @@ class JobLogHandler(logging.Handler):
         self.capacity = capacity
         self.pending: list[tuple[str, str, str, dict[str, Any] | None]] = []
         self.dropped = 0
+        self._key = str(job_id)
 
     def emit(self, record: logging.LogRecord) -> None:
+        # Read in `emit`, not in `flush_to`: emit runs synchronously in the task
+        # that logged, which is the only place the answer is still known. The
+        # flush happens later, from the worker's own task, where every record
+        # would look like it came from whichever job was current then.
+        if CURRENT_JOB.get() != self._key:
+            return
         try:
             message = record.getMessage()
         except Exception:  # noqa: BLE001 - a bad log line must not stop a crawl

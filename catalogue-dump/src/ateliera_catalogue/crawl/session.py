@@ -49,16 +49,27 @@ class CrawlSession:
 
 @asynccontextmanager
 async def open_session(
-    params: CrawlParams, cache_dir: Path | str | None = None
+    params: CrawlParams,
+    cache_dir: Path | str | None = None,
+    browser: BrowserRenderer | None = None,
 ) -> AsyncIterator[CrawlSession]:
-    """Build the fetch stack for one crawl and guarantee it is torn down."""
+    """Build the fetch stack for one crawl and guarantee it is torn down.
+
+    `browser` is for a caller that outlives one crawl. The worker builds four of
+    these sessions at once and would otherwise start four browsers, on top of
+    the four in every other worker container — sixteen instances of a program
+    whose own documentation calls it memory-hungry. A renderer passed in here is
+    borrowed, not owned, so leaving the block does not close it.
+    """
     cache = ResponseCache(
         cache_dir or ".",
         mode=params.cache_mode if cache_dir else "off",
         max_age=params.cache_max_age_seconds,
     )
     limiter = HostLimiter(params.delay, params.concurrency)
-    browser = BrowserRenderer(params.browser != "never")
+    owned = browser is None
+    if browser is None:
+        browser = BrowserRenderer(params.browser != "never")
 
     async with httpx.AsyncClient(
         headers={"user-agent": USER_AGENT}, timeout=REQUEST_TIMEOUT, follow_redirects=True
@@ -77,10 +88,15 @@ async def open_session(
             # Not conditional on how the block was left. A cancelled run that
             # leaves camoufox running leaks a browser process per attempt, and
             # a long-lived worker would accumulate one per cancelled job.
-            try:
-                await browser.close()
-            except Exception:
-                LOGGER.warning("session.browser_close_failed", exc_info=True)
+            #
+            # Conditional on ownership, though: a borrowed renderer is still
+            # serving the other jobs this process is running, and closing it
+            # here would take the browser out from under them.
+            if owned:
+                try:
+                    await browser.close()
+                except Exception:
+                    LOGGER.warning("session.browser_close_failed", exc_info=True)
 
 
 def cache_directory(explicit: Path | str | None, default: Path) -> Path | None:

@@ -378,12 +378,12 @@
     "country": "GB"
   },
   "argile-nl": {
-    "label": "Art d'Argile",
-    "url": "https://argile.nl/",
+    "label": "Art d'Argile (Hazelaar)",
+    "url": "https://hazelaar.nl/",
     "scraper": "woocommerce",
     "scope": "materials",
     "country": "NL",
-    "note": "REGRESSION: Store API returned 4567 products in Aug 2026 but now serves HTML and advertises no sitemap; recheck before relying on it"
+    "note": "The shop moved: argile.nl 301s to hazelaar.nl, and the Store API answers there exactly as it used to. What the failing runs read was the redirect's own HTML body, not a shop that had stopped publishing. The source id is unchanged so the catalogue keeps its history."
   },
   "at-ceramika": {
     "label": "At Ceramika",

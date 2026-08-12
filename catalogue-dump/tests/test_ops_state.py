@@ -12,13 +12,16 @@ from __future__ import annotations
 
 import asyncio
 import json
-from uuid import uuid4
+import logging
+from uuid import UUID, uuid4
 
 import pytest
 
+from ateliera_catalogue import scrapers
 from ateliera_catalogue.config.sources import SourcesFile
-from ateliera_catalogue.ops import events, runs
+from ateliera_catalogue.ops import events, leases, runs
 from ateliera_catalogue.ops.sink import JobLogHandler, PostgresSink
+from ateliera_catalogue.scrapers.activity import CURRENT_JOB
 
 from .conftest import requires_postgres
 
@@ -46,6 +49,17 @@ class FakeResult:
         self.rendered_pages = 0
         self.discovered = records
         self.truncated = False
+
+
+async def register_worker(connection) -> UUID:
+    """A worker row, because `host_leases.leased_by` references one."""
+    worker_id = uuid4()
+    await connection.execute(
+        "insert into catalogue.workers (id, hostname, pid, capabilities, status) "
+        "values (%(id)s, 'test', 1, '{}', 'idle')",
+        {"id": worker_id},
+    )
+    return worker_id
 
 
 async def rows(connection, sql, params=None):
@@ -338,17 +352,18 @@ class TestNotifications:
         assert any(row["type"] == "notification.raised" for row in logged)
 
 
+def line(message: str, level: int = logging.INFO) -> logging.LogRecord:
+    return logging.LogRecord("catalogue", level, __file__, 1, message, None, None)
+
+
 class TestJobLog:
     async def test_lines_reach_job_events(self, db):
-        import logging
-
         run_id = await runs.create_run(db)
         jobs = await runs.create_jobs(db, run_id, SOURCES, ["ceradel"])
         handler = JobLogHandler(jobs["ceradel"])
 
-        record = logging.LogRecord("catalogue", logging.WARNING, __file__, 1,
-                                   "host=ceradel.fr failed (429)", None, None)
-        handler.emit(record)
+        CURRENT_JOB.set(str(jobs["ceradel"]))
+        handler.emit(line("host=ceradel.fr failed (429)", logging.WARNING))
         assert await handler.flush_to(db) == 1
 
         stored = await rows(db, "select level, message from catalogue.job_events")
@@ -356,16 +371,40 @@ class TestJobLog:
         assert "429" in stored[0]["message"]
 
     async def test_a_runaway_job_cannot_fill_the_queue(self, db):
-        import logging
-
-        handler = JobLogHandler(uuid4(), capacity=5)
+        job_id = uuid4()
+        handler = JobLogHandler(job_id, capacity=5)
+        CURRENT_JOB.set(str(job_id))
         for index in range(50):
-            handler.emit(
-                logging.LogRecord("catalogue", logging.INFO, __file__, 1, f"line {index}", None, None)
-            )
+            handler.emit(line(f"line {index}"))
         drained = handler.drain()
         assert len(drained) == 6, "five lines plus one saying what was dropped"
         assert "dropped" in drained[-1][2]
+
+    async def test_a_handler_takes_only_its_own_job_s_lines(self):
+        """A worker with four job slots has four of these on the root logger.
+
+        Every one of them was offered every record, so each job's log page
+        showed all four jobs' lines — with the other jobs' ids inside the
+        messages, which is at its most misleading exactly when someone is
+        reading the page to find out why a job failed.
+        """
+        mine, theirs = uuid4(), uuid4()
+        handler = JobLogHandler(mine)
+
+        CURRENT_JOB.set(str(theirs))
+        handler.emit(line("something the other job did"))
+        assert handler.drain() == []
+
+        CURRENT_JOB.set(str(mine))
+        handler.emit(line("something this job did"))
+        assert [entry[2] for entry in handler.drain()] == ["something this job did"]
+
+    async def test_a_line_belonging_to_no_job_reaches_no_job_s_log(self):
+        """The heartbeat and the queue are the worker's, not any one job's."""
+        handler = JobLogHandler(uuid4())
+        CURRENT_JOB.set("")
+        handler.emit(line("worker.tick"))
+        assert handler.drain() == []
 
 
 class TestHostSlots:
@@ -399,6 +438,38 @@ class TestHostSlots:
             db, "select slot, job_id from catalogue.host_leases where host='ceradel.fr' order by slot"
         )
         assert [row["slot"] for row in remaining] == [1, 3], "the occupied slot survived"
+
+    async def test_two_shops_on_one_edge_cannot_run_at_once(self, db):
+        """Politeness is per host, and a Shopify shop's host is not the whole story.
+
+        Nineteen of these shops are Shopify storefronts on custom domains, all
+        answering from one edge that meters by client address across every shop
+        on it. Two of them crawled concurrently from one machine is the shape of
+        the 2026-08-12 failure, and it looks perfectly polite per host.
+        """
+        run_id = await runs.create_run(db)
+        jobs = await runs.create_jobs(db, run_id, SOURCES, ["ceradel", "les-cousins"])
+        edge = scrapers.shared_edge("shopify")
+        assert edge is not None
+
+        first, second = await register_worker(db), await register_worker(db)
+        assert await leases.acquire(db, "ceradel.fr", jobs["ceradel"], first) is not None
+        assert await leases.acquire(db, edge, jobs["ceradel"], first) is not None
+
+        # A different shop, its own host free, but the edge is taken.
+        assert await leases.acquire(db, "lescousins.fr", jobs["les-cousins"], second) is not None
+        assert await leases.acquire(db, edge, jobs["les-cousins"], second) is None
+
+        # The first job going away frees both of its keys, whichever it holds.
+        assert set(await leases.release_all(db, jobs["ceradel"])) == {"ceradel.fr", edge}
+        assert await leases.acquire(db, edge, jobs["les-cousins"], second) is not None
+
+    async def test_an_operator_can_widen_the_edge_without_a_deploy(self):
+        """It is an ordinary row in `catalogue.hosts`, so it tunes like one."""
+        assert scrapers.shared_edge("shopify") == "edge:shopify"
+        assert scrapers.shared_edge("woocommerce") is None
+        # `sio2` is a PrestaShop under another name: the class decides, not the key.
+        assert scrapers.shared_edge("sio2") is None
 
 
 class TestImportRunLink:

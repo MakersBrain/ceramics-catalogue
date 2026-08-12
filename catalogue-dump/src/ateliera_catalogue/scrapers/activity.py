@@ -20,6 +20,13 @@ from typing import Any
 #: Set once per source, in the task that runs it.
 CURRENT_SOURCE: ContextVar[str] = ContextVar("catalogue_source", default="")
 
+#: Set once per job, in the task the worker runs it in. The same reasoning as
+#: `CURRENT_SOURCE` applied to the other identifier a line can belong to: a
+#: worker running four jobs at once has one process-wide root logger, so a log
+#: sink can only tell whose line it is holding by asking the task it arrived in.
+#: Empty outside a job — the heartbeat and the queue belong to no job's log.
+CURRENT_JOB: ContextVar[str] = ContextVar("catalogue_job", default="")
+
 #: Requests kept per source: enough to see what a source is working through.
 HISTORY = 40
 

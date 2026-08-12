@@ -19,7 +19,7 @@ import pytest
 from ateliera_catalogue.config.settings import CrawlParams
 from ateliera_catalogue.config.sources import SourcesFile
 from ateliera_catalogue.crawl.progress import Progress, ProgressSink
-from ateliera_catalogue.crawl.runner import CrawlRunner
+from ateliera_catalogue.crawl.runner import CrawlRunner, barren
 from ateliera_catalogue.scrapers.base import ScrapeResult
 
 
@@ -334,3 +334,27 @@ class TestSummary:
         # A completed source must not be marked interrupted: `plan_load` reads
         # that through the manifest to decide whether it may retire against it.
         assert "interrupted" not in summary
+
+
+class TestBarren:
+    """A source that listed products and read none of them has not succeeded.
+
+    Ten sources were in that state on 2026-08-12 and every one of their jobs was
+    green. countrylove spent eighty-four minutes finding 18,883 product URLs,
+    extracted zero, raised nothing, and reported success.
+    """
+
+    def test_listing_products_and_extracting_none_is_a_failure(self):
+        assert barren({"records": 0, "discovered": 18883, "scraper": "pagecrawl"})
+
+    def test_a_source_that_found_nothing_to_read_is_not_this(self):
+        """Discovery finding nothing is its own problem, and a different one."""
+        assert barren({"records": 0, "discovered": 0, "scraper": "pagecrawl"}) is None
+
+    def test_a_source_that_extracted_something_is_fine(self):
+        assert barren({"records": 1, "discovered": 2054, "scraper": "pagecrawl"}) is None
+
+    def test_an_interrupted_source_is_judged_on_nothing(self):
+        """It was stopped, so what it did not reach says nothing about it."""
+        summary = {"records": 0, "discovered": 900, "scraper": "shopify", "interrupted": True}
+        assert barren(summary) is None

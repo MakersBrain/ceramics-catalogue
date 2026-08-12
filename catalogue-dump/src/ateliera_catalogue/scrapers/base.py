@@ -112,6 +112,19 @@ class BrowserUnavailable(Exception):
     """
 
 
+#: Platforms whose shops are separate hostnames in front of one shared edge, by
+#: the `platform` of the scraper that reads them. That edge meters by client
+#: address across every shop on it, so politeness has to be counted there too —
+#: both inside a process (`HostLimiter.join_group`) and across the fleet, where
+#: `ops.leases` claims a slot under this name as well as under the hostname.
+#:
+#: Only Shopify is listed, because only Shopify has been observed doing it: on
+#: 2026-08-12 five storefronts on five unrelated domains refused their first
+#: request with 429, seconds after two others had been throttled part-way
+#: through. Anything added here should have the same kind of evidence behind it.
+SHARED_EDGES: dict[str, str] = {"shopify": "edge:shopify"}
+
+
 class HostLimiter:
     """Cap how many requests are in flight per host, and slow down when told to.
 
@@ -168,25 +181,52 @@ class HostLimiter:
         self.gates: dict[str, _Gate] = {}
         self.locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
         self.last: dict[str, float] = {}
+        #: Hosts that answer from one shared edge, mapped to the name of that
+        #: edge. See `join_group`.
+        self.groups: dict[str, str] = {}
 
     # -- pacing -----------------------------------------------------------
 
+    def join_group(self, url: str, group: str) -> None:
+        """Declare that this host's pacing is shared with the rest of `group`.
+
+        Some hosts are only nominally separate. Nineteen of these shops are
+        Shopify storefronts on custom domains, and every one of them answers
+        from the same edge, which meters by client address across all of them:
+        on 2026-08-12 five shops returned 429 to their *first* request, seconds
+        after two unrelated shops had been throttled mid-pagination. Pacing each
+        hostname on its own cannot see that, because from the hostname's point
+        of view nothing had gone wrong yet.
+
+        So the gap, the backoff and the metered pace are held against the group
+        rather than the host, and one member being refused immediately slows
+        every other member in this process. Concurrency slots stay per host —
+        the edge's limit is on the rate, and a shop that is answering well is
+        not made slower by a sibling that is not.
+        """
+        self.groups[urlparse(url).netloc if "//" in url else url] = group
+
+    def _key(self, host: str) -> str:
+        """The name this host is paced under: its group, or itself."""
+        return self.groups.get(host, host)
+
     def set_delay(self, url: str, delay: float) -> None:
         """Set a hard minimum gap for one host; the strictest request wins."""
-        host = urlparse(url).netloc
-        self.floors[host] = max(self.floors.get(host, 0.0), float(delay))
+        key = self._key(urlparse(url).netloc)
+        self.floors[key] = max(self.floors.get(key, 0.0), float(delay))
 
     def remember_crawl_delay(self, url: str, delay: float | None) -> None:
         """Keep a published Crawl-delay for the day the host starts refusing."""
         if delay and delay > 0:
-            self.published.setdefault(urlparse(url).netloc, float(delay))
+            self.published.setdefault(self._key(urlparse(url).netloc), float(delay))
 
     def spacing(self, host: str) -> float:
         """The gap before this host's next request; zero means send it now."""
+        key = self._key(host)
         return max(
-            self.floors.get(host, 0.0),
-            self.backoff.get(host, 0.0),
-            self.metered.get(host, 0.0),
+            self.floors.get(key, 0.0),
+            self.backoff.get(key, 0.0),
+            self.metered.get(key, 0.0),
             self.delay / self.slots.get(host, self.initial),
         )
 
@@ -195,7 +235,8 @@ class HostLimiter:
         if gap <= 0:
             return 0.0
         # A floor is a minimum, so jitter around one may only ever add time.
-        floored = host in self.floors or host in self.backoff or host in self.metered
+        key = self._key(host)
+        floored = key in self.floors or key in self.backoff or key in self.metered
         low, high = (1.0, 1.35) if floored else (0.7, 1.3)
         return gap * random.uniform(low, high)
 
@@ -213,18 +254,22 @@ class HostLimiter:
             # Nothing to space out, so nothing to serialise on either: taking
             # the per-host lock here would queue every slot behind one another.
             return
-        async with self.locks[host]:
+        # Under the group's name, so that a gap earned on a shared edge is a gap
+        # between *all* of that edge's requests rather than one per shop.
+        key = self._key(host)
+        async with self.locks[key]:
             loop = asyncio.get_running_loop()
-            elapsed = loop.time() - self.last.get(host, 0.0)
+            elapsed = loop.time() - self.last.get(key, 0.0)
             if elapsed < gap:
                 await asyncio.sleep(gap - elapsed)
-            self.last[host] = loop.time()
+            self.last[key] = loop.time()
 
     # -- adaptation -------------------------------------------------------
 
     def record_success(self, url: str) -> None:
         host = urlparse(url).netloc
-        if self.slots.get(host, self.initial) >= self.maximum and host not in self.backoff:
+        key = self._key(host)
+        if self.slots.get(host, self.initial) >= self.maximum and key not in self.backoff:
             return
         self.streaks[host] = self.streaks.get(host, 0) + 1
         if self.streaks[host] < self.RECOVERY:
@@ -233,7 +278,7 @@ class HostLimiter:
         self.slots[host] = min(self.maximum, self.slots.get(host, self.initial) + 1)
         if host in self.gates:
             self.gates[host].resize(self.slots[host])
-        if self.slots[host] >= self.maximum and self.backoff.pop(host, None):
+        if self.slots[host] >= self.maximum and self.backoff.pop(key, None):
             # Back to full speed: the host has answered every request since it
             # regained its last slot, so the gap it earned by failing is spent.
             LOGGER.debug("host=%s recovered; backoff released", host)
@@ -242,13 +287,14 @@ class HostLimiter:
     def record_failure(self, url: str, reason: Any = None) -> None:
         """Halve the slots and start leaving a gap, since this host is unhappy."""
         host = urlparse(url).netloc
+        key = self._key(host)
         self.streaks[host] = 0
         current = self.slots.get(host, self.initial)
         self.slots[host] = max(1, current // 2)
         if host in self.gates:
             self.gates[host].resize(self.slots[host])
 
-        if (published := self.published.pop(host, None)) is not None:
+        if (published := self.published.pop(key, None)) is not None:
             # The host asked for a pace in robots.txt and has now shown it meant
             # it, so take that figure rather than a guessed one.
             self.set_delay(url, published)
@@ -258,12 +304,13 @@ class HostLimiter:
             )
             return
 
-        self.backoff[host] = min(
-            self.BACKOFF_MAX, max(self.BACKOFF_START, self.backoff.get(host, 0.0) * 2),
+        self.backoff[key] = min(
+            self.BACKOFF_MAX, max(self.BACKOFF_START, self.backoff.get(key, 0.0) * 2),
         )
         LOGGER.warning(
-            "host=%s failed (%s); slots %d -> %d, waiting %.1fs between requests",
-            host, reason, current, self.slots[host], self.backoff[host],
+            "host=%s failed (%s); slots %d -> %d, waiting %.1fs between requests%s",
+            host, reason, current, self.slots[host], self.backoff[key],
+            f" across {key}" if key != host else "",
         )
 
     # -- what the host says about itself ----------------------------------
@@ -302,20 +349,21 @@ class HostLimiter:
         if remaining is None or limit is None or limit <= 0:
             return
         host = urlparse(url).netloc
+        key = self._key(host)
         headroom = remaining / limit
         if headroom > self.HEADROOM:
-            self.metered.pop(host, None)
+            self.metered.pop(key, None)
             return
         # Spread whatever is left across the window the host named, defaulting
         # to a minute — the usual period when none is given.
         seconds = window if window and window > 0 else 60.0
         gap = seconds / max(1, remaining)
-        previous = self.metered.get(host, 0.0)
-        self.metered[host] = min(self.BACKOFF_MAX, max(previous, gap))
-        if self.metered[host] != previous:
+        previous = self.metered.get(key, 0.0)
+        self.metered[key] = min(self.BACKOFF_MAX, max(previous, gap))
+        if self.metered[key] != previous:
             LOGGER.info(
                 "host=%s reports %d/%d of its rate limit left; pacing at %.2fs",
-                host, remaining, limit, self.metered[host],
+                host, remaining, limit, self.metered[key],
             )
 
 
@@ -454,14 +502,34 @@ class ImpersonatingClient:
 
 
 class BrowserRenderer:
-    """One lazily started Camoufox instance, shared by the scrapers that need it."""
+    """One lazily started Camoufox instance, shared by the scrapers that need it.
 
-    def __init__(self, enabled: bool) -> None:
+    "Shared" used to mean shared by the scrapers within one job, because the
+    session that owns it is built per job. A worker with four job slots
+    therefore ran four browsers, and four such workers ran sixteen — which is
+    what happened on 2026-08-10, and it did not fail so much as congeal: the
+    same pages, the same request counts, and a single render going from three
+    seconds to nine minutes. Two sources stopped finishing inside their
+    deadline at all.
+
+    So a renderer may now be built once per *process* and handed to each
+    session (`open_session(..., browser=...)`), and `pages` bounds how many
+    renders it will run at once. The lock is only around starting the browser;
+    holding it across a whole page load, as it used to, made the bound one
+    everywhere and hid the cost of the extra instances.
+    """
+
+    def __init__(self, enabled: bool, pages: int = 1) -> None:
         self.enabled = enabled
         self.manager: Any = None
         self.browser: Any = None
+        #: Held only while the browser is starting, never across a page load.
         self.lock = asyncio.Lock()
+        #: How many pages this instance will have open at once. One by default,
+        #: which is what a single job's renders were always limited to.
+        self.pages = asyncio.Semaphore(max(1, pages))
         self._pages: dict[str, Any] = {}
+        self._page_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
     async def _start(self) -> Any:
         if self.browser is None:
@@ -485,6 +553,11 @@ class BrowserRenderer:
                 raise BrowserUnavailable(f"camoufox could not start: {error}") from error
         return self.browser
 
+    async def _started(self) -> Any:
+        """Start the browser if it is not running, once however many ask at once."""
+        async with self.lock:
+            return await self._start()
+
     async def request_json(
         self,
         page_url: str,
@@ -503,9 +576,13 @@ class BrowserRenderer:
         """
         if not self.enabled:
             raise Blocked("browser rendering disabled (use --browser auto or always)")
-        async with self.lock:
-            await self._start()
-            origin = urlparse(page_url).netloc
+        origin = urlparse(page_url).netloc
+        # This one keeps its page open between calls, so unlike `render` it also
+        # needs the origin's own lock: two calls arriving together would
+        # otherwise each open a page and one would be left orphaned in the
+        # browser with nothing holding it.
+        async with self.pages, self._page_locks[origin]:
+            await self._started()
             page = self._pages.get(origin)
             if page is None or page.is_closed():
                 page = await self.browser.new_page()
@@ -535,8 +612,8 @@ class BrowserRenderer:
     async def render(self, url: str, wait_ms: int = 1500, wait_for: str | None = None) -> str:
         if not self.enabled:
             raise Blocked("browser rendering disabled (use --browser auto or always)")
-        async with self.lock:
-            await self._start()
+        async with self.pages:
+            await self._started()
             page = await self.browser.new_page()
             try:
                 await page.goto(url, wait_until="domcontentloaded", timeout=45_000)
@@ -558,8 +635,8 @@ class BrowserRenderer:
         """
         if not self.enabled:
             raise Blocked("browser rendering disabled (use --browser auto or always)")
-        async with self.lock:
-            await self._start()
+        async with self.pages:
+            await self._started()
             page = await self.browser.new_page()
             try:
                 await page.goto(url, wait_until="domcontentloaded", timeout=45_000)
@@ -984,6 +1061,8 @@ class Scraper(ABC):
         #: True by default, and see `extracting` for why that direction.
         self._enumerating = True
         self.base_url = config.get("url", "")
+        if edge := SHARED_EDGES.get(self.platform):
+            fetcher.limiter.join_group(self.base_url, edge)
         if delay := config.get("delay"):
             fetcher.limiter.set_delay(self.base_url, float(delay))
 

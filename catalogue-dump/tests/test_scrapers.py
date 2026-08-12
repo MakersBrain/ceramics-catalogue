@@ -758,6 +758,42 @@ class HostLimiterTests(unittest.TestCase):
             limiter.record_failure("https://example.com/x", 503)
         self.assertAlmostEqual(base.HostLimiter.BACKOFF_MAX, limiter.spacing("example.com"))
 
+    def test_hosts_on_a_shared_edge_are_paced_together(self):
+        """A 429 from one Shopify shop slows every Shopify shop in this process.
+
+        The failure this is for: five storefronts on five unrelated domains
+        refusing their *first* request, seconds after two others on the same
+        edge had been throttled part-way through pagination.
+        """
+        limiter = base.HostLimiter(0.0, 4, start=4)
+        for host in ("hot-clay.com", "www.barro.ro"):
+            limiter.join_group(f"https://{host}/", "edge:shopify")
+
+        limiter.record_failure("https://hot-clay.com/products.json", 429)
+
+        # The shop that has not been asked anything yet already waits.
+        self.assertAlmostEqual(
+            base.HostLimiter.BACKOFF_START, limiter.spacing("www.barro.ro")
+        )
+        # Its own concurrency is untouched: the edge meters the rate, and this
+        # shop has not failed at anything.
+        self.assertEqual(4, limiter.slots.get("www.barro.ro", 4))
+        self.assertEqual(2, limiter.slots["hot-clay.com"])
+
+    def test_a_host_outside_the_group_is_unaffected(self):
+        limiter = base.HostLimiter(0.0, 4, start=4)
+        limiter.join_group("https://hot-clay.com/", "edge:shopify")
+        limiter.record_failure("https://hot-clay.com/products.json", 429)
+        self.assertEqual(0.0, limiter.spacing("ceradel.fr"))
+
+    def test_a_retry_after_from_one_shop_floors_the_whole_edge(self):
+        """`set_delay` names a host; on a shared edge it means all of them."""
+        limiter = base.HostLimiter(0.0, 4)
+        for host in ("hot-clay.com", "mudaceramica.com"):
+            limiter.join_group(f"https://{host}/", "edge:shopify")
+        limiter.set_delay("https://hot-clay.com/products.json", 6.0)
+        self.assertAlmostEqual(6.0, limiter.spacing("mudaceramica.com"))
+
     def test_a_published_crawl_delay_applies_only_after_a_failure(self):
         """A healthy host is crawled at our pace; a failing one gets its own."""
         limiter = base.HostLimiter(0.0, 4, start=2)
@@ -1232,6 +1268,35 @@ class TruncationTests(unittest.IsolatedAsyncioTestCase):
             result = await scraper.scrape()
         self.assertFalse(result.truncated, "reaching the end of the pages is not truncation")
         self.assertEqual(251, len(result.records))
+
+    async def test_a_shop_with_no_readable_currency_publishes_no_price(self):
+        """products.json states an amount and never says what it is in.
+
+        The currency comes from meta.json, and when that request fails the
+        amount is not a weaker fact, it is a meaningless one. Emitting it anyway
+        produced rows `catalogue.load_record` refuses — and, because the refusal
+        used to abort the source's whole load, one such row cost
+        art-academy-direct all 4,980 of its records on 2026-08-11.
+        """
+        def handler(request):
+            if request.url.path == "/meta.json":
+                return httpx.Response(500, json={})
+            page = request.url.params.get("page")
+            return httpx.Response(200, json={"products": [self._product(1)] if page == "1" else []})
+
+        client, scraper = self._shopify(handler)
+        async with client:
+            result = await scraper.scrape()
+
+        # `record.is_valid` refuses a priced row with no price, so the variant
+        # is dropped rather than published as a bare number — and the source
+        # says why, which is what turns an empty result into a diagnosis. The
+        # job then fails on `runner.barren` rather than reporting a green zero.
+        self.assertEqual([], result.records)
+        self.assertEqual(1, result.discovered)
+        self.assertTrue(
+            any("currency could not be read" in note for note in result.notes), result.notes
+        )
 
 
 class BrowserRoutingTests(unittest.IsolatedAsyncioTestCase):

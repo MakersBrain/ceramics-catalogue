@@ -65,6 +65,30 @@ class SourceOutcome:
         return {"records": self.records, "summary": self.summary}
 
 
+def barren(summary: dict[str, Any]) -> str | None:
+    """Why this source's work produced nothing, if that is what happened.
+
+    A source that listed products and then read none of them has not succeeded
+    at anything, but it raises nothing either: discovery worked, every page
+    fetched, and the extractor simply recognised none of them. Ten sources were
+    in that state on 2026-08-12 and every one of their jobs was green —
+    countrylove spent eighty-four minutes finding 18,883 product URLs, read
+    zero, and reported success.
+
+    Read by the worker to decide the job's outcome, and returned as a sentence
+    because it goes straight into `catalogue.jobs.error` for an operator.
+    """
+    if summary.get("records") or summary.get("interrupted"):
+        return None
+    discovered = int(summary.get("discovered") or 0)
+    if not discovered:
+        return None
+    return (
+        f"listed {discovered} products and extracted none: "
+        f"the {summary.get('scraper')} scraper recognised nothing on any of them"
+    )
+
+
 def summarise(
     name: str,
     config: SourceConfig,

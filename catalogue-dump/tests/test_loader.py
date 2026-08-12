@@ -131,12 +131,15 @@ class TestLoadSource:
             cursor.execute("select count(*) as n from import_staging")
             assert cursor.fetchone()["n"] == 0
 
-    def test_a_bad_record_rolls_the_whole_source_back(self, sync_db):
+    def test_the_four_steps_are_still_one_transaction(self, sync_db):
         """Either all four steps happen for a source or none do.
 
         The `psql` version could be interrupted between staging, loading,
         retiring and truncating, leaving a source counted as loaded with its
-        retirement half-applied.
+        retirement half-applied. Rejecting a single record is now done on a
+        savepoint inside this transaction rather than by failing it, so what is
+        under test here is that the savepoints did not cost the outer guarantee:
+        the load either happened or it did not, and staging is clean either way.
         """
         postgres.ensure_staging(sync_db)
         postgres.load_source(sync_db, "ceradel", [record("1", "Blue"), record("2", "Red")], whole=True)
@@ -144,11 +147,14 @@ class TestLoadSource:
         broken = record("3", "Broken")
         del broken["product_url"]  # not null in catalogue.source_products
 
-        with pytest.raises(psycopg.Error):
-            postgres.load_source(sync_db, "ceradel", [record("1", "Blue"), broken], whole=True)
+        report = postgres.load_source(
+            sync_db, "ceradel", [record("1", "Blue"), broken], whole=True
+        )
 
-        # Nothing retired, nothing added, staging clean.
-        assert active_products(sync_db) == {"ceradel:1": True, "ceradel:2": True}
+        # The row the schema refused is refused; the one beside it is not, and
+        # the product missing from this dump is retired as it should be.
+        assert report.rejected == 1
+        assert active_products(sync_db) == {"ceradel:1": True, "ceradel:2": False}
         with sync_db.cursor() as cursor:
             cursor.execute("select count(*) as n from import_staging")
             assert cursor.fetchone()["n"] == 0
@@ -177,6 +183,43 @@ class TestLoadSource:
         # The table is still there, and ceradel's own row was not touched.
         assert active_products(sync_db) == {"ceradel:1": True}
 
+    def test_a_record_the_database_refuses_costs_only_itself(self, sync_db):
+        """One bad row used to discard the source it arrived with.
+
+        `catalogue.load_record` is right to refuse a price with no currency —
+        it is not a weaker fact, it is a meaningless one — but the refusal
+        happened inside one statement covering every record, so the whole
+        source went with it. art-academy-direct lost all 4,980 rows that way on
+        2026-08-11, and gwn-pottery and sheffield-pottery a run each.
+        """
+        bad = record("2", "Priceless") | {"currency": None}
+        postgres.ensure_staging(sync_db)
+        report = postgres.load_source(
+            sync_db, "ceradel", [record("1", "Blue"), bad, record("3", "Red")], whole=True
+        )
+
+        assert report.ok
+        assert report.rejected == 1
+        assert "currency" in report.rejects[0]
+        assert set(active_products(sync_db)) == {"ceradel:1", "ceradel:3"}
+
+    def test_a_refused_record_is_not_grounds_for_retiring_it(self, sync_db):
+        """It was listed. Failing to load it is our problem, not the shop's."""
+        postgres.ensure_staging(sync_db)
+        postgres.load_source(
+            sync_db, "ceradel", [record("1", "Blue"), record("2", "Red")], whole=True
+        )
+        assert active_products(sync_db) == {"ceradel:1": True, "ceradel:2": True}
+
+        # Same two products, but one now arrives unloadable.
+        postgres.load_source(
+            sync_db,
+            "ceradel",
+            [record("1", "Blue"), record("2", "Red") | {"currency": None}],
+            whole=True,
+        )
+        assert active_products(sync_db) == {"ceradel:1": True, "ceradel:2": True}
+
 
 class TestLoadDump:
     def write(self, directory: Path, source: str, rows: list[dict], partial: bool = False) -> None:
@@ -195,12 +238,19 @@ class TestLoadDump:
         assert report.run_id is not None
         assert report.products == 2
 
+    def broken_file(self, directory: Path, source: str) -> None:
+        """A dump that cannot be read at all — the source-level kind of failure.
+
+        A single record the schema refuses is no longer this: it is rejected on
+        its own and the rest of the source loads. What still fails a whole
+        source is a file that cannot be turned into records in the first place.
+        """
+        (directory / f"{source}.ndjson").write_text('{"format": "truncated\n', encoding="utf-8")
+
     def test_one_bad_source_does_not_cost_the_others(self, sync_db, tmp_path):
         """A defect in the third of sixty-three sources used to cost the other sixty."""
-        broken = record("9", "Broken")
-        del broken["product_url"]
         self.write(tmp_path, "ceradel", [record("1", "Blue")])
-        self.write(tmp_path, "mayco", [broken])
+        self.broken_file(tmp_path, "mayco")
         plans, _ = postgres.plan_load(tmp_path)
 
         report = postgres.load_dump(sync_db, plans, SOURCES, {"ceradel", "mayco"})
@@ -225,9 +275,7 @@ class TestLoadDump:
         assert row["record_count"] == 1
 
     def test_a_failed_load_marks_the_import_run_failed(self, sync_db, tmp_path):
-        broken = record("9", "Broken")
-        del broken["product_url"]
-        self.write(tmp_path, "ceradel", [broken])
+        self.broken_file(tmp_path, "ceradel")
         plans, _ = postgres.plan_load(tmp_path)
         report = postgres.load_dump(sync_db, plans, SOURCES, {"ceradel"})
 

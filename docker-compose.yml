@@ -169,6 +169,13 @@ services:
   # Sources that need camoufox, on a separate image so the plain worker does not
   # carry a browser. Keep four replicas so browser-backed runs can make progress
   # across independent shops concurrently.
+  #
+  # `deploy/quadlet/catalogue-worker-browser.container` had three settings this
+  # never did, and every one of them turned out to matter here too. Between
+  # 2026-08-10 and 2026-08-12 the browser-backed sources kept their request
+  # counts exactly and lost two orders of magnitude of speed — toepferspass
+  # rendering nine pages in 4,862 seconds — and two of them stopped finishing
+  # inside their deadline at all.
   worker-browser:
     build:
       context: .
@@ -179,9 +186,25 @@ services:
         condition: service_healthy
     environment:
       CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      # camoufox leaks across jobs. A process that has rendered a few hundred
+      # pages is one that gets killed by the OOM reaper mid-write, so it is
+      # recycled between jobs instead — `restart: unless-stopped` restarts it.
+      CATALOGUE_MAX_JOBS: ${CATALOGUE_BROWSER_MAX_JOBS:-25}
+      # One job at a time here, and up to this many pages open in the one
+      # browser this process now shares between them. Stated rather than left
+      # to the defaults: these two figures are what the machine's share of a
+      # render is, and they should be visible next to the replica count.
+      CATALOGUE_JOB_SLOTS: ${CATALOGUE_BROWSER_JOB_SLOTS:-1}
+      CATALOGUE_BROWSER_PAGES: ${CATALOGUE_BROWSER_PAGES:-2}
     volumes:
       - cache:/var/lib/catalogue/cache
       - dumps:/var/lib/catalogue/dumps
+    # Docker's default is 64 MB, and camoufox needs rather more: below this it
+    # renders, slowly and then not at all, rather than failing outright.
+    shm_size: 512m
+    # And a writable /tmp, which it wants for its profile.
+    tmpfs:
+      - /tmp
     restart: unless-stopped
     deploy:
       replicas: 4

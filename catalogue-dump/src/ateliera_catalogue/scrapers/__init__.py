@@ -54,3 +54,19 @@ def load(name: str) -> type[Scraper]:
 
 def build(name: str, source_name: str, config: dict[str, Any], fetcher: Any) -> Scraper:
     return load(name)(source_name, config, fetcher)
+
+
+def shared_edge(name: str) -> str | None:
+    """The shared edge this scraper's shops answer from, or None.
+
+    Asked by the worker before it runs a job, so that two shops behind one
+    provider's edge do not both get crawled at once from the same address. The
+    class attribute is the authority — `sio2` is a PrestaShop, and a caller
+    reading the registry key rather than the platform would miss that.
+    """
+    from .base import SHARED_EDGES
+
+    try:
+        return SHARED_EDGES.get(load(name).platform)
+    except KeyError:
+        return None

@@ -68,9 +68,15 @@ would make the log ~860,000 rows per run and destroy replay.
 else, and the control service keeps a watermark it reconciles every five
 seconds. A dropped notification costs latency, never data.
 
-**Politeness is per host and crosses processes.** `catalogue.hosts` and
-`host_leases` bound concurrency per shop however many workers are running.
-Getting a source blocked costs more than any feature here is worth.
+**Politeness is per host, per shared edge, and crosses processes.**
+`catalogue.hosts` and `host_leases` bound concurrency per shop however many
+workers are running. Getting a source blocked costs more than any feature here
+is worth. A hostname is not always the whole story: nineteen of these shops are
+Shopify storefronts on custom domains and all of them answer from one edge that
+meters by client address across every shop on it, so those jobs claim a slot
+under `edge:shopify` as well as under their own host. Both keys are ordinary
+rows in `catalogue.hosts`, so either bound is an operator's to widen without a
+deploy.
 
 **The generated OpenAPI documents are never hand-edited.** Change the Pydantic
 registries, run `make openapi`, commit the diff. `make openapi-check` fails the
