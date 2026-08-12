@@ -17,8 +17,8 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from ateliera_catalogue import scrapers
-from ateliera_catalogue.config.sources import SourceConfig, SourcesFile, default_path
+from mb_ceramics_catalogue import scrapers
+from mb_ceramics_catalogue.config.sources import SourceConfig, SourcesFile, default_path
 
 MINIMAL = {"label": "Test", "url": "https://example.test/", "scraper": "shopify"}
 
@@ -75,7 +75,7 @@ def test_no_scraper_defaults_a_projected_key_to_something_truthy(parsed: Sources
     import inspect
     import re
 
-    from ateliera_catalogue import scrapers as package
+    from mb_ceramics_catalogue import scrapers as package
 
     always_projected = {"scope": "'materials'", "ignore_robots": None, "is_manufacturer": None}
     pattern = re.compile(r"""config\.get\(\s*["'](\w+)["']\s*,\s*([^)]+)\)""")

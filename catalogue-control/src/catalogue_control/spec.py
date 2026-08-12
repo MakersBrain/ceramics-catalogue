@@ -17,8 +17,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from ateliera_catalogue.config.settings import CrawlParams
-from ateliera_catalogue.contracts import Operation, Parameter, Registry
+from mb_ceramics_catalogue.config.settings import CrawlParams
+from mb_ceramics_catalogue.contracts import Operation, Parameter, Registry
 from pydantic import BaseModel, Field
 
 VERSION = "0.2.0"

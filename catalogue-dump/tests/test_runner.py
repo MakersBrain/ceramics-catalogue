@@ -16,11 +16,11 @@ from typing import Any
 
 import pytest
 
-from ateliera_catalogue.config.settings import CrawlParams
-from ateliera_catalogue.config.sources import SourcesFile
-from ateliera_catalogue.crawl.progress import Progress, ProgressSink
-from ateliera_catalogue.crawl.runner import CrawlRunner, barren
-from ateliera_catalogue.scrapers.base import ScrapeResult
+from mb_ceramics_catalogue.config.settings import CrawlParams
+from mb_ceramics_catalogue.config.sources import SourcesFile
+from mb_ceramics_catalogue.crawl.progress import Progress, ProgressSink
+from mb_ceramics_catalogue.crawl.runner import CrawlRunner, barren
+from mb_ceramics_catalogue.scrapers.base import ScrapeResult
 
 
 def make_sources(*names: str) -> SourcesFile:
@@ -88,7 +88,7 @@ async def until(predicate, timeout: float = 5.0) -> None:
 def stub_scrapers(monkeypatch):
     BEHAVIOUR.clear()
     monkeypatch.setattr(
-        "ateliera_catalogue.crawl.runner.scrapers.build",
+        "mb_ceramics_catalogue.crawl.runner.scrapers.build",
         lambda scraper, name, config, fetcher: StubScraper(name, config, fetcher),
     )
     yield
@@ -317,7 +317,7 @@ class TestProgress:
         assert outcomes[0].summary["records"] == 2
 
     def test_the_protocol_is_satisfied_by_the_shipped_sinks(self):
-        from ateliera_catalogue.crawl.progress import BarSink, LogSink
+        from mb_ceramics_catalogue.crawl.progress import BarSink, LogSink
 
         assert isinstance(LogSink(), ProgressSink)
         assert isinstance(BarSink(1), ProgressSink)

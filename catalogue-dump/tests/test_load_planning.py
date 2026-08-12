@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from ateliera_catalogue.storage import postgres as load_postgres
+from mb_ceramics_catalogue.storage import postgres as load_postgres
 
 
 def write_dump(directory: Path, source: str, count: int, partial: bool = False) -> Path:

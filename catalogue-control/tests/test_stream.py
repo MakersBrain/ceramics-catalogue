@@ -143,7 +143,7 @@ class TestAgainstTheDatabase:
         return broker
 
     async def test_the_watermark_starts_at_the_current_maximum(self, db):
-        from ateliera_catalogue.ops import events
+        from mb_ceramics_catalogue.ops import events
 
         await events.emit(db, events.Topic.WORKER, "worker.ready")
         broker = await self.broker(db)
@@ -153,7 +153,7 @@ class TestAgainstTheDatabase:
             await broker.stop()
 
     async def test_an_edge_written_after_start_is_dispatched(self, db):
-        from ateliera_catalogue.ops import events
+        from mb_ceramics_catalogue.ops import events
 
         broker = await self.broker(db)
         subscriber = Subscriber(topics=frozenset({"workers"}))
@@ -175,7 +175,7 @@ class TestAgainstTheDatabase:
         id it dispatched and nothing told it so. The reconciliation query is the
         only thing that closes it.
         """
-        from ateliera_catalogue.ops import events
+        from mb_ceramics_catalogue.ops import events
 
         broker = await self.broker(db)
         try:
@@ -193,7 +193,7 @@ class TestAgainstTheDatabase:
 
     async def test_replay_reads_from_the_table_when_the_buffer_misses(self, db):
         """Which is the entire reason `catalogue.event_log` is durable."""
-        from ateliera_catalogue.ops import events
+        from mb_ceramics_catalogue.ops import events
 
         first = await events.emit(db, events.Topic.WORKER, "worker.ready")
         await events.emit(db, events.Topic.WORKER, "worker.changed")
@@ -224,9 +224,9 @@ class TestAgainstTheDatabase:
 
     async def test_progress_is_never_written_to_the_event_log(self, db):
         """The invariant the whole stream design rests on."""
-        from ateliera_catalogue.config.sources import SourcesFile
-        from ateliera_catalogue.ops import runs
-        from ateliera_catalogue.ops.sink import PostgresSink
+        from mb_ceramics_catalogue.config.sources import SourcesFile
+        from mb_ceramics_catalogue.ops import runs
+        from mb_ceramics_catalogue.ops.sink import PostgresSink
 
         sources = SourcesFile.model_validate(
             {"ceradel": {"label": "C", "url": "https://ceradel.fr/", "scraper": "shopify"}}
@@ -344,7 +344,7 @@ class TestStreamOverHttp:
     async def test_an_edge_reaches_a_connected_client(self, db):
         """The end-to-end claim: something written to `event_log` arrives on the
         wire, with an id, without the client asking again."""
-        from ateliera_catalogue.ops import events
+        from mb_ceramics_catalogue.ops import events
 
         app = self.build()
         async with app.router.lifespan_context(app):
@@ -359,7 +359,7 @@ class TestStreamOverHttp:
 
 
 async def _emit_after(connection, delay: float):
-    from ateliera_catalogue.ops import events
+    from mb_ceramics_catalogue.ops import events
 
     await asyncio.sleep(delay)
     await events.emit(connection, events.Topic.WORKER, "worker.ready", payload={"n": 1})

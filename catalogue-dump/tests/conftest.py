@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-SCHEMA = Path(__file__).resolve().parent.parent / "src" / "ateliera_catalogue" / "storage" / "schema"
+SCHEMA = Path(__file__).resolve().parent.parent / "src" / "mb_ceramics_catalogue" / "storage" / "schema"
 EXTENSIONS = Path(__file__).resolve().parents[2] / "docker" / "initdb" / "00-extensions.sql"
 
 
@@ -76,7 +76,7 @@ async def db() -> AsyncIterator:
         # fixture that builds a different database from the deployment is a
         # fixture that passes while the deployment is broken. The promotion
         # file was missing here for exactly that reason.
-        from ateliera_catalogue.storage.db import SCHEMA_FILES
+        from mb_ceramics_catalogue.storage.db import SCHEMA_FILES
 
         for name in SCHEMA_FILES:
             await connection.execute((SCHEMA / name).read_text(encoding="utf-8"))

@@ -9,13 +9,13 @@ and the record contract; anything site-specific lives in that site's scraper.
 
 ## Layout
 
-An installable `src`-layout package, `ateliera_catalogue`. That matters because
+An installable `src`-layout package, `mb_ceramics_catalogue`. That matters because
 the worker imports it from inside a container: the modules used to resolve only
 because Python puts the running script's directory on `sys.path`, which works
 for `python3 dump.py` and not for anything else.
 
 ```
-src/ateliera_catalogue/
+src/mb_ceramics_catalogue/
   cli/            dump.py  load.py  probe.py  worker.py   -- console scripts
   config/         sources.py (SourceConfig)  settings.py (CrawlParams, Settings)
   crawl/          runner.py  session.py  progress.py  artifacts.py
@@ -418,7 +418,7 @@ The normalized model deliberately separates:
 - `canonical_products`: curated cross-supplier identities, never guessed by the importer;
 - `source_documents` and `import_runs`: retrieval and batch provenance.
 
-Load a whole dump with [`storage/postgres.py`](src/ateliera_catalogue/storage/postgres.py), which stages each
+Load a whole dump with [`storage/postgres.py`](src/mb_ceramics_catalogue/storage/postgres.py), which stages each
 file with `COPY` and then calls the loader over it. It needs `psql` on PATH and
 no Python driver:
 

@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 
 import pytest
-from ateliera_catalogue.contracts import assert_read_only
+from mb_ceramics_catalogue.contracts import assert_read_only
 
 from catalogue_service.generate import DEFAULT_TARGET
 from catalogue_service.spec import registry

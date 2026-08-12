@@ -413,7 +413,7 @@ working directory never silently satisfies an import:
 ```
 catalogue-dump/
   pyproject.toml                    # hatchling backend, [project.scripts], dev group
-  src/ateliera_catalogue/
+  src/mb_ceramics_catalogue/
     __init__.py                     # __version__, nothing else
     cli/
       dump.py       worker.py      load.py       probe.py

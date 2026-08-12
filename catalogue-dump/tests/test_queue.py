@@ -21,8 +21,8 @@ import psycopg
 import pytest
 from psycopg.rows import dict_row
 
-from ateliera_catalogue.config.sources import SourcesFile
-from ateliera_catalogue.ops import leases, queue, runs
+from mb_ceramics_catalogue.config.sources import SourcesFile
+from mb_ceramics_catalogue.ops import leases, queue, runs
 
 from .conftest import postgres_dsn, requires_postgres
 

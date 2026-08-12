@@ -30,14 +30,14 @@ services:
       # this file so a worker can apply the same DDL from an installed
       # distribution — see `storage.db.apply_schema`.
       - ./docker/initdb/00-extensions.sql:/docker-entrypoint-initdb.d/00-extensions.sql:ro
-      - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-reference-schema.sql:/docker-entrypoint-initdb.d/10-catalogue-reference-schema.sql:ro
-      - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-reference-schema-v2.sql:/docker-entrypoint-initdb.d/20-catalogue-reference-schema-v2.sql:ro
-      - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-ops-schema.sql:/docker-entrypoint-initdb.d/30-catalogue-ops-schema.sql:ro
+      - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-reference-schema.sql:/docker-entrypoint-initdb.d/10-catalogue-reference-schema.sql:ro
+      - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-reference-schema-v2.sql:/docker-entrypoint-initdb.d/20-catalogue-reference-schema-v2.sql:ro
+      - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema.sql:/docker-entrypoint-initdb.d/30-catalogue-ops-schema.sql:ro
       # Last, and it was missing entirely: it alters `canonical_products` and
       # defines `promote_canonical_products`, which a run calls when its last
       # job lands. A database without it takes every source in and never folds
       # them into the cross-supplier identities the catalogue exists to serve.
-      - ./catalogue-dump/src/ateliera_catalogue/storage/schema/catalogue-canonical-promotion.sql:/docker-entrypoint-initdb.d/40-catalogue-canonical-promotion.sql:ro
+      - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-canonical-promotion.sql:/docker-entrypoint-initdb.d/40-catalogue-canonical-promotion.sql:ro
     restart: unless-stopped
     healthcheck:
       test:

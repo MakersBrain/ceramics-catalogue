@@ -12,7 +12,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from ateliera_catalogue.crawl import artifacts
+from mb_ceramics_catalogue.crawl import artifacts
 
 ROWS = [{"external_id": "s:1", "name": "Blue glaze"}, {"external_id": "s:2", "name": "Rouge"}]
 

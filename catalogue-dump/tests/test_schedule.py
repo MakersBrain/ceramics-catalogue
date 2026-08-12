@@ -19,8 +19,8 @@ import psycopg
 import pytest
 from psycopg.rows import dict_row
 
-from ateliera_catalogue.config.sources import SourcesFile
-from ateliera_catalogue.ops import monitor, runs, schedule
+from mb_ceramics_catalogue.config.sources import SourcesFile
+from mb_ceramics_catalogue.ops import monitor, runs, schedule
 
 from .conftest import postgres_dsn, requires_postgres
 
@@ -326,7 +326,7 @@ class TestRetention:
     async def test_an_unresolved_notification_is_never_pruned(self, db):
         """It is the thing nobody dealt with. Deleting it turns "we never fixed
         that" into "we have no record of that"."""
-        from ateliera_catalogue.ops import events
+        from mb_ceramics_catalogue.ops import events
 
         await events.notify(db, "source.stale", "old and unresolved", source_id="ceradel")
         await db.execute("update catalogue.notifications set at = now() - interval '200 days'")
@@ -335,7 +335,7 @@ class TestRetention:
         assert len(await rows(db, "select id from catalogue.notifications")) == 1
 
     async def test_a_resolved_notification_is_pruned_once_it_is_old(self, db):
-        from ateliera_catalogue.ops import events
+        from mb_ceramics_catalogue.ops import events
 
         await events.notify(db, "source.stale", "dealt with", source_id="ceradel")
         await events.resolve(db, "source.stale:ceradel", source_id="ceradel")

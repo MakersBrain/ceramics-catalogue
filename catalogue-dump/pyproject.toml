@@ -1,5 +1,5 @@
 [project]
-name = "ateliera-catalogue"
+name = "mb-ceramics-catalogue"
 version = "0.2.0"
 description = "Collection, loading and scheduled operation of the ceramics reference catalogue"
 requires-python = ">=3.11,<3.14"
@@ -42,14 +42,14 @@ otel = [
   "opentelemetry-exporter-otlp-proto-http>=1.27",
 ]
 all = [
-  "ateliera-catalogue[tui,postgres,browser,impersonate,otel]",
+  "mb-ceramics-catalogue[tui,postgres,browser,impersonate,otel]",
 ]
 
 [project.scripts]
-catalogue-dump = "ateliera_catalogue.cli.dump:main"
-catalogue-load = "ateliera_catalogue.cli.load:main"
-catalogue-probe = "ateliera_catalogue.cli.probe:main"
-catalogue-worker = "ateliera_catalogue.cli.worker:main"
+catalogue-dump = "mb_ceramics_catalogue.cli.dump:main"
+catalogue-load = "mb_ceramics_catalogue.cli.load:main"
+catalogue-probe = "mb_ceramics_catalogue.cli.probe:main"
+catalogue-worker = "mb_ceramics_catalogue.cli.worker:main"
 
 [dependency-groups]
 dev = [
@@ -57,7 +57,7 @@ dev = [
   "pytest-asyncio>=0.24",
   "ruff>=0.8",
   "mypy>=1.13",
-  "ateliera-catalogue[tui,postgres,browser,impersonate,otel]",
+  "mb-ceramics-catalogue[tui,postgres,browser,impersonate,otel]",
 ]
 
 [build-system]
@@ -65,11 +65,11 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ateliera_catalogue"]
+packages = ["src/mb_ceramics_catalogue"]
 
 [tool.hatch.build.targets.wheel.force-include]
 # sources.json is data the package reads at runtime, not a development file.
-"sources.json" = "ateliera_catalogue/data/sources.json"
+"sources.json" = "mb_ceramics_catalogue/data/sources.json"
 
 [tool.uv]
 # A real package now: `uv sync` installs it in editable mode, so an import
@@ -86,7 +86,7 @@ asyncio_mode = "auto"
 # which is the wrong default for a suite that should be run on every save. CI
 # runs `pytest -m golden` as its own step.
 addopts = "-m 'not golden and not postgres'"
-filterwarnings = ["error::DeprecationWarning:ateliera_catalogue.*"]
+filterwarnings = ["error::DeprecationWarning:mb_ceramics_catalogue.*"]
 markers = [
   "golden: replays recorded responses and compares against a frozen dump",
   "postgres: needs a live PostgreSQL; skipped when CATALOGUE_TEST_DSN is unset",
@@ -136,8 +136,8 @@ ignore = [
 # scraper buys nothing and invalidates the golden file that is the only proof
 # the refactor changed no output. Correctness rules (F, B023, BLE) stay on —
 # they are how the `target` NameError in `Fetcher.render` was found.
-"src/ateliera_catalogue/scrapers/*" = ["SIM", "C4", "B905", "E701"]
-"src/ateliera_catalogue/ui/*" = ["SIM", "C4", "E701"]
+"src/mb_ceramics_catalogue/scrapers/*" = ["SIM", "C4", "B905", "E701"]
+"src/mb_ceramics_catalogue/ui/*" = ["SIM", "C4", "E701"]
 
 # Standalone development aids, imported by nothing and not part of the package
 # in §4.2. They are linted for real faults, not for house style.
@@ -151,7 +151,7 @@ ignore = [
 # stubs (a camoufox dependency) as 3.11 source and reject their `type`
 # statements before checking a line of this project. The floor is enforced by
 # `requires-python` and by CI running the suite on 3.11.
-files = ["src/ateliera_catalogue", "tests"]
+files = ["src/mb_ceramics_catalogue", "tests"]
 mypy_path = "src"
 warn_unused_configs = true
 warn_redundant_casts = true
@@ -164,12 +164,12 @@ follow_imports_for_stubs = false
 # and they are the only one.
 [[tool.mypy.overrides]]
 module = [
-  "ateliera_catalogue.cli.*",
-  "ateliera_catalogue.config.*",
-  "ateliera_catalogue.crawl.*",
-  "ateliera_catalogue.observability.*",
-  "ateliera_catalogue.ops.*",
-  "ateliera_catalogue.storage.*",
+  "mb_ceramics_catalogue.cli.*",
+  "mb_ceramics_catalogue.config.*",
+  "mb_ceramics_catalogue.crawl.*",
+  "mb_ceramics_catalogue.observability.*",
+  "mb_ceramics_catalogue.ops.*",
+  "mb_ceramics_catalogue.storage.*",
 ]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
@@ -194,13 +194,13 @@ warn_return_any = true
 # Everything that would catch a real fault — undefined names, bad calls, bad
 # assignments — stays on. That is how `Fetcher.render`'s NameError was found.
 [[tool.mypy.overrides]]
-module = "ateliera_catalogue.scrapers.*"
+module = "mb_ceramics_catalogue.scrapers.*"
 disallow_untyped_defs = false
 check_untyped_defs = true
 disable_error_code = ["arg-type", "attr-defined", "union-attr", "return-value"]
 
 [[tool.mypy.overrides]]
-module = "ateliera_catalogue.ui.*"
+module = "mb_ceramics_catalogue.ui.*"
 disallow_untyped_defs = false
 check_untyped_defs = true
 

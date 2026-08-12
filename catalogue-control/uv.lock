@@ -69,7 +69,7 @@ wheels = [
 ]
 
 [[package]]
-name = "ateliera-catalogue"
+name = "mb-ceramics-catalogue"
 version = "0.2.0"
 source = { editable = "../catalogue-dump" }
 dependencies = [
@@ -82,7 +82,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ateliera-catalogue", extras = ["tui", "postgres", "browser", "impersonate", "otel"], marker = "extra == 'all'" },
+    { name = "mb-ceramics-catalogue", extras = ["tui", "postgres", "browser", "impersonate", "otel"], marker = "extra == 'all'" },
     { name = "camoufox", marker = "extra == 'browser'", specifier = ">=0.5,<0.6" },
     { name = "croniter", specifier = ">=6.0" },
     { name = "curl-cffi", marker = "extra == 'impersonate'", specifier = ">=0.7,<1" },
@@ -102,7 +102,7 @@ provides-extras = ["tui", "postgres", "browser", "impersonate", "otel", "all"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "ateliera-catalogue", extras = ["tui", "postgres", "browser", "impersonate", "otel"] },
+    { name = "mb-ceramics-catalogue", extras = ["tui", "postgres", "browser", "impersonate", "otel"] },
     { name = "mypy", specifier = ">=1.13" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "pytest-asyncio", specifier = ">=0.24" },
@@ -110,11 +110,11 @@ dev = [
 ]
 
 [[package]]
-name = "ateliera-catalogue-control"
+name = "mb-ceramics-catalogue-control"
 version = "0.2.0"
 source = { editable = "." }
 dependencies = [
-    { name = "ateliera-catalogue" },
+    { name = "mb-ceramics-catalogue" },
     { name = "psycopg", extra = ["binary", "pool"] },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -134,7 +134,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ateliera-catalogue", editable = "../catalogue-dump" },
+    { name = "mb-ceramics-catalogue", editable = "../catalogue-dump" },
     { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.2,<4" },
     { name = "pydantic", specifier = ">=2.9,<3" },
     { name = "pydantic-settings", specifier = ">=2.6,<3" },

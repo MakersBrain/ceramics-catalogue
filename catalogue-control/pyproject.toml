@@ -1,5 +1,5 @@
 [project]
-name = "ateliera-catalogue-control"
+name = "mb-ceramics-catalogue-control"
 version = "0.2.0"
 description = "Operator control plane for the ceramics catalogue: runs, jobs, workers and the live stream"
 requires-python = ">=3.11,<3.14"
@@ -18,7 +18,7 @@ dependencies = [
   # The run-parameter and source models are shared with the collector, so a run
   # created over HTTP and one started from the CLI cannot disagree about what a
   # valid run is.
-  "ateliera-catalogue",
+  "mb-ceramics-catalogue",
 ]
 
 [project.scripts]
@@ -46,7 +46,7 @@ packages = ["src/catalogue_control"]
 package = true
 
 [tool.uv.sources]
-ateliera-catalogue = { path = "../catalogue-dump", editable = true }
+mb-ceramics-catalogue = { path = "../catalogue-dump", editable = true }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

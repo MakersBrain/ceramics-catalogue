@@ -22,9 +22,9 @@ from typing import Any
 from uuid import UUID
 
 import psycopg
-from ateliera_catalogue.config.settings import CrawlParams
-from ateliera_catalogue.config.sources import SourcesFile, default_path
-from ateliera_catalogue.ops import events, runs
+from mb_ceramics_catalogue.config.settings import CrawlParams
+from mb_ceramics_catalogue.config.sources import SourcesFile, default_path
+from mb_ceramics_catalogue.ops import events, runs
 from starlette.applications import Starlette
 from starlette.datastructures import Headers
 from starlette.middleware import Middleware
@@ -120,7 +120,7 @@ async def metrics_endpoint(request: Request) -> Response:
     The queue depth is authoritative in Postgres and cheap to count; keeping a
     process-local copy would mean each replica reported a different number.
     """
-    from ateliera_catalogue.observability import metrics as instruments
+    from mb_ceramics_catalogue.observability import metrics as instruments
 
     with contextlib.suppress(psycopg.Error):
         async with request.app.state.pool.connection() as connection:
@@ -672,7 +672,7 @@ def create_app(settings: Settings | None = None) -> Starlette:
 
     @contextlib.asynccontextmanager
     async def lifespan(app: Starlette) -> AsyncIterator[None]:
-        from ateliera_catalogue.storage import db
+        from mb_ceramics_catalogue.storage import db
 
         async with db.pool(settings.dsn, minimum=1, maximum=8) as pool:
             app.state.pool = pool

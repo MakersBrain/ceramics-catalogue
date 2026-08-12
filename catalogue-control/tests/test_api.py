@@ -284,14 +284,14 @@ class TestSources:
 
 class TestNotifications:
     async def test_unacknowledged_can_be_filtered(self, client, db):
-        from ateliera_catalogue.ops import events
+        from mb_ceramics_catalogue.ops import events
 
         await events.notify(db, "source.stale", "ceradel is stale", source_id="ceradel")
         body = (await client.get("/v1/notifications?unacknowledged=true")).json()
         assert len(body["notifications"]) == 1
 
     async def test_acknowledging_twice_is_a_conflict(self, client, db):
-        from ateliera_catalogue.ops import events
+        from mb_ceramics_catalogue.ops import events
 
         await events.notify(db, "worker.lost", "gone", severity=events.Severity.CRITICAL)
         listed = (await client.get("/v1/notifications")).json()["notifications"]

@@ -11,10 +11,10 @@ from pathlib import Path
 
 import httpx
 
-from ateliera_catalogue import scrapers
-from ateliera_catalogue.scrapers import base, domain, jsonld
-from ateliera_catalogue.scrapers import cache as cache_module
-from ateliera_catalogue.scrapers import record as record_module
+from mb_ceramics_catalogue import scrapers
+from mb_ceramics_catalogue.scrapers import base, domain, jsonld
+from mb_ceramics_catalogue.scrapers import cache as cache_module
+from mb_ceramics_catalogue.scrapers import record as record_module
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -1222,7 +1222,7 @@ class TruncationTests(unittest.IsolatedAsyncioTestCase):
             client, base.HostLimiter(0.0, 4), base.BrowserRenderer(False), "never",
             impersonate_policy="never",
         )
-        from ateliera_catalogue.scrapers.shopify import ShopifyScraper
+        from mb_ceramics_catalogue.scrapers.shopify import ShopifyScraper
 
         config = {"url": "https://shop.test/", "scope": "all", "vat_status": "exclusive"}
         return client, ShopifyScraper("shop", config, fetcher)
@@ -1309,7 +1309,7 @@ class BrowserRoutingTests(unittest.IsolatedAsyncioTestCase):
     """
 
     def _scraper(self, handler):
-        from ateliera_catalogue.scrapers.pagecrawl import PageScraper
+        from mb_ceramics_catalogue.scrapers.pagecrawl import PageScraper
 
         client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
         fetcher = base.Fetcher(
@@ -1351,7 +1351,7 @@ class RenderPolicyTests(unittest.IsolatedAsyncioTestCase):
     """
 
     def _scraper(self, render):
-        from ateliera_catalogue.scrapers.pagecrawl import PageScraper
+        from mb_ceramics_catalogue.scrapers.pagecrawl import PageScraper
 
         client = httpx.AsyncClient(transport=httpx.MockTransport(
             lambda request: httpx.Response(403, text="refused")))
@@ -1486,7 +1486,7 @@ class EnumerationInvariantTests(unittest.IsolatedAsyncioTestCase):
         )
 
     async def test_a_new_scraper_that_says_nothing_still_reports_truncation(self):
-        from ateliera_catalogue.scrapers.pagecrawl import PageScraper
+        from mb_ceramics_catalogue.scrapers.pagecrawl import PageScraper
 
         class NewShopScraper(PageScraper):
             """Written by someone who has never heard of `truncated`."""
@@ -1508,7 +1508,7 @@ class EnumerationInvariantTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result.truncated, "a listing that could not be read is not a whole catalogue")
 
     async def test_one_bad_product_page_does_not_truncate(self):
-        from ateliera_catalogue.scrapers.pagecrawl import PageScraper
+        from mb_ceramics_catalogue.scrapers.pagecrawl import PageScraper
 
         class NewShopScraper(PageScraper):
             async def discover(self, limit=None):
@@ -1549,7 +1549,7 @@ class CeramicoloursPaginationTests(unittest.IsolatedAsyncioTestCase):
         return f'<a href="Articolo.php?cod={code}&Name=x&Lang=IT" class="product-name">{code}</a>'
 
     async def test_an_overlapping_category_is_walked_past_its_first_page(self):
-        from ateliera_catalogue.scrapers.ceramicolours import CeramicoloursScraper
+        from mb_ceramics_catalogue.scrapers.ceramicolours import CeramicoloursScraper
 
         pages = {
             ("5101", "1"): [self._card("A1"), self._card("A2")],
@@ -1643,7 +1643,7 @@ class RecordOrderTests(unittest.IsolatedAsyncioTestCase):
     )
 
     async def test_rows_follow_the_order_the_pages_were_listed(self):
-        from ateliera_catalogue.scrapers.pagecrawl import PageScraper
+        from mb_ceramics_catalogue.scrapers.pagecrawl import PageScraper
 
         class Shop(PageScraper):
             async def discover(self, limit=None):

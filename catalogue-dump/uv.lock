@@ -91,7 +91,7 @@ wheels = [
 ]
 
 [[package]]
-name = "ateliera-catalogue"
+name = "mb-ceramics-catalogue"
 version = "0.2.0"
 source = { editable = "." }
 dependencies = [
@@ -136,7 +136,7 @@ tui = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "ateliera-catalogue", extra = ["browser", "impersonate", "otel", "postgres", "tui"] },
+    { name = "mb-ceramics-catalogue", extra = ["browser", "impersonate", "otel", "postgres", "tui"] },
     { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -145,7 +145,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ateliera-catalogue", extras = ["tui", "postgres", "browser", "impersonate", "otel"], marker = "extra == 'all'" },
+    { name = "mb-ceramics-catalogue", extras = ["tui", "postgres", "browser", "impersonate", "otel"], marker = "extra == 'all'" },
     { name = "camoufox", marker = "extra == 'browser'", specifier = ">=0.5,<0.6" },
     { name = "croniter", specifier = ">=6.0" },
     { name = "curl-cffi", marker = "extra == 'impersonate'", specifier = ">=0.7,<1" },
@@ -165,7 +165,7 @@ provides-extras = ["tui", "postgres", "browser", "impersonate", "otel", "all"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "ateliera-catalogue", extras = ["tui", "postgres", "browser", "impersonate", "otel"] },
+    { name = "mb-ceramics-catalogue", extras = ["tui", "postgres", "browser", "impersonate", "otel"] },
     { name = "mypy", specifier = ">=1.13" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "pytest-asyncio", specifier = ">=0.24" },

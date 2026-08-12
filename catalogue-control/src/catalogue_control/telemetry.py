@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from ateliera_catalogue.observability import logging as obs
-from ateliera_catalogue.observability import metrics
+from mb_ceramics_catalogue.observability import logging as obs
+from mb_ceramics_catalogue.observability import metrics
 
 
 def configure(level: str = "INFO", *, json: bool | None = None) -> None:

@@ -23,12 +23,12 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from ateliera_catalogue.config.settings import CrawlParams
-from ateliera_catalogue.config.sources import SourcesFile, default_path
-from ateliera_catalogue.crawl.progress import Progress
-from ateliera_catalogue.crawl.runner import run_source
-from ateliera_catalogue.crawl.session import open_session
-from ateliera_catalogue.scrapers.record import RecordBuilder
+from mb_ceramics_catalogue.config.settings import CrawlParams
+from mb_ceramics_catalogue.config.sources import SourcesFile, default_path
+from mb_ceramics_catalogue.crawl.progress import Progress
+from mb_ceramics_catalogue.crawl.runner import run_source
+from mb_ceramics_catalogue.crawl.session import open_session
+from mb_ceramics_catalogue.scrapers.record import RecordBuilder
 
 ROOT = Path(__file__).resolve().parent.parent
 GOLDEN = Path(__file__).resolve().parent / "golden"

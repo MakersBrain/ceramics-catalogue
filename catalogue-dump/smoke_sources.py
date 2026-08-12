@@ -18,8 +18,8 @@ from typing import Any
 
 import httpx
 
-from ateliera_catalogue import scrapers
-from ateliera_catalogue.scrapers.base import USER_AGENT, BrowserRenderer, Fetcher, HostLimiter
+from mb_ceramics_catalogue import scrapers
+from mb_ceramics_catalogue.scrapers.base import USER_AGENT, BrowserRenderer, Fetcher, HostLimiter
 
 HERE = Path(__file__).resolve().parent
 

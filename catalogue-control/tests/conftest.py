@@ -13,7 +13,7 @@ import pytest
 
 SCHEMA = (
     Path(__file__).resolve().parents[2]
-    / "catalogue-dump" / "src" / "ateliera_catalogue" / "storage" / "schema"
+    / "catalogue-dump" / "src" / "mb_ceramics_catalogue" / "storage" / "schema"
 )
 EXTENSIONS = Path(__file__).resolve().parents[2] / "docker" / "initdb" / "00-extensions.sql"
 

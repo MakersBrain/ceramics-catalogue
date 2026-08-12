@@ -19,7 +19,7 @@ import psycopg
 import pytest
 from psycopg.rows import dict_row
 
-from ateliera_catalogue.storage import postgres
+from mb_ceramics_catalogue.storage import postgres
 
 from .conftest import postgres_dsn, requires_postgres
 
@@ -309,7 +309,7 @@ class TestLoadDump:
         assert row["metadata"]["country"] == "FR"
 
     def test_the_load_is_traceable_to_the_crawl_that_produced_it(self, sync_db, tmp_path):
-        from ateliera_catalogue.ops import runs as ops_runs
+        from mb_ceramics_catalogue.ops import runs as ops_runs
 
         with sync_db.cursor() as cursor:
             cursor.execute(

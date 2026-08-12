@@ -17,11 +17,11 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from ateliera_catalogue import scrapers
-from ateliera_catalogue.config.sources import SourcesFile
-from ateliera_catalogue.ops import events, leases, runs
-from ateliera_catalogue.ops.sink import JobLogHandler, PostgresSink
-from ateliera_catalogue.scrapers.activity import CURRENT_JOB
+from mb_ceramics_catalogue import scrapers
+from mb_ceramics_catalogue.config.sources import SourcesFile
+from mb_ceramics_catalogue.ops import events, leases, runs
+from mb_ceramics_catalogue.ops.sink import JobLogHandler, PostgresSink
+from mb_ceramics_catalogue.scrapers.activity import CURRENT_JOB
 
 from .conftest import requires_postgres
 

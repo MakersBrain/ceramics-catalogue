@@ -1,5 +1,5 @@
 [project]
-name = "ateliera-catalogue-service"
+name = "mb-ceramics-catalogue-service"
 version = "1.0.0"
 description = "The ceramics catalogue read API, under a generated OpenAPI contract"
 requires-python = ">=3.11,<3.14"
@@ -9,7 +9,7 @@ dependencies = [
   "psycopg[binary,pool]>=3.2,<4",
   "pydantic>=2.9,<3",
   # For the shared OpenAPI registry only; this service imports no collection code.
-  "ateliera-catalogue",
+  "mb-ceramics-catalogue",
 ]
 
 [project.scripts]
@@ -36,7 +36,7 @@ packages = ["src/catalogue_service"]
 package = true
 
 [tool.uv.sources]
-ateliera-catalogue = { path = "../catalogue-dump", editable = true }
+mb-ceramics-catalogue = { path = "../catalogue-dump", editable = true }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

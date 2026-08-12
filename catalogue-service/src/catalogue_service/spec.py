@@ -6,7 +6,7 @@ commit the diff — which is what makes an API change visible in review.
 
 from __future__ import annotations
 
-from ateliera_catalogue.contracts import Operation, Parameter, Registry
+from mb_ceramics_catalogue.contracts import Operation, Parameter, Registry
 
 from catalogue_service import __version__
 from catalogue_service.contracts import (
