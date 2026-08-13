@@ -131,6 +131,34 @@ def test_a_replaced_untruncated_run_is_authoritative(dump: Path):
     assert plan_for(dump)["ceradel"].whole is True
 
 
+class TestMayRetire:
+    """The single rule both load paths ask, tested where they both reach it.
+
+    `plan_load` has refused to retire against a truncated dump since the flag
+    existed. The worker — the path that actually runs every night — decided the
+    same question from the artifact's write status alone and never read
+    `truncated`, so the property the README states and the tests above pin was
+    not in force in production. It retired 24,856 products on 2026-08-10.
+    """
+
+    def test_a_truncated_run_may_not_retire(self):
+        whole, why = load_postgres.may_retire("replaced", True)
+        assert whole is False
+        assert "hit its cap" in why
+
+    def test_a_file_this_run_did_not_write_may_not_retire(self):
+        whole, why = load_postgres.may_retire("preserved_existing_nonempty", False)
+        assert whole is False
+        assert "not written by this run" in why
+
+    def test_a_complete_run_may_retire(self):
+        assert load_postgres.may_retire("replaced", False) == (True, "")
+
+    def test_a_missing_truncation_flag_is_not_a_truncated_run(self):
+        """An older summary that predates the flag is judged on what it says."""
+        assert load_postgres.may_retire("replaced", None)[0] is True
+
+
 def test_blank_lines_are_not_records(dump: Path):
     """`records_in` counts rows, and an empty file with a newline is still empty."""
     (dump / "ceradel.ndjson").write_text("\n\n  \n", encoding="utf-8")

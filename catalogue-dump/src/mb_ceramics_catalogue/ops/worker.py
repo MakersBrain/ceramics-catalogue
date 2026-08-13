@@ -578,7 +578,18 @@ class Worker:
                 )
                 await log_handler.flush_to(connection)
 
-            loaded = await self._load(job, outcome, whole=artifact.status == "replaced")
+            # The same question `plan_load` asks of a manifest entry, asked of
+            # the source this worker has just collected — and asked of the same
+            # function, so the two can no longer answer it differently.
+            whole, why_not = postgres.may_retire(artifact.status, outcome.summary.get("truncated"))
+            if why_not:
+                # Logged rather than written through `connection`, which the
+                # block above has already returned to the pool. The job's log
+                # handler is still attached, so this reaches `job_events` and
+                # the summary carries it for anyone reading the job later.
+                outcome.summary["retirement_withheld"] = why_not
+                LOGGER.warning("job.adds_only", source=job.source_id, reason=why_not)
+            loaded = await self._load(job, outcome, whole=whole)
             outcome.summary["loaded"] = loaded.records
             outcome.summary["retired"] = loaded.retired
             if loaded.rejected:

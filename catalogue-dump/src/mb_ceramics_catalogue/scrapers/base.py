@@ -985,11 +985,28 @@ class Fetcher:
         if self.cache.mode == "replay":
             raise NotCached(f"render {url} is not in the cache")
         ACTIVITY.started(url)
-        try:
-            document = await self.browser.render(url, wait_ms, wait_for)
-        except Exception:
-            ACTIVITY.finished(url, "browser-error")
-            raise
+        # Through the limiter, exactly like an HTTP request. A rendered page is
+        # a request to someone's shop and it was the only kind that skipped
+        # this: the host's slot count, its gap, its backoff and its published
+        # Crawl-delay all applied to `response()` and none of them applied here.
+        # What made that survivable was an accident — `BrowserRenderer` held one
+        # lock across a whole page load, so a process could only ever render one
+        # page at a time — and raising the page limit to make renders concurrent
+        # turned the accident into two unpaced requests at one shop. ceram-decor
+        # answered that with 403s and 45-second timeouts and its record count
+        # halved.
+        async with self.limiter.gate(url):
+            await self.limiter.wait(url)
+            try:
+                document = await self.browser.render(url, wait_ms, wait_for)
+            except Exception as error:
+                ACTIVITY.finished(url, "browser-error")
+                # A timeout or a refusal in the browser says what the host wants
+                # as clearly as a 429 does, so it has to reach the limiter or
+                # the next page repeats it.
+                self.limiter.record_failure(url, type(error).__name__)
+                raise
+            self.limiter.record_success(url)
         ACTIVITY.finished(url, "rendered")
         self.cache.write(key, CachedResponse(
             status=200, url=url, body=document, headers={}, fetched_at=time.time(), kind="render",
@@ -1001,7 +1018,15 @@ class Fetcher:
     ) -> Any:
         if self.browser_policy == "never":
             raise Blocked("browser rendering disabled")
-        return await self.browser.evaluate(url, script, wait_ms, wait_for)
+        async with self.limiter.gate(url):
+            await self.limiter.wait(url)
+            try:
+                result = await self.browser.evaluate(url, script, wait_ms, wait_for)
+            except Exception as error:
+                self.limiter.record_failure(url, type(error).__name__)
+                raise
+            self.limiter.record_success(url)
+        return result
 
     async def request_json_in_browser(
         self,
@@ -1019,9 +1044,16 @@ class Fetcher:
             raise NotCached(f"{method} {endpoint} (in browser) is not in the cache")
         if self.browser_policy == "never":
             raise Blocked("browser rendering disabled")
-        payload = await self.browser.request_json(
-            page_url, endpoint, method=method, headers=headers, body=body,
-        )
+        async with self.limiter.gate(endpoint):
+            await self.limiter.wait(endpoint)
+            try:
+                payload = await self.browser.request_json(
+                    page_url, endpoint, method=method, headers=headers, body=body,
+                )
+            except Exception as error:
+                self.limiter.record_failure(endpoint, type(error).__name__)
+                raise
+            self.limiter.record_success(endpoint)
         self.cache.write(key, CachedResponse(
             status=200, url=endpoint, body=json_lib.dumps(payload), headers={},
             fetched_at=time.time(), kind="browser-json",

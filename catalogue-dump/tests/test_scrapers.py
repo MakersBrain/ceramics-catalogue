@@ -1340,6 +1340,49 @@ class BrowserRoutingTests(unittest.IsolatedAsyncioTestCase):
             self.assertIsNone(await scraper.load("https://shop.test/product/1"))
         self.assertEqual(1, len(scraper.result.errors))
 
+    async def test_a_render_is_paced_by_the_host_limiter(self):
+        """A rendered page is a request to someone's shop like any other.
+
+        It was the one kind that skipped the limiter entirely: no slot, no gap,
+        no backoff, no published Crawl-delay. That was survivable only because
+        `BrowserRenderer` held a single lock across a whole page load, so a
+        process rendered one page at a time by accident. Raising the page limit
+        turned the accident into two unpaced requests at one shop.
+        """
+        client, scraper = self._scraper(lambda request: httpx.Response(403, text="refused"))
+        limiter = scraper.fetcher.limiter
+        in_flight = peak = 0
+
+        async def render(url, *args, **kwargs):
+            nonlocal in_flight, peak
+            in_flight += 1
+            peak = max(peak, in_flight)
+            await asyncio.sleep(0.01)
+            in_flight -= 1
+            return "<html></html>"
+
+        scraper.fetcher.browser.render = render
+        limiter.slots["shop.test"] = 1
+        async with client:
+            await asyncio.gather(*[
+                scraper.fetcher.render(f"https://shop.test/p/{index}") for index in range(4)
+            ])
+        self.assertEqual(1, peak, "the host's slot count has to bound renders too")
+
+    async def test_a_refused_render_teaches_the_limiter(self):
+        """A timeout in the browser says what the host wants; it has to land."""
+        async def refused(*args, **kwargs):
+            raise RuntimeError("Page.goto: Timeout 45000ms exceeded")
+
+        client, scraper = self._scraper(lambda request: httpx.Response(403, text="refused"))
+        scraper.fetcher.browser.render = refused
+        scraper.fetcher.limiter.slots["shop.test"] = 4
+        async with client:
+            with self.assertRaises(RuntimeError):
+                await scraper.fetcher.render("https://shop.test/p/1")
+        self.assertEqual(2, scraper.fetcher.limiter.slots["shop.test"], "slots halve on a refusal")
+        self.assertGreater(scraper.fetcher.limiter.spacing("shop.test"), 0.0)
+
 
 class RenderPolicyTests(unittest.IsolatedAsyncioTestCase):
     """`render: false` declines the browser rather than being merely unset.

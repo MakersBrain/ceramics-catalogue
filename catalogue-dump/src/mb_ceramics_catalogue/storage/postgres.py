@@ -178,15 +178,7 @@ def plan_load(data: Path) -> tuple[list[Load], list[tuple[str, str]]]:
         entry = manifest.get(source)
         if entry is None:
             return False, "no manifest entry for this run"
-        status = entry.get("write_status")
-        if status != "replaced":
-            # 'preserved_existing_nonempty' is the dangerous one: the run wrote
-            # nothing and an older file was left in place. It looks complete and
-            # is not, and retiring against it withdraws a live catalogue.
-            return False, f"write_status {status!r}, not written by this run"
-        if entry.get("truncated"):
-            return False, "run hit its cap, so the file is not the whole catalogue"
-        return True, ""
+        return may_retire(entry.get("write_status"), entry.get("truncated"))
 
     plans: list[Load] = []
     skipped: list[tuple[str, str]] = []
@@ -264,6 +256,33 @@ class LoadReport:
     @property
     def records(self) -> int:
         return sum(report.records for report in self.loaded)
+
+
+def may_retire(write_status: Any, truncated: Any) -> tuple[bool, str]:
+    """Whether one source's collection may be read as the whole of a catalogue.
+
+    The one rule that decides whether products get withdrawn, in one place
+    because it has two callers that must never disagree. `plan_load` asks it of
+    a manifest entry; the worker asks it of the source it has just collected.
+
+    They *did* disagree. `plan_load` has refused to retire against a truncated
+    dump since the day the flag was added, and the worker — which is what runs
+    every night — decided `whole` from the artifact's write status alone and
+    never looked at `truncated` at all. So the safety property the README
+    states, the tests pin and the scrapers are careful to feed had no effect on
+    the only path that uses it in production. On 2026-08-10 that retired 24,856
+    products across seventeen sources; ceram-decor is still short 543 of 758
+    because its dumps keep being truncated and each run withdraws what the last
+    one could not read.
+    """
+    if write_status != "replaced":
+        # 'preserved_existing_nonempty' is the dangerous one: the run wrote
+        # nothing and an older file was left in place. It looks complete and
+        # is not, and retiring against it withdraws a live catalogue.
+        return False, f"write_status {write_status!r}, not written by this run"
+    if truncated:
+        return False, "run hit its cap, so the file is not the whole catalogue"
+    return True, ""
 
 
 def ensure_staging(connection: Connection) -> None:
