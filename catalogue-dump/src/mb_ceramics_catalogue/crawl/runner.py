@@ -164,6 +164,15 @@ async def run_source(
             result.errors.append(
                 {"url": config.url, "error": f"source exceeded its {deadline:.0f}s deadline"}
             )
+            # A source stopped by the clock has not been listed to the end, and
+            # that is exactly what `truncated` means. Without this, a crawl that
+            # ran out of time holding two thirds of a shop reported a complete
+            # catalogue, and the loader retired the third it never reached — the
+            # same withdrawal `truncated` exists to prevent, arriving through a
+            # different door. It cost nothing so far only because the sources
+            # that time out here (hobbyland, mestrebras) time out having
+            # collected nothing at all, and an empty file is refused earlier.
+            result.truncated = True
             LOGGER.warning("job.timeout", source=name, seconds=deadline)
         except asyncio.CancelledError:
             # Keep what was collected, then let the cancellation continue: the

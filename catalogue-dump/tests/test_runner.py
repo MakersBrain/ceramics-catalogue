@@ -185,6 +185,22 @@ class TestDeadline:
         assert summary["error_count"] == 1
         assert "deadline" in summary["errors"][0]["error"]
 
+    async def test_a_source_stopped_by_the_clock_is_truncated(self):
+        """It was not listed to the end, which is what the flag means.
+
+        `plan_load` and the worker both read `truncated` as their permission to
+        retire what a dump does not contain. A crawl that ran out of time
+        holding two thirds of a shop and reported a complete catalogue would
+        have the last third withdrawn — the same withdrawal the flag exists to
+        prevent, arriving through the deadline instead of through a cap.
+        """
+        BEHAVIOUR["slow"] = ("hang", 30)
+        sources = make_sources("slow")
+        outcomes, _ = await run_with(
+            sources, ["slow"], CrawlParams(source_timeout_seconds=0.05)
+        )
+        assert outcomes[0].summary["truncated"] is True
+
     async def test_one_source_timing_out_does_not_affect_the_others(self):
         BEHAVIOUR["slow"] = ("hang", 30)
         sources = make_sources("slow", "quick")
