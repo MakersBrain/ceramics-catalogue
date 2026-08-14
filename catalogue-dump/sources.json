@@ -135,28 +135,9 @@
     "scope": "materials",
     "country": "US",
     "vat_status": "exclusive",
-    "collections": [
-      "full-range-glazes",
-      "low-fire-glazes",
-      "mid-high-fire-glazes",
-      "low-fire-adelie-series",
-      "low-fire-gentoo-series",
-      "low-fire-nantucket-series",
-      "low-fire-penguins-choice-series",
-      "mid-fire-celadon-series",
-      "mid-fire-matte-series",
-      "mid-fire-opaque-series",
-      "mid-fire-specialty-series",
-      "raku-glazes",
-      "glow-in-the-dark-glazes",
-      "flux-series",
-      "underglaze-series",
-      "stains-colorants",
-      "clays",
-      "additives"
-    ],
     "brand": "Penguin Pottery",
-    "is_manufacturer": true
+    "is_manufacturer": true,
+    "note": "The complete products.json feed is smaller and more complete than the shop's collection assignments; strict materials classification removes tools and equipment."
   },
   "ceramique-peinture": {
     "label": "Céramique Peinture (colours only)",
