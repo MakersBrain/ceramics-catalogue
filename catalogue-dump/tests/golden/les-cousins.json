@@ -1,5 +1,5 @@
 {
-  "digest": "c64e2e1d71e4ff009ece53723aa24e31120aa37ce9cb3f70cc68c20833aacef7",
+  "digest": "f902e441bcc38b37c9ba473bb1bc3d0441c1b549d17a7bfb36225f8f56b56345",
   "discovered": 3210,
   "error_count": 0,
   "errors": [],
@@ -19,7 +19,7 @@
     "gtin": 0,
     "manufacturer_sku": 1624,
     "package_size": 4388,
-    "stock_quantity": 0,
+    "stock_quantity": 3279,
     "supplier_reference": 4582,
     "surface": 3229,
     "unit_price": 4388,
@@ -892,7 +892,7 @@
       "source": "les-cousins",
       "source_detail_level": "api",
       "source_updated_at": null,
-      "stock_quantity": null,
+      "stock_quantity": 0,
       "supplier_reference": "W2502",
       "surface": null,
       "technical_attributes": {

@@ -213,6 +213,7 @@ class WooCommerceScraper(Scraper):
                         list_price=list_price,
                         vat=self.config.get("vat_status"),
                         availability="https://schema.org/InStock" if variation.get("is_in_stock", True) else "https://schema.org/OutOfStock",
+                        stock_quantity=self._stock_quantity(variation),
                         raw={"product": {k: v for k, v in product.items() if k != "variations"}, "variation": variation},
                     ),
                     category_match,
@@ -222,7 +223,6 @@ class WooCommerceScraper(Scraper):
         price, currency, list_price = self._prices(product.get("prices") or {})
         if price is None and not self.identity_only:
             return
-        stock = product.get("stock_availability")
         self.add(
             record_module.build(
                 **common,
@@ -236,11 +236,45 @@ class WooCommerceScraper(Scraper):
                 list_price=list_price,
                 vat=self.config.get("vat_status"),
                 availability="https://schema.org/InStock" if product.get("is_in_stock") else "https://schema.org/OutOfStock",
-                stock_quantity=stock.get("quantity") if isinstance(stock, dict) else None,
+                stock_quantity=self._stock_quantity(product),
                 raw=product,
             ),
             category_match,
         )
+
+    def _stock_quantity(self, item: dict[str, Any]) -> int | None:
+        """Read exact stock when a storefront exposes it as its cart ceiling.
+
+        WooCommerce deliberately does not publish ``stock_quantity`` through
+        the public Store API. It does publish ``add_to_cart.maximum``, but that
+        field is only a purchasing constraint in the general case: an
+        untracked item defaults to a large limit, a sold-individually item is
+        capped at one, and a backordered item can have a shop-defined ceiling.
+
+        Some storefronts do use that value as their live inventory. This is
+        source-configured only after verification; Les Cousins is one such
+        shop, where non-backordered variants expose varied ceilings that match
+        the low-stock count whenever WooCommerce also prints one. No cart is
+        mutated to discover it.
+        """
+        if item.get("is_in_stock") is False:
+            return 0
+
+        stock = item.get("stock_availability")
+        if isinstance(stock, dict) and isinstance(stock.get("quantity"), int):
+            return stock["quantity"]
+
+        low = item.get("low_stock_remaining")
+        if isinstance(low, int) and low > 0:
+            return low
+
+        if not self.config.get("stock_from_add_to_cart_maximum"):
+            return None
+        if item.get("is_in_stock") is not True or item.get("is_on_backorder") or item.get("sold_individually"):
+            return None
+        add_to_cart = item.get("add_to_cart")
+        maximum = add_to_cart.get("maximum") if isinstance(add_to_cart, dict) else None
+        return maximum if isinstance(maximum, int) and maximum > 0 else None
 
     @staticmethod
     def _variant_title(variation: dict[str, Any]) -> str:

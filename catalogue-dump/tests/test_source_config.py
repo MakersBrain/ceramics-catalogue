@@ -48,12 +48,24 @@ def test_the_projection_is_the_raw_entry_plus_nothing_surprising(raw: dict, pars
     added as the same falsy value a missing key already reads as.
     """
     allowed_additions = {"scope": "materials", "ignore_robots": False, "is_manufacturer": False}
+    operator_only = {
+        "proxy_policy",
+        "proxy_eligible",
+        "proxy_profile",
+        "proxy_country",
+        "proxy_session_minutes",
+        "proxy_max_megabytes",
+        "proxy_pilot",
+    }
 
     for name, config in parsed.items():
         projected = config.as_scraper_config()
         entry = raw[name]
 
         for key, value in entry.items():
+            if key in operator_only:
+                assert key not in projected, f"{name}: projection leaked operator-only {key!r}"
+                continue
             assert key in projected, f"{name}: projection dropped {key!r}"
             assert projected[key] == value, f"{name}: projection changed {key!r}"
 

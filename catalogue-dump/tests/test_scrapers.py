@@ -14,7 +14,7 @@ from types import SimpleNamespace
 import httpx
 
 from mb_ceramics_catalogue import scrapers
-from mb_ceramics_catalogue.scrapers import base, domain, jsonld
+from mb_ceramics_catalogue.scrapers import base, domain, jsonld, woocommerce
 from mb_ceramics_catalogue.scrapers import cache as cache_module
 from mb_ceramics_catalogue.scrapers import record as record_module
 
@@ -48,6 +48,55 @@ class SourceConfigTests(unittest.TestCase):
             with self.subTest(source=name):
                 self.assertIn("note", source, f"{name} ignores robots.txt without stating why")
                 self.assertGreaterEqual(source.get("delay", 0), 2.0)
+
+
+class WooCommerceStockTests(unittest.TestCase):
+    def scraper(self, *, trust_maximum: bool = True):
+        scraper = object.__new__(woocommerce.WooCommerceScraper)
+        scraper.config = {"stock_from_add_to_cart_maximum": trust_maximum}
+        return scraper
+
+    def test_verified_cart_ceiling_is_stock_without_cart_mutation(self):
+        item = {
+            "is_in_stock": True,
+            "is_on_backorder": False,
+            "sold_individually": False,
+            "low_stock_remaining": None,
+            "add_to_cart": {"maximum": 69},
+        }
+        self.assertEqual(69, self.scraper()._stock_quantity(item))
+
+    def test_low_stock_count_is_exact_without_source_opt_in(self):
+        item = {"is_in_stock": True, "low_stock_remaining": 2, "add_to_cart": {"maximum": 2}}
+        self.assertEqual(2, self.scraper(trust_maximum=False)._stock_quantity(item))
+
+    def test_cart_rules_are_not_mislabeled_as_stock(self):
+        backorder = {
+            "is_in_stock": True,
+            "is_on_backorder": True,
+            "low_stock_remaining": 0,
+            "add_to_cart": {"maximum": 500},
+        }
+        sold_individually = {
+            "is_in_stock": True,
+            "is_on_backorder": False,
+            "sold_individually": True,
+            "add_to_cart": {"maximum": 1},
+        }
+        self.assertIsNone(self.scraper()._stock_quantity(backorder))
+        self.assertIsNone(self.scraper()._stock_quantity(sold_individually))
+        self.assertIsNone(self.scraper(trust_maximum=False)._stock_quantity({
+            "is_in_stock": True,
+            "is_on_backorder": False,
+            "add_to_cart": {"maximum": 14},
+        }))
+
+    def test_out_of_stock_is_zero(self):
+        self.assertEqual(0, self.scraper()._stock_quantity({
+            "is_in_stock": False,
+            "low_stock_remaining": 0,
+            "add_to_cart": {"maximum": 1},
+        }))
 
 
 class FiringRangeTests(unittest.TestCase):

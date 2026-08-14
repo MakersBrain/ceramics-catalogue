@@ -6,6 +6,7 @@
     "scope": "materials",
     "country": "FR",
     "vat_status": "inclusive",
+    "stock_from_add_to_cart_maximum": true,
     "store_categories": [
       "emaux-et-couleurs",
       "emaux",
