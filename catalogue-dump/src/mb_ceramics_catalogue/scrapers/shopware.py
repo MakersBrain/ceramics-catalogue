@@ -30,7 +30,21 @@ class ShopwareScraper(PageScraper):
                 row["supplier_reference"] = self.product_number(document)
             if unit := self.unit_price(document):
                 row.setdefault("published_unit_price", unit)
+            if row.get("stock_quantity") is None:
+                row["stock_quantity"] = self.quantity_maximum(document)
         return rows
+
+    @staticmethod
+    def quantity_maximum(document: str) -> int | None:
+        """Shopware's buy widget caps its selector at calculatedMaxPurchase."""
+        for tag in re.findall(r"<input\b[^>]*>", document, re.I | re.S):
+            if "quantity-selector" not in tag:
+                continue
+            match = re.search(r'\bmax=["\'](\d+)["\']', tag, re.I)
+            if match:
+                maximum = int(match.group(1))
+                return maximum if maximum < 9999 else None
+        return None
 
     @staticmethod
     def properties(document: str) -> dict[str, str]:

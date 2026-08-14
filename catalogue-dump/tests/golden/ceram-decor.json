@@ -1,5 +1,5 @@
 {
-  "digest": "bfe29aa006d3270adb3d22b8dd09e943b043f73018a70e25264705f956f4f447",
+  "digest": "54235b330c22fc3199299e0a8f2b0301902bde52e265c2f79fafe4d32d760a4e",
   "discovered": 41,
   "error_count": 1,
   "errors": [
@@ -24,7 +24,7 @@
     "gtin": 0,
     "manufacturer_sku": 0,
     "package_size": 49,
-    "stock_quantity": 45,
+    "stock_quantity": 44,
     "supplier_reference": 49,
     "surface": 0,
     "unit_price": 49,
@@ -1193,7 +1193,7 @@
       "source": "ceram-decor",
       "source_detail_level": "product_page",
       "source_updated_at": "2026-07-10 22:00:30",
-      "stock_quantity": -8,
+      "stock_quantity": 0,
       "supplier_reference": "BECKBCF",
       "surface": null,
       "technical_attributes": {

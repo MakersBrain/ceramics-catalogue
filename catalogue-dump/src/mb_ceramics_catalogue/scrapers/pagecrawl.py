@@ -363,6 +363,7 @@ class PageScraper(Scraper):
             vat=self.config.get("vat_status"),
             vat_rate=self.config.get("vat_rate"),
             availability=jsonld.availability(offer.get("availability")),
+            stock_quantity=self.stock_quantity(offer, document),
             technical_attributes=attributes or None,
             documents=domain.documents(jsonld.pdf_links(document, url), url) or None,
             extraction_method=method or self.method,
@@ -370,3 +371,21 @@ class PageScraper(Scraper):
             raw=item,
         )
         return row, self.category_allows(" ".join(categories), name)
+
+    def stock_quantity(self, offer: dict[str, Any], document: str) -> int | None:
+        """Read a structured inventory count or a verified quantity ceiling."""
+        level = offer.get("inventoryLevel")
+        value = level.get("value") if isinstance(level, dict) else level
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+            return value
+
+        if not self.config.get("stock_from_quantity_maximum"):
+            return None
+        for tag in re.findall(r"<input\b[^>]*>", document, re.I | re.S):
+            if not re.search(r'\bname=["\'](?:quantity|qty|Quantity)["\']', tag, re.I):
+                continue
+            match = re.search(r'\bmax=["\'](\d+)["\']', tag, re.I)
+            if match:
+                maximum = int(match.group(1))
+                return maximum if maximum < 9999 else None
+        return None

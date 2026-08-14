@@ -1,5 +1,5 @@
 {
-  "digest": "7ab5891693820cf846bff7c43446e99449878d84e4447cfe77c057cd7cd1950d",
+  "digest": "e71db36e52c6f800a3c45f25932b3e16409e06332eb5d1e872b23312a20a85c9",
   "discovered": 1421,
   "error_count": 0,
   "errors": [],
@@ -19,7 +19,7 @@
     "gtin": 0,
     "manufacturer_sku": 706,
     "package_size": 1194,
-    "stock_quantity": 1041,
+    "stock_quantity": 1038,
     "supplier_reference": 1283,
     "surface": 971,
     "unit_price": 1194,

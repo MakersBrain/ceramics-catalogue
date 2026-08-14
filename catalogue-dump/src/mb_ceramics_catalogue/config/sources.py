@@ -108,6 +108,17 @@ class SourceConfig(BaseModel):
     #: verified against its published low-stock counts. The scraper still
     #: rejects WooCommerce's untracked-stock sentinel and cart-only limits.
     stock_from_add_to_cart_maximum: bool | None = None
+    #: This storefront's product quantity input was verified to cap purchases
+    #: at its current inventory rather than at a generic order-policy limit.
+    stock_from_quantity_maximum: bool | None = None
+    #: This Shopify storefront exposes inventory_quantity in its compact,
+    #: public per-product `.js` response (most Shopify stores deliberately do not).
+    inventory_product_json: bool | None = None
+    #: Exact variant inventory is rendered into this shop's public product HTML.
+    #: More expensive than the compact feed, so enabled only after verification.
+    inventory_product_html: bool | None = None
+    #: Optional Shopify section containing that public inventory payload.
+    inventory_section_id: str | None = None
 
     # -- scope filtering --------------------------------------------------
     material_categories: list[str] | None = None

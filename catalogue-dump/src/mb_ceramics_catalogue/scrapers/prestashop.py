@@ -22,11 +22,16 @@ from .pagecrawl import PageScraper, canonical
 
 def data_product(document: str) -> dict[str, Any] | None:
     """Decode the JSON product object PrestaShop embeds for its own scripts."""
-    for pattern in (
-        r'<[^>]+\bid=["\']product-details["\'][^>]+\bdata-product=["\']([^"\']+)["\']',
-        r'<[^>]+\bdata-product=["\']([^"\']+)["\'][^>]+\bid=["\']product-details["\']',
-    ):
-        if match := re.search(pattern, document, re.I | re.S):
+    for tag in re.findall(r"<[^>]+>", document, re.S):
+        if not re.search(r'\bid=["\']product-details["\']', tag, re.I):
+            continue
+        # Match the delimiter that actually opened the attribute. The old
+        # ``[^"']+`` stopped at an ordinary apostrophe inside a double-quoted,
+        # HTML-escaped JSON description, discarding the otherwise valid object.
+        for pattern in (r'\bdata-product="([^"]+)"', r"\bdata-product='([^']+)'"):
+            match = re.search(pattern, tag, re.I | re.S)
+            if not match:
+                continue
             try:
                 value = json.loads(html.unescape(match.group(1)))
             except (json.JSONDecodeError, TypeError):

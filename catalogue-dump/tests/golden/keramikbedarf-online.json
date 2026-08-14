@@ -1,5 +1,5 @@
 {
-  "digest": "d8eae06575d62e6337120b8579efdc96efbbaa965581d3a3ebd970d65a8d6e73",
+  "digest": "a81e8978ac44c84ae2371a4562e92824782e19a0e27664fb1f79f76c922e0c6f",
   "discovered": 72,
   "error_count": 0,
   "errors": [],
@@ -19,7 +19,7 @@
     "gtin": 0,
     "manufacturer_sku": 17,
     "package_size": 10,
-    "stock_quantity": 0,
+    "stock_quantity": 46,
     "supplier_reference": 72,
     "surface": 23,
     "unit_price": 10,
@@ -117,7 +117,7 @@
       "source": "keramikbedarf-online",
       "source_detail_level": "product_page",
       "source_updated_at": null,
-      "stock_quantity": null,
+      "stock_quantity": 3,
       "supplier_reference": "2-W122",
       "surface": "gloss",
       "technical_attributes": {
@@ -221,7 +221,7 @@
       "source": "keramikbedarf-online",
       "source_detail_level": "product_page",
       "source_updated_at": null,
-      "stock_quantity": null,
+      "stock_quantity": 11,
       "supplier_reference": "2-W151",
       "surface": "gloss",
       "technical_attributes": {
@@ -324,7 +324,7 @@
       "source": "keramikbedarf-online",
       "source_detail_level": "product_page",
       "source_updated_at": null,
-      "stock_quantity": null,
+      "stock_quantity": 9,
       "supplier_reference": "3-9801",
       "surface": null,
       "technical_attributes": {

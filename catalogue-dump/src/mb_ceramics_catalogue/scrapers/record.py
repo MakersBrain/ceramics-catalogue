@@ -230,6 +230,19 @@ def build(
     if identity_only:
         price = list_price = None
 
+    # An explicit OutOfStock offer has exactly zero immediately sellable units,
+    # regardless of whether the platform publishes a separate counter. Some
+    # PrestaShop installations expose negative internal inventory after an
+    # oversell; that is not a negative number of units a buyer can purchase.
+    if availability and availability.rstrip("/").rsplit("/", 1)[-1].casefold() == "outofstock":
+        stock_quantity = 0
+    elif (
+        not isinstance(stock_quantity, int)
+        or isinstance(stock_quantity, bool)
+        or stock_quantity < 0
+    ):
+        stock_quantity = None
+
     return {
         "format": IDENTITY_FORMAT if identity_only else RECORD_FORMAT,
         "source": source,

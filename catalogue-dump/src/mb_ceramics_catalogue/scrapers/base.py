@@ -502,9 +502,25 @@ class ImpersonatingClient:
         return httpx.Response(
             status,
             content=content,
-            headers=response_headers,
+            headers=self._decoded_headers(response_headers),
             request=httpx.Request(method, final_url or url),
         )
+
+    @staticmethod
+    def _decoded_headers(headers: dict[str, str]) -> dict[str, str]:
+        """Drop the encoding headers curl_cffi has already honoured.
+
+        `response.content` comes back decompressed, but the origin's
+        `content-encoding: gzip` rides along with it. httpx believes the header
+        and inflates the body a second time, which fails as "Error -3 while
+        decompressing data: incorrect header check" — a refusal indistinguishable
+        from the block this client exists to get past. It cost every gzipped
+        sitemap on a host that fingerprints the handshake.
+        """
+        return {
+            key: value for key, value in headers.items()
+            if key.lower() not in {"content-encoding", "content-length"}
+        }
 
 
 class BrowserRenderer:

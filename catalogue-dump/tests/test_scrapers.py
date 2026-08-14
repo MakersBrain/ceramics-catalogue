@@ -14,7 +14,18 @@ from types import SimpleNamespace
 import httpx
 
 from mb_ceramics_catalogue import scrapers
-from mb_ceramics_catalogue.scrapers import base, domain, jsonld, wix, woocommerce
+from mb_ceramics_catalogue.scrapers import (
+    base,
+    ceramicolours,
+    domain,
+    jsonld,
+    prestashop,
+    shopify,
+    shopware,
+    sumup,
+    wix,
+    woocommerce,
+)
 from mb_ceramics_catalogue.scrapers import cache as cache_module
 from mb_ceramics_catalogue.scrapers import record as record_module
 
@@ -136,6 +147,178 @@ class WixStockTests(unittest.TestCase):
             "inventory": {"status": "out_of_stock", "quantity": 0},
         }
         self.assertEqual(0, wix.WixScraper._stock_quantity(item))
+
+
+class PublishedStockTests(unittest.TestCase):
+    def test_prestashop_product_json_allows_apostrophes(self):
+        payload = {"name": "Potter's glaze", "quantity": 25}
+        encoded = json.dumps(payload).replace('"', "&quot;")
+        document = f'<div id="product-details" class="details" data-product="{encoded}"></div>'
+        self.assertEqual(payload, prestashop.data_product(document))
+
+    def test_shopware_buy_widget_maximum_is_stock(self):
+        document = (
+            '<input name="lineItems[id][quantity]" '
+            'class="form-control quantity-selector-group-input" min="1" max="7">'
+        )
+        self.assertEqual(7, shopware.ShopwareScraper.quantity_maximum(document))
+
+    def test_ceramicolours_mass_is_converted_to_pack_units(self):
+        document = '<input id="icaOrdinabile" name="icaOrdinabile" value="0.30">'
+        self.assertEqual(6, ceramicolours.CeramicoloursScraper.stock_units(document, "0.05"))
+        self.assertEqual(0, ceramicolours.CeramicoloursScraper.stock_units(document, "0.5"))
+
+    def test_shopify_finite_managed_inventory_is_exact(self):
+        variant = {
+            "inventory_quantity": 9,
+            "inventory_management": "shopify",
+            "inventory_policy": "deny",
+        }
+        self.assertEqual(9, shopify.ShopifyScraper._stock_quantity(variant))
+
+    def test_shopify_continue_selling_inventory_is_not_a_purchase_ceiling(self):
+        variant = {
+            "inventory_quantity": -3,
+            "inventory_management": "shopify",
+            "inventory_policy": "continue",
+        }
+        self.assertIsNone(shopify.ShopifyScraper._stock_quantity(variant))
+
+    def test_verified_shopify_theme_inventory_shapes(self):
+        samples = (
+            ('{"id":101,"inventory_quantity":12,"inventory_management":"shopify",'
+             '"inventory_policy":"deny"}', "101", 12),
+            ('<option value="102" data-inventory="14" data-inventory-policy="deny" '
+             'data-inventory-management="shopify">', "102", 14),
+            ('gwProductInventoryPolicy[103]="deny";'
+             'gwProductInventoryQuantity[103]="6";', "103", 6),
+            ('{variant_id:104,variant_inventory_policy:"deny",'
+             'variant_inventory_quantity:3}', "104", 3),
+            ('{id:105,inventory_management:"shopify",quantity:12}', "105", 12),
+            ('{"inventory":{"106":{"inventory_management":null,'
+             '"inventory_policy":"deny","inventory_quantity":72}}}', "106", 72),
+        )
+        for document, identifier, expected in samples:
+            with self.subTest(identifier=identifier):
+                found = shopify.ShopifyScraper._inventory_from_html(document, {identifier})
+                self.assertEqual(expected, found[identifier]["inventory_quantity"])
+
+
+class SumUpTests(unittest.TestCase):
+    """Reading a SumUp product out of the RSC payload its page streams."""
+
+    def _page(self, *products):
+        chunks = "".join(
+            f"<script>self.__next_f.push([1,{json.dumps(part)}])</script>"
+            for part in ['{"currency":"EUR","item":{', *products, "}}"]
+        )
+        return f"<html><body>{chunks}</body></html>"
+
+    SHOWN = json.dumps({
+        "id": "ebec5308-b80d-4c0c-ae84-26ce26a341b4",
+        "name": "Tasse bleue",
+        "slug": "tasse-bleue",
+        "price": 2500,
+        "basePrice": 3000,
+        "hasDiscount": True,
+        "image": "https://images.sumup.com/img_one",
+        "allImages": ["https://images.sumup.com/img_one"],
+        "category": {"name": "Ceramiques pour la maison"},
+        "isAvailable": True,
+        "variants": {
+            "1f7ac7e9-8bb0-4998-b88f-077b7a249862": {
+                "uuid": "1f7ac7e9-8bb0-4998-b88f-077b7a249862",
+                "name": "",
+                "price": 2500,
+                "basePrice": 3000,
+                "hasDiscount": True,
+                "options": [],
+                "quantity": 3,
+                "isAvailable": True,
+                "isTrackingEnabled": True,
+            },
+        },
+    }, separators=(",", ":"))[1:-1]
+    #: A related item, in the listing shape: no variant detail, and its own slug.
+    RELATED = json.dumps({
+        "id": "bc945f75-16b6-4c78-825a-73f117bfe5f9",
+        "name": "Soucoupe bleue",
+        "slug": "soucoupe-bleue",
+        "price": 900,
+        "variants": {"5157898e-6f95-4e63-99fa-5004f377bec8": {}},
+    }, separators=(",", ":"))[1:-1]
+
+    def _scraper(self):
+        fetcher = SimpleNamespace(limiter=SimpleNamespace(join_group=lambda *a: None, set_delay=lambda *a: None))
+        return sumup.SumUpScraper(
+            "shop", {"url": "https://shop.sumupstore.com/", "scope": "all"}, fetcher,
+        )
+
+    def _rows(self, url="https://shop.sumupstore.com/article/tasse-bleue"):
+        document = self._page(
+            '"product":{' + self.RELATED + '},"product":{' + self.SHOWN + "}",
+        )
+        return self._scraper().parse(document, url)
+
+    def test_the_product_the_page_is_about_wins_over_a_related_item(self):
+        (row, _), = self._rows()
+        self.assertEqual("Tasse bleue", row["product_name"])
+        # Minor units: 2500 is 25.00, and the pre-discount price rides along.
+        self.assertEqual(25.0, row["price"])
+        self.assertEqual(30.0, row["list_price"])
+        self.assertEqual("EUR", row["currency"])
+        self.assertEqual(3, row["stock_quantity"])
+
+    def test_a_slug_that_matches_nothing_falls_back_to_the_detailed_product(self):
+        """A localised route we did not anticipate must not select a related item."""
+        (row, _), = self._rows("https://shop.sumupstore.com/produkt/unbekannt")
+        self.assertEqual("Tasse bleue", row["product_name"])
+
+    def test_untracked_inventory_is_unknown_rather_than_zero(self):
+        variant = {"isAvailable": True, "isTrackingEnabled": False, "quantity": 0}
+        self.assertIsNone(sumup.SumUpScraper._stock_quantity(variant, {}))
+
+    def test_a_variant_inherits_the_product_s_tracking(self):
+        variant = {"isAvailable": True, "isTrackingEnabled": None, "quantity": 4}
+        self.assertEqual(4, sumup.SumUpScraper._stock_quantity(variant, {"isTrackingEnabled": True}))
+
+    def test_sold_out_is_zero_whatever_the_counter_says(self):
+        variant = {"isAvailable": False, "isTrackingEnabled": True, "quantity": 7}
+        self.assertEqual(0, sumup.SumUpScraper._stock_quantity(variant, {}))
+
+    def test_a_listing_page_in_the_products_sitemap_yields_nothing(self):
+        """The shop's own products sitemap lists its home page beside the products.
+
+        Every object on it is a suggestion in the listing shape. Taking the
+        first one published a real product's price under the shop's root URL.
+        """
+        document = self._page('"product":{' + self.RELATED + "}")
+        self.assertEqual([], self._scraper().parse(document, "https://shop.sumupstore.com/"))
+
+    def test_a_page_with_no_payload_falls_back_to_json_ld(self):
+        rows = self._scraper().parse("<html><body>nothing</body></html>", "https://shop.sumupstore.com/x")
+        self.assertEqual([], rows)
+
+
+class ImpersonatedEncodingTests(unittest.IsolatedAsyncioTestCase):
+    """curl_cffi returns a decompressed body; its headers still claim gzip.
+
+    Passing those headers through made httpx inflate the body a second time and
+    fail, which reads as a block rather than a bug — and it cost every gzipped
+    sitemap on a host that fingerprints the handshake.
+    """
+
+    async def test_the_body_is_not_inflated_twice(self):
+        client = base.ImpersonatingClient()
+        body = b"<urlset><url><loc>https://shop.test/a</loc></url></urlset>"
+
+        def blocking_get(*args, **kwargs):
+            return 200, body, {"content-encoding": "gzip", "content-type": "application/xml"}, "https://shop.test/s.xml"
+
+        with unittest.mock.patch.object(client, "_blocking_get", blocking_get):
+            response = await client.request("https://shop.test/s.xml")
+        self.assertIn("https://shop.test/a", response.text)
+        self.assertNotIn("content-encoding", response.headers)
 
 
 class FiringRangeTests(unittest.TestCase):
@@ -1185,6 +1368,14 @@ class RecordTests(unittest.TestCase):
     def test_a_priced_row_needs_a_price(self):
         self.assertFalse(record_module.is_valid(self.build(price=None)))
         self.assertTrue(record_module.is_valid(self.build(price=0.0)))
+
+    def test_out_of_stock_is_exactly_zero(self):
+        row = self.build(availability="https://schema.org/OutOfStock")
+        self.assertEqual(0, row["stock_quantity"])
+
+    def test_negative_internal_inventory_is_not_published(self):
+        row = self.build(stock_quantity=-8, availability="https://schema.org/InStock")
+        self.assertIsNone(row["stock_quantity"])
 
     def test_derived_fields_are_populated(self):
         row = self.build(name="Emaux transparent brillant 1020-1060°C 500ml")

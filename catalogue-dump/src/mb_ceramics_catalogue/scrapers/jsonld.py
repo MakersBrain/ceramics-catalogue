@@ -11,6 +11,40 @@ from urllib.parse import urljoin
 from . import domain
 
 
+def balanced_object(document: str, start: int) -> dict[str, Any] | None:
+    """Read one complete JSON object beginning at `start`, respecting strings.
+
+    Storefronts that hydrate their own scripts embed the product as JSON inside
+    a much larger blob, with no delimiter to slice on. Counting braces outside
+    strings is the only way to get that object back out of the page.
+    """
+    depth = 0
+    in_string = False
+    escaped = False
+    for index in range(start, len(document)):
+        character = document[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+            continue
+        if character == '"':
+            in_string = True
+        elif character == "{":
+            depth += 1
+        elif character == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    return json.loads(document[start:index + 1])
+                except json.JSONDecodeError:
+                    return None
+    return None
+
+
 def blocks(document: str) -> list[dict[str, Any]]:
     """Return every JSON-LD object in a page, flattening @graph containers."""
     found: list[dict[str, Any]] = []
@@ -172,6 +206,9 @@ def availability(value: Any) -> str | None:
     mapping = {
         "instock": "https://schema.org/InStock",
         "outofstock": "https://schema.org/OutOfStock",
+        # Shopware emits this non-schema alias in otherwise valid Product
+        # JSON-LD; its meaning is the same explicit zero-stock state.
+        "soldout": "https://schema.org/OutOfStock",
         "preorder": "https://schema.org/PreOrder",
         "backorder": "https://schema.org/BackOrder",
         "limitedavailability": "https://schema.org/LimitedAvailability",

@@ -8,8 +8,10 @@ count proportional to the part of the shop we actually want.
 
 from __future__ import annotations
 
+import asyncio
 import re
 from typing import Any
+from urllib.parse import urlencode
 
 import httpx
 
@@ -30,6 +32,7 @@ class ShopifyScraper(Scraper):
 
     async def scrape(self, limit: int | None = None) -> Any:
         self._priceless = 0
+        self._inventory_failures = 0
         await self._resolve_currency()
         collections = self.config.get("collections") or []
         if collections:
@@ -43,6 +46,11 @@ class ShopifyScraper(Scraper):
             self.note(
                 f"{self._priceless} variants dropped without a price: "
                 "the shop's currency could not be read from meta.json"
+            )
+        if self._inventory_failures:
+            self.note(
+                f"inventory unavailable for {self._inventory_failures} product responses; "
+                "those quantities remain unknown"
             )
         return self.result
 
@@ -84,7 +92,12 @@ class ShopifyScraper(Scraper):
             if not products:
                 return
             self.result.discovered += len(products)
-            for product in products:
+            selected = products
+            if limit is not None:
+                selected = products[:max(limit - seen, 0)]
+            if self.config.get("inventory_product_json") or self.config.get("inventory_product_html"):
+                await self._enrich_inventory(selected)
+            for product in selected:
                 self._emit(product, collection)
                 seen += 1
                 if limit is not None and seen >= limit:
@@ -94,6 +107,120 @@ class ShopifyScraper(Scraper):
                 return
             page += 1
         self.result.truncated = True
+
+    async def _enrich_inventory(self, products: list[dict[str, Any]]) -> None:
+        """Join exact variant inventory from shops whose compact JSON exposes it."""
+        async def load(product: dict[str, Any]) -> None:
+            handle = product.get("handle")
+            if not handle:
+                return
+            suffix = "" if self.config.get("inventory_product_html") else ".js"
+            endpoint = f"{self.origin()}/products/{handle}{suffix}"
+            section_id = self.config.get("inventory_section_id")
+            if not suffix and section_id:
+                endpoint = f"{endpoint}?{urlencode({'section_id': section_id})}"
+            try:
+                if suffix:
+                    detail = await self.fetcher.json(endpoint)
+                else:
+                    document = await self.fetcher.text(endpoint)
+                    detail = {"variants": list(self._inventory_from_html(
+                        document,
+                        {str(variant.get("id")) for variant in product.get("variants") or []},
+                    ).values())}
+                self.result.requests += 1
+            except (httpx.HTTPError, Blocked):
+                self._inventory_failures += 1
+                return
+            by_id = {
+                str(variant.get("id")): variant
+                for variant in detail.get("variants") or []
+                if isinstance(variant, dict) and variant.get("id")
+            } if isinstance(detail, dict) else {}
+            for variant in product.get("variants") or []:
+                if isinstance(variant, dict) and (extra := by_id.get(str(variant.get("id")))):
+                    for key in ("inventory_quantity", "inventory_management", "inventory_policy"):
+                        if key in extra:
+                            variant[key] = extra[key]
+
+        await asyncio.gather(*(load(product) for product in products))
+
+    @staticmethod
+    def _inventory_from_html(document: str, variant_ids: set[str]) -> dict[str, dict[str, Any]]:
+        """Read the verified inventory shapes emitted by Shopify themes/apps."""
+        found: dict[str, dict[str, Any]] = {}
+        for identifier in variant_ids:
+            escaped = re.escape(identifier)
+            quantity: int | None = None
+
+            native = re.search(
+                rf'"id":{escaped}\b(?:(?!"id":\d).){{0,1800}}?'
+                rf'"inventory_quantity":(-?\d+)(?:(?!"id":\d).){{0,500}}?'
+                r'"inventory_management":"shopify"(?:(?!"id":\d).){0,300}?'
+                r'"inventory_policy":"deny"',
+                document, re.S,
+            )
+            if native:
+                quantity = int(native.group(1))
+
+            if quantity is None:
+                option = re.search(rf'<option\b[^>]*\bvalue=["\']{escaped}["\'][^>]*>', document, re.I)
+                if option and re.search(r'data-inventory-policy=["\']deny["\']', option.group(0), re.I):
+                    match = re.search(r'data-inventory=["\'](-?\d+)["\']', option.group(0), re.I)
+                    if match:
+                        quantity = int(match.group(1))
+
+            if quantity is None and re.search(
+                rf'gwProductInventoryPolicy\[{escaped}\]\s*=\s*["\']deny["\']', document,
+            ):
+                match = re.search(
+                    rf'gwProductInventoryQuantity\[{escaped}\]\s*=\s*["\'](-?\d+)["\']', document,
+                )
+                if match:
+                    quantity = int(match.group(1))
+
+            if quantity is None:
+                info = re.search(
+                    rf'variant_id\s*:\s*{escaped}\b(?:(?!variant_id\s*:).){{0,500}}?'
+                    r'variant_inventory_policy\s*:\s*["\']deny["\']'
+                    r'(?:(?!variant_id\s*:).){0,300}?variant_inventory_quantity\s*:\s*(-?\d+)',
+                    document, re.S,
+                )
+                if info:
+                    quantity = int(info.group(1))
+
+            if quantity is None:
+                local = re.search(
+                    rf'\bid\s*:\s*{escaped}\b(?:(?!\bid\s*:).){{0,700}}?'
+                    r'inventory_management\s*:\s*["\']shopify["\']'
+                    r'(?:(?!\bid\s*:).){0,300}?\bquantity\s*:\s*(-?\d+)',
+                    document, re.S,
+                )
+                if local:
+                    quantity = int(local.group(1))
+
+            if quantity is None:
+                inventory = re.search(
+                    rf'["\']{escaped}["\']\s*:\s*\{{'
+                    r'(?:(?!["\']\d+["\']\s*:).){0,1000}?'
+                    r'["\']inventory_management["\']\s*:\s*(?:null|["\']shopify["\'])'
+                    r'(?:(?!["\']\d+["\']\s*:).){0,500}?'
+                    r'["\']inventory_policy["\']\s*:\s*["\']deny["\']'
+                    r'(?:(?!["\']\d+["\']\s*:).){0,500}?'
+                    r'["\']inventory_quantity["\']\s*:\s*(-?\d+)',
+                    document, re.S,
+                )
+                if inventory:
+                    quantity = int(inventory.group(1))
+
+            if quantity is not None:
+                found[identifier] = {
+                    "id": identifier,
+                    "inventory_quantity": quantity,
+                    "inventory_management": "published_theme",
+                    "inventory_policy": "deny",
+                }
+        return found
 
     def _emit(self, product: dict[str, Any], collection: str | None) -> None:
         handle = product.get("handle")
@@ -164,6 +291,7 @@ class ShopifyScraper(Scraper):
                     else "https://schema.org/OutOfStock" if variant.get("available") is False
                     else None
                 ),
+                stock_quantity=self._stock_quantity(variant),
                 gtin=domain.clean(variant.get("barcode")) or None,
                 technical_attributes=self._options(product, variant) | weight,
                 documents=documents or None,
@@ -173,6 +301,19 @@ class ShopifyScraper(Scraper):
                 raw={"product": {k: v for k, v in product.items() if k != "variants"}, "variant": variant},
             )
             self.add(row, category_match)
+
+    @staticmethod
+    def _stock_quantity(variant: dict[str, Any]) -> int | None:
+        """Return finite Shopify inventory, excluding continue-selling stock."""
+        quantity = variant.get("inventory_quantity")
+        if (
+            variant.get("inventory_management")
+            and variant.get("inventory_policy") == "deny"
+            and isinstance(quantity, int)
+            and not isinstance(quantity, bool)
+        ):
+            return max(quantity, 0)
+        return None
 
     @staticmethod
     def _weight(variant: dict[str, Any]) -> dict[str, Any]:

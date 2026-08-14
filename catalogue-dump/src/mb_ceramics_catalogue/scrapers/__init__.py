@@ -35,6 +35,9 @@ REGISTRY: dict[str, str] = {
     "axner": ".axner:AxnerScraper",
     "sio2": ".prestashop:Sio2Scraper",
     "wix": ".wix:WixScraper",
+    # SumUp Online Store: the listing API is disallowed, but each product page
+    # streams the whole product in its React Server Components payload.
+    "sumup": ".sumup:SumUpScraper",
     "shopware": ".shopware:ShopwareScraper",
     "starweb": ".starweb:StarwebScraper",
     "ceramicolours": ".ceramicolours:CeramicoloursScraper",

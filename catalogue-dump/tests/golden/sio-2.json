@@ -1,5 +1,5 @@
 {
-  "digest": "aac74e98d99ea02cde08fa12ab1599bebb3990d9ae832ff3a429e6b9ba8e6133",
+  "digest": "14505cacc73e9ec37768568ad587b0e41d9a0a8884d13950482cae3b3c05280a",
   "discovered": 807,
   "error_count": 0,
   "errors": [],
@@ -19,7 +19,7 @@
     "gtin": 0,
     "manufacturer_sku": 476,
     "package_size": 785,
-    "stock_quantity": 756,
+    "stock_quantity": 618,
     "supplier_reference": 787,
     "surface": 766,
     "unit_price": 785,
@@ -1674,7 +1674,7 @@
       "source": "sio-2",
       "source_detail_level": "product_page",
       "source_updated_at": "2026-07-04 01:44:53",
-      "stock_quantity": -15,
+      "stock_quantity": 0,
       "supplier_reference": "303053020004",
       "surface": "gloss",
       "technical_attributes": {

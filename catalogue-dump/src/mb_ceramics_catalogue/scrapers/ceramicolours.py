@@ -170,6 +170,7 @@ class CeramicoloursScraper(PageScraper):
                 continue
             # Pack values are kilograms in this shop's own selector.
             label = f"{domain.clean(pack.get('pack'))} kg".strip()
+            stock_quantity = self.stock_units(document, pack.get("value"))
             rows.append((
                 record_module.build(
                     **common,
@@ -177,6 +178,11 @@ class CeramicoloursScraper(PageScraper):
                     variant_title=label,
                     price=price,
                     price_text=domain.clean(pack.get("price")) or None,
+                    availability=(
+                        "https://schema.org/InStock" if stock_quantity > 0
+                        else "https://schema.org/OutOfStock"
+                    ) if stock_quantity is not None else None,
+                    stock_quantity=stock_quantity,
                     technical_attributes=(
                         attributes | {"Confezione": label, "Prezzo unitario": domain.clean(pack.get("unit_price"))}
                     ) or None,
@@ -200,6 +206,22 @@ class CeramicoloursScraper(PageScraper):
             ),
             True,
         )]
+
+    @staticmethod
+    def stock_units(document: str, pack: Any) -> int | None:
+        """Convert the shop's exact available mass into sellable pack units."""
+        match = re.search(
+            r'<input[^>]+id=["\']icaOrdinabile["\'][^>]+value=["\']([0-9.,]+)["\']',
+            document, re.I,
+        )
+        try:
+            available = float(match.group(1).replace(",", ".")) if match else None
+            pack_size = float(str(pack).replace(",", "."))
+        except (TypeError, ValueError):
+            return None
+        if available is None or available < 0 or pack_size <= 0:
+            return None
+        return int((available + 1e-9) // pack_size)
 
     @staticmethod
     def _text(document: str, pattern: str) -> str:

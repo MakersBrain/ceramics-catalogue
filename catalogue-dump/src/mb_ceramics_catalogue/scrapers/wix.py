@@ -8,43 +8,14 @@ is what this scraper reads. JSON-LD is still used for the name and images.
 
 from __future__ import annotations
 
-import json
 import re
 from typing import Any
 from urllib.parse import unquote, urlparse
 
 from . import domain, jsonld
 from . import record as record_module
+from .jsonld import balanced_object
 from .pagecrawl import PageScraper, canonical
-
-
-def balanced_object(document: str, start: int) -> dict[str, Any] | None:
-    """Read one complete JSON object beginning at `start`, respecting strings."""
-    depth = 0
-    in_string = False
-    escaped = False
-    for index in range(start, len(document)):
-        character = document[index]
-        if in_string:
-            if escaped:
-                escaped = False
-            elif character == "\\":
-                escaped = True
-            elif character == '"':
-                in_string = False
-            continue
-        if character == '"':
-            in_string = True
-        elif character == "{":
-            depth += 1
-        elif character == "}":
-            depth -= 1
-            if depth == 0:
-                try:
-                    return json.loads(document[start:index + 1])
-                except json.JSONDecodeError:
-                    return None
-    return None
 
 
 class WixScraper(PageScraper):
