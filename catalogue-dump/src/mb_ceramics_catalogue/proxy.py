@@ -42,7 +42,9 @@ class ProxyProfile:
     username: str
     password: str
     api_key: str | None = None
-    username_template: str = "{username}-country-{country}-session-{session}-sessionduration-{minutes}"
+    username_template: str = (
+        "user-{username}-country-{country}-session-{session}-sessionduration-{minutes}"
+    )
     generation: int = 0
 
     def username_for(self, country: str | None, session: str, minutes: int) -> str:

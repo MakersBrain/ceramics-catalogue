@@ -128,6 +128,7 @@ class ProxyLeaseTests(unittest.TestCase):
         lease = self.lease()
         first = lease.url
         self.assertEqual(first, lease.url)
+        self.assertTrue(lease.username.startswith("user-base-user-country-fr-session-"))
         self.assertIn(lease.session, lease.username)
         self.assertEqual(lease.username, lease.browser_proxy["username"])
         self.assertEqual("http://gate.example:10000", lease.browser_proxy["server"])
