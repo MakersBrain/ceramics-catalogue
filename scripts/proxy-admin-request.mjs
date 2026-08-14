@@ -5,8 +5,12 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 
 const [method, path, bodyText = "{}"] = process.argv.slice(2);
-if (!method || !path?.startsWith("/v1/proxy/")) {
-  throw new Error("usage: proxy-admin-request.mjs METHOD /v1/proxy/PATH [JSON_BODY]");
+const proxyAdminPath = path?.startsWith("/v1/proxy/")
+  || /^\/v1\/sources\/[^/]+$/.test(path || "");
+if (!method || !proxyAdminPath) {
+  throw new Error(
+    "usage: proxy-admin-request.mjs METHOD (/v1/proxy/PATH|/v1/sources/ID) [JSON_BODY]",
+  );
 }
 const token = process.env.CATALOGUE_CONTROL_TOKEN;
 const controlUrl = process.env.CATALOGUE_CONTROL_URL;
