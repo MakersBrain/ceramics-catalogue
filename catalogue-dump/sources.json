@@ -590,11 +590,17 @@
   },
   "keramicke-pece": {
     "label": "Artik Studio",
-    "url": "https://www.keramickepece.cz/",
+    "url": "https://www.artikstudio.com/",
     "scraper": "prestashop",
+    "product_pattern": "^/product/[0-9]+-",
+    "category_urls": [
+      "https://www.artikstudio.com/13-glazes-colors",
+      "https://www.artikstudio.com/68-clay-boxes",
+      "https://www.artikstudio.com/22-ceramic-clay"
+    ],
     "scope": "materials",
     "country": "CZ",
-    "note": "UNRESOLVED: PrestaShop discovery finds few products"
+    "note": "The legacy keramickepece.cz domain redirects to artikstudio.com; material category pages are explicit so discovery does not mistake category routes for products."
   },
   "como-ceramique": {
     "label": "Como Ceramique",
@@ -630,11 +636,17 @@
   },
   "pappel": {
     "label": "Pappel Espanola",
-    "url": "https://www.pappel.com/",
+    "url": "https://tienda.pappel.com/es/",
     "scraper": "prestashop",
+    "product_pattern": "^/es/[^/]+/[0-9]+(?:-[0-9]+)?-.*\\.html$",
+    "category_urls": [
+      "https://tienda.pappel.com/es/12-esmaltes",
+      "https://tienda.pappel.com/es/179-engobes",
+      "https://tienda.pappel.com/es/180-oxidos-metalicos"
+    ],
     "scope": "materials",
     "country": "ES",
-    "note": "UNRESOLVED: only 1 product URL discovered"
+    "note": "The corporate pappel.com domain redirects to the Spanish PrestaShop at tienda.pappel.com; material categories are explicit to exclude navigation routes."
   },
   "potclays": {
     "label": "Potclays",
