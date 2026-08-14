@@ -898,7 +898,7 @@ async def create_profile(request: Request) -> Response:
             """update catalogue.proxy_profiles
                   set provider_resource_id = %(resource)s, username_mask = %(mask)s,
                       username_fingerprint = %(fingerprint)s,
-                      provider_traffic_limit_bytes = %(limit)s, auto_disable = true,
+                      provider_traffic_limit_bytes = %(limit)s, auto_disable = %(auto)s,
                       enabled = true, lifecycle = 'enabled', secret_generation = %(generation)s,
                       secret_installed_at = now(), provider_observed_at = now(),
                       updated_at = now(), updated_by = %(actor)s
@@ -906,7 +906,8 @@ async def create_profile(request: Request) -> Response:
             {
                 "resource": subuser.id, "mask": mask_username(username),
                 "fingerprint": username_fingerprint(username), "limit": provider_limit,
-                "generation": generation, "actor": actor.id, "id": profile["id"],
+                "generation": generation, "auto": subuser.auto_disable,
+                "actor": actor.id, "id": profile["id"],
             },
         )
         row = await updated.fetchone()
@@ -1123,9 +1124,12 @@ async def profile_action(request: Request) -> Response:
                 )
             await connection.execute(
                 "update catalogue.proxy_profiles set provider_traffic_limit_bytes = %(limit)s, "
-                "auto_disable = true, provider_observed_at = now(), updated_at = now(), "
+                "auto_disable = %(auto)s, provider_observed_at = now(), updated_at = now(), "
                 "updated_by = %(actor)s where id = %(id)s",
-                {"limit": user.traffic_limit_bytes or limit, "actor": actor.id, "id": profile_id},
+                {
+                    "limit": user.traffic_limit_bytes or limit, "auto": user.auto_disable,
+                    "actor": actor.id, "id": profile_id,
+                },
             )
             return await mutation_payload(
                 connection, mutation, actor, mutation_action, profile_id,
@@ -1584,8 +1588,9 @@ async def probe_route(request: Request) -> Response:
             """update catalogue.proxy_probes
                   set state = %(state)s, completed_at = now(), error_category = %(error)s,
                       estimated_bytes = %(bytes)s, provider_requests = %(requests)s,
-                      exit_country = %(country)s, exit_ip = %(ip)s,
-                      exit_ip_expires_at = case when %(ip)s is null then null else now() + interval '7 days' end,
+                      exit_country = %(country)s, exit_ip = %(ip)s::inet,
+                      exit_ip_expires_at = case when %(ip)s::inet is null
+                           then null else now() + interval '7 days' end,
                       latency_ms = %(latency)s
                 where id = %(id)s""",
             {
