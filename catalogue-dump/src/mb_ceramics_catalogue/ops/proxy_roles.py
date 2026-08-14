@@ -105,8 +105,10 @@ def provision(dsn: str, control_password: str, worker_password: str, archive_pas
         connection.execute(
             "grant select, insert, update on catalogue.proxy_reservations to catalogue_worker"
         )
+        # INSERT ... ON CONFLICT reads the matching unique-index row even when
+        # it takes DO NOTHING, so PostgreSQL also requires SELECT here.
         connection.execute(
-            "grant insert on catalogue.proxy_reconcile_requests, "
+            "grant select, insert on catalogue.proxy_reconcile_requests, "
             "catalogue.proxy_pilot_evidence to catalogue_worker"
         )
         connection.execute("grant select on catalogue.proxy_admin_audit to catalogue_proxy_archive")
