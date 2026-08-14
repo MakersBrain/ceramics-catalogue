@@ -1466,6 +1466,25 @@ async def apply_source_policy(
     return row
 
 
+def _probe_identity(parsed: dict[str, Any]) -> dict[str, str]:
+    """Normalize both flat and nested Decodo IP-check response shapes."""
+    nested = parsed.get("proxy")
+    proxy = nested if isinstance(nested, dict) else {}
+    ip_value = parsed.get("ip") or proxy.get("ip")
+    country = (
+        parsed.get("country")
+        or parsed.get("country_code")
+        or proxy.get("country")
+        or proxy.get("country_code")
+    )
+    result: dict[str, str] = {}
+    if ip_value:
+        result["exit_ip"] = str(ipaddress.ip_address(str(ip_value)))
+    if isinstance(country, str) and len(country) == 2:
+        result["exit_country"] = country.upper()
+    return result
+
+
 async def probe_route(request: Request) -> Response:
     actor = await actor_for(request, admin=True, recent=True)
     if isinstance(actor, Response):
@@ -1570,12 +1589,7 @@ async def probe_route(request: Request) -> Response:
                     parsed = json.loads(body)
                     if not isinstance(parsed, dict):
                         raise ValueError("IP-check response was not an object")
-                    ip_value = parsed.get("ip") or parsed.get("proxy")
-                    if ip_value:
-                        result["exit_ip"] = str(ipaddress.ip_address(str(ip_value)))
-                    country = parsed.get("country") or parsed.get("country_code")
-                    if isinstance(country, str) and len(country) == 2:
-                        result["exit_country"] = country.upper()
+                    result.update(_probe_identity(parsed))
         except (httpx.HTTPError, ValueError, json.JSONDecodeError) as error:
             error_category = "probe_failed"
             result["error"] = str(error)[:300]

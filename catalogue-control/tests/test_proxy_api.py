@@ -19,9 +19,17 @@ from mb_ceramics_catalogue.providers.base import (
 )
 
 from catalogue_control.app import create_app
+from catalogue_control.proxy_api import _probe_identity
 from catalogue_control.settings import Settings
 
 from .conftest import TOKEN, postgres_dsn, requires_postgres
+
+
+def test_probe_identity_accepts_decodos_nested_proxy_shape():
+    assert _probe_identity({"proxy": {"ip": "192.0.2.4", "country_code": "fr"}}) == {
+        "exit_ip": "192.0.2.4",
+        "exit_country": "FR",
+    }
 
 
 class FakeProvider:
