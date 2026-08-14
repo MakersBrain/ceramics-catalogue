@@ -20,6 +20,7 @@ src/mb_ceramics_catalogue/
   config/         sources.py (SourceConfig)  settings.py (CrawlParams, Settings)
   crawl/          runner.py  session.py  progress.py  artifacts.py
   scrapers/       the 4,700 lines of site-specific collection
+                  enrichment.py: the derived fields, as modules a source selects
   storage/        postgres.py  history.py  schema/
   observability/  logging.py  tracing.py  metrics.py
   ui/             dashboard.py (rich)  interactive.py (textual)
@@ -101,6 +102,33 @@ Manufacturer catalogues that publish specifications without prices (Mayco) emit
 | Identity | `name`, `name_raw`, `name_parsed_from`, `product_name`, `variant_title`, `brand`, `brand_basis`, `manufacturer_sku`, `manufacturer_sku_basis`, `supplier_reference`, `gtin`, `description`, `category_path`, `image_url`, `all_image_urls` |
 | Commercial | `price`, `currency`, `price_text`, `list_price`, `vat_status`, `vat_rate`, `unit_price`, `availability`, `stock_quantity`, `min_order_quantity`, `package_size` |
 | Ceramics | `family`, `form`, `firing`, `surface`, `effects`, `colour`, `application_methods`, `coats`, `claims`, `documents`, `technical_attributes` |
+
+## Enrichment
+
+The Ceramics row above is the one group nobody published. `price`, `stock` and
+`name_raw` are read off the page; that a product is a glaze, fires to cone 6 and
+is sold in 473 ml is **inferred**, and only means anything for a shop that sells
+ceramic materials. Run over a potter selling finished mugs, the same code reads
+a colour off a title and an application method out of the word "carafe".
+
+So it is opt-in, per source, by name (`scrapers/enrichment.py`):
+
+```json
+"enrichments": ["ceramic-materials"]     the bundle every supplier here uses
+"enrichments": ["classification", "firing"]   or only the parts that apply
+```
+
+| Module | Fills |
+|---|---|
+| `classification` | `family`, `form` — and with them the materials scope filter |
+| `firing` | `firing` |
+| `glaze` | `surface`, `effects`, `colour`, `application_methods`, `coats` |
+| `packaging` | `package_size`, and through it `unit_price` |
+| `claims` | `claims` read from prose (a spec-table claim is extraction, and always kept) |
+
+A source that names none gets none: those fields are null and the row is only
+what the shop said. `scope: materials` adds `classification` regardless, since
+that is the field the scope filter reads.
 
 ## Titles
 
