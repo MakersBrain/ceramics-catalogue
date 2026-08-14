@@ -131,7 +131,7 @@ class ShopifyScraper(Scraper):
                 # while a fresh connection to the same section still returns
                 # immediately. These are one-shot detail reads, so do not put a
                 # possibly poisoned connection back into the shared pool.
-                headers = {"Connection": "close"}
+                headers = {"Connection": "close", "Cookie": ""}
                 if suffix:
                     detail = await self.fetcher.json(endpoint, headers=headers)
                 else:
