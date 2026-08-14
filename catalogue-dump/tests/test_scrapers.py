@@ -14,7 +14,7 @@ from types import SimpleNamespace
 import httpx
 
 from mb_ceramics_catalogue import scrapers
-from mb_ceramics_catalogue.scrapers import base, domain, jsonld, woocommerce
+from mb_ceramics_catalogue.scrapers import base, domain, jsonld, wix, woocommerce
 from mb_ceramics_catalogue.scrapers import cache as cache_module
 from mb_ceramics_catalogue.scrapers import record as record_module
 
@@ -102,6 +102,40 @@ class WooCommerceStockTests(unittest.TestCase):
             "low_stock_remaining": 0,
             "add_to_cart": {"maximum": 1},
         }))
+
+
+class WixStockTests(unittest.TestCase):
+    def test_tracked_inventory_is_exact(self):
+        item = {
+            "isInStock": True,
+            "isTrackingInventory": True,
+            "inventory": {"status": "in_stock", "quantity": 16},
+        }
+        self.assertEqual(16, wix.WixScraper._stock_quantity(item))
+
+    def test_variant_inherits_product_tracking(self):
+        item = {
+            "isInStock": True,
+            "isTrackingInventory": None,
+            "inventory": {"status": "in_stock", "quantity": 7},
+        }
+        self.assertEqual(7, wix.WixScraper._stock_quantity(item, {"isTrackingInventory": True}))
+
+    def test_disabled_inventory_counter_is_unknown(self):
+        item = {
+            "isInStock": True,
+            "isTrackingInventory": False,
+            "inventory": {"status": "in_stock", "quantity": 0},
+        }
+        self.assertIsNone(wix.WixScraper._stock_quantity(item))
+
+    def test_explicit_out_of_stock_is_zero(self):
+        item = {
+            "isInStock": False,
+            "isTrackingInventory": False,
+            "inventory": {"status": "out_of_stock", "quantity": 0},
+        }
+        self.assertEqual(0, wix.WixScraper._stock_quantity(item))
 
 
 class FiringRangeTests(unittest.TestCase):

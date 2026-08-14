@@ -125,6 +125,7 @@ class WixScraper(PageScraper):
                         "https://schema.org/InStock" if variant.get("in_stock", True)
                         else "https://schema.org/OutOfStock"
                     ),
+                    stock_quantity=variant.get("stock_quantity"),
                     technical_attributes=variant.get("options") or None,
                     raw={"product": {k: v for k, v in product.items() if k != "productItems"}, "variant": variant},
                 ),
@@ -150,6 +151,7 @@ class WixScraper(PageScraper):
                 "comparePrice": item.get("comparePrice"),
                 "formattedPrice": item.get("formattedPrice"),
                 "in_stock": item.get("isInStock", item.get("inStock", True)),
+                "stock_quantity": self._stock_quantity(item, product),
                 "options": options or None,
             })
         # A single placeholder item carries no real variation; treat it as the product.
@@ -162,9 +164,32 @@ class WixScraper(PageScraper):
                 "comparePrice": product.get("comparePrice"),
                 "formattedPrice": product.get("formattedPrice"),
                 "in_stock": product.get("isInStock", True),
+                "stock_quantity": self._stock_quantity(product),
                 "options": None,
             }]
         return variants
+
+    @staticmethod
+    def _stock_quantity(item: dict[str, Any], product: dict[str, Any] | None = None) -> int | None:
+        """Return Wix's exact inventory, without treating its disabled counter as stock."""
+        inventory = item.get("inventory")
+        if not isinstance(inventory, dict) and product is not None:
+            inventory = product.get("inventory")
+        if not isinstance(inventory, dict):
+            inventory = {}
+
+        in_stock = item.get("isInStock", item.get("inStock"))
+        status = str(inventory.get("status") or "").lower()
+        if in_stock is False or status == "out_of_stock":
+            return 0
+
+        tracking = item.get("isTrackingInventory")
+        if tracking is None and product is not None:
+            tracking = product.get("isTrackingInventory")
+        quantity = inventory.get("quantity")
+        if tracking is True and isinstance(quantity, int) and not isinstance(quantity, bool) and quantity >= 0:
+            return quantity
+        return None
 
     @staticmethod
     def _compare_price(variant: dict[str, Any]) -> float | None:

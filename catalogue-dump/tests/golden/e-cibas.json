@@ -1,5 +1,5 @@
 {
-  "digest": "5e7bb83c96f8d73c6bc643ef879cf8c2c91aef0d1258c1ce75637445fc1f8f81",
+  "digest": "9611fcf24947e0910d93a8897671a8001567de5bdfb53a952d8168e2aa1665b8",
   "discovered": 1007,
   "error_count": 0,
   "errors": [],
@@ -19,7 +19,7 @@
     "gtin": 0,
     "manufacturer_sku": 16,
     "package_size": 399,
-    "stock_quantity": 0,
+    "stock_quantity": 162,
     "supplier_reference": 722,
     "surface": 71,
     "unit_price": 399,
@@ -207,6 +207,7 @@
           "options": null,
           "price": 23.32,
           "sku": "40000851",
+          "stock_quantity": null,
           "title": null
         }
       },
@@ -401,6 +402,7 @@
           "options": null,
           "price": 132.66,
           "sku": "40004667",
+          "stock_quantity": null,
           "title": null
         }
       },
@@ -584,13 +586,14 @@
           "options": null,
           "price": 13.73,
           "sku": "40004966",
+          "stock_quantity": 0,
           "title": null
         }
       },
       "source": "e-cibas",
       "source_detail_level": "product_page",
       "source_updated_at": null,
-      "stock_quantity": null,
+      "stock_quantity": 0,
       "supplier_reference": "40004966",
       "surface": null,
       "technical_attributes": null,
