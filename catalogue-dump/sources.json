@@ -506,6 +506,7 @@
     "url": "https://kettlespotterysupplies.com/",
     "scraper": "shopify",
     "inventory_product_html": true,
+    "delay": 0.5,
     "scope": "materials",
     "country": "GB"
   },
@@ -522,6 +523,7 @@
     "scraper": "shopify",
     "inventory_product_html": true,
     "inventory_section_id": "template--25824905691517__main",
+    "delay": 0.5,
     "scope": "materials",
     "country": "GB"
   },
@@ -553,6 +555,7 @@
     "url": "https://ulsterceramicspotterysupplies.co.uk/",
     "scraper": "shopify",
     "inventory_product_html": true,
+    "delay": 0.5,
     "scope": "materials",
     "country": "GB"
   },
@@ -561,6 +564,7 @@
     "url": "https://artacademydirect.com/",
     "scraper": "shopify",
     "inventory_product_html": true,
+    "delay": 0.5,
     "scope": "materials",
     "country": "MT"
   },
@@ -1083,6 +1087,7 @@
     "scraper": "shopify",
     "inventory_product_html": true,
     "inventory_section_id": "template--27752730657139__main",
+    "delay": 0.5,
     "scope": "materials",
     "country": "US",
     "vat_status": "exclusive",
