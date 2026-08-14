@@ -12,8 +12,10 @@ the loader, seeing a complete-looking file, would retire them.
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -27,8 +29,13 @@ def now() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
-def _ndjson(records: list[dict[str, Any]]) -> str:
-    return "".join(json.dumps(record, ensure_ascii=False, default=str) + "\n" for record in records)
+SAFE_COMPONENT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+
+def _component(value: str) -> str:
+    if not SAFE_COMPONENT.fullmatch(value) or value in (".", ".."):
+        raise ValueError(f"unsafe artifact path component: {value!r}")
+    return value
 
 
 @dataclass(frozen=True)
@@ -50,16 +57,21 @@ def write_source(
     output: Path, name: str, records: list[dict[str, Any]], allow_empty: bool = False
 ) -> Artifact:
     """Replace a source dump atomically, never losing data to an empty run."""
-    target = output / f"{name}.ndjson"
-    existing = target.exists() and target.stat().st_size > 0
+    safe_name = _component(name)
+    target = output / f"{safe_name}.ndjson.gz"
+    legacy = output / f"{safe_name}.ndjson"
+    existing_path = target if target.exists() else legacy
+    existing = existing_path.exists() and existing_path.stat().st_size > 0
     if not (records or allow_empty or not existing):
-        return Artifact(target, "", target.stat().st_size, "preserved_existing_nonempty")
+        return Artifact(
+            existing_path, "", existing_path.stat().st_size, "preserved_existing_nonempty"
+        )
     return _write(target, records, "replaced")
 
 
 def write_partial(output: Path, name: str, records: list[dict[str, Any]]) -> Artifact:
     """Keep an interrupted source's rows beside the dump, never as the dump."""
-    target = output / f"{name}.partial.ndjson"
+    target = output / f"{_component(name)}.partial.ndjson.gz"
     if not records:
         return Artifact(target, "", 0, "skipped_empty")
     return _write(target, records, "partial")
@@ -73,12 +85,20 @@ def _write(target: Path, records: list[dict[str, Any]], status: str) -> Artifact
     a complete catalogue and retire against.
     """
     target.parent.mkdir(parents=True, exist_ok=True)
-    body = _ndjson(records)
-    encoded = body.encode("utf-8")
     temporary = target.with_suffix(target.suffix + ".tmp")
-    temporary.write_bytes(encoded)
+    with temporary.open("wb") as raw, gzip.GzipFile(
+        filename="", mode="wb", compresslevel=6, fileobj=raw, mtime=0
+    ) as encoded:
+        for record in records:
+            encoded.write(
+                (json.dumps(record, ensure_ascii=False, default=str) + "\n").encode("utf-8")
+            )
     temporary.replace(target)
-    return Artifact(target, hashlib.sha256(encoded).hexdigest(), len(encoded), status)
+    digest = hashlib.sha256()
+    with target.open("rb") as stored:
+        for chunk in iter(lambda: stored.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return Artifact(target, digest.hexdigest(), target.stat().st_size, status)
 
 
 def job_directory(root: Path, run_id: str, job_id: str) -> Path:
@@ -88,7 +108,7 @@ def job_directory(root: Path, run_id: str, job_id: str) -> Path:
     the same path, or the second silently destroys the first's evidence and the
     `artifact_sha256` recorded against the first job stops describing anything.
     """
-    return root / run_id / job_id
+    return root / _component(run_id) / _component(job_id)
 
 
 class Manifest:

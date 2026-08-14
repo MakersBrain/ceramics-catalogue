@@ -77,6 +77,13 @@ async def set_schedule(connection, **values):
         "source_filter": '{"all": true}',
     }
     defaults.update(values)
+    # Production seeds more than one schedule. Each firing test controls one
+    # schedule explicitly, so keep unrelated defaults from becoming due based
+    # on the wall clock and polluting its assertions.
+    await connection.execute(
+        "update catalogue.schedules set enabled = false where id <> %(id)s",
+        {"id": defaults["id"]},
+    )
     await connection.execute(
         "update catalogue.schedules set enabled = %(enabled)s, cron = %(cron)s, "
         "next_fire_at = %(next_fire_at)s, source_filter = %(source_filter)s::jsonb "

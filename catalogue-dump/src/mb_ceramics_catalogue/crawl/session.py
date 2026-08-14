@@ -23,6 +23,7 @@ import httpx
 
 from mb_ceramics_catalogue.config.settings import CrawlParams
 from mb_ceramics_catalogue.observability import logging as obs
+from mb_ceramics_catalogue.proxy import ProxyLease
 from mb_ceramics_catalogue.scrapers.base import USER_AGENT, BrowserRenderer, Fetcher, HostLimiter
 from mb_ceramics_catalogue.scrapers.cache import ResponseCache
 
@@ -52,6 +53,8 @@ async def open_session(
     params: CrawlParams,
     cache_dir: Path | str | None = None,
     browser: BrowserRenderer | None = None,
+    proxy_lease: ProxyLease | None = None,
+    proxy_policy: str = "never",
 ) -> AsyncIterator[CrawlSession]:
     """Build the fetch stack for one crawl and guarantee it is torn down.
 
@@ -68,16 +71,43 @@ async def open_session(
     )
     limiter = HostLimiter(params.delay, params.concurrency)
     owned = browser is None
+    always_proxy = proxy_lease is not None and proxy_policy == "always"
+    fallback_proxy = proxy_lease is not None and proxy_policy == "fallback"
     if browser is None:
-        browser = BrowserRenderer(params.browser != "never")
+        browser = BrowserRenderer(
+            params.browser != "never", proxy_lease=proxy_lease if always_proxy else None
+        )
+
+    if always_proxy and not owned:
+        raise ValueError("a proxied job must use its own browser identity")
 
     async with httpx.AsyncClient(
-        headers={"user-agent": USER_AGENT}, timeout=REQUEST_TIMEOUT, follow_redirects=True
+        headers={"user-agent": USER_AGENT}, timeout=REQUEST_TIMEOUT, follow_redirects=True,
+        proxy=proxy_lease.url if always_proxy and proxy_lease else None,
     ) as client:
+        proxy_client: httpx.AsyncClient | None = None
+        proxy_browser: BrowserRenderer | None = None
+        proxy_fetcher: Fetcher | None = None
+        if fallback_proxy and proxy_lease:
+            proxy_client = httpx.AsyncClient(
+                headers={"user-agent": USER_AGENT}, timeout=REQUEST_TIMEOUT,
+                follow_redirects=True, proxy=proxy_lease.url,
+            )
+            proxy_browser = BrowserRenderer(
+                params.browser != "never", pages=1, proxy_lease=proxy_lease
+            )
+            proxy_fetcher = Fetcher(
+                proxy_client, limiter, proxy_browser, params.browser, cache=cache,
+                impersonate_policy=params.impersonate, robots_policy=params.robots,
+                stale_on_error=params.stale_on_error, proxy_lease=proxy_lease,
+            )
         fetcher = Fetcher(
             client, limiter, browser, params.browser, cache=cache,
             impersonate_policy=params.impersonate,
             robots_policy=params.robots,
+            stale_on_error=params.stale_on_error,
+            proxy_lease=proxy_lease if always_proxy else None,
+            proxy_fallback=proxy_fetcher,
         )
         session = CrawlSession(
             client=client, limiter=limiter, browser=browser, cache=cache, fetcher=fetcher
@@ -97,6 +127,13 @@ async def open_session(
                     await browser.close()
                 except Exception:
                     LOGGER.warning("session.browser_close_failed", exc_info=True)
+            if proxy_browser is not None:
+                try:
+                    await proxy_browser.close()
+                except Exception:
+                    LOGGER.warning("session.proxy_browser_close_failed", exc_info=True)
+            if proxy_client is not None:
+                await proxy_client.aclose()
 
 
 def cache_directory(explicit: Path | str | None, default: Path) -> Path | None:
@@ -125,5 +162,9 @@ def describe(params: CrawlParams) -> dict[str, Any]:
         "robots": params.robots,
         "cache_mode": params.cache_mode,
         "cache_max_age_hours": params.cache_max_age_hours,
+        "stale_on_error": params.stale_on_error,
+        "refresh_mode": params.refresh_mode,
+        "proxy_policy": params.proxy_policy,
+        "proxy_max_megabytes": params.proxy_max_megabytes,
         "limit": params.limit,
     }

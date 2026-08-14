@@ -93,6 +93,10 @@ class Offer(BaseModel):
         description="When this price was collected. A consumer cannot otherwise tell "
         "a price from this morning from one from March.",
     )
+    last_seen_at: datetime | None = Field(
+        default=None,
+        description="The most recent collection that confirmed this unchanged offer state.",
+    )
 
 
 class CanonicalProductDetail(BaseModel):

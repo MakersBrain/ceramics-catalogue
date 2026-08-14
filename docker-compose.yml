@@ -32,6 +32,8 @@ services:
       - ./docker/initdb/00-extensions.sql:/docker-entrypoint-initdb.d/00-extensions.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-reference-schema.sql:/docker-entrypoint-initdb.d/10-catalogue-reference-schema.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-reference-schema-v2.sql:/docker-entrypoint-initdb.d/20-catalogue-reference-schema-v2.sql:ro
+      - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-reference-schema-v3.sql:/docker-entrypoint-initdb.d/25-catalogue-reference-schema-v3.sql:ro
+      - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-reference-schema-v4.sql:/docker-entrypoint-initdb.d/26-catalogue-reference-schema-v4.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema.sql:/docker-entrypoint-initdb.d/30-catalogue-ops-schema.sql:ro
       # Last, and it was missing entirely: it alters `canonical_products` and
       # defines `promote_canonical_products`, which a run calls when its last
@@ -106,6 +108,23 @@ services:
       - --data
       - /work/catalogue-dumps-v2
 
+  # Explicit one-shot migration for existing named volumes. PostgreSQL only
+  # runs /docker-entrypoint-initdb.d on first creation, so rebuilding an image
+  # is not a migration strategy.
+  migrate:
+    profiles: ["maintenance"]
+    build:
+      context: .
+      dockerfile: docker/worker/Dockerfile
+      target: worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+    user: "10001:999"
+    entrypoint: ["catalogue-migrate"]
+
   # The operator control plane: run/job/worker/source control, and the live
   # stream the /ops pages read. Deliberately not published on the host — the
   # explorer proxies it server-side with the token attached, and the token is
@@ -154,12 +173,17 @@ services:
       # shop are still prevented by catalogue.host_leases, which is per host and
       # cross-process rather than per worker.
       CATALOGUE_JOB_SLOTS: ${CATALOGUE_JOB_SLOTS:-4}
+      CATALOGUE_PROXY_ENABLED: ${CATALOGUE_PROXY_ENABLED:-false}
+      CATALOGUE_PROXY_SECRET_FILE: /run/secrets/proxy-profiles.json
+      CATALOGUE_PROXY_API_SECRET_FILE: /run/secrets/decodo.env
     volumes:
       # Shared, so a replay works across workers and a run's artifacts are all
       # in one place. The cache is sharded per host and the dumps are namespaced
       # <run-id>/<job-id>/, so concurrent writers never collide.
       - cache:/var/lib/catalogue/cache
       - dumps:/var/lib/catalogue/dumps
+      - ./decodo.env:/run/secrets/decodo.env:ro
+      - ${DECODO_PROFILE_SECRET_FILE:-/dev/null}:/run/secrets/proxy-profiles.json:ro
     restart: unless-stopped
     # SIGTERM drains: finish the current source, requeue anything unfinished,
     # mark the worker stopped. The default ten seconds is not enough to write a
@@ -196,9 +220,14 @@ services:
       # render is, and they should be visible next to the replica count.
       CATALOGUE_JOB_SLOTS: ${CATALOGUE_BROWSER_JOB_SLOTS:-1}
       CATALOGUE_BROWSER_PAGES: ${CATALOGUE_BROWSER_PAGES:-2}
+      CATALOGUE_PROXY_ENABLED: ${CATALOGUE_PROXY_ENABLED:-false}
+      CATALOGUE_PROXY_SECRET_FILE: /run/secrets/proxy-profiles.json
+      CATALOGUE_PROXY_API_SECRET_FILE: /run/secrets/decodo.env
     volumes:
       - cache:/var/lib/catalogue/cache
       - dumps:/var/lib/catalogue/dumps
+      - ./decodo.env:/run/secrets/decodo.env:ro
+      - ${DECODO_PROFILE_SECRET_FILE:-/dev/null}:/run/secrets/proxy-profiles.json:ro
     # Docker's default is 64 MB, and camoufox needs rather more: below this it
     # renders, slowly and then not at all, rather than failing outright.
     shm_size: 512m

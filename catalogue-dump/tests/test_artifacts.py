@@ -8,6 +8,7 @@ catalogue. The dump is gone and so is the reason it went.
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 from pathlib import Path
@@ -18,14 +19,25 @@ ROWS = [{"external_id": "s:1", "name": "Blue glaze"}, {"external_id": "s:2", "na
 
 
 def read(path: Path) -> list[dict]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    body = gzip.decompress(path.read_bytes()).decode() if path.name.endswith(".gz") else path.read_text()
+    return [json.loads(line) for line in body.splitlines() if line.strip()]
 
 
 class TestWriteSource:
     def test_a_dump_is_written_as_ndjson(self, tmp_path: Path):
         artifact = artifacts.write_source(tmp_path, "ceradel", ROWS)
         assert artifact.status == "replaced"
+        assert artifact.path.name == "ceradel.ndjson.gz"
         assert read(artifact.path) == ROWS
+
+    def test_representative_repeated_rows_compress_by_at_least_seventy_percent(self, tmp_path: Path):
+        rows = [
+            {"external_id": f"s:{number}", "name": "Blue glaze", "description": "ceramic " * 80}
+            for number in range(200)
+        ]
+        raw = b"".join(json.dumps(row).encode() + b"\n" for row in rows)
+        artifact = artifacts.write_source(tmp_path, "ceradel", rows)
+        assert artifact.size <= len(raw) * 0.30
 
     def test_the_digest_and_size_describe_the_bytes_on_disk(self, tmp_path: Path):
         """`catalogue.jobs` records both, so they must be of the file, not of the
@@ -40,13 +52,13 @@ class TestWriteSource:
         artifacts.write_source(tmp_path, "ceradel", ROWS)
         artifact = artifacts.write_source(tmp_path, "ceradel", [])
         assert artifact.status == "preserved_existing_nonempty"
-        assert read(tmp_path / "ceradel.ndjson") == ROWS
+        assert read(tmp_path / "ceradel.ndjson.gz") == ROWS
 
     def test_an_empty_run_may_replace_when_explicitly_allowed(self, tmp_path: Path):
         artifacts.write_source(tmp_path, "ceradel", ROWS)
         artifact = artifacts.write_source(tmp_path, "ceradel", [], allow_empty=True)
         assert artifact.status == "replaced"
-        assert read(tmp_path / "ceradel.ndjson") == []
+        assert read(tmp_path / "ceradel.ndjson.gz") == []
 
     def test_an_empty_run_with_nothing_to_lose_writes_an_empty_file(self, tmp_path: Path):
         """No existing dump means no data at risk, so the file is created."""
@@ -65,13 +77,13 @@ class TestWritePartial:
     def test_a_partial_is_written_beside_the_dump_never_as_it(self, tmp_path: Path):
         artifacts.write_source(tmp_path, "ceradel", ROWS)
         artifact = artifacts.write_partial(tmp_path, "ceradel", ROWS[:1])
-        assert artifact.path.name == "ceradel.partial.ndjson"
-        assert read(tmp_path / "ceradel.ndjson") == ROWS
+        assert artifact.path.name == "ceradel.partial.ndjson.gz"
+        assert read(tmp_path / "ceradel.ndjson.gz") == ROWS
 
     def test_an_empty_partial_writes_nothing(self, tmp_path: Path):
         artifact = artifacts.write_partial(tmp_path, "ceradel", [])
         assert artifact.status == "skipped_empty"
-        assert not (tmp_path / "ceradel.partial.ndjson").exists()
+        assert not (tmp_path / "ceradel.partial.ndjson.gz").exists()
 
 
 class TestJobDirectory:
@@ -87,14 +99,21 @@ class TestJobDirectory:
         assert first != second
         artifacts.write_source(first, "ceradel", ROWS)
         artifacts.write_source(second, "ceradel", ROWS[:1])
-        assert len(read(first / "ceradel.ndjson")) == 2
-        assert len(read(second / "ceradel.ndjson")) == 1
+        assert len(read(first / "ceradel.ndjson.gz")) == 2
+        assert len(read(second / "ceradel.ndjson.gz")) == 1
 
     def test_the_directory_is_created_on_write(self, tmp_path: Path):
         target = artifacts.job_directory(tmp_path, "run-a", "job-1")
         assert not target.exists()
         artifacts.write_source(target, "ceradel", ROWS)
         assert target.is_dir()
+
+    def test_run_job_and_source_components_cannot_escape_the_artifact_root(self, tmp_path: Path):
+        for run_id, job_id in (("../run", "job"), ("run", "/tmp/job"), (".", "job")):
+            with __import__("pytest").raises(ValueError):
+                artifacts.job_directory(tmp_path, run_id, job_id)
+        with __import__("pytest").raises(ValueError):
+            artifacts.write_source(tmp_path, "../source", ROWS)
 
 
 class TestManifest:

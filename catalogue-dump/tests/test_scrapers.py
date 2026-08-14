@@ -978,6 +978,76 @@ class ResponseCacheTests(unittest.TestCase):
         self.assertTrue(issubclass(base.NotCached, base.Blocked))
 
 
+class ConditionalRefreshTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.url = "https://example.test/product"
+
+    def _cache(self):
+        store = cache_module.ResponseCache(self.directory.name, mode="auto", max_age=1)
+        key = store.key("http", self.url, method="GET", params=None, body=None, agent=False)
+        store.write(key, cache_module.CachedResponse(
+            status=200, url=self.url, body="previous body",
+            headers={"content-type": "text/plain", "etag": '"v1"'},
+            fetched_at=time.time() - 3600,
+        ))
+        return store
+
+    def _fetcher(self, handler, *, stale_on_error=False):
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        return client, base.Fetcher(
+            client, base.HostLimiter(0, 1), base.BrowserRenderer(False), "never",
+            cache=self._cache(), impersonate_policy="never", stale_on_error=stale_on_error,
+        )
+
+    async def test_stale_entry_is_revalidated_and_304_reuses_its_body(self):
+        seen = []
+
+        def handler(request):
+            seen.append(request.headers.get("if-none-match"))
+            return httpx.Response(304, headers={"etag": '"v1"'})
+
+        client, fetcher = self._fetcher(handler)
+        async with client:
+            response = await fetcher.response(self.url)
+        self.assertEqual("previous body", response.text)
+        self.assertEqual(['"v1"'], seen)
+        self.assertEqual(1, fetcher.stats.not_modified)
+        self.assertEqual(len(b"previous body"), fetcher.stats.bytes_saved_304)
+
+    async def test_stale_fallback_is_explicit_for_transient_errors(self):
+        async def no_wait(_seconds):
+            return None
+
+        client, fetcher = self._fetcher(
+            lambda request: httpx.Response(503, text="temporary"), stale_on_error=True,
+        )
+        with unittest.mock.patch("asyncio.sleep", no_wait):
+            async with client:
+                response = await fetcher.response(self.url)
+        self.assertEqual(200, response.status_code)
+        self.assertTrue(response.extensions["catalogue_stale_on_error"])
+
+    async def test_stale_fallback_is_off_by_default(self):
+        async def no_wait(_seconds):
+            return None
+
+        client, fetcher = self._fetcher(lambda request: httpx.Response(503, text="temporary"))
+        with unittest.mock.patch("asyncio.sleep", no_wait):
+            async with client:
+                with self.assertRaises(httpx.HTTPStatusError):
+                    await fetcher.response(self.url)
+
+    async def test_stale_fallback_never_masks_a_deterministic_404(self):
+        client, fetcher = self._fetcher(
+            lambda request: httpx.Response(404, text="gone"), stale_on_error=True,
+        )
+        async with client:
+            with self.assertRaises(httpx.HTTPStatusError):
+                await fetcher.response(self.url)
+
+
 class ColourTests(unittest.TestCase):
     def test_supplier_attribute_wins(self):
         self.assertEqual(
@@ -1167,6 +1237,76 @@ class ImpersonationLadderTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(httpx.HTTPStatusError):
                 await fetcher.text("https://example.test/x")
         self.assertFalse(impersonator.called)
+
+
+class ProxyFallbackRoutingTests(unittest.IsolatedAsyncioTestCase):
+    def fetchers(self, direct_handler, proxy_handler):
+        direct_client = httpx.AsyncClient(transport=httpx.MockTransport(direct_handler))
+        proxy_client = httpx.AsyncClient(transport=httpx.MockTransport(proxy_handler))
+        limiter = base.HostLimiter(0, 2)
+        proxied = base.Fetcher(
+            proxy_client, limiter, base.BrowserRenderer(False), "never",
+            impersonate_policy="never",
+        )
+        direct = base.Fetcher(
+            direct_client, limiter, base.BrowserRenderer(False), "never",
+            impersonate_policy="never", proxy_fallback=proxied,
+        )
+        return direct_client, proxy_client, direct
+
+    async def test_classified_403_uses_proxy_only_after_direct_ladder(self):
+        direct_calls = proxy_calls = 0
+
+        def direct_handler(request):
+            nonlocal direct_calls
+            direct_calls += 1
+            return httpx.Response(403, text="refused")
+
+        def proxy_handler(request):
+            nonlocal proxy_calls
+            proxy_calls += 1
+            return httpx.Response(200, text="served")
+
+        direct_client, proxy_client, fetcher = self.fetchers(direct_handler, proxy_handler)
+        async with direct_client, proxy_client:
+            self.assertEqual("served", await fetcher.text("https://shop.test/p"))
+        self.assertEqual(2, direct_calls, "research and browser user agents precede proxying")
+        self.assertEqual(1, proxy_calls)
+
+    async def test_deterministic_404_never_uses_proxy(self):
+        proxy_calls = 0
+
+        def proxy_handler(request):
+            nonlocal proxy_calls
+            proxy_calls += 1
+            return httpx.Response(200, text="must not happen")
+
+        direct_client, proxy_client, fetcher = self.fetchers(
+            lambda request: httpx.Response(404, text="gone"), proxy_handler,
+        )
+        async with direct_client, proxy_client:
+            with self.assertRaises(httpx.HTTPStatusError):
+                await fetcher.text("https://shop.test/gone")
+        self.assertEqual(0, proxy_calls)
+
+    async def test_a_200_block_page_is_a_classified_proxy_fallback(self):
+        proxy_calls = 0
+
+        def proxy_handler(request):
+            nonlocal proxy_calls
+            proxy_calls += 1
+            return httpx.Response(200, text="real product")
+
+        direct_client, proxy_client, fetcher = self.fetchers(
+            lambda request: httpx.Response(
+                200, text="<html><title>Access denied</title></html>",
+                headers={"content-type": "text/html"},
+            ),
+            proxy_handler,
+        )
+        async with direct_client, proxy_client:
+            self.assertEqual("real product", await fetcher.text("https://shop.test/p"))
+        self.assertEqual(1, proxy_calls)
 
 
 class _Stub:
@@ -1382,6 +1522,63 @@ class BrowserRoutingTests(unittest.IsolatedAsyncioTestCase):
                 await scraper.fetcher.render("https://shop.test/p/1")
         self.assertEqual(2, scraper.fetcher.limiter.slots["shop.test"], "slots halve on a refusal")
         self.assertGreater(scraper.fetcher.limiter.spacing("shop.test"), 0.0)
+
+
+class BrowserFallbackClassificationTests(unittest.IsolatedAsyncioTestCase):
+    class Fetcher:
+        browser_policy = "auto"
+
+        def __init__(self, document, rendered="<html><body>still empty</body></html>"):
+            self.document = document
+            self.rendered = rendered
+            self.renders = 0
+
+        async def may_fetch(self, *args, **kwargs):
+            return True
+
+        async def text(self, *args, **kwargs):
+            return self.document
+
+        async def render(self, *args, **kwargs):
+            self.renders += 1
+            return self.rendered
+
+    def scraper(self, fetcher, count=1):
+        from mb_ceramics_catalogue.scrapers.pagecrawl import PageScraper
+
+        scraper = PageScraper(
+            "shop", {"url": "https://shop.test", "scope": "all", "product_concurrency": 20},
+            fetcher,
+        )
+
+        async def discover(limit=None):
+            return [f"https://shop.test/product/{index}" for index in range(count)]
+
+        scraper.discover = discover
+        return scraper
+
+    async def test_ordinary_unsupported_html_does_not_trigger_a_browser(self):
+        fetcher = self.Fetcher("<html><body><h1>Unsupported product page</h1></body></html>")
+        result = await self.scraper(fetcher).scrape()
+        self.assertEqual([], result.records)
+        self.assertEqual(0, fetcher.renders)
+
+    async def test_an_explicit_javascript_shell_can_trigger_a_browser(self):
+        fetcher = self.Fetcher(
+            '<!doctype html><html><body><div id="app"></div><script src="app.js"></script></body></html>'
+        )
+        result = await self.scraper(fetcher).scrape()
+        self.assertEqual(1, fetcher.renders)
+        self.assertEqual(1, result.browser_zero_gain)
+
+    async def test_ten_consecutive_zero_gain_renders_open_the_circuit_exactly(self):
+        fetcher = self.Fetcher(
+            '<html><body><div id="root"></div><script src="bundle.js"></script></body></html>'
+        )
+        result = await self.scraper(fetcher, count=25).scrape()
+        self.assertEqual(10, fetcher.renders)
+        self.assertEqual(10, result.browser_zero_gain)
+        self.assertIn("browser_fallback_no_gain", " ".join(result.notes))
 
 
 class RenderPolicyTests(unittest.IsolatedAsyncioTestCase):

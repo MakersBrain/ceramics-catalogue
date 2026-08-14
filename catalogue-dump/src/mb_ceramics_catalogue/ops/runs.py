@@ -14,6 +14,7 @@ finishing workers race and publish different summaries.
 
 from __future__ import annotations
 
+import time
 from typing import Any
 from urllib.parse import urlparse
 from uuid import UUID
@@ -355,6 +356,7 @@ async def _promote_canonicals(connection: Connection, run_id: UUID) -> None:
     rebuilt — and a database that predates the promotion schema has no such
     function at all, which must not turn every run into a failed one.
     """
+    started = time.monotonic()
     try:
         # A savepoint, since this runs inside the transaction that finished the
         # job. Without it a failed statement would poison that transaction and
@@ -369,7 +371,8 @@ async def _promote_canonicals(connection: Connection, run_id: UUID) -> None:
 
     if row is None:
         return
-    result = {key: int(value) for key, value in row.items()}
+    result: dict[str, Any] = {key: int(value) for key, value in row.items()}
+    result["promotion_seconds"] = round(time.monotonic() - started, 6)
     await events.emit(
         connection,
         events.Topic.RUN,

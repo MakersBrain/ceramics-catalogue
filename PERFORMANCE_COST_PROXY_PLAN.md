@@ -1,6 +1,6 @@
 # Catalogue performance, cost, and selective proxy plan
 
-Status: proposed  
+Status: implementation deployed; evidence-gated rollout in progress
 Prepared: 2026-08-13  
 Revised: 2026-08-14 for the existing Decodo 3 GB/month subscription  
 Scope: `catalogue-dump`, `catalogue-control`, `catalogue-service`,

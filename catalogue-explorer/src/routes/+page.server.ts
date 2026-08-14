@@ -10,6 +10,7 @@ import {
 	widestSpread
 } from '$lib/server/queries';
 import { fxRates } from '$lib/server/fx';
+import { stable } from '$lib/server/cache';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url }) => {
@@ -21,7 +22,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	// The one exception is the family mix, which is the panel that shows what the
 	// product types are; see familyMix.
 	const rates = await fxRates();
-	const [totals, suppliers, mix, medians, spread, brandOptions, familyOptions] = await Promise.all([
+	const build = () => Promise.all([
 		overview(brand, family),
 		supplierCoverage(brand, family),
 		familyMix(brand),
@@ -33,6 +34,10 @@ export const load: PageServerLoad = async ({ url }) => {
 		brands(),
 		families()
 	]);
+	const [totals, suppliers, mix, medians, spread, brandOptions, familyOptions] =
+		brand === null && family === null
+			? await stable(`homepage:${bandId}`, build)
+			: await build();
 
 	return {
 		totals,

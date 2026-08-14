@@ -16,6 +16,7 @@ run is.
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
@@ -37,6 +38,7 @@ ImpersonatePolicy = Literal["never", "auto"]
 #: `Sitemap` lines are the two most useful things in it.
 RobotsPolicy = Literal["obey", "ignore"]
 CacheMode = Literal["off", "auto", "replay", "refresh"]
+RefreshMode = Literal["price", "full"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 
 #: Seconds one source may run before the crawl gives up on it. Generous, because
@@ -74,6 +76,17 @@ class CrawlParams(BaseModel):
     #: whole schedule a no-op. Seven days is right for reworking a parser and
     #: wrong for the thing this pipeline exists to do (§8).
     cache_max_age_hours: float = Field(default=20.0, ge=0)
+    #: Explicitly permit an expired cached GET response when every live attempt
+    #: ends in a transient transport failure. Off by default: freshness must
+    #: never be weakened silently.
+    stale_on_error: bool = False
+    #: Daily structured-API runs keep identity/offer fields; weekly runs own
+    #: descriptive enrichment. The loader preserves enrichment on price rows.
+    refresh_mode: RefreshMode = "full"
+    #: Ordinary run requests may only narrow an operator-configured proxy
+    #: policy or budget. They can never enable/select a paid route.
+    proxy_policy: Literal["never"] | None = None
+    proxy_max_megabytes: int | None = Field(default=None, ge=1, le=25)
 
     #: Per-source deadline; a source may lower it but not raise it.
     source_timeout_seconds: float = Field(default=DEFAULT_SOURCE_TIMEOUT, gt=0)
@@ -125,6 +138,8 @@ class CrawlParams(BaseModel):
             robots=options.robots,
             cache_mode=options.cache_mode if options.cache else "off",
             cache_max_age_hours=options.cache_max_age,
+            stale_on_error=getattr(options, "stale_on_error", False),
+            refresh_mode=getattr(options, "refresh_mode", "full"),
             source_timeout_seconds=options.source_timeout,
             log_level=options.log_level,
             dry_run=options.dry_run,
@@ -195,6 +210,16 @@ class Settings(BaseSettings):
     browser_pages: int = 2
     #: Bearer token `catalogue-control` requires on every /v1 route.
     control_token: str = ""
+
+    #: Global no-rebuild kill switch. Credentials themselves are read from the
+    #: mounted JSON file and are deliberately not accepted as environment
+    #: fields or run parameters.
+    proxy_enabled: bool = False
+    proxy_secret_file: Path | None = None
+    proxy_api_secret_file: Path | None = None
+    proxy_reconcile_profile: str = "decodo"
+    proxy_billing_cycle_start: datetime | None = None
+    proxy_billing_cycle_end: datetime | None = None
 
     #: Emit logs as one JSON object per line regardless of whether stdout is a
     #: terminal. Set in containers, where the console renderer is unreadable.

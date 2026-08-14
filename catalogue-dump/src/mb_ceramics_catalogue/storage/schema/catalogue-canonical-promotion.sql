@@ -309,6 +309,10 @@ begin
    where origin = 'promoted'
      and (p_manufacturer is null or manufacturer_id = p_manufacturer);
 
+  update catalogue.catalogue_generation
+     set generation = generation + 1, promoted_at = now()
+   where singleton;
+
   return query select v_makers, v_created, v_updated, v_linked;
 end;
 $$;
@@ -348,12 +352,13 @@ select
   o.quantity            as package_quantity,
   o.unit                as package_unit,
   o.unit_price,
-  o.unit_price_per
+  o.unit_price_per,
+  o.last_seen_at        as offer_last_seen_at
 from catalogue.canonical_products c
 join catalogue.source_products sp
   on sp.canonical_product_id = c.id and sp.active
 left join lateral (
-  select o.observed_at, o.price, o.currency, o.vat_status,
+  select o.observed_at, o.last_seen_at, o.price, o.currency, o.vat_status,
          o.quantity, o.unit, o.unit_price, o.unit_price_per
     from catalogue.offer_observations o
    where o.source_product_id = sp.id

@@ -22,6 +22,7 @@ from mb_ceramics_catalogue.config.sources import SourcesFile
 from mb_ceramics_catalogue.ops import events, leases, runs
 from mb_ceramics_catalogue.ops.sink import JobLogHandler, PostgresSink
 from mb_ceramics_catalogue.scrapers.activity import CURRENT_JOB
+from mb_ceramics_catalogue.storage import db as storage_db
 
 from .conftest import requires_postgres
 
@@ -497,3 +498,21 @@ class TestScheduleDefault:
         if isinstance(params, str):
             params = json.loads(params)
         assert params["cache_mode"] == "refresh"
+        assert params["refresh_mode"] == "price"
+        weekly = await rows(
+            db,
+            "select cron, timezone, source_filter, params from catalogue.schedules "
+            "where id='weekly-full'",
+        )
+        assert weekly[0]["cron"] == "0 2 * * 0"
+        assert weekly[0]["params"]["refresh_mode"] == "full"
+
+
+class TestSchemaMigration:
+    async def test_an_existing_initdb_schema_is_adopted_then_migrations_are_recorded(self, db):
+        first = await storage_db.apply_schema(db)
+        assert "catalogue-reference-schema.sql" not in first
+        assert "catalogue-reference-schema-v3.sql" in first
+        assert await storage_db.apply_schema(db) == []
+        applied = await rows(db, "select filename from catalogue.schema_migrations")
+        assert {row["filename"] for row in applied} == set(storage_db.SCHEMA_FILES)

@@ -36,7 +36,7 @@ import os
 import signal
 import socket
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
@@ -55,6 +55,18 @@ from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.observability import metrics, tracing
 from mb_ceramics_catalogue.ops import events, leases, monitor, queue, runs, schedule
 from mb_ceramics_catalogue.ops.sink import JobLogHandler, PostgresSink
+from mb_ceramics_catalogue.proxy import (
+    DECIMAL_MB,
+    ProxyDenied,
+    ProxyLease,
+    close_reservation,
+    load_api_key,
+    load_profiles,
+    provider_usage,
+    reconcile,
+    reserve,
+    secret_values,
+)
 from mb_ceramics_catalogue.scrapers.activity import CURRENT_JOB
 from mb_ceramics_catalogue.scrapers.base import BrowserRenderer, BrowserUnavailable
 from mb_ceramics_catalogue.scrapers.record import RecordBuilder
@@ -77,6 +89,7 @@ DRAIN_GRACE_SECONDS = 120.0
 #: advisory-lock attempts a second across a busy pool for work that is only
 #: meaningful once a minute.
 LEADER_SECONDS = 30.0
+PROXY_RECONCILE_SECONDS = 3600.0
 
 #: Retention runs far less often than the notification rules; deleting a month
 #: of rows is not something to do every half minute.
@@ -137,6 +150,7 @@ class Worker:
         # the interval: a worker starting after downtime should notice a missed
         # schedule now, not in thirty seconds.
         self._last_lead = -LEADER_SECONDS
+        self._last_proxy_reconcile = -PROXY_RECONCILE_SECONDS
         self._last_prune = -PRUNE_SECONDS
 
     def describe(self) -> dict[str, Any]:
@@ -370,6 +384,9 @@ class Worker:
                     return
                 await schedule.fire_due(connection, self.sources)
                 await monitor.check_all(connection)
+                if self.settings.proxy_enabled and now - self._last_proxy_reconcile > PROXY_RECONCILE_SECONDS:
+                    self._last_proxy_reconcile = now
+                    await self._reconcile_proxy(connection)
                 if now - self._last_prune > PRUNE_SECONDS:
                     self._last_prune = now
                     await monitor.prune(connection)
@@ -528,43 +545,48 @@ class Worker:
         cancelled = False
         try:
             async with self.pool.connection() as connection:
+                proxy_lease = await self._proxy_lease(connection, job, config, params)
                 sink = PostgresSink(connection, job.run_id, {job.source_id: job.id})
                 with RecordBuilder(self.sources.as_scraper_configs()):
-                    async with (
-                        open_session(
-                            params, self.settings.cache_dir, browser=self._renderer(params)
-                        ) as session,
-                        Progress(1, [sink]) as progress,
-                    ):
-                        task = asyncio.create_task(
-                            run_source(job.source_id, config, session, params, progress, None),
-                            name=f"job:{job.source_id}",
-                        )
-                        watcher = asyncio.create_task(self._watch_for_cancel(job.id, task))
-                        try:
-                            outcome = await task
-                        except asyncio.CancelledError:
-                            cancelled = True
-                            outcome = None
-                        finally:
-                            watcher.cancel()
-                            with contextlib.suppress(asyncio.CancelledError):
-                                await watcher
+                    try:
+                        async with (
+                            open_session(
+                                params, self.settings.cache_dir,
+                                browser=None if proxy_lease else self._renderer(params),
+                                proxy_lease=proxy_lease,
+                                proxy_policy=config.proxy_policy,
+                            ) as session,
+                            Progress(1, [sink]) as progress,
+                        ):
+                            task = asyncio.create_task(
+                                run_source(job.source_id, config, session, params, progress, None),
+                                name=f"job:{job.source_id}",
+                            )
+                            watcher = asyncio.create_task(self._watch_for_cancel(job.id, task))
+                            try:
+                                outcome = await task
+                            except asyncio.CancelledError:
+                                cancelled = True
+                                outcome = None
+                            finally:
+                                watcher.cancel()
+                                with contextlib.suppress(asyncio.CancelledError):
+                                    await watcher
 
-                        if cancelled:
-                            # Keep what was collected. `plan_load` refuses to
-                            # retire against a partial, so this is safe to load
-                            # and worth loading: an hour of a large storefront
-                            # is not nothing.
-                            records = list(
-                                getattr(progress.results.get(job.source_id), "records", [])
-                            )
-                            artifact = artifacts.write_partial(output, job.source_id, records)
-                            await self._finish(
-                                job, "cancelled", artifact=artifact,
-                                summary={"records": len(records), "interrupted": True},
-                            )
-                            return
+                            if cancelled:
+                                records = list(
+                                    getattr(progress.results.get(job.source_id), "records", [])
+                                )
+                                artifact = artifacts.write_partial(output, job.source_id, records)
+                                await self._finish(
+                                    job, "cancelled", artifact=artifact,
+                                    summary={"records": len(records), "interrupted": True},
+                                )
+                                return
+                    finally:
+                        if proxy_lease:
+                            await close_reservation(connection, proxy_lease)
+                            await self._reconcile_proxy(connection)
 
                 assert outcome is not None
                 artifact = artifacts.write_source(
@@ -589,7 +611,9 @@ class Worker:
                 # the summary carries it for anyone reading the job later.
                 outcome.summary["retirement_withheld"] = why_not
                 LOGGER.warning("job.adds_only", source=job.source_id, reason=why_not)
+            load_started = time.monotonic()
             loaded = await self._load(job, outcome, whole=whole)
+            outcome.summary["load_seconds"] = round(time.monotonic() - load_started, 6)
             outcome.summary["loaded"] = loaded.records
             outcome.summary["retired"] = loaded.retired
             if loaded.rejected:
@@ -618,6 +642,73 @@ class Worker:
             obs.detach(log_handler)
             async with self.pool.connection() as connection:
                 await log_handler.flush_to(connection)
+
+    async def _proxy_lease(
+        self, connection: Any, job: queue.ClaimedJob, config: Any, params: CrawlParams,
+    ) -> ProxyLease | None:
+        """Resolve operator policy without ever accepting a credential URL."""
+        if (
+            config.proxy_policy == "never"
+            or params.proxy_policy == "never"
+            or not self.settings.proxy_enabled
+        ):
+            return None
+        if config.proxy_policy == "fallback":
+            LOGGER.info("proxy.fallback_ready", source=job.source_id)
+        secret_file = self.settings.proxy_secret_file
+        cycle_start = self.settings.proxy_billing_cycle_start
+        cycle_end = self.settings.proxy_billing_cycle_end
+        if not secret_file or not cycle_start or not cycle_end:
+            raise ProxyDenied("proxy is enabled but its secret or billing-cycle boundary is absent")
+        profiles = load_profiles(secret_file)
+        obs.register_secrets(secret_values(profiles))
+        profile = profiles.get(config.proxy_profile)
+        if profile is None:
+            raise ProxyDenied(f"unknown logical proxy profile {config.proxy_profile!r}")
+        maximum = min(
+            config.proxy_max_megabytes,
+            params.proxy_max_megabytes or config.proxy_max_megabytes,
+        ) * DECIMAL_MB
+        reservation_id = await reserve(
+            connection,
+            job_id=job.id,
+            profile=config.proxy_profile,
+            cycle_start=cycle_start,
+            cycle_end=cycle_end,
+            requested_bytes=maximum,
+            pilot=config.proxy_pilot,
+        )
+        country = config.proxy_country or (config.country.upper() if config.country else None)
+        return ProxyLease.build(
+            reservation_id, job.id, profile, country, config.proxy_session_minutes, maximum
+        )
+
+    async def _reconcile_proxy(self, connection: Any) -> None:
+        """Reconcile provider billing totals; any unsafe read fails closed."""
+        secret_file = self.settings.proxy_secret_file
+        cycle_start = self.settings.proxy_billing_cycle_start
+        cycle_end = self.settings.proxy_billing_cycle_end
+        if not secret_file or not cycle_start or not cycle_end:
+            return
+        try:
+            profile = load_profiles(secret_file)[self.settings.proxy_reconcile_profile]
+            if self.settings.proxy_api_secret_file:
+                api_key = load_api_key(self.settings.proxy_api_secret_file)
+                obs.register_secrets({api_key})
+                profile = replace(profile, api_key=api_key)
+            reported = await provider_usage(profile, cycle_start, cycle_end)
+        except Exception:
+            await reconcile(
+                connection, cycle_start=cycle_start,
+                provider_reported_bytes=0, successful=False,
+            )
+            LOGGER.warning("proxy.reconciliation_failed", exc_info=True)
+            return
+        await reconcile(
+            connection, cycle_start=cycle_start,
+            provider_reported_bytes=reported, successful=True,
+        )
+        LOGGER.info("proxy.reconciled", provider="decodo", bytes=reported)
 
     async def _requeue_for_browser(
         self, job: queue.ClaimedJob, error: BrowserUnavailable

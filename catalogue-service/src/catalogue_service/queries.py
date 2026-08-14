@@ -113,7 +113,8 @@ select c.canonical_product_id::text as canonical_product_id,
            'unit_price',         c.unit_price,
            'unit_price_per',     c.unit_price_per,
            'availability',       c.availability,
-           'observed_at',        c.observed_at
+           'observed_at',        c.observed_at,
+           'last_seen_at',       c.offer_last_seen_at
          ) order by c.source_id) filter (where c.source_product_id is not null),
          '[]'::jsonb)          as offers
   from catalogue.canonical_catalogue c

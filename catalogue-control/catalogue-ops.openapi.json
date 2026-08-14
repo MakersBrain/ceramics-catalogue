@@ -273,6 +273,42 @@
             "title": "Log Level",
             "type": "string"
           },
+          "proxy_max_megabytes": {
+            "anyOf": [
+              {
+                "maximum": 25,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Proxy Max Megabytes"
+          },
+          "proxy_policy": {
+            "anyOf": [
+              {
+                "const": "never",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Proxy Policy"
+          },
+          "refresh_mode": {
+            "default": "full",
+            "enum": [
+              "price",
+              "full"
+            ],
+            "title": "Refresh Mode",
+            "type": "string"
+          },
           "robots": {
             "default": "ignore",
             "enum": [
@@ -293,6 +329,11 @@
             "minimum": 1,
             "title": "Sources",
             "type": "integer"
+          },
+          "stale_on_error": {
+            "default": false,
+            "title": "Stale On Error",
+            "type": "boolean"
           }
         },
         "title": "CrawlParams",

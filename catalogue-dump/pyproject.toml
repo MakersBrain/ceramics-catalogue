@@ -50,6 +50,11 @@ catalogue-dump = "mb_ceramics_catalogue.cli.dump:main"
 catalogue-load = "mb_ceramics_catalogue.cli.load:main"
 catalogue-probe = "mb_ceramics_catalogue.cli.probe:main"
 catalogue-worker = "mb_ceramics_catalogue.cli.worker:main"
+catalogue-maintain = "mb_ceramics_catalogue.cli.maintain:main"
+catalogue-benchmark = "mb_ceramics_catalogue.cli.benchmark:main"
+catalogue-proxy-budget = "mb_ceramics_catalogue.cli.proxy_budget:main"
+catalogue-migrate = "mb_ceramics_catalogue.cli.migrate:main"
+catalogue-compact = "mb_ceramics_catalogue.cli.compact:main"
 
 [dependency-groups]
 dev = [

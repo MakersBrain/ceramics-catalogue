@@ -55,6 +55,10 @@ export interface CrawlParams {
 	robots?: 'obey' | 'ignore' | null;
 	cache_mode?: 'off' | 'auto' | 'replay' | 'refresh' | null;
 	cache_max_age_hours?: number | null;
+	stale_on_error?: boolean | null;
+	refresh_mode?: 'price' | 'full' | null;
+	proxy_policy?: 'never' | null;
+	proxy_max_megabytes?: number | null;
 	source_timeout_seconds?: number | null;
 	log_level?: 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | null;
 	dry_run?: boolean | null;

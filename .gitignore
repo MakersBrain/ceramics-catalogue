@@ -25,6 +25,7 @@ catalogue-dump/.cache/
 catalogue-dumps*/
 catalogue-dump/catalogue-dumps*/
 dumps/
+backups/*.dump
 *.ndjson
 
 # The golden files are the exception: they are small, they are checked in on
@@ -50,3 +51,4 @@ deploy/secrets/
 
 # Decodo dashboard endpoint exports contain plaintext proxy credentials.
 decodo.csv
+decodo.env

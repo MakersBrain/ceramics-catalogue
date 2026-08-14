@@ -154,6 +154,47 @@ create index if not exists jobs_source_history_idx
   on catalogue.jobs (source_id, finished_at desc)
   where finished_at is not null;
 
+-- Residential proxy budget accounting. All limits are decimal bytes because
+-- Decodo sells decimal GB; binary display units must not inflate the allowance.
+create table if not exists catalogue.proxy_budget_cycles (
+  provider               text not null,
+  cycle_start             timestamptz not null,
+  cycle_end               timestamptz not null,
+  purchased_bytes         bigint not null default 3000000000 check (purchased_bytes > 0),
+  operational_bytes       bigint not null default 2400000000 check (operational_bytes > 0),
+  daily_bytes             bigint not null default 80000000 check (daily_bytes > 0),
+  pilot_bytes             bigint not null default 300000000 check (pilot_bytes > 0),
+  pilot_active            boolean not null default false,
+  provider_reported_bytes bigint not null default 0 check (provider_reported_bytes >= 0),
+  application_bytes       bigint not null default 0 check (application_bytes >= 0),
+  reconciled_at           timestamptz,
+  reconciliation_ok       boolean not null default false,
+  kill_switch             boolean not null default true,
+  primary key (provider, cycle_start),
+  check (cycle_end > cycle_start),
+  check (operational_bytes <= purchased_bytes)
+);
+
+create table if not exists catalogue.proxy_reservations (
+  id              uuid primary key default gen_random_uuid(),
+  job_id          uuid not null unique references catalogue.jobs(id) on delete cascade,
+  provider        text not null,
+  profile         text not null,
+  cycle_start     timestamptz not null,
+  reserved_bytes  bigint not null check (reserved_bytes > 0),
+  estimated_bytes bigint not null default 0 check (estimated_bytes >= 0),
+  request_count   integer not null default 0 check (request_count >= 0),
+  pilot           boolean not null default false,
+  state           text not null default 'active' check (state in ('active', 'closed', 'cancelled')),
+  created_at      timestamptz not null default now(),
+  closed_at       timestamptz,
+  foreign key (provider, cycle_start)
+    references catalogue.proxy_budget_cycles(provider, cycle_start)
+);
+
+create index if not exists proxy_reservations_accounting_idx
+  on catalogue.proxy_reservations(provider, cycle_start, created_at, state);
+
 -- ---------------------------------------------------------------------------
 -- Levels: current values, updated in place, never in the event log
 -- ---------------------------------------------------------------------------
@@ -171,6 +212,22 @@ create table if not exists catalogue.job_progress (
   truncated      boolean not null default false,
   in_flight      jsonb not null default '[]'  -- from scrapers.activity, capped at 10
 );
+
+alter table catalogue.job_progress
+  add column if not exists http_tx_bytes_estimated bigint not null default 0,
+  add column if not exists http_rx_bytes_estimated bigint not null default 0,
+  add column if not exists browser_tx_bytes_estimated bigint not null default 0,
+  add column if not exists browser_rx_bytes_estimated bigint not null default 0,
+  add column if not exists cache_bytes_read bigint not null default 0,
+  add column if not exists direct_requests integer not null default 0,
+  add column if not exists impersonated_requests integer not null default 0,
+  add column if not exists browser_requests integer not null default 0,
+  add column if not exists proxy_requests integer not null default 0,
+  add column if not exists proxy_bytes_reserved bigint not null default 0,
+  add column if not exists proxy_bytes_estimated bigint not null default 0,
+  add column if not exists browser_gain integer not null default 0,
+  add column if not exists browser_zero_gain integer not null default 0,
+  add column if not exists outcome_counts jsonb not null default '{}'::jsonb;
 
 -- ---------------------------------------------------------------------------
 -- Logs and edges
@@ -373,7 +430,21 @@ values (
   'daily-prices',
   '0 3 * * *',
   'Europe/Paris',
-  '{"cache_mode": "refresh", "sources": 4, "concurrency": 8}'::jsonb
+  '{"cache_mode": "refresh", "refresh_mode": "price", "sources": 4, "concurrency": 8}'::jsonb
+)
+on conflict (id) do nothing;
+
+-- Sources proven to time out or yield zero stay out of the daily freshness
+-- promise and run in the weekly diagnostic/full-enrichment window instead.
+update catalogue.schedules
+   set source_filter = '{"all": true, "except": ["countrylove", "mestrebras", "hobbyland", "toepferspass", "cromartie", "keramik-kriese"]}'::jsonb,
+       params = params || '{"refresh_mode": "price"}'::jsonb
+ where id = 'daily-prices' and source_filter = '{"all": true}'::jsonb;
+
+insert into catalogue.schedules (id, cron, timezone, source_filter, params)
+values (
+  'weekly-full', '0 2 * * 0', 'Europe/Paris', '{"all": true}'::jsonb,
+  '{"cache_mode": "refresh", "refresh_mode": "full", "sources": 3, "concurrency": 6}'::jsonb
 )
 on conflict (id) do nothing;
 

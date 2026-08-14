@@ -58,6 +58,7 @@ test:  ## The fast suites: no network, no database, no cache replay
 	$(RUN) pytest
 	$(RUNC) pytest
 	$(RUNS) pytest
+	cd $(EXPLORER) && npm test
 
 .PHONY: test-golden
 test-golden:  ## Replay every cached source and compare against its frozen dump

@@ -31,6 +31,7 @@ retirement, a partial file only ever adds, a truncated run is adds-only — and
 
 from __future__ import annotations
 
+import gzip
 import json
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
@@ -121,7 +122,8 @@ def records_in(path: Path) -> int:
     """How many records a dump file holds, ignoring blank lines."""
     if not path.exists():
         return 0
-    with path.open(encoding="utf-8") as handle:
+    opener = gzip.open if path.name.endswith(".gz") else open
+    with opener(path, "rt", encoding="utf-8") as handle:
         return sum(1 for line in handle if line.strip())
 
 
@@ -182,16 +184,27 @@ def plan_load(data: Path) -> tuple[list[Load], list[tuple[str, str]]]:
 
     plans: list[Load] = []
     skipped: list[tuple[str, str]] = []
+    suffixes = (".partial.ndjson.gz", ".partial.ndjson", ".ndjson.gz", ".ndjson")
     names = sorted(
         {
-            path.name[: -len(".partial.ndjson")]
-            if path.name.endswith(".partial.ndjson")
-            else path.name[: -len(".ndjson")]
-            for path in data.glob("*.ndjson")
+            next(path.name[: -len(suffix)] for suffix in suffixes if path.name.endswith(suffix))
+            for path in data.iterdir()
+            if path.is_file() and any(path.name.endswith(suffix) for suffix in suffixes)
         }
     )
     for source in names:
-        complete, partial = data / f"{source}.ndjson", data / f"{source}.partial.ndjson"
+        complete = next(
+            (path for path in (data / f"{source}.ndjson.gz", data / f"{source}.ndjson") if path.exists()),
+            data / f"{source}.ndjson.gz",
+        )
+        partial = next(
+            (
+                path
+                for path in (data / f"{source}.partial.ndjson.gz", data / f"{source}.partial.ndjson")
+                if path.exists()
+            ),
+            data / f"{source}.partial.ndjson.gz",
+        )
         whole, half = records_in(complete), records_in(partial)
         if whole:
             trusted, why = authoritative(source)
@@ -354,7 +367,8 @@ def read_ndjson(path: Path) -> Iterator[dict[str, Any]]:
     4,473-record source streams through without both the file and the parsed
     records being resident at once.
     """
-    with path.open(encoding="utf-8") as handle:
+    opener = gzip.open if path.name.endswith(".gz") else open
+    with opener(path, "rt", encoding="utf-8") as handle:
         for line in handle:
             if line.strip():
                 yield json.loads(line)

@@ -112,6 +112,20 @@ def summarise(
         "discovered": getattr(result, "discovered", 0),
         "requests": getattr(result, "requests", 0),
         "rendered_pages": getattr(result, "rendered_pages", 0),
+        "http_tx_bytes_estimated": getattr(result, "http_tx_bytes_estimated", 0),
+        "http_rx_bytes_estimated": getattr(result, "http_rx_bytes_estimated", 0),
+        "browser_tx_bytes_estimated": getattr(result, "browser_tx_bytes_estimated", 0),
+        "browser_rx_bytes_estimated": getattr(result, "browser_rx_bytes_estimated", 0),
+        "cache_bytes_read": getattr(result, "cache_bytes_read", 0),
+        "direct_requests": getattr(result, "direct_requests", 0),
+        "impersonated_requests": getattr(result, "impersonated_requests", 0),
+        "browser_requests": getattr(result, "browser_requests", 0),
+        "proxy_requests": getattr(result, "proxy_requests", 0),
+        "proxy_bytes_reserved": getattr(result, "proxy_bytes_reserved", 0),
+        "proxy_bytes_estimated": getattr(result, "proxy_bytes_estimated", 0),
+        "browser_gain": getattr(result, "browser_gain", 0),
+        "browser_zero_gain": getattr(result, "browser_zero_gain", 0),
+        "outcome_counts": dict(getattr(result, "outcome_counts", {})),
         "truncated": getattr(result, "truncated", False),
         "robots_ignored": config.ignore_robots,
         "error_count": len(getattr(result, "errors", [])),
@@ -192,8 +206,21 @@ async def run_source(
             result = scraper.result
             result.errors.append({"url": config.url, "error": str(error)})
 
+        if params.refresh_mode == "price" and config.scraper in {
+            "shopify", "woocommerce", "bigcommerce", "starweb", "keramik_kraft"
+        }:
+            for record in result.records:
+                for field in (
+                    "description", "firing", "firing_range", "surface", "effects", "colour",
+                    "claims", "documents", "technical_attributes", "coats",
+                    "application_methods", "category_path", "all_image_urls",
+                ):
+                    record.pop(field, None)
+                record["collection_mode"] = "price"
+        collection_seconds = time.monotonic() - started
         summary = summarise(name, config, result, method=scraper.method)
-        metrics.job_duration(name, time.monotonic() - started)
+        summary["collection_seconds"] = round(collection_seconds, 6)
+        metrics.job_duration(name, collection_seconds)
         metrics.records(name, summary["records"])
 
         # Written as soon as this source is done rather than at the end of the
@@ -201,7 +228,9 @@ async def run_source(
         # hostage to the slowest one, and a run that dies in hour two leaves
         # nothing behind.
         if output is not None and not params.dry_run:
+            write_started = time.monotonic()
             artifact = artifacts.write_source(output, name, result.records, params.allow_empty)
+            summary["artifact_write_seconds"] = round(time.monotonic() - write_started, 6)
             # Recorded on the summary rather than only returned, because
             # `catalogue.jobs` stores all three and the manifest is what
             # carries them out of a process that has already exited.

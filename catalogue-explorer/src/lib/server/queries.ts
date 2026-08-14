@@ -72,9 +72,10 @@ export async function overview(brand: string | null = null, family: string | nul
 			(select count(*)::int from catalogue.source_products p where ${scope}) as products,
 			(select count(distinct p.source_id)::int from catalogue.source_products p
 				where ${scope}) as suppliers,
-			(select count(*)::int from catalogue.offer_observations o
-				join catalogue.source_products p on p.id = o.source_product_id
-				where ${scope}) as offers,
+			(select count(*)::int from catalogue.source_products p
+				where ${scope} and exists (
+					select 1 from catalogue.offer_observations o where o.source_product_id = p.id
+				)) as offers,
 			(select count(distinct upper(p.manufacturer_sku))::int from catalogue.source_products p
 				where p.manufacturer_sku is not null and ${scope}) as codes,
 			(select max(o.observed_at) from catalogue.offer_observations o

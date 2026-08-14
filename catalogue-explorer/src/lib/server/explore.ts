@@ -1,6 +1,7 @@
 import type { Observation, Product, ProductDetail, Sort, SortKey } from '$lib/catalogue';
 import { sql } from './db';
 import { eurRate, fxRates, type Rates } from './fx';
+import { stable } from './cache';
 
 /**
  * Faceted browse over catalogue.source_products.
@@ -146,12 +147,12 @@ function conditions(filters: Filters, ...exclude: (keyof Filters)[]) {
 	if (use('family')) parts.push(sql`p.family = ${filters.family}`);
 	if (use('brand')) parts.push(sql`upper(p.brand) = ${filters.brand!.toUpperCase()}`);
 	if (use('series')) parts.push(sql`${seriesPrefix} = ${filters.series!.toUpperCase()}`);
-	if (use('colour')) parts.push(sql`p.attributes->'colour'->>'name' = ${filters.colour}`);
-	if (use('surface')) parts.push(sql`p.attributes->>'surface' = ${filters.surface}`);
+	if (use('colour')) parts.push(sql`p.facet_colour = ${filters.colour}`);
+	if (use('surface')) parts.push(sql`p.facet_surface = ${filters.surface}`);
 	// application_methods is a jsonb array, so membership rather than equality.
 	if (use('application'))
-		parts.push(sql`p.attributes->'application_methods' ? ${filters.application!}`);
-	if (use('form')) parts.push(sql`p.attributes->>'form' = ${filters.form}`);
+		parts.push(sql`p.facet_application_methods ? ${filters.application!}`);
+	if (use('form')) parts.push(sql`p.facet_form = ${filters.form}`);
 	if (use('stock')) parts.push(sql`p.availability = 'https://schema.org/InStock'`);
 	if (use('suppliers')) parts.push(sql`p.source_id = any(${filters.suppliers})`);
 	if (use('excluded')) parts.push(sql`p.source_id <> all(${filters.excluded})`);
@@ -169,8 +170,7 @@ function conditions(filters: Filters, ...exclude: (keyof Filters)[]) {
 		const chosen = FIRING_BANDS.find((entry) => entry.id === filters.firing);
 		if (chosen) {
 			parts.push(
-				sql`(p.attributes->'firing'->>'max_celsius')::numeric >= ${chosen.min}
-				    and (p.attributes->'firing'->>'max_celsius')::numeric < ${chosen.max}`
+				sql`p.facet_firing_max >= ${chosen.min} and p.facet_firing_max < ${chosen.max}`
 			);
 		}
 	}
@@ -223,7 +223,7 @@ async function countryFacet(filters: Filters) {
 	`;
 }
 
-export async function facets(filters: Filters) {
+async function uncachedFacets(filters: Filters) {
 	const [family, brand, series, colour, surface, supplier, application, form, firing, country] =
 		await Promise.all([
 		facet(filters, 'family', sql`p.family`),
@@ -256,8 +256,8 @@ export async function facets(filters: Filters) {
 			order by c.products desc
 			limit 30
 		`,
-		facet(filters, 'colour', sql`p.attributes->'colour'->>'name'`, 40),
-		facet(filters, 'surface', sql`p.attributes->>'surface'`),
+		facet(filters, 'colour', sql`p.facet_colour`, 40),
+		facet(filters, 'surface', sql`p.facet_surface`),
 		supplierFacet(filters),
 		// How the glaze is put on the pot. Published as an array, so a product
 		// that can be brushed and dipped counts under both.
@@ -265,26 +265,25 @@ export async function facets(filters: Filters) {
 			select method as value, method as label, count(*)::int as products
 			from catalogue.source_products p
 			cross join lateral jsonb_array_elements_text(
-				case when jsonb_typeof(p.attributes->'application_methods') = 'array'
-				     then p.attributes->'application_methods' else '[]'::jsonb end
+				coalesce(p.facet_application_methods, '[]'::jsonb)
 			) as method
 			where ${conditions(filters, 'application')}
 			group by 1
 			order by 3 desc
 			limit 12
 		`,
-		facet(filters, 'form', sql`p.attributes->>'form'`, 8),
+		facet(filters, 'form', sql`p.facet_form`, 8),
 		sql<Facet[]>`
 			select case
-				when (p.attributes->'firing'->>'max_celsius')::numeric < 1100 then 'low'
-				when (p.attributes->'firing'->>'max_celsius')::numeric < 1240 then 'mid'
+				when p.facet_firing_max < 1100 then 'low'
+				when p.facet_firing_max < 1240 then 'mid'
 				else 'high'
 			end as value,
 			'' as label,
 			count(*)::int as products
 			from catalogue.source_products p
 			where ${conditions(filters, 'firing')}
-			  and p.attributes->'firing'->>'max_celsius' is not null
+			  and p.facet_firing_max is not null
 			group by 1
 		`,
 		countryFacet(filters)
@@ -312,6 +311,18 @@ export async function facets(filters: Filters) {
 	};
 }
 
+function unfiltered(filters: Filters) {
+	return Object.values(filters).every((value) =>
+		Array.isArray(value) ? value.length === 0 : value === null || value === ''
+	);
+}
+
+export async function facets(filters: Filters) {
+	return unfiltered(filters)
+		? stable('explore:facets:unfiltered', () => uncachedFacets(filters))
+		: uncachedFacets(filters);
+}
+
 
 /**
  * The expression each sortable column orders by. Typed as a total map of
@@ -327,18 +338,17 @@ const SORTS: Record<SortKey, ReturnType<typeof sql>> = {
 	country: sql`(select metadata->>'country' from catalogue.sources where id = p.source_id)`,
 	brand: sql`p.brand`,
 	family: sql`p.family`,
-	colour: sql`p.attributes->'colour'->>'name'`,
-	surface: sql`p.attributes->>'surface'`,
-	firing: sql`(p.attributes->'firing'->>'max_celsius')::numeric`,
+	colour: sql`p.facet_colour`,
+	surface: sql`p.facet_surface`,
+	firing: sql`p.facet_firing_max`,
 	// The published array as text, so the order the cell shows is the order it
 	// sorts by: everything brushable together, then dipping, then pouring.
-	application: sql`p.attributes->>'application_methods'`,
+	application: sql`p.facet_application_methods::text`,
 	// Volumes and masses on one scale. Glazes and slips are close enough to
 	// water that a millilitre and a gram rank a container the same way, which is
 	// what this sort is for - putting the small pots before the buckets.
-	size: sql`coalesce((p.attributes->'package_size'->>'millilitres')::numeric,
-	                   (p.attributes->'package_size'->>'grams')::numeric)`,
-	form: sql`p.attributes->>'form'`,
+	size: sql`p.facet_package_size`,
+	form: sql`p.facet_form`,
 	price: sql`price_eur`,
 	unit_price: sql`unit_price_eur`
 };

@@ -77,6 +77,14 @@ def build_parser() -> argparse.ArgumentParser:
                              "(0 = never stale). The default is under a day on purpose: a daily "
                              "price run with a week-long max age replays yesterday's pages and "
                              "reports success while changing no prices")
+    parser.add_argument(
+        "--stale-on-error", action="store_true",
+        help="reuse an expired cached GET only after transient live-fetch failure",
+    )
+    parser.add_argument(
+        "--refresh-mode", choices=("price", "full"), default="full",
+        help="price keeps API identity/offer fields; full also refreshes enrichment",
+    )
     parser.add_argument("--log-level", choices=("DEBUG", "INFO", "WARNING", "ERROR"), default="INFO")
     parser.add_argument("--log-json", action="store_true",
                         help="one JSON object per line even on a terminal")

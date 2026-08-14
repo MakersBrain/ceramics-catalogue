@@ -32,6 +32,7 @@ VatStatus = Literal["inclusive", "exclusive", "unknown"]
 
 #: Whether a source is crawled for ceramic materials only, or in full.
 Scope = Literal["materials", "all"]
+ProxyPolicy = Literal["never", "fallback", "always"]
 
 
 class SourceConfig(BaseModel):
@@ -74,6 +75,14 @@ class SourceConfig(BaseModel):
     #: the run's default. There was no per-source deadline at all before: a slow
     #: origin held its slot for ever, and the 03:00 run was still going at 09:00.
     timeout_seconds: float | None = Field(default=None, gt=0)
+    #: Residential transport is an operator-owned compatibility exception.
+    #: A profile is a logical name resolved from a mounted secret, never a URL.
+    proxy_policy: ProxyPolicy = "never"
+    proxy_profile: str | None = Field(default=None, pattern=r"^[a-z0-9][a-z0-9_-]{0,63}$")
+    proxy_country: str | None = Field(default=None, pattern=r"^[A-Z]{2}$")
+    proxy_session_minutes: int = Field(default=30, ge=1, le=1440)
+    proxy_max_megabytes: int = Field(default=25, ge=1, le=300)
+    proxy_pilot: bool = False
 
     # -- discovery --------------------------------------------------------
     sitemaps: list[str] | None = None
@@ -143,6 +152,12 @@ class SourceConfig(BaseModel):
             )
         return self
 
+    @model_validator(mode="after")
+    def _proxy_policy_is_safe(self) -> SourceConfig:
+        if self.proxy_policy != "never" and not self.proxy_profile:
+            raise ValueError("proxy policy requires a logical proxy_profile")
+        return self
+
     def as_scraper_config(self) -> dict[str, Any]:
         """The plain dict the scrapers still read.
 
@@ -166,7 +181,17 @@ class SourceConfig(BaseModel):
         every `config.get(key, default)` in the scrapers to confirm no reader
         defaults them to anything but the same falsy value.
         """
-        return self.model_dump(exclude_none=True)
+        return self.model_dump(
+            exclude_none=True,
+            exclude={
+                "proxy_policy",
+                "proxy_profile",
+                "proxy_country",
+                "proxy_session_minutes",
+                "proxy_max_megabytes",
+                "proxy_pilot",
+            },
+        )
 
 
 class SourcesFile(RootModel[dict[str, SourceConfig]]):

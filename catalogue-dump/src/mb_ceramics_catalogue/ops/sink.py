@@ -48,9 +48,18 @@ IN_FLIGHT_LIMIT = 10
 UPSERT_PROGRESS = """
 insert into catalogue.job_progress
        (job_id, updated_at, phase, discovered, records, requests,
-        rendered_pages, error_count, truncated, in_flight)
+        rendered_pages, error_count, truncated, in_flight,
+        http_tx_bytes_estimated, http_rx_bytes_estimated,
+        browser_tx_bytes_estimated, browser_rx_bytes_estimated, cache_bytes_read,
+        direct_requests, impersonated_requests, browser_requests, proxy_requests,
+        proxy_bytes_reserved, proxy_bytes_estimated,
+        browser_gain, browser_zero_gain, outcome_counts)
 values (%(job_id)s, now(), %(phase)s, %(discovered)s, %(records)s, %(requests)s,
-        %(rendered)s, %(errors)s, %(truncated)s, %(in_flight)s)
+        %(rendered)s, %(errors)s, %(truncated)s, %(in_flight)s,
+        %(http_tx)s, %(http_rx)s, %(browser_tx)s, %(browser_rx)s, %(cache_bytes)s,
+        %(direct)s, %(impersonated)s, %(browser_requests)s, %(proxy_requests)s,
+        %(proxy_reserved)s, %(proxy_estimated)s,
+        %(browser_gain)s, %(browser_zero_gain)s, %(outcomes)s)
 on conflict (job_id) do update
    set updated_at = now(),
        phase = excluded.phase,
@@ -60,7 +69,21 @@ on conflict (job_id) do update
        rendered_pages = excluded.rendered_pages,
        error_count = excluded.error_count,
        truncated = excluded.truncated,
-       in_flight = excluded.in_flight
+       in_flight = excluded.in_flight,
+       http_tx_bytes_estimated = excluded.http_tx_bytes_estimated,
+       http_rx_bytes_estimated = excluded.http_rx_bytes_estimated,
+       browser_tx_bytes_estimated = excluded.browser_tx_bytes_estimated,
+       browser_rx_bytes_estimated = excluded.browser_rx_bytes_estimated,
+       cache_bytes_read = excluded.cache_bytes_read,
+       direct_requests = excluded.direct_requests,
+       impersonated_requests = excluded.impersonated_requests,
+       browser_requests = excluded.browser_requests,
+       proxy_requests = excluded.proxy_requests,
+       proxy_bytes_reserved = excluded.proxy_bytes_reserved,
+       proxy_bytes_estimated = excluded.proxy_bytes_estimated,
+       browser_gain = excluded.browser_gain,
+       browser_zero_gain = excluded.browser_zero_gain,
+       outcome_counts = excluded.outcome_counts
 """
 
 
@@ -132,6 +155,18 @@ class PostgresSink:
             errors=summary.get("error_count", 0),
             truncated=bool(summary.get("truncated")),
             in_flight=[],
+            http_tx=summary.get("http_tx_bytes_estimated", 0),
+            http_rx=summary.get("http_rx_bytes_estimated", 0),
+            browser_tx=summary.get("browser_tx_bytes_estimated", 0),
+            browser_rx=summary.get("browser_rx_bytes_estimated", 0),
+            cache_bytes=summary.get("cache_bytes_read", 0),
+            direct=summary.get("direct_requests", 0),
+            impersonated=summary.get("impersonated_requests", 0),
+            browser_requests=summary.get("browser_requests", 0),
+            proxy_requests=summary.get("proxy_requests", 0),
+            browser_gain=summary.get("browser_gain", 0),
+            browser_zero_gain=summary.get("browser_zero_gain", 0),
+            outcomes=summary.get("outcome_counts", {}),
         )
         await events.log(
             self.connection,
@@ -167,6 +202,20 @@ class PostgresSink:
             errors=len(getattr(result, "errors", [])),
             truncated=bool(getattr(result, "truncated", False)),
             in_flight=self._in_flight(source),
+            http_tx=getattr(result, "http_tx_bytes_estimated", 0),
+            http_rx=getattr(result, "http_rx_bytes_estimated", 0),
+            browser_tx=getattr(result, "browser_tx_bytes_estimated", 0),
+            browser_rx=getattr(result, "browser_rx_bytes_estimated", 0),
+            cache_bytes=getattr(result, "cache_bytes_read", 0),
+            direct=getattr(result, "direct_requests", 0),
+            impersonated=getattr(result, "impersonated_requests", 0),
+            browser_requests=getattr(result, "browser_requests", 0),
+            proxy_requests=getattr(result, "proxy_requests", 0),
+            proxy_reserved=getattr(result, "proxy_bytes_reserved", 0),
+            proxy_estimated=getattr(result, "proxy_bytes_estimated", 0),
+            browser_gain=getattr(result, "browser_gain", 0),
+            browser_zero_gain=getattr(result, "browser_zero_gain", 0),
+            outcomes=getattr(result, "outcome_counts", {}),
         )
 
     @staticmethod
@@ -186,6 +235,7 @@ class PostgresSink:
     async def _upsert(self, job_id: UUID, **values: Any) -> None:
         parameters = {"job_id": job_id, **values}
         parameters["in_flight"] = Jsonb(values.get("in_flight") or [])
+        parameters["outcomes"] = Jsonb(values.get("outcomes") or {})
         try:
             async with self.connection.cursor() as cursor:
                 await cursor.execute(UPSERT_PROGRESS, parameters)

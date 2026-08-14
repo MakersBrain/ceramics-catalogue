@@ -126,24 +126,46 @@ def schema_directory() -> Any:
 SCHEMA_FILES = (
     "catalogue-reference-schema.sql",
     "catalogue-reference-schema-v2.sql",
+    "catalogue-reference-schema-v3.sql",
+    "catalogue-reference-schema-v4.sql",
     "catalogue-ops-schema.sql",
     "catalogue-canonical-promotion.sql",
 )
 
 
 async def apply_schema(connection: psycopg.AsyncConnection[dict[str, Any]]) -> list[str]:
-    """Apply every schema file in dependency order, and say which ran.
-
-    Every file is written to be re-runnable (`create table if not exists`,
-    `add column if not exists`), so this is safe against a database that already
-    has some of them — which is the normal case, since the reference schema is
-    applied by initdb and the ops schema arrived later.
-    """
+    """Apply each unrecorded schema file, adopting a legacy initdb baseline."""
     directory = schema_directory()
-    applied = []
+    await connection.execute("create schema if not exists catalogue")
+    await connection.execute(
+        """create table if not exists catalogue.schema_migrations (
+             filename text primary key,
+             applied_at timestamptz not null default now()
+           )"""
+    )
+    recorded = await fetch_all(connection, "select filename from catalogue.schema_migrations")
+    done = {row["filename"] for row in recorded}
+    baseline = SCHEMA_FILES[0]
+    if baseline not in done:
+        existing = await fetch_one(
+            connection, "select to_regclass('catalogue.sources') is not null as present"
+        )
+        if existing and existing["present"]:
+            await connection.execute(
+                "insert into catalogue.schema_migrations(filename) values (%s)", (baseline,)
+            )
+            done.add(baseline)
+            LOGGER.info("schema.adopted", file=baseline)
+
+    applied: list[str] = []
     for name in SCHEMA_FILES:
+        if name in done:
+            continue
         path = directory / name
         await connection.execute(path.read_text(encoding="utf-8"))
+        await connection.execute(
+            "insert into catalogue.schema_migrations(filename) values (%s)", (name,)
+        )
         applied.append(name)
         LOGGER.info("schema.applied", file=name)
     return applied

@@ -27,18 +27,44 @@ away. So:
 from __future__ import annotations
 
 import logging
+import re
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
 
 import structlog
+from structlog.typing import EventDict
 
 #: The handler the process writes its own logs through. Kept so `quieten()` can
 #: find it without going through the root logger's list, which anything may add
 #: to.
 _console: logging.Handler | None = None
 _configured = False
+_secrets: set[str] = set()
+_userinfo = re.compile(r"(?P<scheme>https?://)[^/@\s]+@", re.IGNORECASE)
+
+
+def register_secrets(values: set[str]) -> None:
+    """Add runtime credentials to the process-wide structured-log scrubber."""
+    _secrets.update(value for value in values if value)
+
+
+def _scrub(value: Any) -> Any:
+    if isinstance(value, str):
+        cleaned = _userinfo.sub(r"\g<scheme>[REDACTED]@", value)
+        for secret in _secrets:
+            cleaned = cleaned.replace(secret, "[REDACTED]")
+        return cleaned
+    if isinstance(value, dict):
+        return {key: _scrub(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_scrub(item) for item in value]
+    return value
+
+
+def _redact_event(_: Any, __: str, event: EventDict) -> EventDict:
+    return {key: _scrub(value) for key, value in event.items()}
 
 
 def configure(level: str = "INFO", *, json: bool | None = None, stream: Any = None) -> None:
@@ -61,6 +87,7 @@ def configure(level: str = "INFO", *, json: bool | None = None, stream: Any = No
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         structlog.processors.StackInfoRenderer(),
         structlog.processors.UnicodeDecoder(),
+        _redact_event,
     ]
     renderer: Any = (
         structlog.processors.JSONRenderer()
@@ -72,6 +99,7 @@ def configure(level: str = "INFO", *, json: bool | None = None, stream: Any = No
         processors=[
             *shared,
             structlog.processors.format_exc_info,
+            _redact_event,
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
         logger_factory=structlog.stdlib.LoggerFactory(),
@@ -87,6 +115,7 @@ def configure(level: str = "INFO", *, json: bool | None = None, stream: Any = No
         foreign_pre_chain=shared,
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            _redact_event,
             renderer,
         ],
     )

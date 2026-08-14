@@ -43,13 +43,13 @@ FROM base AS worker
 # and only succeeds on the browser one, which is the expensive way to fetch a
 # page that a handshake alone would have opened.
 RUN pip install --no-cache-dir ".[postgres,otel,impersonate]" && rm -rf /root/.cache
-USER catalogue
+COPY docker/worker/entrypoint.py /usr/local/bin/catalogue-worker-entrypoint.py
 WORKDIR /var/lib/catalogue
 # SIGTERM is handled as a drain: it finishes the current source, requeues
 # anything unfinished and marks the worker stopped. Give it room to do that
 # rather than the default ten seconds.
 STOPSIGNAL SIGTERM
-ENTRYPOINT ["catalogue-worker"]
+ENTRYPOINT ["python3", "/usr/local/bin/catalogue-worker-entrypoint.py"]
 
 
 FROM base AS worker-browser
@@ -111,5 +111,7 @@ async def main() -> None:
 asyncio.run(main())
 SMOKE
 
+COPY docker/worker/entrypoint.py /usr/local/bin/catalogue-worker-entrypoint.py
+USER root
 STOPSIGNAL SIGTERM
-ENTRYPOINT ["catalogue-worker", "--capabilities", "browser"]
+ENTRYPOINT ["python3", "/usr/local/bin/catalogue-worker-entrypoint.py", "--capabilities", "browser"]

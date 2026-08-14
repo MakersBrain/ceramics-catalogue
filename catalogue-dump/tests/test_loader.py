@@ -13,6 +13,7 @@ stocking anything, so it is worth testing at the level where it really happens.
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import psycopg
@@ -49,6 +50,13 @@ def record(external: str, name: str, price: float = 12.5) -> dict:
     }
 
 
+def at(row: dict, stamp: str, *, price: float | None = None) -> dict:
+    changed = {**row, "fetched_at": stamp}
+    if price is not None:
+        changed["price"] = price
+    return changed
+
+
 @pytest.fixture
 def sync_db(db):
     """A synchronous connection to the schema the async `db` fixture built.
@@ -70,6 +78,118 @@ def active_products(connection) -> dict[str, bool]:
 
 
 class TestLoadSource:
+    def test_concurrent_first_observation_creates_one_raw_and_offer_row(self, sync_db):
+        postgres.ensure_staging(sync_db)
+        dsn = postgres_dsn()
+        assert dsn
+        first = record("same", "Concurrent blue", 10)
+
+        def load_once():
+            with psycopg.connect(dsn, row_factory=dict_row, autocommit=True) as connection:
+                postgres.ensure_staging(connection)
+                return postgres.load_source(connection, "ceradel", [first], whole=False)
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            reports = list(executor.map(lambda _index: load_once(), range(2)))
+        assert all(report.ok for report in reports)
+        with sync_db.cursor() as cursor:
+            cursor.execute("select count(*) n from catalogue.raw_records")
+            assert cursor.fetchone()["n"] == 1
+            cursor.execute("select count(*) n from catalogue.offer_observations")
+            assert cursor.fetchone()["n"] == 1
+
+    def test_unchanged_records_extend_intervals_without_new_rows(self, sync_db):
+        postgres.ensure_staging(sync_db)
+        first = record("1", "Blue")
+        postgres.load_source(sync_db, "ceradel", [first], whole=True)
+        postgres.load_source(
+            sync_db, "ceradel", [at(first, "2026-08-09T00:00:00Z")], whole=True
+        )
+
+        with sync_db.cursor() as cursor:
+            cursor.execute(
+                "select count(*) n, min(first_seen_at) first_seen, max(last_seen_at) last_seen "
+                "from catalogue.raw_records"
+            )
+            raw = cursor.fetchone()
+            cursor.execute(
+                "select count(*) n, min(observed_at) observed, max(last_seen_at) last_seen "
+                "from catalogue.offer_observations"
+            )
+            offer = cursor.fetchone()
+        assert raw["n"] == 1
+        assert str(raw["first_seen"]).startswith("2026-08-08")
+        assert str(raw["last_seen"]).startswith("2026-08-09")
+        assert offer["n"] == 1
+        assert str(offer["observed"]).startswith("2026-08-08")
+        assert str(offer["last_seen"]).startswith("2026-08-09")
+
+    def test_offer_history_preserves_a_to_b_to_a(self, sync_db):
+        postgres.ensure_staging(sync_db)
+        first = record("1", "Blue", 10)
+        for row in (
+            first,
+            at(first, "2026-08-09T00:00:00Z", price=12),
+            at(first, "2026-08-10T00:00:00Z", price=10),
+        ):
+            postgres.load_source(sync_db, "ceradel", [row], whole=True)
+
+        with sync_db.cursor() as cursor:
+            cursor.execute(
+                "select price::float8 price from catalogue.offer_observations order by observed_at"
+            )
+            assert [row["price"] for row in cursor.fetchall()] == [10, 12, 10]
+
+    def test_older_different_state_is_quarantined_and_does_not_regress_current(self, sync_db):
+        postgres.ensure_staging(sync_db)
+        current = at(record("1", "Blue", 12), "2026-08-10T00:00:00Z")
+        current["availability"] = "in_stock"
+        older = at(current, "2026-08-09T00:00:00Z", price=10)
+        older["name"] = "Stale name"
+        older["availability"] = "out_of_stock"
+        postgres.load_source(sync_db, "ceradel", [current], whole=True)
+        postgres.load_source(sync_db, "ceradel", [older], whole=True)
+
+        with sync_db.cursor() as cursor:
+            cursor.execute("select price::float8 price, last_seen_at from catalogue.latest_offers")
+            latest = cursor.fetchone()
+            cursor.execute("select count(*) n from catalogue.out_of_order_observations")
+            quarantined = cursor.fetchone()["n"]
+            cursor.execute("select name, availability from catalogue.source_products")
+            product = cursor.fetchone()
+        assert latest["price"] == 12
+        assert str(latest["last_seen_at"]).startswith("2026-08-10")
+        assert quarantined == 1
+        assert product == {"name": "Blue", "availability": "in_stock"}
+
+    def test_price_refresh_does_not_erase_weekly_enrichment(self, sync_db):
+        postgres.ensure_staging(sync_db)
+        full = {
+            **record("1", "Blue", 10),
+            "collection_mode": "full",
+            "description": "A carefully documented glaze",
+            "image_url": "https://ceradel.fr/blue.jpg",
+            "firing": {"min_celsius": 1180, "max_celsius": 1240, "evidence": "1180-1240 C"},
+            "colour": {"name": "Blue"},
+        }
+        price = at(full, "2026-08-09T00:00:00Z", price=11)
+        price["collection_mode"] = "price"
+        for key in ("description", "image_url", "firing", "colour"):
+            price.pop(key, None)
+        postgres.load_source(sync_db, "ceradel", [full], whole=True)
+        postgres.load_source(sync_db, "ceradel", [price], whole=True)
+
+        with sync_db.cursor() as cursor:
+            cursor.execute(
+                "select description, image_url, firing_range, attributes->'colour' colour "
+                "from catalogue.source_products"
+            )
+            product = cursor.fetchone()
+        assert product["description"] == "A carefully documented glaze"
+        assert product["image_url"] == "https://ceradel.fr/blue.jpg"
+        assert product["firing_range"] == "1180-1240 C"
+        assert product["colour"] == {"name": "Blue"}
+
     def test_records_become_source_products(self, sync_db):
         postgres.ensure_staging(sync_db)
         report = postgres.load_source(

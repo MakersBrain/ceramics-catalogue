@@ -359,6 +359,20 @@
             "default": null,
             "title": "Currency"
           },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The most recent collection that confirmed this unchanged offer state.",
+            "title": "Last Seen At"
+          },
           "observed_at": {
             "anyOf": [
               {

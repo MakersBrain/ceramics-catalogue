@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 from typing import Any
@@ -61,3 +62,11 @@ def test_read_artifact_checks_root_checksum_and_duplicate_ids(tmp_path) -> None:
     )
     with pytest.raises(ArtifactError, match="duplicate"):
         read_artifact(tmp_path, "source.ndjson", None)
+
+
+def test_read_artifact_accepts_gzip_and_hashes_stored_bytes(tmp_path) -> None:
+    artifact = tmp_path / "source.ndjson.gz"
+    body = gzip.compress(b'{"external_id":"one","name":"One"}\n', mtime=0)
+    artifact.write_bytes(body)
+    rows = read_artifact(tmp_path, artifact.name, hashlib.sha256(body).hexdigest())
+    assert rows["one"]["name"] == "One"

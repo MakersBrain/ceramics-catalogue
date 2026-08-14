@@ -15,10 +15,13 @@ from collections import defaultdict
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin, urlparse
 
 import httpx
+
+if TYPE_CHECKING:
+    from mb_ceramics_catalogue.proxy import ProxyLease
 
 from . import domain
 from . import record as record_module
@@ -439,8 +442,9 @@ class ImpersonatingClient:
     #: confused for one another.
     REQUEST_TIMEOUT = 30.0
 
-    def __init__(self, enabled: bool = True) -> None:
+    def __init__(self, enabled: bool = True, proxy_url: str | None = None) -> None:
         self.enabled = enabled
+        self.proxy_url = proxy_url
         self._unavailable: str | None = None
 
     @property
@@ -470,7 +474,7 @@ class ImpersonatingClient:
         requests = self._session()
         response = requests.request(
             method, url, params=params, headers=headers, json=json_body,
-            impersonate=self.PROFILE, timeout=timeout,
+            impersonate=self.PROFILE, timeout=timeout, proxy=self.proxy_url,
         )
         return response.status_code, response.content, dict(response.headers), str(response.url)
 
@@ -519,8 +523,11 @@ class BrowserRenderer:
     everywhere and hid the cost of the extra instances.
     """
 
-    def __init__(self, enabled: bool, pages: int = 1) -> None:
+    def __init__(
+        self, enabled: bool, pages: int = 1, proxy_lease: ProxyLease | None = None,
+    ) -> None:
         self.enabled = enabled
+        self.proxy_lease = proxy_lease
         self.manager: Any = None
         self.browser: Any = None
         #: Held only while the browser is starting, never across a page load.
@@ -541,7 +548,12 @@ class BrowserRenderer:
                 ) from error
             # Camoufox warns that blocking images is itself a WAF signal, so
             # images are loaded normally even though the dump never reads them.
-            self.manager = AsyncCamoufox(headless=True, block_images=False, humanize=False)
+            self.manager = AsyncCamoufox(
+                headless=True,
+                block_images=self.proxy_lease is not None,
+                humanize=False,
+                proxy=self.proxy_lease.browser_proxy if self.proxy_lease else None,
+            )
             try:
                 self.browser = await self.manager.__aenter__()
             except Exception as error:  # pragma: no cover - environment dependent
@@ -552,6 +564,34 @@ class BrowserRenderer:
                 self.manager = None
                 raise BrowserUnavailable(f"camoufox could not start: {error}") from error
         return self.browser
+
+    async def _meter_page(self, page: Any) -> None:
+        """Block paid browser noise and meter every allowed subrequest."""
+        if self.proxy_lease is None:
+            return
+        blocked = {"image", "media", "font"}
+        blocked_hosts = ("google-analytics.com", "googletagmanager.com", "doubleclick.net")
+
+        async def route_request(route: Any, request: Any) -> None:
+            if request.resource_type in blocked or any(host in request.url for host in blocked_hosts):
+                await route.abort()
+                return
+            self.proxy_lease.ensure_request_allowed()
+            self.proxy_lease.account(
+                len(request.method.encode()) + len(request.url.encode()) + 64, 0, 1
+            )
+            await route.continue_()
+
+        def response_received(response: Any) -> None:
+            headers = response.headers
+            try:
+                length = int(headers.get("content-length", "0"))
+            except (TypeError, ValueError):
+                length = 0
+            self.proxy_lease.account(0, length, 0)
+
+        await page.route("**/*", route_request)
+        page.on("response", response_received)
 
     async def _started(self) -> Any:
         """Start the browser if it is not running, once however many ask at once."""
@@ -586,6 +626,7 @@ class BrowserRenderer:
             page = self._pages.get(origin)
             if page is None or page.is_closed():
                 page = await self.browser.new_page()
+                await self._meter_page(page)
                 await page.goto(page_url, wait_until="domcontentloaded", timeout=45_000)
                 self._pages[origin] = page
             result = await page.evaluate(
@@ -616,6 +657,7 @@ class BrowserRenderer:
             await self._started()
             page = await self.browser.new_page()
             try:
+                await self._meter_page(page)
                 await page.goto(url, wait_until="domcontentloaded", timeout=45_000)
                 if wait_for:
                     try:
@@ -639,6 +681,7 @@ class BrowserRenderer:
             await self._started()
             page = await self.browser.new_page()
             try:
+                await self._meter_page(page)
                 await page.goto(url, wait_until="domcontentloaded", timeout=45_000)
                 if wait_for:
                     try:
@@ -657,6 +700,60 @@ class BrowserRenderer:
             self.manager = self.browser = None
 
 
+def _headers_size(headers: Any) -> int:
+    return sum(len(str(name).encode()) + len(str(value).encode()) + 4 for name, value in headers.items())
+
+
+def _request_size(method: str, target: str, headers: dict[str, str], body: Any) -> int:
+    encoded_body = json_lib.dumps(body, default=str).encode() if body is not None else b""
+    return len(method.encode()) + len(target.encode()) + _headers_size(headers) + len(encoded_body) + 16
+
+
+def _outcome(status: int) -> str:
+    if status == 403:
+        return "403"
+    if status == 429:
+        return "429"
+    return f"{status // 100}xx"
+
+
+@dataclass
+class TransportStats:
+    http_tx_bytes_estimated: int = 0
+    http_rx_bytes_estimated: int = 0
+    browser_tx_bytes_estimated: int = 0
+    browser_rx_bytes_estimated: int = 0
+    direct_requests: int = 0
+    impersonated_requests: int = 0
+    browser_requests: int = 0
+    proxy_requests: int = 0
+    not_modified: int = 0
+    bytes_saved_304: int = 0
+    outcomes: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+
+    def merge(self, other: TransportStats) -> None:
+        for name in (
+            "http_tx_bytes_estimated", "http_rx_bytes_estimated",
+            "browser_tx_bytes_estimated", "browser_rx_bytes_estimated",
+            "direct_requests", "impersonated_requests", "browser_requests", "proxy_requests",
+            "not_modified", "bytes_saved_304",
+        ):
+            setattr(self, name, getattr(self, name) + getattr(other, name))
+        for outcome, count in other.outcomes.items():
+            self.outcomes[outcome] += count
+
+    def copy_to(self, result: Any) -> None:
+        for name in (
+            "http_tx_bytes_estimated", "http_rx_bytes_estimated",
+            "browser_tx_bytes_estimated", "browser_rx_bytes_estimated",
+            "direct_requests", "impersonated_requests", "browser_requests", "proxy_requests",
+        ):
+            setattr(result, name, getattr(self, name))
+        result.outcome_counts = dict(self.outcomes)
+        result.outcome_counts["304_reused"] = self.not_modified
+        result.outcome_counts["bytes_saved_304"] = self.bytes_saved_304
+
+
 class Fetcher:
     """Polite HTTP access with robots handling, retries and a browser fallback."""
 
@@ -670,6 +767,9 @@ class Fetcher:
         impersonate_policy: str = "auto",
         impersonator: ImpersonatingClient | None = None,
         robots_policy: str = "ignore",
+        stale_on_error: bool = False,
+        proxy_lease: ProxyLease | None = None,
+        proxy_fallback: Fetcher | None = None,
     ) -> None:
         self.client = client
         self.limiter = limiter
@@ -677,11 +777,17 @@ class Fetcher:
         self.browser_policy = browser_policy
         self.impersonate_policy = impersonate_policy
         self.robots_policy = robots_policy
-        self.impersonator = impersonator or ImpersonatingClient(impersonate_policy != "never")
+        self.proxy_lease = proxy_lease
+        self.proxy_fallback = proxy_fallback
+        self.impersonator = impersonator or ImpersonatingClient(
+            impersonate_policy != "never", proxy_lease.url if proxy_lease else None
+        )
         self.cache = cache or ResponseCache(".", mode="off")
+        self.stale_on_error = stale_on_error
         self._robots: dict[str, urllib.robotparser.RobotFileParser] = {}
         self._sitemaps: dict[str, list[str]] = {}
         self._robots_lock: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        self.stats = TransportStats()
 
     async def robots(self, url: str) -> tuple[urllib.robotparser.RobotFileParser, list[str]]:
         origin = f"{urlparse(url).scheme}://{urlparse(url).netloc}"
@@ -707,8 +813,20 @@ class Fetcher:
         response: httpx.Response | None = None
         for browser_agent in (False, True):
             try:
+                if self.proxy_lease:
+                    self.proxy_lease.ensure_request_allowed()
                 headers = {"user-agent": BROWSER_USER_AGENT} if browser_agent else None
                 response = await self.client.get(url, timeout=15, headers=headers)
+                tx = _request_size("GET", url, headers or {}, None)
+                rx = len(response.content) + _headers_size(response.headers)
+                self.stats.http_tx_bytes_estimated += tx
+                self.stats.http_rx_bytes_estimated += rx
+                self.stats.outcomes[_outcome(response.status_code)] += 1
+                if self.proxy_lease:
+                    self.proxy_lease.account(tx, rx)
+                    self.stats.proxy_requests += 1
+                else:
+                    self.stats.direct_requests += 1
             except (httpx.HTTPError, UnicodeError) as error:
                 LOGGER.warning("robots.txt unreachable at %s (%s); proceeding unrestricted", origin, error)
                 parser.allow_all = True
@@ -782,8 +900,12 @@ class Fetcher:
         browser_user_agent: bool = False,
         params: dict[str, Any] | None = None,
         accept: str | None = None,
+        allow_proxy_fallback: bool = True,
     ) -> str:
-        response = await self.response(url, browser_user_agent=browser_user_agent, params=params, accept=accept)
+        response = await self.response(
+            url, browser_user_agent=browser_user_agent, params=params, accept=accept,
+            allow_proxy_fallback=allow_proxy_fallback,
+        )
         return response.text
 
     async def json(
@@ -811,6 +933,7 @@ class Fetcher:
         method: str = "GET",
         json_body: Any = None,
         headers: dict[str, str] | None = None,
+        allow_proxy_fallback: bool = True,
     ) -> httpx.Response:
         request_headers: dict[str, str] = dict(headers or {})
         if browser_user_agent:
@@ -835,8 +958,17 @@ class Fetcher:
         if self.cache.mode == "replay":
             raise NotCached(f"{method} {url} is not in the cache")
 
+        stale = self.cache.stale_read(key, url)
+        if stale:
+            if etag := stale.headers.get("etag"):
+                request_headers.setdefault("if-none-match", etag)
+            if modified := stale.headers.get("last-modified"):
+                request_headers.setdefault("if-modified-since", modified)
+
         response: httpx.Response | None = None
         for attempt in range(4):
+            if self.proxy_lease:
+                self.proxy_lease.ensure_request_allowed()
             async with self.limiter.gate(url):
                 await self.limiter.wait(url)
                 ACTIVITY.started(target)
@@ -845,6 +977,20 @@ class Fetcher:
                         method, url, params=params, json=json_body, headers=request_headers or None,
                     )
                     ACTIVITY.finished(target, str(response.status_code))
+                    if self.proxy_lease is None:
+                        self.stats.direct_requests += 1
+                    self.stats.http_tx_bytes_estimated += _request_size(
+                        method, target, request_headers, json_body
+                    )
+                    self.stats.http_rx_bytes_estimated += len(response.content) + _headers_size(
+                        response.headers
+                    )
+                    self.stats.outcomes[_outcome(response.status_code)] += 1
+                    if self.proxy_lease:
+                        tx = _request_size(method, target, request_headers, json_body)
+                        rx = len(response.content) + _headers_size(response.headers)
+                        self.proxy_lease.account(tx, rx)
+                        self.stats.proxy_requests += 1
                 except (httpx.HTTPError, UnicodeError) as error:
                     ACTIVITY.finished(target, type(error).__name__)
                     # A refused or timed-out request is the host telling us the
@@ -853,7 +999,16 @@ class Fetcher:
                     # page is asked for again once the backoff has taken effect
                     # rather than dropped — going fast must not cost coverage.
                     self.limiter.record_failure(url, type(error).__name__)
+                    self.stats.outcomes["timeout" if isinstance(error, httpx.TimeoutException) else "transport_error"] += 1
                     if attempt == 3:
+                        if stale is not None and self.stale_on_error and method == "GET":
+                            self.stats.outcomes["stale_on_error"] += 1
+                            return self._stale_response(stale, method, url)
+                        if self.proxy_fallback is not None and allow_proxy_fallback:
+                            return await self.proxy_fallback.response(
+                                url, browser_user_agent=browser_user_agent, params=params,
+                                accept=accept, method=method, json_body=json_body, headers=headers,
+                            )
                         raise
                     pause = self.limiter.spacing(urlparse(url).netloc) or 1.0
                     LOGGER.warning(
@@ -890,6 +1045,32 @@ class Fetcher:
             LOGGER.warning("status=%d url=%s retry=%d pause=%.1fs", response.status_code, url, attempt + 1, pause)
             await asyncio.sleep(max(0.0, pause))
         assert response is not None
+        if response.status_code == 304 and stale is not None:
+            stale.fetched_at = time.time()
+            stale.headers.update(
+                {
+                    name: value
+                    for name, value in response.headers.items()
+                    if name.lower() in ("content-type", "content-language", "last-modified", "etag")
+                }
+            )
+            self.cache.write(key, stale)
+            self.stats.not_modified += 1
+            self.stats.bytes_saved_304 += len(stale.body.encode("utf-8"))
+            return httpx.Response(
+                stale.status,
+                content=stale.body.encode("utf-8"),
+                headers=stale.headers,
+                request=httpx.Request(method, stale.url or url),
+            )
+        if (
+            stale is not None
+            and self.stale_on_error
+            and method == "GET"
+            and (response.status_code in (408, 425, 429) or response.status_code >= 500)
+        ):
+            self.stats.outcomes["stale_on_error"] += 1
+            return self._stale_response(stale, method, url)
         if response.status_code in (401, 403, 406):
             # Three rungs, cheapest first. Several CDNs reject a declared
             # research agent but serve the same public page to an ordinary
@@ -900,18 +1081,34 @@ class Fetcher:
                 return await self.response(
                     url, browser_user_agent=True, params=params, accept=accept,
                     method=method, json_body=json_body, headers=headers,
+                    allow_proxy_fallback=allow_proxy_fallback,
                 )
             impersonated = await self._impersonate(
                 url, method=method, params=params, headers=request_headers, json_body=json_body,
             )
             if impersonated is not None:
                 response = impersonated
+            elif (
+                self.proxy_fallback is not None
+                and allow_proxy_fallback
+                and response.status_code in (403, 406)
+            ):
+                return await self.proxy_fallback.response(
+                    url, browser_user_agent=True, params=params, accept=accept,
+                    method=method, json_body=json_body, headers=headers,
+                )
         response.raise_for_status()
         if refusal := looks_like_a_block(response.text, response.headers.get("content-type", "")):
             # A refusal wearing a 200. Raised rather than returned so it travels
             # the same path as any other Blocked — recorded against the source,
             # survivable page by page — instead of being mistaken for a real
             # page that happens to contain nothing.
+            self.stats.outcomes["block_page"] += 1
+            if self.proxy_fallback is not None and allow_proxy_fallback:
+                return await self.proxy_fallback.response(
+                    url, browser_user_agent=True, params=params, accept=accept,
+                    method=method, json_body=json_body, headers=headers,
+                )
             raise Blocked(f"{url} returned a block page with status 200: {refusal!r}")
         # Only a response the site actually completed is worth replaying; a
         # retry-exhausted 5xx would otherwise be served back as if it were the
@@ -927,6 +1124,23 @@ class Fetcher:
             fetched_at=time.time(),
         ))
         return response
+
+    async def render_through_proxy(
+        self, url: str, wait_ms: int = 1500, wait_for: str | None = None,
+    ) -> str:
+        if self.proxy_fallback is None:
+            raise Blocked("no proxy fallback is configured")
+        return await self.proxy_fallback.render(url, wait_ms, wait_for)
+
+    @staticmethod
+    def _stale_response(stale: CachedResponse, method: str, url: str) -> httpx.Response:
+        return httpx.Response(
+            stale.status,
+            content=stale.body.encode("utf-8"),
+            headers=stale.headers,
+            request=httpx.Request(method, stale.url or url),
+            extensions={"catalogue_stale_on_error": True},
+        )
 
     async def _impersonate(
         self,
@@ -962,6 +1176,15 @@ class Fetcher:
                 LOGGER.debug("impersonation failed for %s (%s)", url, error)
                 return None
         ACTIVITY.finished(target, f"{response.status_code} (impersonated)")
+        self.stats.impersonated_requests += 1
+        self.stats.http_rx_bytes_estimated += len(response.content) + _headers_size(response.headers)
+        self.stats.http_tx_bytes_estimated += _request_size(method, target, headers, json_body)
+        self.stats.outcomes[_outcome(response.status_code)] += 1
+        if self.proxy_lease:
+            tx = _request_size(method, target, headers, json_body)
+            rx = len(response.content) + _headers_size(response.headers)
+            self.proxy_lease.account(tx, rx)
+            self.stats.proxy_requests += 1
         if response.status_code >= 400:
             return None
         LOGGER.info("host=%s served an impersonated handshake after refusing ours", urlparse(url).netloc)
@@ -985,6 +1208,7 @@ class Fetcher:
         if self.cache.mode == "replay":
             raise NotCached(f"render {url} is not in the cache")
         ACTIVITY.started(url)
+        proxy_requests_before = self.proxy_lease.requests if self.proxy_lease else 0
         # Through the limiter, exactly like an HTTP request. A rendered page is
         # a request to someone's shop and it was the only kind that skipped
         # this: the host's slot count, its gap, its backoff and its published
@@ -1008,6 +1232,10 @@ class Fetcher:
                 raise
             self.limiter.record_success(url)
         ACTIVITY.finished(url, "rendered")
+        self.stats.browser_requests += 1
+        if self.proxy_lease:
+            self.stats.proxy_requests += self.proxy_lease.requests - proxy_requests_before
+        self.stats.browser_rx_bytes_estimated += len(document.encode("utf-8"))
         self.cache.write(key, CachedResponse(
             status=200, url=url, body=document, headers={}, fetched_at=time.time(), kind="render",
         ))
@@ -1070,6 +1298,20 @@ class ScrapeResult:
     discovered: int = 0
     truncated: bool = False
     notes: list[str] = field(default_factory=list)
+    http_tx_bytes_estimated: int = 0
+    http_rx_bytes_estimated: int = 0
+    browser_tx_bytes_estimated: int = 0
+    browser_rx_bytes_estimated: int = 0
+    cache_bytes_read: int = 0
+    direct_requests: int = 0
+    impersonated_requests: int = 0
+    browser_requests: int = 0
+    proxy_requests: int = 0
+    proxy_bytes_reserved: int = 0
+    proxy_bytes_estimated: int = 0
+    browser_gain: int = 0
+    browser_zero_gain: int = 0
+    outcome_counts: dict[str, int] = field(default_factory=dict)
 
 
 class Scraper(ABC):
@@ -1272,6 +1514,19 @@ class Scraper(ABC):
         except (httpx.HTTPError, Blocked, OSError, UnicodeError) as error:
             self.fail(start, error)
         self.result.records = self.deduplicate(self.result.records)
+        self.fetcher.stats.copy_to(self.result)
+        if self.fetcher.proxy_fallback:
+            self.fetcher.stats.merge(self.fetcher.proxy_fallback.stats)
+            self.fetcher.stats.copy_to(self.result)
+        self.result.outcome_counts["browser_gain"] = self.result.browser_gain
+        self.result.outcome_counts["browser_zero_gain"] = self.result.browser_zero_gain
+        self.result.cache_bytes_read = self.fetcher.cache.bytes_read
+        proxy_lease = self.fetcher.proxy_lease or (
+            self.fetcher.proxy_fallback.proxy_lease if self.fetcher.proxy_fallback else None
+        )
+        if proxy_lease:
+            self.result.proxy_bytes_reserved = proxy_lease.max_bytes
+            self.result.proxy_bytes_estimated = proxy_lease.used_bytes
         return self.result
 
     @staticmethod

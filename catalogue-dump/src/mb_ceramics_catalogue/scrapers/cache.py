@@ -28,6 +28,7 @@ import gzip
 import hashlib
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -62,6 +63,7 @@ class ResponseCache:
         self.hits = 0
         self.misses = 0
         self.writes = 0
+        self.bytes_read = 0
 
     @property
     def enabled(self) -> bool:
@@ -97,7 +99,27 @@ class ResponseCache:
             self.misses += 1
             return None
         self.hits += 1
+        self.bytes_read += path.stat().st_size
+        # mtime is the portable last-access marker used by bounded eviction;
+        # filesystem atime is commonly disabled on container volumes.
+        try:
+            os.utime(path, None)
+        except OSError:  # pragma: no cover - a read-only replay cache is valid
+            pass
         return entry
+
+    def stale_read(self, key: str, url: str = "") -> CachedResponse | None:
+        """Return a stored entry regardless of mode or age, without counting a hit."""
+        if not self.enabled:
+            return None
+        path = self.path(key, url)
+        if not path.exists():
+            return None
+        try:
+            with gzip.open(path, "rt", encoding="utf-8") as handle:
+                return CachedResponse(**json.load(handle))
+        except (OSError, json.JSONDecodeError, EOFError, TypeError):
+            return None
 
     def write(self, key: str, entry: CachedResponse) -> None:
         if not self.enabled:
@@ -120,3 +142,54 @@ class ResponseCache:
         total = self.hits + self.misses
         share = (self.hits / total * 100) if total else 0.0
         return f"cache mode={self.mode} hits={self.hits} ({share:.0f}%) misses={self.misses} stored={self.writes}"
+
+
+@dataclass(frozen=True)
+class CachePruneReport:
+    files: int
+    bytes: int
+    paths: tuple[Path, ...]
+
+
+def prune(
+    directory: Path | str,
+    *,
+    max_age_seconds: float | None,
+    max_bytes: int | None,
+    dry_run: bool = True,
+    exclude: tuple[Path, ...] = (),
+    now: float | None = None,
+) -> CachePruneReport:
+    """Delete expired entries, then oldest-accessed entries above the size cap."""
+    root = Path(directory).resolve()
+    clock = time.time() if now is None else now
+    excluded = tuple(path.resolve() for path in exclude)
+
+    def protected(path: Path) -> bool:
+        resolved = path.resolve()
+        return any(resolved == item or item in resolved.parents for item in excluded)
+
+    entries = [
+        (path, path.stat().st_size, path.stat().st_mtime)
+        for path in root.rglob("*.json.gz")
+        if path.is_file() and not protected(path)
+    ] if root.exists() else []
+    chosen: set[Path] = set()
+    if max_age_seconds is not None:
+        chosen.update(path for path, _, accessed in entries if clock - accessed > max_age_seconds)
+
+    remaining = [(path, size, accessed) for path, size, accessed in entries if path not in chosen]
+    remaining_size = sum(size for _, size, _ in remaining)
+    if max_bytes is not None and remaining_size > max_bytes:
+        for path, size, _ in sorted(remaining, key=lambda row: (row[2], str(row[0]))):
+            if remaining_size <= max_bytes:
+                break
+            chosen.add(path)
+            remaining_size -= size
+
+    ordered = tuple(sorted(chosen))
+    sizes = {path: size for path, size, _ in entries}
+    if not dry_run:
+        for path in ordered:
+            path.unlink(missing_ok=True)
+    return CachePruneReport(len(ordered), sum(sizes[path] for path in ordered), ordered)

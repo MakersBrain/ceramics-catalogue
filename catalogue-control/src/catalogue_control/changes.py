@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 from pathlib import Path
@@ -37,8 +38,13 @@ def read_artifact(root: Path, recorded: str, expected_sha256: str | None) -> dic
     if expected_sha256 and digest != expected_sha256:
         raise ArtifactError("artifact checksum does not match the job record")
 
+    try:
+        decoded = gzip.decompress(body) if path.name.endswith(".gz") else body
+    except (OSError, EOFError) as error:
+        raise ArtifactError("artifact contains invalid gzip data") from error
+
     records: dict[str, dict[str, Any]] = {}
-    for number, raw_line in enumerate(body.splitlines(), 1):
+    for number, raw_line in enumerate(decoded.splitlines(), 1):
         if not raw_line.strip():
             continue
         try:

@@ -21,6 +21,25 @@ from . import record as record_module
 from .base import Blocked, BrowserUnavailable, Scraper
 
 
+def probable_javascript_shell(document: str) -> bool:
+    """Whether an otherwise valid HTML response explicitly depends on JavaScript."""
+    lower = document.casefold()
+    if "<html" not in lower and "<!doctype" not in lower:
+        return False
+    explicit = any(
+        marker in lower
+        for marker in (
+            "enable javascript", "javascript is required", "requires javascript",
+            'id="__next"', "id='__next'", 'id="root"', "id='root'",
+            'id="app"', "id='app'", "ng-version=",
+        )
+    )
+    scripts = len(re.findall(r"<script\b", lower))
+    visible = re.sub(r"<script\b[\s\S]*?</script>|<style\b[\s\S]*?</style>|<[^>]+>", " ", lower)
+    visible = " ".join(html_lib.unescape(visible).split())
+    return explicit and scripts > 0 and len(visible) < 1000
+
+
 def canonical(url: str) -> str:
     """Drop fragments and the sorting/paging noise that duplicates a page."""
     parsed = urlparse(url)
@@ -45,6 +64,12 @@ class PageScraper(Scraper):
         # sends the whole job to the browser worker on one empty page.
         self.always_render = self.config.get("render") is True
         self.never_render = self.config.get("render") is False
+        # Fallback is intentionally serial. Besides reducing paid/browser
+        # bursts, this makes the consecutive-zero circuit exact under a page
+        # crawl whose ordinary HTTP work remains concurrent.
+        self._fallback_lock = asyncio.Lock()
+        self._zero_gain_fallbacks = 0
+        self._fallback_stopped = False
 
     # -- discovery --------------------------------------------------------
 
@@ -153,10 +178,24 @@ class PageScraper(Scraper):
                 # here turns a routing decision into 77 lost pages.
                 raise
             except Exception as error:  # noqa: BLE001 - browser errors vary
+                if self.fetcher.proxy_fallback is not None:
+                    try:
+                        document = await self.fetcher.render_through_proxy(
+                            url, wait_for=self.render_wait_for
+                        )
+                        self.result.rendered_pages += 1
+                        return document
+                    except BrowserUnavailable:
+                        raise
+                    except Exception as proxy_error:  # noqa: BLE001
+                        self.fail(url, f"{error} / proxy: {proxy_error}")
+                        return None
                 self.fail(url, error)
                 return None
         try:
-            document = await self.fetcher.text(url, browser_user_agent=True)
+            document = await self.fetcher.text(
+                url, browser_user_agent=True, allow_proxy_fallback=False
+            )
             self.result.requests += 1
             return document
         except (httpx.HTTPError, Blocked, UnicodeError) as error:
@@ -170,6 +209,20 @@ class PageScraper(Scraper):
             except BrowserUnavailable:
                 raise
             except Exception as browser_error:  # noqa: BLE001
+                if self.fetcher.proxy_fallback is not None:
+                    try:
+                        document = await self.fetcher.render_through_proxy(
+                            url, wait_for=self.render_wait_for
+                        )
+                        self.result.rendered_pages += 1
+                        return document
+                    except BrowserUnavailable:
+                        raise
+                    except Exception as proxy_error:  # noqa: BLE001
+                        self.fail(
+                            url, f"{error} / browser: {browser_error} / proxy: {proxy_error}"
+                        )
+                        return None
                 self.fail(url, f"{error} / browser: {browser_error}")
                 return None
 
@@ -198,19 +251,38 @@ class PageScraper(Scraper):
                     except Exception as error:  # noqa: BLE001 - one bad page must not stop a source
                         self.fail(url, error)
                         return []
+                    if not rows:
+                        stats = getattr(self.fetcher, "stats", None)
+                        if stats is not None:
+                            stats.outcomes["parser_empty"] += 1
                     if (
                         not rows
                         and not self.always_render
                         and not self.never_render
                         and self.fetcher.browser_policy != "never"
+                        and probable_javascript_shell(document)
                     ):
-                        rendered = await self.load(url, render=True)
-                        if rendered:
-                            try:
-                                rows = await self.parse_page(rendered, url)
-                            except Exception as error:  # noqa: BLE001
-                                self.fail(url, error)
+                        async with self._fallback_lock:
+                            if self._fallback_stopped:
                                 return []
+                            rendered = await self.load(url, render=True)
+                            if rendered:
+                                try:
+                                    rows = await self.parse_page(rendered, url)
+                                except Exception as error:  # noqa: BLE001
+                                    self.fail(url, error)
+                                    return []
+                                if rows:
+                                    self.result.browser_gain += 1
+                                    self._zero_gain_fallbacks = 0
+                                else:
+                                    self.result.browser_zero_gain += 1
+                                    self._zero_gain_fallbacks += 1
+                                    if self._zero_gain_fallbacks >= 10:
+                                        self._fallback_stopped = True
+                                        self.note(
+                                            "browser_fallback_no_gain: stopped after 10 zero-gain renders"
+                                        )
                     return rows
 
         # Gathered concurrently, added in the order the pages were listed.
