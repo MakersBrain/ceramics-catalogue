@@ -104,8 +104,9 @@ class SourceConfig(BaseModel):
     enrich_product_pages: bool | None = None
     variation_page_limit: int | None = Field(default=None, ge=1)
     variant_combinations: bool | None = None
-    #: This WooCommerce shop's non-backordered add-to-cart ceiling was verified
-    #: to be its live stock, rather than a generic purchasing constraint.
+    #: This WooCommerce shop's non-backordered finite add-to-cart ceilings were
+    #: verified against its published low-stock counts. The scraper still
+    #: rejects WooCommerce's untracked-stock sentinel and cart-only limits.
     stock_from_add_to_cart_maximum: bool | None = None
 
     # -- scope filtering --------------------------------------------------

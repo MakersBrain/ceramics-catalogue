@@ -252,10 +252,10 @@ class WooCommerceScraper(Scraper):
         capped at one, and a backordered item can have a shop-defined ceiling.
 
         Some storefronts do use that value as their live inventory. This is
-        source-configured only after verification; Les Cousins is one such
-        shop, where non-backordered variants expose varied ceilings that match
-        the low-stock count whenever WooCommerce also prints one. No cart is
-        mutated to discover it.
+        source-configured only after varied ceilings have been verified against
+        the low-stock count whenever WooCommerce also prints one. ``9999`` is
+        WooCommerce's default for untracked stock and is never inventory. No
+        cart is mutated to discover any of these values.
         """
         if item.get("is_in_stock") is False:
             return 0
@@ -274,7 +274,7 @@ class WooCommerceScraper(Scraper):
             return None
         add_to_cart = item.get("add_to_cart")
         maximum = add_to_cart.get("maximum") if isinstance(add_to_cart, dict) else None
-        return maximum if isinstance(maximum, int) and maximum > 0 else None
+        return maximum if isinstance(maximum, int) and 0 < maximum < 9999 else None
 
     @staticmethod
     def _variant_title(variation: dict[str, Any]) -> str:

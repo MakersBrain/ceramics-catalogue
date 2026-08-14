@@ -96,6 +96,7 @@
     "scope": "materials",
     "country": "LT",
     "vat_status": "inclusive",
+    "stock_from_add_to_cart_maximum": true,
     "store_categories": [
       "keramikams-ir-skulptoriams"
     ]
@@ -406,14 +407,16 @@
     "url": "https://cerama.shop/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "IT"
+    "country": "IT",
+    "stock_from_add_to_cart_maximum": true
   },
   "marphil": {
     "label": "Suministros Marphil",
     "url": "https://marphil.com/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "ES"
+    "country": "ES",
+    "stock_from_add_to_cart_maximum": true
   },
   "dbi-pottery": {
     "label": "D.B.I Pottery Supplies",
@@ -427,7 +430,8 @@
     "url": "https://themakersspace.eu/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "CY"
+    "country": "CY",
+    "stock_from_add_to_cart_maximum": true
   },
   "hiclay": {
     "label": "Hi Clay",
@@ -506,7 +510,8 @@
     "url": "https://helenahodell.se/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "SE"
+    "country": "SE",
+    "stock_from_add_to_cart_maximum": true
   },
   "potterycrafts": {
     "label": "Potterycrafts",

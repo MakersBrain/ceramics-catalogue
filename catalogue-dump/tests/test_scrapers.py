@@ -85,6 +85,11 @@ class WooCommerceStockTests(unittest.TestCase):
         }
         self.assertIsNone(self.scraper()._stock_quantity(backorder))
         self.assertIsNone(self.scraper()._stock_quantity(sold_individually))
+        self.assertIsNone(self.scraper()._stock_quantity({
+            "is_in_stock": True,
+            "is_on_backorder": False,
+            "add_to_cart": {"maximum": 9999},
+        }))
         self.assertIsNone(self.scraper(trust_maximum=False)._stock_quantity({
             "is_in_stock": True,
             "is_on_backorder": False,

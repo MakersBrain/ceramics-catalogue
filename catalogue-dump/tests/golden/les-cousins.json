@@ -1,5 +1,5 @@
 {
-  "digest": "f902e441bcc38b37c9ba473bb1bc3d0441c1b549d17a7bfb36225f8f56b56345",
+  "digest": "2e0978a7b6830d59c2488873d120df6ae93ac9d46d4e75f9f9e6e4842fbacfb5",
   "discovered": 3210,
   "error_count": 0,
   "errors": [],
@@ -19,7 +19,7 @@
     "gtin": 0,
     "manufacturer_sku": 1624,
     "package_size": 4388,
-    "stock_quantity": 3279,
+    "stock_quantity": 3277,
     "supplier_reference": 4582,
     "surface": 3229,
     "unit_price": 4388,
