@@ -298,6 +298,25 @@ services:
   # development; behind Caddy in production, which needs `flush_interval -1` on
   # the reverse_proxy or the SSE stream arrives in blocks rather than as it is
   # written.
+  operator-secrets-init:
+    profiles: ["ui"]
+    image: alpine:3.22
+    user: "0:0"
+    volumes:
+      - type: bind
+        source: ${CATALOGUE_OPERATOR_PRIVATE_KEY_FILE:-/dev/null}
+        target: /seed/operator-private-key.pem
+        read_only: true
+      - operator-secrets:/run/operator-secrets
+    command:
+      - sh
+      - -ec
+      - |
+        install -d -m 0700 -o 10001 -g 10001 /run/operator-secrets
+        install -m 0400 -o 10001 -g 10001 \
+          /seed/operator-private-key.pem /run/operator-secrets/operator-private-key.pem
+    restart: "no"
+
   explorer:
     profiles: ["ui"]
     build: ./catalogue-explorer
@@ -305,6 +324,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      operator-secrets-init:
+        condition: service_completed_successfully
     ports:
       - "127.0.0.1:${CATALOGUE_UI_PORT:-5175}:3000"
     environment:
@@ -315,13 +336,10 @@ services:
       CATALOGUE_OPERATOR_AUTH_TIME_HEADER: ${CATALOGUE_OPERATOR_AUTH_TIME_HEADER:-x-catalogue-auth-time}
       CATALOGUE_OPERATOR_ADMINS: ${CATALOGUE_OPERATOR_ADMINS:-}
       CATALOGUE_OPERATOR_VIEWERS: ${CATALOGUE_OPERATOR_VIEWERS:-}
-      CATALOGUE_OPERATOR_ASSERTION_PRIVATE_KEY_FILE: /run/secrets/operator-private-key.pem
+      CATALOGUE_OPERATOR_ASSERTION_PRIVATE_KEY_FILE: /run/operator-secrets/operator-private-key.pem
       CATALOGUE_OPERATOR_ASSERTION_KEY_ID: ${CATALOGUE_OPERATOR_ASSERTION_KEY_ID:-current}
     volumes:
-      - type: bind
-        source: ${CATALOGUE_OPERATOR_PRIVATE_KEY_FILE:-/dev/null}
-        target: /run/secrets/operator-private-key.pem
-        read_only: true
+      - operator-secrets:/run/operator-secrets:ro
     restart: unless-stopped
 
   # The public edge: an outbound-only connector publishing the explorer at
@@ -372,3 +390,6 @@ volumes:
   # Control replaces profiles.json atomically; workers mount the same volume
   # read-only and resolve a credential generation once per job.
   proxy-secrets:
+  # Explorer-only copy of the assertion signing key. The one-shot initializer
+  # preserves the host key's 0600 mode while assigning it to the container UID.
+  operator-secrets:
