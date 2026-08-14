@@ -142,6 +142,16 @@ class TestRunClosure:
         assert last["status"] == "complete"
         assert last["records"] == 15
 
+        progress = await rows(
+            db,
+            "select phase, records, requests, in_flight from catalogue.job_progress "
+            "where job_id = %(id)s",
+            {"id": jobs["ceradel"]},
+        )
+        assert progress == [{
+            "phase": "succeeded", "records": 5, "requests": 2, "in_flight": [],
+        }]
+
     async def test_a_run_with_one_failure_is_degraded_not_failed(self, db):
         """79 of 80 catalogues collected is not a failed run.
 

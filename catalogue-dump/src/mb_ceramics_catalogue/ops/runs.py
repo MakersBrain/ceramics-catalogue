@@ -295,6 +295,44 @@ async def finish_job(
         if row is None:
             return None
 
+        # Progress is a live level while a crawl runs, but the terminal summary
+        # is authoritative. A scraper that gathers records concurrently can
+        # finish between progress flushes; without this final write the UI may
+        # show a succeeded 2,555-row load as `records=0, phase=discovering`.
+        final = summary or {}
+        await _execute(
+            connection,
+            """
+            insert into catalogue.job_progress
+                   (job_id, phase, discovered, records, requests, rendered_pages,
+                    error_count, truncated, in_flight)
+            values (%(id)s, %(phase)s, coalesce(%(discovered)s, 0),
+                    coalesce(%(records)s, 0), coalesce(%(requests)s, 0),
+                    coalesce(%(rendered)s, 0), coalesce(%(errors)s, 0),
+                    coalesce(%(truncated)s, false), '[]'::jsonb)
+            on conflict (job_id) do update
+              set phase = excluded.phase,
+                  discovered = coalesce(%(discovered)s, catalogue.job_progress.discovered),
+                  records = coalesce(%(records)s, catalogue.job_progress.records),
+                  requests = coalesce(%(requests)s, catalogue.job_progress.requests),
+                  rendered_pages = coalesce(%(rendered)s, catalogue.job_progress.rendered_pages),
+                  error_count = coalesce(%(errors)s, catalogue.job_progress.error_count),
+                  truncated = coalesce(%(truncated)s, catalogue.job_progress.truncated),
+                  in_flight = '[]'::jsonb,
+                  updated_at = now()
+            """,
+            {
+                "id": job_id,
+                "phase": state,
+                "discovered": final.get("discovered"),
+                "records": final.get("records"),
+                "requests": final.get("requests"),
+                "rendered": final.get("rendered_pages"),
+                "errors": final.get("error_count"),
+                "truncated": final.get("truncated"),
+            },
+        )
+
         # Release any host slot this job still holds, before the run is
         # considered: a finished job must never keep a shop's slot occupied.
         await _execute(
