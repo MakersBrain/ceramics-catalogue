@@ -1615,6 +1615,48 @@ class RenderPolicyTests(unittest.IsolatedAsyncioTestCase):
             self.assertIsNone(await scraper.load("https://shop.test/product/1", render=True))
         self.assertEqual(1, len(scraper.result.errors), "the refusal is still recorded once")
 
+    async def test_declining_browser_still_allows_an_approved_proxy_fallback(self):
+        direct_client = httpx.AsyncClient(transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                200,
+                text="<html><title>Access denied</title></html>",
+                headers={"content-type": "text/html"},
+            )
+        ))
+        proxy_calls = 0
+
+        def proxy_handler(request):
+            nonlocal proxy_calls
+            proxy_calls += 1
+            return httpx.Response(200, text="<html>served through proxy</html>")
+
+        proxy_client = httpx.AsyncClient(transport=httpx.MockTransport(proxy_handler))
+        limiter = base.HostLimiter(0.0, 1)
+        proxied = base.Fetcher(
+            proxy_client, limiter, base.BrowserRenderer(False), "never",
+            impersonate_policy="never",
+        )
+        fetcher = base.Fetcher(
+            direct_client, limiter, base.BrowserRenderer(False), "auto",
+            impersonate_policy="never", proxy_fallback=proxied,
+        )
+        from mb_ceramics_catalogue.scrapers.pagecrawl import PageScraper
+
+        scraper = PageScraper(
+            "shop", {"url": "https://shop.test/", "scope": "all", "render": False},
+            fetcher,
+        )
+
+        async def must_not_render(*args, **kwargs):
+            raise AssertionError("a source that declined rendering asked for it anyway")
+
+        scraper.fetcher.browser.render = must_not_render
+        async with direct_client, proxy_client:
+            document = await scraper.load("https://shop.test/product/1")
+        self.assertEqual("<html>served through proxy</html>", document)
+        self.assertEqual(1, proxy_calls)
+        self.assertEqual([], scraper.result.errors)
+
     async def test_leaving_it_unset_still_escalates(self):
         called = []
 

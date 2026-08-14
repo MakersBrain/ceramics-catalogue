@@ -194,7 +194,16 @@ class PageScraper(Scraper):
                 return None
         try:
             document = await self.fetcher.text(
-                url, browser_user_agent=True, allow_proxy_fallback=False
+                url,
+                browser_user_agent=True,
+                # Normally the browser is the cheaper middle rung between a
+                # direct refusal and paid proxy traffic.  A source that has
+                # explicitly declined rendering (or a run with no browser),
+                # however, has no middle rung: suppressing the HTTP fallback
+                # here made its approved proxy reservation unreachable.
+                allow_proxy_fallback=(
+                    self.never_render or self.fetcher.browser_policy == "never"
+                ),
             )
             self.result.requests += 1
             return document
