@@ -706,6 +706,21 @@ def _headers_size(headers: Any) -> int:
     return sum(len(str(name).encode()) + len(str(value).encode()) + 4 for name, value in headers.items())
 
 
+def _response_size(response: httpx.Response) -> int:
+    """Estimate billed transfer bytes without charging for decompression.
+
+    HTTPX exposes the bytes read from the network separately from
+    ``response.content``, which is already decoded.  Large HTML pages from the
+    Ceramic Shop expand by more than thirty times after gzip decoding; using
+    that in-memory size exhausted a 25 MB paid-proxy reservation after Decodo
+    had billed less than 1 MB.  Hand-built responses may not carry transport
+    telemetry, so retain the decoded length as a conservative fallback.
+    """
+    downloaded = response.num_bytes_downloaded
+    body = downloaded if downloaded > 0 else len(response.content)
+    return body + _headers_size(response.headers)
+
+
 def _request_size(method: str, target: str, headers: dict[str, str], body: Any) -> int:
     encoded_body = json_lib.dumps(body, default=str).encode() if body is not None else b""
     return len(method.encode()) + len(target.encode()) + _headers_size(headers) + len(encoded_body) + 16
@@ -820,7 +835,7 @@ class Fetcher:
                 headers = {"user-agent": BROWSER_USER_AGENT} if browser_agent else None
                 response = await self.client.get(url, timeout=15, headers=headers)
                 tx = _request_size("GET", url, headers or {}, None)
-                rx = len(response.content) + _headers_size(response.headers)
+                rx = _response_size(response)
                 self.stats.http_tx_bytes_estimated += tx
                 self.stats.http_rx_bytes_estimated += rx
                 self.stats.outcomes[_outcome(response.status_code)] += 1
@@ -984,13 +999,11 @@ class Fetcher:
                     self.stats.http_tx_bytes_estimated += _request_size(
                         method, target, request_headers, json_body
                     )
-                    self.stats.http_rx_bytes_estimated += len(response.content) + _headers_size(
-                        response.headers
-                    )
+                    rx = _response_size(response)
+                    self.stats.http_rx_bytes_estimated += rx
                     self.stats.outcomes[_outcome(response.status_code)] += 1
                     if self.proxy_lease:
                         tx = _request_size(method, target, request_headers, json_body)
-                        rx = len(response.content) + _headers_size(response.headers)
                         self.proxy_lease.account(tx, rx)
                         self.stats.proxy_requests += 1
                 except (httpx.HTTPError, UnicodeError) as error:
@@ -1179,12 +1192,12 @@ class Fetcher:
                 return None
         ACTIVITY.finished(target, f"{response.status_code} (impersonated)")
         self.stats.impersonated_requests += 1
-        self.stats.http_rx_bytes_estimated += len(response.content) + _headers_size(response.headers)
+        rx = _response_size(response)
+        self.stats.http_rx_bytes_estimated += rx
         self.stats.http_tx_bytes_estimated += _request_size(method, target, headers, json_body)
         self.stats.outcomes[_outcome(response.status_code)] += 1
         if self.proxy_lease:
             tx = _request_size(method, target, headers, json_body)
-            rx = len(response.content) + _headers_size(response.headers)
             self.proxy_lease.account(tx, rx)
             self.stats.proxy_requests += 1
         if response.status_code >= 400:

@@ -1,6 +1,7 @@
 """Offline tests for the ceramics field parsing and the record contract."""
 
 import asyncio
+import gzip
 import json
 import tempfile
 import time
@@ -1301,6 +1302,41 @@ class ProxyFallbackRoutingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(26_060_082, result.proxy_bytes_estimated)
         self.assertTrue(result.truncated)
         self.assertIn("reservation is exhausted", result.errors[0]["error"])
+
+    async def test_proxy_meter_counts_compressed_transfer_not_decoded_html(self):
+        body = b"<html>" + (b"repeated catalogue markup " * 10_000) + b"</html>"
+        transferred = gzip.compress(body)
+
+        def handler(request):
+            return httpx.Response(
+                200,
+                stream=httpx.ByteStream(transferred),
+                headers={"content-encoding": "gzip", "content-type": "text/html"},
+            )
+
+        class Lease:
+            used_bytes = 0
+            requests = 0
+            url = "http://proxy.test:8080"
+
+            def ensure_request_allowed(self):
+                return None
+
+            def account(self, tx, rx, requests=1):
+                self.used_bytes += tx + rx
+                self.requests += requests
+
+        lease = Lease()
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        fetcher = base.Fetcher(
+            client, base.HostLimiter(0, 1), base.BrowserRenderer(False), "never",
+            impersonate_policy="never", proxy_lease=lease,
+        )
+        async with client:
+            self.assertEqual(body.decode(), await fetcher.text("https://shop.test/product/1"))
+        self.assertEqual(1, lease.requests)
+        self.assertLess(lease.used_bytes, len(body) // 10)
+        self.assertGreaterEqual(lease.used_bytes, len(transferred))
 
     async def test_deterministic_404_never_uses_proxy(self):
         proxy_calls = 0
