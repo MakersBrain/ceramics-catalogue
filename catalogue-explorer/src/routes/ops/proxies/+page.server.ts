@@ -1,7 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 import { ControlError, configured, del, get, post, put } from '$lib/server/control';
-import { operatorFromRequest, requireSameOrigin } from '$lib/server/operator';
+import { operatorFromRequest, operatorProblem, requireSameOrigin } from '$lib/server/operator';
 import type {
 	ProxyAuditList,
 	ProxyCandidateList,
@@ -20,7 +20,7 @@ const message = (error: unknown) => (error instanceof ControlError ? error.messa
 export const load: PageServerLoad = async ({ request }) => {
 	if (!configured()) return { unavailable: 'CATALOGUE_CONTROL_TOKEN is not set for the explorer' };
 	const operator = operatorFromRequest(request);
-	if (!operator) return { unavailable: 'Operator identity is missing or is not authorized' };
+	if (!operator) return { unavailable: operatorProblem(request) };
 	try {
 		const [overview, cycles, usage, reservations, profiles, routes, probes, audit, candidates] =
 			await Promise.all([

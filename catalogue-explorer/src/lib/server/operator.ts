@@ -18,17 +18,28 @@ const members = (value: string | undefined) =>
 			.filter(Boolean)
 	);
 
-export function operatorFromRequest(request: Request): Operator | null {
-	const header = (env.CATALOGUE_OPERATOR_ID_HEADER || 'cf-access-authenticated-user-email').toLowerCase();
-	const identity = (request.headers.get(header) || (dev ? env.CATALOGUE_OPERATOR_DEV_ID : '') || '')
+const identityHeader = () =>
+	(env.CATALOGUE_OPERATOR_ID_HEADER || 'cf-access-authenticated-user-email').toLowerCase();
+
+const identityFromRequest = (request: Request) =>
+	(request.headers.get(identityHeader()) || (dev ? env.CATALOGUE_OPERATOR_DEV_ID : '') || '')
 		.trim()
 		.toLowerCase();
+
+export function operatorFromRequest(request: Request): Operator | null {
+	const identity = identityFromRequest(request);
 	if (!identity) return null;
 	const rawAuthTime = request.headers.get(env.CATALOGUE_OPERATOR_AUTH_TIME_HEADER || 'x-catalogue-auth-time');
 	const authTime = rawAuthTime && /^\d+$/.test(rawAuthTime) ? Number(rawAuthTime) : null;
 	if (members(env.CATALOGUE_OPERATOR_ADMINS).has(identity)) return { id: identity, role: 'admin', authTime };
 	if (members(env.CATALOGUE_OPERATOR_VIEWERS).has(identity)) return { id: identity, role: 'viewer', authTime };
 	return null;
+}
+
+export function operatorProblem(request: Request): string {
+	return identityFromRequest(request)
+		? `Operator identity from ${identityHeader()} is not authorized`
+		: `Operator identity header ${identityHeader()} is missing`;
 }
 
 export function requireSameOrigin(request: Request, url: URL): void {
