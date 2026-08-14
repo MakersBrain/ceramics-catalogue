@@ -126,10 +126,16 @@ class ShopifyScraper(Scraper):
             if not suffix and section_id:
                 endpoint = f"{endpoint}?{urlencode({'section_id': section_id})}"
             try:
+                # Several Shopify themes leave a pooled product connection
+                # parked for tens of seconds after an initial healthy burst,
+                # while a fresh connection to the same section still returns
+                # immediately. These are one-shot detail reads, so do not put a
+                # possibly poisoned connection back into the shared pool.
+                headers = {"Connection": "close"}
                 if suffix:
-                    detail = await self.fetcher.json(endpoint)
+                    detail = await self.fetcher.json(endpoint, headers=headers)
                 else:
-                    document = await self.fetcher.text(endpoint)
+                    document = await self.fetcher.text(endpoint, headers=headers)
                     detail = {"variants": list(self._inventory_from_html(
                         document,
                         {str(variant.get("id")) for variant in product.get("variants") or []},

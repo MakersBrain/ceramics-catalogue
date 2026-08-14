@@ -933,10 +933,12 @@ class Fetcher:
         browser_user_agent: bool = False,
         params: dict[str, Any] | None = None,
         accept: str | None = None,
+        headers: dict[str, str] | None = None,
         allow_proxy_fallback: bool = True,
     ) -> str:
         response = await self.response(
             url, browser_user_agent=browser_user_agent, params=params, accept=accept,
+            headers=headers,
             allow_proxy_fallback=allow_proxy_fallback,
         )
         return response.text
@@ -947,9 +949,11 @@ class Fetcher:
         *,
         params: dict[str, Any] | None = None,
         browser_user_agent: bool = False,
+        headers: dict[str, str] | None = None,
     ) -> Any:
         response = await self.response(
-            url, params=params, browser_user_agent=browser_user_agent, accept="application/json",
+            url, params=params, browser_user_agent=browser_user_agent,
+            accept="application/json", headers=headers,
         )
         try:
             return response.json()
