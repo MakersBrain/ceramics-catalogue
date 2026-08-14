@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 from types import MappingProxyType
 from typing import Any
 
-from . import domain
+from . import domain, enrichment
 
 RECORD_FORMAT = "ceramics.catalogue_item.v2"
 #: Manufacturer catalogues publish identities and specifications but no price.
@@ -92,11 +92,17 @@ SOURCE_TRAITS: ContextVar[Mapping[str, Mapping[str, Any]]] = ContextVar(
 
 
 def traits_for(sources: Mapping[str, Mapping[str, Any]]) -> dict[str, dict[str, Any]]:
-    """Reduce a sources file to the two facts `build()` needs from it."""
+    """Reduce a sources file to the facts `build()` needs from it.
+
+    The enrichment selection is expanded here, once per crawl, so that a typo
+    in it fails when the run starts rather than being discovered as a missing
+    field in the dump — and so `build()` does no list-parsing per row.
+    """
     return {
         name: {
             "brand": source.get("brand"),
             "is_manufacturer": bool(source.get("is_manufacturer")),
+            "enrichments": enrichment.selected(source.get("scope"), source.get("enrichments")),
         }
         for name, source in sources.items()
     }
@@ -192,25 +198,37 @@ def build(
         for key, value in (technical_attributes or {}).items()
         if isinstance(value, (str, int, float))
     )
-    derived = domain.describe(
-        name, description, category_path, specification,
+    # What this source asked to have inferred. A source that asked for nothing
+    # gets published fields only: every derived field below is null, and no
+    # sentence in a mug's description is read as a firing range.
+    traits = SOURCE_TRAITS.get().get(source, {})
+    modules = enrichment.selected_for(traits)
+    derived = enrichment.apply(modules, enrichment.Context(
+        name=domain.clean(name),
+        description=domain.clean(description),
+        categories=tuple(category_path),
+        specification=specification,
         colour_hint=domain.attribute_colour(technical_attributes),
-    )
+    ))
+
     # A variant title normally carries the package size ("473 ml", "1 pint"); a
     # specification table is the next best source, then the product name itself.
-    liquid = derived["form"] == "liquid" or derived["family"] in {"glaze", "underglaze", "engobe"}
-    package = (
-        domain.package_size(variant_title or "", liquid_hint=liquid)
-        or domain.package_size_from_attributes(technical_attributes, liquid_hint=liquid)
-        or domain.package_size(name, description or "", liquid_hint=liquid)
-        or derived["package_size"]
-    )
+    # All three are inference, so they belong to the packaging module with the
+    # rest of it — a shop selling one-off pots has no package size to read.
+    package = None
+    if "packaging" in modules:
+        liquid = derived["form"] == "liquid" or derived["family"] in {"glaze", "underglaze", "engobe"}
+        package = (
+            domain.package_size(variant_title or "", liquid_hint=liquid)
+            or domain.package_size_from_attributes(technical_attributes, liquid_hint=liquid)
+            or domain.package_size(name, description or "", liquid_hint=liquid)
+            or derived["package_size"]
+        )
 
     # The published title, and what can be read out of it. Both are kept: the
     # parsed name is what a reader searches and compares, and the raw one is
     # what the supplier actually wrote, which is the only defensible thing to
     # show beside a price.
-    traits = SOURCE_TRAITS.get().get(source, {})
     title = domain.parse_title(
         name,
         package=package,

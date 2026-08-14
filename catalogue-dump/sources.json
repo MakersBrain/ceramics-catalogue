@@ -29,6 +29,9 @@
       "librairie",
       "pinceaux",
       "moulage-et-biscuit"
+    ],
+    "enrichments": [
+      "ceramic-materials"
     ]
   },
   "mayco": {
@@ -40,7 +43,10 @@
     "identity_only": true,
     "note": "Publishes specifications and colours with every price at zero; collected as identity records, never as offers.",
     "brand": "Mayco",
-    "is_manufacturer": true
+    "is_manufacturer": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "spectrum": {
     "label": "Spectrum Glazes",
@@ -67,7 +73,10 @@
       "sample-packs"
     ],
     "brand": "Spectrum",
-    "is_manufacturer": true
+    "is_manufacturer": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramiekenglazuur": {
     "label": "Keramiek en Glazuur",
@@ -87,6 +96,9 @@
       "tools",
       "carving",
       "transfers"
+    ],
+    "enrichments": [
+      "ceramic-materials"
     ]
   },
   "menomuza": {
@@ -99,6 +111,9 @@
     "stock_from_add_to_cart_maximum": true,
     "store_categories": [
       "keramikams-ir-skulptoriams"
+    ],
+    "enrichments": [
+      "ceramic-materials"
     ]
   },
   "solutions-ceramiques": {
@@ -116,6 +131,9 @@
       "materiel",
       "pinceau",
       "ebauchoir"
+    ],
+    "enrichments": [
+      "ceramic-materials"
     ]
   },
   "ceradel": {
@@ -126,7 +144,10 @@
     "country": "FR",
     "vat_status": "inclusive",
     "page_limit": 60,
-    "note": "No product_type is published, so scope relies on the multilingual materials classifier over the title."
+    "note": "No product_type is published, so scope relies on the multilingual materials classifier over the title.",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "penguin-pottery": {
     "label": "Penguin Pottery",
@@ -137,7 +158,10 @@
     "vat_status": "exclusive",
     "brand": "Penguin Pottery",
     "is_manufacturer": true,
-    "note": "The complete products.json feed is smaller and more complete than the shop's collection assignments; strict materials classification removes tools and equipment."
+    "note": "The complete products.json feed is smaller and more complete than the shop's collection assignments; strict materials classification removes tools and equipment.",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "ceramique-peinture": {
     "label": "Céramique Peinture (colours only)",
@@ -155,7 +179,10 @@
       "crayons-ceramiques",
       "colorobbia-fairy-dust-1"
     ],
-    "note": "The bulk of this shop is bisque ware, which is outside the materials scope."
+    "note": "The bulk of this shop is bisque ware, which is outside the materials scope.",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "amaco": {
     "label": "AMACO",
@@ -171,7 +198,10 @@
     "category_url": "https://shop.amaco.com/glazes-underglazes/",
     "note": "The CDN fingerprints TLS and refuses Python HTTP clients, so the storefront token and GraphQL calls go through the browser transport.",
     "brand": "AMACO",
-    "is_manufacturer": true
+    "is_manufacturer": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "speedball": {
     "label": "Speedball Ceramics",
@@ -183,7 +213,10 @@
     "category_url": "https://www.speedballart.com/shop/ceramics/",
     "page_limit": 400,
     "brand": "Speedball",
-    "is_manufacturer": true
+    "is_manufacturer": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "1240-design": {
     "label": "1240.design",
@@ -196,7 +229,10 @@
       "https://1240.design/1_en_0_sitemap.xml"
     ],
     "product_pattern": "/en/.+\\.html$",
-    "page_limit": 1800
+    "page_limit": 1800,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "ceram-decor": {
     "label": "Ceram-Décor",
@@ -211,7 +247,10 @@
     ],
     "product_pattern": "^/[^/]+/[0-9]+-[^/]+\\.html$",
     "page_limit": 800,
-    "card_links_only": true
+    "card_links_only": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "colpaert-online": {
     "label": "Colpaert Online",
@@ -225,7 +264,10 @@
     ],
     "product_pattern": "^/fr/[^/]+/[0-9]+-[^/]+\\.html$",
     "page_limit": 3000,
-    "card_links_only": true
+    "card_links_only": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "sio-2": {
     "label": "SIO-2 clays, materials and glazes",
@@ -254,7 +296,10 @@
     "card_links_only": true,
     "use_advertised_sitemaps": false,
     "brand": "SiO-2",
-    "is_manufacturer": true
+    "is_manufacturer": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "e-cibas": {
     "label": "e-Cibas",
@@ -267,7 +312,10 @@
       "https://www.e-cibas.com/store-products-sitemap.xml"
     ],
     "page_limit": 1300,
-    "note": "Wix serves complete Product JSON-LD in the server response, so no rendering is needed."
+    "note": "Wix serves complete Product JSON-LD in the server response, so no rendering is needed.",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramikbedarf-online": {
     "label": "Keramikbedarf Online",
@@ -284,7 +332,10 @@
       "https://shop.keramikbedarf-online.de/Farben/"
     ],
     "product_pattern": "^/[^/]+/[0-9]+-[0-9A-Za-z.\\-]+$",
-    "card_links_only": true
+    "card_links_only": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "art4fun": {
     "label": "Art4Fun",
@@ -300,7 +351,10 @@
     "product_pattern": "^/en/product/",
     "page_limit": 3000,
     "use_advertised_sitemaps": false,
-    "category_page_limit": 400
+    "category_page_limit": 400,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "ceramicolours": {
     "label": "Ceramicolours",
@@ -330,7 +384,10 @@
       6104
     ],
     "note": "Per-pack prices are produced by the page's own updatePrice(); each pack option is selected in the browser and the displayed price recorded. Pricing is non-linear, so it is never derived by multiplication.",
-    "product_concurrency": 2
+    "product_concurrency": 2,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramik-kraft": {
     "label": "Keramik-Kraft",
@@ -351,14 +408,20 @@
     ],
     "product_pattern": "_[A-Za-z0-9.\\-]+\\.html",
     "vat_rate": 0.19,
-    "category_page_limit": 600
+    "category_page_limit": 600,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "corby-kilns": {
     "label": "Corby Kilns",
     "url": "https://corbykilns.co.uk/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "GB"
+    "country": "GB",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "argile-nl": {
     "label": "Art d'Argile (Hazelaar)",
@@ -366,14 +429,20 @@
     "scraper": "woocommerce",
     "scope": "materials",
     "country": "NL",
-    "note": "The shop moved: argile.nl 301s to hazelaar.nl, and the Store API answers there exactly as it used to. What the failing runs read was the redirect's own HTML body, not a shop that had stopped publishing. The source id is unchanged so the catalogue keeps its history."
+    "note": "The shop moved: argile.nl 301s to hazelaar.nl, and the Store API answers there exactly as it used to. What the failing runs read was the redirect's own HTML body, not a shop that had stopped publishing. The source id is unchanged so the catalogue keeps its history.",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "at-ceramika": {
     "label": "At Ceramika",
     "url": "https://at-ceramika.pl/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "PL"
+    "country": "PL",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramikbedarf-ch": {
     "label": "Michel Keramikbedarf",
@@ -381,7 +450,10 @@
     "scraper": "woocommerce",
     "scope": "materials",
     "country": "CH",
-    "note": "michel.ch serves the same catalogue; scrape only one"
+    "note": "michel.ch serves the same catalogue; scrape only one",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "cerama-shop": {
     "label": "Cerama S.R.L.",
@@ -389,7 +461,10 @@
     "scraper": "woocommerce",
     "scope": "materials",
     "country": "IT",
-    "stock_from_add_to_cart_maximum": true
+    "stock_from_add_to_cart_maximum": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "marphil": {
     "label": "Suministros Marphil",
@@ -397,14 +472,20 @@
     "scraper": "woocommerce",
     "scope": "materials",
     "country": "ES",
-    "stock_from_add_to_cart_maximum": true
+    "stock_from_add_to_cart_maximum": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "dbi-pottery": {
     "label": "D.B.I Pottery Supplies",
     "url": "https://dbipottery.com/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "IE"
+    "country": "IE",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "the-makers-space": {
     "label": "The Makers Space",
@@ -412,35 +493,50 @@
     "scraper": "woocommerce",
     "scope": "materials",
     "country": "CY",
-    "stock_from_add_to_cart_maximum": true
+    "stock_from_add_to_cart_maximum": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "hiclay": {
     "label": "Hi Clay",
     "url": "https://hiclay.pl/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "PL"
+    "country": "PL",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "esmalte-y-barro": {
     "label": "Esmalte y Barro",
     "url": "https://esmalteybarro.com/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "ES"
+    "country": "ES",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramica-info": {
     "label": "Ravitera / Keramica",
     "url": "https://keramica.info/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "HR"
+    "country": "HR",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramikfryd": {
     "label": "Keramikfryd",
     "url": "https://keramikfryd.dk/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "DK"
+    "country": "DK",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "ramfos": {
     "label": "Ramfos Ylikokeramiki",
@@ -448,28 +544,40 @@
     "scraper": "woocommerce",
     "scope": "materials",
     "country": "GR",
-    "note": "Ramfos Ylikokeramiki; eurokeramiki.gr is a separate Greek supplier (OpenCart), not this one"
+    "note": "Ramfos Ylikokeramiki; eurokeramiki.gr is a separate Greek supplier (OpenCart), not this one",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "paraceramica": {
     "label": "Paraceramica",
     "url": "https://paraceramica.com/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "ES"
+    "country": "ES",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "prodesco": {
     "label": "Prodesco",
     "url": "https://prodesco.es/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "ES"
+    "country": "ES",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "santiago-pidal": {
     "label": "Santiago Pidal",
     "url": "https://santiagopidal.es/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "ES"
+    "country": "ES",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "inglet": {
     "label": "Inglet S.L.U.",
@@ -477,14 +585,20 @@
     "scraper": "woocommerce",
     "scope": "materials",
     "country": "ES",
-    "note": "general fine-art supplier; the materials classifier carries the scope"
+    "note": "general fine-art supplier; the materials classifier carries the scope",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "muandu-keramika": {
     "label": "MUANDU keramika",
     "url": "https://muandukeramika.lt/",
     "scraper": "woocommerce",
     "scope": "materials",
-    "country": "LT"
+    "country": "LT",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "helena-hodell": {
     "label": "Helena Hodell Produktion",
@@ -492,14 +606,20 @@
     "scraper": "woocommerce",
     "scope": "materials",
     "country": "SE",
-    "stock_from_add_to_cart_maximum": true
+    "stock_from_add_to_cart_maximum": true,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "potterycrafts": {
     "label": "Potterycrafts",
     "url": "https://potterycrafts.co.uk/",
     "scraper": "shopify",
     "scope": "materials",
-    "country": "GB"
+    "country": "GB",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "kettles-pottery": {
     "label": "Kettles Pottery Supplies",
@@ -508,14 +628,20 @@
     "inventory_product_html": true,
     "delay": 0.5,
     "scope": "materials",
-    "country": "GB"
+    "country": "GB",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "taller-gingell": {
     "label": "Taller Gingell",
     "url": "https://tallergingell.com/",
     "scraper": "shopify",
     "scope": "materials",
-    "country": "ES"
+    "country": "ES",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "hot-clay": {
     "label": "Hot Clay",
@@ -525,7 +651,10 @@
     "inventory_section_id": "template--25824905691517__main",
     "delay": 0.5,
     "scope": "materials",
-    "country": "GB"
+    "country": "GB",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "ceramista-shop": {
     "label": "Ceramista Shop",
@@ -533,7 +662,10 @@
     "scraper": "shopify",
     "scope": "materials",
     "country": "PT",
-    "note": "ceramistashop.com is the same catalogue"
+    "note": "ceramistashop.com is the same catalogue",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "barro-ro": {
     "label": "Barro Lab",
@@ -541,14 +673,20 @@
     "scraper": "shopify",
     "scope": "materials",
     "country": "RO",
-    "note": "apex barro.ro does not resolve; use www"
+    "note": "apex barro.ro does not resolve; use www",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "muda-ceramica": {
     "label": "Muda Ceramica",
     "url": "https://mudaceramica.com/",
     "scraper": "shopify",
     "scope": "materials",
-    "country": "PT"
+    "country": "PT",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "ulster-ceramics": {
     "label": "Ulster Ceramics",
@@ -557,7 +695,10 @@
     "inventory_product_html": true,
     "delay": 0.5,
     "scope": "materials",
-    "country": "GB"
+    "country": "GB",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "art-academy-direct": {
     "label": "Art Academy Direct",
@@ -566,7 +707,10 @@
     "inventory_product_html": true,
     "delay": 0.5,
     "scope": "materials",
-    "country": "MT"
+    "country": "MT",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "poterie-du-vieux-bac": {
     "label": "Poterie du Vieux Bac",
@@ -574,7 +718,10 @@
     "scraper": "shopify",
     "scope": "materials",
     "country": "FR",
-    "note": "apex host has a bad certificate, use www; WAF needs a browser or impersonating client"
+    "note": "apex host has a bad certificate, use www; WAF needs a browser or impersonating client",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "peter-lavem": {
     "label": "Societe Peter Lavem",
@@ -582,7 +729,10 @@
     "scraper": "prestashop",
     "scope": "materials",
     "country": "FR",
-    "note": "json-ld carries a pack-size SKU such as GB106/05"
+    "note": "json-ld carries a pack-size SKU such as GB106/05",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "eskiss972": {
     "label": "Eskiss / Coco Cadeaux",
@@ -590,7 +740,10 @@
     "scraper": "prestashop",
     "scope": "materials",
     "country": "FR",
-    "vat_status": "exclusive"
+    "vat_status": "exclusive",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramicke-pece": {
     "label": "Artik Studio",
@@ -605,7 +758,10 @@
     ],
     "scope": "materials",
     "country": "CZ",
-    "note": "The legacy keramickepece.cz domain redirects to artikstudio.com; material category pages are explicit so discovery does not mistake category routes for products."
+    "note": "The legacy keramickepece.cz domain redirects to artikstudio.com; material category pages are explicit so discovery does not mistake category routes for products.",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "como-ceramique": {
     "label": "Como Ceramique",
@@ -614,14 +770,20 @@
     "scope": "materials",
     "country": "FR",
     "vat_status": "inclusive",
-    "note": "UNRESOLVED: sitemap points at a staging host with a bad certificate"
+    "note": "UNRESOLVED: sitemap points at a staging host with a bad certificate",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "esmalty-color": {
     "label": "Esmaltes y Colorantes de la Rambla",
     "url": "https://www.esmaltycolor.com/",
     "scraper": "prestashop",
     "scope": "materials",
-    "country": "ES"
+    "country": "ES",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "cigale-et-fourmi": {
     "label": "Cigale et Fourmi",
@@ -629,7 +791,10 @@
     "scraper": "prestashop",
     "scope": "materials",
     "country": "FR",
-    "vat_status": "inclusive"
+    "vat_status": "inclusive",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramikos": {
     "label": "Keramikos",
@@ -637,7 +802,10 @@
     "scraper": "prestashop",
     "scope": "materials",
     "country": "NL",
-    "note": "shop confirmed by hand; product discovery still needs checking"
+    "note": "shop confirmed by hand; product discovery still needs checking",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "pappel": {
     "label": "Pappel Espanola",
@@ -651,7 +819,10 @@
     ],
     "scope": "materials",
     "country": "ES",
-    "note": "The corporate pappel.com domain redirects to the Spanish PrestaShop at tienda.pappel.com; material categories are explicit to exclude navigation routes."
+    "note": "The corporate pappel.com domain redirects to the Spanish PrestaShop at tienda.pappel.com; material categories are explicit to exclude navigation routes.",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "potclays": {
     "label": "Potclays",
@@ -666,6 +837,9 @@
       "https://www.potclays.co.uk/_cache/sitemap_products_3.xml",
       "https://www.potclays.co.uk/_cache/sitemap_products_4.xml",
       "https://www.potclays.co.uk/_cache/sitemap_products_5.xml"
+    ],
+    "enrichments": [
+      "ceramic-materials"
     ]
   },
   "keramik-kriese": {
@@ -674,7 +848,10 @@
     "scraper": "pagecrawl",
     "scope": "materials",
     "country": "DE",
-    "vat_status": "exclusive"
+    "vat_status": "exclusive",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "ceramiq-pl": {
     "label": "Ceramiq.pl",
@@ -684,7 +861,10 @@
     "country": "PL",
     "vat_status": "exclusive",
     "product_pattern": "-p-\\d",
-    "note": "UNRESOLVED: sitemap holds categories, not products; needs a category walk"
+    "note": "UNRESOLVED: sitemap holds categories, not products; needs a category walk",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "toepferbedarf-brock": {
     "label": "MTL Brock",
@@ -695,7 +875,10 @@
     "sitemaps": [
       "https://www.toepferbedarf-brock.de/export/sitemap_0.xml.gz"
     ],
-    "note": "JTL; sitemap is almost entirely products"
+    "note": "JTL; sitemap is almost entirely products",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramika-do-skol": {
     "label": "Keramika do skol",
@@ -704,7 +887,10 @@
     "scope": "materials",
     "country": "CZ",
     "product_pattern": "^/(?!znacka/)[^/]+/[^/]+/?$",
-    "note": "Shoptet; /znacka/ is a brand index"
+    "note": "Shoptet; /znacka/ is a brand index",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "sklep-heho": {
     "label": "HEHO sklep dla ceramika",
@@ -714,7 +900,10 @@
     "country": "PL",
     "vat_status": "exclusive",
     "product_pattern": "^/pl/p/",
-    "note": "Shoper: /pl/p/<slug> is the product page"
+    "note": "Shoper: /pl/p/<slug> is the product page",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "artequipment": {
     "label": "Art-Equipment",
@@ -723,7 +912,10 @@
     "scope": "materials",
     "country": "PL",
     "product_pattern": "/p\\d+,",
-    "note": "UNRESOLVED: discovery finds assets, not products; needs a category walk"
+    "note": "UNRESOLVED: discovery finds assets, not products; needs a category walk",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "mayco-glasuren": {
     "label": "Toepferstudio Alte Scheuer",
@@ -733,7 +925,10 @@
     "country": "DE",
     "brand": "Mayco",
     "product_pattern": "^/p/",
-    "note": "UNRESOLVED: ePages; /p/ pattern matches only 5 sitemap URLs"
+    "note": "UNRESOLVED: ePages; /p/ pattern matches only 5 sitemap URLs",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "hobbyland": {
     "label": "Hobbyland",
@@ -745,7 +940,10 @@
       "https://www.hobbyland.eu/sitemap_product_it.xml"
     ],
     "product_pattern": "^/ita/",
-    "note": "five language mirrors; Italian is the native one"
+    "note": "five language mirrors; Italian is the native one",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "silexshop": {
     "label": "Silex / Totaal Service",
@@ -764,7 +962,10 @@
       "https://www.silexshop.nl/product-sitemap7.xml"
     ],
     "product_pattern": "^/product/",
-    "note": "WooCommerce without the Store API"
+    "note": "WooCommerce without the Store API",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "arte-y-ceramica": {
     "label": "Arte y Ceramica de Galicia",
@@ -774,6 +975,9 @@
     "country": "ES",
     "sitemaps": [
       "https://www.arteyceramica.es/sitemap/sitemapproducts.xml"
+    ],
+    "enrichments": [
+      "ceramic-materials"
     ]
   },
   "countrylove": {
@@ -782,7 +986,10 @@
     "scraper": "pagecrawl",
     "scope": "materials",
     "country": "GB",
-    "note": "UNRESOLVED: 18k URLs discovered, no product markup read"
+    "note": "UNRESOLVED: 18k URLs discovered, no product markup read",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "cromartie": {
     "label": "Cromartie Hobbycraft",
@@ -791,7 +998,10 @@
     "scope": "materials",
     "country": "GB",
     "product_pattern": "^/Catalogue/",
-    "note": "UNRESOLVED: sitemap-catalogue.ashx advertises URLs that 404; needs a category walk"
+    "note": "UNRESOLVED: sitemap-catalogue.ashx advertises URLs that 404; needs a category walk",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "davaart": {
     "label": "DAVA Art & Fun",
@@ -803,7 +1013,10 @@
       "https://www.davaart.ro/store-products-sitemap.xml"
     ],
     "product_pattern": "^/product-page/",
-    "note": "Wix store; json-ld is rendered client-side so the wix scraper is needed"
+    "note": "Wix store; json-ld is rendered client-side so the wix scraper is needed",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "kadar-ceramica": {
     "label": "Kadar Ceramica",
@@ -814,7 +1027,10 @@
     "sitemaps": [
       "https://kadarceramica.com/product-sitemap.xml"
     ],
-    "product_pattern": "^/producto/"
+    "product_pattern": "^/producto/",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "mestrebras": {
     "label": "Loja Mestre Bras",
@@ -826,7 +1042,10 @@
     "sitemaps": [
       "https://www.mestrebras.pt/sitemap/products_1.xml.gz"
     ],
-    "product_pattern": "^/product/"
+    "product_pattern": "^/product/",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "cerama-dk": {
     "label": "Cerama",
@@ -835,7 +1054,10 @@
     "stock_from_quantity_maximum": true,
     "scope": "materials",
     "country": "DK",
-    "note": "cebex.se serves the same catalogue via cerama.se"
+    "note": "cebex.se serves the same catalogue via cerama.se",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramik-toepfern": {
     "label": "Borkheider Werkstatt",
@@ -844,7 +1066,10 @@
     "scope": "materials",
     "country": "DE",
     "product_pattern": "^/p/",
-    "note": "ePages"
+    "note": "ePages",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "keramikbedarf-de": {
     "label": "Hans Wolbring Keramikbedarf",
@@ -853,7 +1078,10 @@
     "scope": "materials",
     "country": "DE",
     "product_pattern": "^/p/",
-    "note": "ePages"
+    "note": "ePages",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "bsz-keramikbedarf": {
     "label": "BSZ Keramikbedarf",
@@ -863,7 +1091,10 @@
     "country": "DE",
     "vat_status": "exclusive",
     "product_pattern": "cl=details|anid=",
-    "note": "UNRESOLVED: OXID; cl=details pattern finds nothing"
+    "note": "UNRESOLVED: OXID; cl=details pattern finds nothing",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "toepferspass": {
     "label": "Rantzauer Toepferbedarf",
@@ -873,7 +1104,10 @@
     "country": "DE",
     "vat_status": "inclusive",
     "product_pattern": "/product-",
-    "note": "UNRESOLVED: only 7 product URLs discovered"
+    "note": "UNRESOLVED: only 7 product URLs discovered",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "sounding-stone": {
     "label": "Sounding Stone",
@@ -925,7 +1159,10 @@
       "damp box"
     ],
     "note": "372 collections that overlap heavily, so the whole catalogue is read through products.json (15 requests) and scoped by classification rather than a collection allowlist. Answered 429 partway through products.json on the first run at no delay; a one-second floor is a hard minimum per request to this host and is never divided by the slot count, so it holds however many workers are running.",
-    "delay": 1.0
+    "delay": 1.0,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "seattle-pottery-supply": {
     "label": "Seattle Pottery Supply",
@@ -977,7 +1214,10 @@
       "damp box"
     ],
     "note": "279 overlapping collections; scoped by classification over the whole products.json feed. Answered 429 partway through products.json on the first run at no delay; a one-second floor is a hard minimum per request to this host and is never divided by the slot count, so it holds however many workers are running.",
-    "delay": 1.0
+    "delay": 1.0,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "krueger-pottery": {
     "label": "Krueger Pottery Supply",
@@ -1027,7 +1267,10 @@
       "ware cart",
       "damp box"
     ],
-    "note": "321 overlapping collections; scoped by classification over the whole products.json feed."
+    "note": "321 overlapping collections; scoped by classification over the whole products.json feed.",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "gwn-pottery": {
     "label": "Greenbarn / GWN Pottery Supplies",
@@ -1079,7 +1322,10 @@
     ],
     "note": "263 overlapping collections; scoped by classification over the whole products.json feed. Answered 429 partway through products.json on the first run at no delay; a one-second floor is a hard minimum per request to this host and is never divided by the slot count, so it holds however many workers are running. Currency is declared rather than read from meta.json: that one request answered 429 on the first run, products.json carries no currency of its own, and the resulting priced rows were rejected by load_record for having none — one transient refusal cost the whole source's load.",
     "delay": 1.0,
-    "currency": "CAD"
+    "currency": "CAD",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "sheffield-pottery": {
     "label": "Sheffield Pottery",
@@ -1132,7 +1378,10 @@
       "ware cart",
       "damp box"
     ],
-    "note": "668 collections, many of them documentation pages rather than departments; scoped by classification over the whole products.json feed."
+    "note": "668 collections, many of them documentation pages rather than departments; scoped by classification over the whole products.json feed.",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "alabama-art-supply": {
     "label": "Alabama Art Supply (ceramics only)",
@@ -1158,7 +1407,10 @@
       "pottery-clay-25-bags",
       "pottery-clay-50-boxes"
     ],
-    "note": "Mostly a paint and watercolour retailer: only fifteen of its 212 collections are ceramics, so this one is an allowlist rather than a full crawl."
+    "note": "Mostly a paint and watercolour retailer: only fifteen of its 212 collections are ceramics, so this one is an allowlist rather than a full crawl.",
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "glaser-ceramics": {
     "label": "Glaser Ceramics",
@@ -1190,7 +1442,10 @@
       "musical"
     ],
     "note": "OpenCart. Its sitemap is 57,003 entries of which 55,000 are images and index.php duplicates, so the product pattern is an allowlist of root slugs; that leaves 1,460 product pages, each carrying JSON-LD. Declines the browser fallback: measured across two runs it rendered pages that produced no additional records, while one empty page sent the whole source to the browser worker and restarted it there.",
-    "render": false
+    "render": false,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "axner": {
     "label": "Axner Pottery Supply",
@@ -1220,7 +1475,10 @@
       "adhesive"
     ],
     "note": "No XML sitemap, no JSON-LD and no microdata; discovery walks the HTML department index and product links are found by their listing tile class. Declines the browser fallback: measured across two runs it rendered pages that produced no additional records, while one empty page sent the whole source to the browser worker and restarted it there.",
-    "render": false
+    "render": false,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "the-ceramic-shop": {
     "label": "The Ceramic Shop",
@@ -1266,7 +1524,10 @@
     "render": false,
     "obey_robots": true,
     "delay": 5.0,
-    "product_concurrency": 1
+    "product_concurrency": 1,
+    "enrichments": [
+      "ceramic-materials"
+    ]
   },
   "emily-alarcon": {
     "label": "Emily Alarcon Ceramique",

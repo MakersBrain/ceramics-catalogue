@@ -153,6 +153,34 @@ class TestRobotsMayOnlyBeIgnoredDeliberately:
                 assert (config.delay or 0) >= 2.0, name
 
 
+class TestEnrichments:
+    """Derived fields are opt-in, and a typo in the selection is not silent."""
+
+    def test_an_unknown_module_names_itself(self):
+        with pytest.raises(ValidationError, match="glazes"):
+            SourceConfig(**{**MINIMAL, "enrichments": ["glazes"]})
+
+    def test_a_bundle_is_accepted(self):
+        assert SourceConfig(**{**MINIMAL, "enrichments": ["ceramic-materials"]}).enrichments
+
+    def test_the_projection_carries_the_selection(self):
+        config = SourceConfig(**{**MINIMAL, "enrichments": ["firing"]})
+        assert config.as_scraper_config()["enrichments"] == ["firing"]
+        # ...and an unset one stays absent, like every other optional key.
+        assert "enrichments" not in SourceConfig(**MINIMAL).as_scraper_config()
+
+    def test_every_materials_source_selects_its_enrichment(self, parsed: SourcesFile):
+        """A materials shop with no selection collects prices with no ceramics.
+
+        `classification` is added by scope regardless, so this is not about the
+        dump being empty — it is that the file should say what it wants derived
+        rather than leaning on that one implication.
+        """
+        for name, config in parsed.items():
+            if config.scope == "materials":
+                assert config.enrichments, f"{name} selects no enrichment"
+
+
 class TestSelect:
     def test_all_returns_every_source_in_file_order(self, parsed: SourcesFile, raw: dict):
         assert parsed.select("all") == list(raw)

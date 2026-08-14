@@ -10,6 +10,7 @@ import unittest
 import unittest.mock
 from pathlib import Path
 from types import SimpleNamespace
+from typing import ClassVar
 
 import httpx
 
@@ -18,6 +19,7 @@ from mb_ceramics_catalogue.scrapers import (
     base,
     ceramicolours,
     domain,
+    enrichment,
     jsonld,
     prestashop,
     shopify,
@@ -30,6 +32,26 @@ from mb_ceramics_catalogue.scrapers import cache as cache_module
 from mb_ceramics_catalogue.scrapers import record as record_module
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def described(name, description="", categories=()):
+    """The derived block a source selecting `ceramic-materials` gets, plus scope.
+
+    `is_material` is not a record field — the scope decision is taken from the
+    finished row — but it reads the family this block derives, so the two are
+    asserted together here.
+    """
+    block = enrichment.apply(
+        enrichment.resolve(["ceramic-materials"]),
+        enrichment.Context(
+            name=name, description=description, categories=tuple(categories),
+        ),
+    )
+    block["is_material"] = domain.is_material(
+        block["family"], name, " ".join(categories),
+        categories=tuple(categories), description=description,
+    )
+    return block
 
 
 class SourceConfigTests(unittest.TestCase):
@@ -433,13 +455,13 @@ class ClassificationTests(unittest.TestCase):
 
     def test_description_prose_does_not_reject_a_glaze(self):
         """Glaze copy mentions brushes and kilns; scope must ignore the prose."""
-        described = domain.describe(
+        block = described(
             "Penguin Pottery Underglaze - Black",
             "It can be brushed or sprayed on. Fire in a kiln to cone 6 on a kiln shelf.",
             ["underglaze-series"],
         )
-        self.assertEqual("underglaze", described["family"])
-        self.assertTrue(described["is_material"])
+        self.assertEqual("underglaze", block["family"])
+        self.assertTrue(block["is_material"])
 
     def test_equipment_is_out_of_scope(self):
         self.assertTrue(domain.looks_non_material("Kiln shelf 30cm"))
@@ -454,14 +476,14 @@ class ClassificationTests(unittest.TestCase):
         clay body; and the scope filter had no Italian in it, so the word
         "forno" in the very first line was never looked for.
         """
-        described = domain.describe(
+        block = described(
             "N 100 (5 lati)",
             "Forno elettrico con apertura frontale Nabertherm N 100. "
             "Temperatura massima 1300°C - 9,0 kW. Peso: 275 kg. "
             "valvola ingresso aria; collettore per uscita fumi.",
         )
-        self.assertIsNone(described["family"])
-        self.assertFalse(described["is_material"])
+        self.assertIsNone(block["family"])
+        self.assertFalse(block["is_material"])
 
     def test_a_short_keyword_may_not_match_inside_a_word(self):
         self.assertIsNone(domain.family("valvola ingresso aria"))
@@ -603,15 +625,15 @@ class ClassificationTests(unittest.TestCase):
     def test_scope_reads_three_kinds_of_evidence(self):
         # A kiln whose name says nothing, caught by its specification alone.
         self.assertFalse(
-            domain.describe("KMT1027", "Toploader 11,0 kW 400 Volt Trifase")["is_material"]
+            described("KMT1027", "Toploader 11,0 kW 400 Volt Trifase")["is_material"]
         )
         # Orton cones in Spanish, caught by the department alone.
         self.assertFalse(
-            domain.describe("Conos ORTON SMALL(SRB)", "", ["Pirometría"])["is_material"]
+            described("Conos ORTON SMALL(SRB)", "", ["Pirometría"])["is_material"]
         )
         # ...and a glaze filed under glazes is still a glaze.
         self.assertTrue(
-            domain.describe(
+            described(
                 "Botz Steinzeugglasur 9101", "Brennen 1220-1250°C", ["Glasuren"]
             )["is_material"]
         )
@@ -1353,7 +1375,100 @@ class ColourTests(unittest.TestCase):
         )
 
 
+class EnrichmentSelectionTests(unittest.TestCase):
+    """Derived fields belong to the sources that asked for them."""
+
+    GLAZE: ClassVar[dict[str, object]] = dict(
+        source="shop", product_url="https://example.test/p",
+        name="Transparent gloss glaze 1020-1060°C 500ml",
+        description="Brush on two coats. Food safe.",
+        price=12.5, currency="EUR", extraction_method="api_json",
+    )
+
+    def build(self, sources, **overrides):
+        with record_module.RecordBuilder(sources):
+            return record_module.build(**{**self.GLAZE, **overrides})
+
+    def test_a_source_that_selected_nothing_derives_nothing(self):
+        """A potter's shop publishes pots; every inference over it is invented."""
+        row = self.build({"shop": {"scope": "all"}})
+        for field in ("family", "form", "firing", "surface", "colour", "coats", "package_size", "unit_price"):
+            with self.subTest(field=field):
+                self.assertIsNone(row[field], f"{field} was derived for a source that selected no enrichment")
+        self.assertIsNone(row["effects"])
+        self.assertIsNone(row["application_methods"])
+        self.assertIsNone(row["claims"])
+        # What the shop itself published is untouched by any of this.
+        self.assertEqual(12.5, row["price"])
+        self.assertEqual("Transparent gloss glaze 1020-1060°C 500ml", row["name_raw"])
+
+    def test_the_bundle_fills_the_whole_block(self):
+        row = self.build({"shop": {"scope": "materials", "enrichments": ["ceramic-materials"]}})
+        self.assertEqual("glaze", row["family"])
+        self.assertEqual("gloss", row["surface"])
+        self.assertEqual(1020, row["firing"]["min_celsius"])
+        self.assertEqual(500.0, row["package_size"]["millilitres"])
+        self.assertEqual(25.0, row["unit_price"]["value"])
+        self.assertTrue(row["claims"])
+
+    def test_a_module_fills_its_own_fields_and_no_others(self):
+        row = self.build({"shop": {"scope": "all", "enrichments": ["firing"]}})
+        self.assertEqual(1020, row["firing"]["min_celsius"])
+        self.assertIsNone(row["family"])
+        self.assertIsNone(row["surface"])
+        self.assertIsNone(row["package_size"])
+
+    def test_packaging_brings_the_classifier_it_reads(self):
+        """"1 pt" is a volume only for a liquid, and that is classification's answer."""
+        self.assertEqual(
+            ("classification", "packaging"), enrichment.selected("all", ["packaging"]),
+        )
+
+    def test_a_materials_source_classifies_whatever_it_selected(self):
+        """Otherwise the scope filter has nothing to read and the dump is empty."""
+        self.assertIn("classification", enrichment.selected("materials", None))
+        self.assertEqual((), enrichment.selected("all", None))
+
+    def test_a_module_fills_exactly_the_fields_it_declares(self):
+        """The declaration is what a reader of the record contract goes by.
+
+        A module that quietly fills a field it does not own makes a source's
+        selection a lie, and a field no module owns can never be null-filled
+        for a source that selected nothing.
+        """
+        context = enrichment.Context(name="Transparent gloss glaze 500ml")
+        owned = set()
+        for name, module in enrichment.MODULES.items():
+            with self.subTest(module=name):
+                produced = module.run(context, dict(enrichment.EMPTY))
+                self.assertEqual(set(module.fields), set(produced))
+                self.assertFalse(owned & set(module.fields), "two modules own one field")
+                owned |= set(module.fields)
+        self.assertEqual(set(enrichment.EMPTY), owned)
+
+    def test_an_unknown_module_is_refused_by_name(self):
+        with self.assertRaises(ValueError) as caught:
+            enrichment.resolve(["glazes"])
+        self.assertIn("glazes", str(caught.exception))
+
+
 class RecordTests(unittest.TestCase):
+    #: These rows are a supplier of ceramic materials, so the source selects the
+    #: bundle; without it `build` fills the derived fields with nulls, which is
+    #: the whole point of the selection and is asserted separately below.
+    SOURCES: ClassVar[dict[str, dict[str, object]]] = {
+        "test": {
+            "label": "Test",
+            "scope": "materials",
+            "enrichments": ["ceramic-materials"],
+        }
+    }
+
+    def setUp(self):
+        self._builder = record_module.RecordBuilder(self.SOURCES)
+        self._builder.bind()
+        self.addCleanup(self._builder.unbind)
+
     def build(self, **overrides):
         defaults = dict(
             source="test", product_url="https://example.test/products/glaze",

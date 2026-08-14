@@ -120,6 +120,16 @@ class SourceConfig(BaseModel):
     #: Optional Shopify section containing that public inventory payload.
     inventory_section_id: str | None = None
 
+    # -- enrichment -------------------------------------------------------
+    #: Which derived-field modules run over this source's rows, by name or as a
+    #: bundle ("ceramic-materials"). Unset means none: a shop is only guessed
+    #: about when it was selected for it. See scrapers/enrichment.py.
+    #:
+    #: `scope: materials` adds `classification` whatever this says, because that
+    #: is the field the scope filter reads; a materials source that selected
+    #: nothing would otherwise crawl an empty catalogue rather than a narrow one.
+    enrichments: list[str] | None = None
+
     # -- scope filtering --------------------------------------------------
     material_categories: list[str] | None = None
     excluded_categories: list[str] | None = None
@@ -149,6 +159,14 @@ class SourceConfig(BaseModel):
         if value not in scrapers.REGISTRY:
             known = ", ".join(sorted(scrapers.REGISTRY))
             raise ValueError(f"unknown scraper {value!r}; known: {known}")
+        return value
+
+    @field_validator("enrichments")
+    @classmethod
+    def _known_enrichments(cls, value: list[str] | None) -> list[str] | None:
+        from mb_ceramics_catalogue.scrapers import enrichment
+
+        enrichment.resolve(value)  # raises, naming the unknown module
         return value
 
     @model_validator(mode="after")
