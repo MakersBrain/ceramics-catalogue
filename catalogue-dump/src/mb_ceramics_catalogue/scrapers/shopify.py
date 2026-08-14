@@ -101,7 +101,7 @@ class ShopifyScraper(Scraper):
                 # Academy, for example, sells far more yarn than ceramics).
                 await self._enrich_inventory([
                     product for product in selected
-                    if self._category_match(product, collection) is not False
+                    if self._inventory_candidate(product, collection)
                 ])
             for product in selected:
                 self._emit(product, collection)
@@ -317,6 +317,35 @@ class ShopifyScraper(Scraper):
             collection or "",
             domain.clean(product.get("handle")),
         )
+
+    def _inventory_candidate(self, product: dict[str, Any], collection: str | None) -> bool:
+        """Decide whether an expensive detail request can produce an emitted row."""
+        category_match = self._category_match(product, collection)
+        if category_match is not None:
+            return category_match
+        if not self.config.get("inventory_prefilter_materials"):
+            return True
+
+        product_type = domain.clean(product.get("product_type"))
+        tags = product.get("tags") or []
+        tags = tags if isinstance(tags, list) else [domain.clean(tags)]
+        categories = tuple(value for value in (collection, product_type) if value)
+        category_text = " ".join((*categories, *(domain.clean(tag) for tag in tags)))
+        title = domain.clean(product.get("title"))
+        description = domain.clean(product.get("body_html"))
+        variants = product.get("variants") or [None]
+        for variant in variants:
+            variant_title = domain.clean(variant.get("title")) if isinstance(variant, dict) else ""
+            name = f"{title} {variant_title}".strip()
+            family = domain.family(name, category_text) or domain.family(
+                name, description, category_text,
+            )
+            if domain.is_material(
+                family, name, category_text,
+                categories=categories, description=description,
+            ):
+                return True
+        return False
 
     @staticmethod
     def _stock_quantity(variant: dict[str, Any]) -> int | None:

@@ -216,6 +216,21 @@ class PublishedStockTests(unittest.TestCase):
             {"product_type": "Ceramic glaze", "tags": [], "handle": "blue"}, None,
         ))
 
+    def test_shopify_inventory_prefilter_rejects_uncategorised_non_materials(self):
+        scraper = shopify.ShopifyScraper.__new__(shopify.ShopifyScraper)
+        scraper.config = {"inventory_prefilter_materials": True}
+        scraper.category_allows = lambda *values: None
+        self.assertFalse(scraper._inventory_candidate({
+            "title": "Set of 12 plastic crayons & eraser",
+            "product_type": "", "tags": [], "variants": [{"title": "Default Title"}],
+            "body_html": "Drawing supplies for children.",
+        }, None))
+        self.assertTrue(scraper._inventory_candidate({
+            "title": "Mayco Stroke & Coat glaze",
+            "product_type": "", "tags": [], "variants": [{"title": "Pint"}],
+            "body_html": "Brush on and fire to cone 6.",
+        }, None))
+
     def test_verified_shopify_theme_inventory_shapes(self):
         samples = (
             ('{"id":101,"inventory_quantity":12,"inventory_management":"shopify",'

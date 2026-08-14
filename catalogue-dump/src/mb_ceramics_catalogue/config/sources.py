@@ -119,6 +119,10 @@ class SourceConfig(BaseModel):
     inventory_product_html: bool | None = None
     #: Optional Shopify section containing that public inventory payload.
     inventory_section_id: str | None = None
+    #: Some mixed shops leave product_type and tags blank. Before issuing one
+    #: inventory-page request per product, apply the same materials decision
+    #: used for emitted rows to the feed's title, variants and description.
+    inventory_prefilter_materials: bool | None = None
 
     # -- enrichment -------------------------------------------------------
     #: Which derived-field modules run over this source's rows, by name or as a
