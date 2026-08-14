@@ -330,7 +330,7 @@
       6104
     ],
     "note": "Per-pack prices are produced by the page's own updatePrice(); each pack option is selected in the browser and the displayed price recorded. Pricing is non-linear, so it is never derived by multiplication.",
-    "product_concurrency": 1
+    "product_concurrency": 2
   },
   "keramik-kraft": {
     "label": "Keramik-Kraft",
