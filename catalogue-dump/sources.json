@@ -1341,7 +1341,7 @@
     "proxy_eligible": true,
     "inventory_product_html": true,
     "inventory_section_id": "template--27752730657139__main",
-    "delay": 0.5,
+    "delay": 0.25,
     "scope": "materials",
     "country": "US",
     "vat_status": "exclusive",
