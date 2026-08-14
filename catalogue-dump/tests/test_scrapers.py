@@ -8,6 +8,7 @@ import timeit
 import unittest
 import unittest.mock
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 
@@ -1272,6 +1273,34 @@ class ProxyFallbackRoutingTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual("served", await fetcher.text("https://shop.test/p"))
         self.assertEqual(2, direct_calls, "research and browser user agents precede proxying")
         self.assertEqual(1, proxy_calls)
+
+    async def test_exhausted_proxy_keeps_usage_in_the_source_summary(self):
+        from mb_ceramics_catalogue.proxy import ProxyDenied
+
+        class ExhaustedScraper(base.Scraper):
+            async def scrape(self, limit=None):
+                self.fetcher.stats.proxy_requests = 14
+                raise ProxyDenied("job proxy reservation is exhausted")
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, text="unused")
+        ))
+        fetcher = base.Fetcher(
+            client, base.HostLimiter(0, 1), base.BrowserRenderer(False), "never",
+            impersonate_policy="never",
+        )
+        fetcher.may_fetch = unittest.mock.AsyncMock(return_value=True)
+        fetcher.proxy_lease = SimpleNamespace(max_bytes=25_000_000, used_bytes=26_060_082)
+        scraper = ExhaustedScraper(
+            "shop", {"url": "https://shop.test/", "scope": "all"}, fetcher,
+        )
+        async with client:
+            result = await scraper.run()
+        self.assertEqual(14, result.proxy_requests)
+        self.assertEqual(25_000_000, result.proxy_bytes_reserved)
+        self.assertEqual(26_060_082, result.proxy_bytes_estimated)
+        self.assertTrue(result.truncated)
+        self.assertIn("reservation is exhausted", result.errors[0]["error"])
 
     async def test_deterministic_404_never_uses_proxy(self):
         proxy_calls = 0

@@ -20,6 +20,8 @@ from urllib.parse import urljoin, urlparse
 
 import httpx
 
+from mb_ceramics_catalogue.proxy import ProxyDenied
+
 if TYPE_CHECKING:
     from mb_ceramics_catalogue.proxy import ProxyLease
 
@@ -1511,7 +1513,7 @@ class Scraper(ABC):
             self.note("robots.txt intentionally not applied for this source (operator decision)")
         try:
             await self.scrape(limit)
-        except (httpx.HTTPError, Blocked, OSError, UnicodeError) as error:
+        except (httpx.HTTPError, Blocked, ProxyDenied, OSError, UnicodeError) as error:
             self.fail(start, error)
         self.result.records = self.deduplicate(self.result.records)
         self.fetcher.stats.copy_to(self.result)
