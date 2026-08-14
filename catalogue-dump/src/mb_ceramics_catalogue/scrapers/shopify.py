@@ -126,12 +126,13 @@ class ShopifyScraper(Scraper):
             if not suffix and section_id:
                 endpoint = f"{endpoint}?{urlencode({'section_id': section_id})}"
             try:
-                # Several Shopify themes leave a pooled product connection
-                # parked for tens of seconds after an initial healthy burst,
-                # while a fresh connection to the same section still returns
-                # immediately. These are one-shot detail reads, so do not put a
-                # possibly poisoned connection back into the shared pool.
-                headers = {"Connection": "close", "Cookie": ""}
+                # Do not let a storefront cookie make later inventory reads
+                # stateful. Connections are deliberately reused inside the
+                # bounded batch below: forcing a fresh TLS handshake for every
+                # product made large catalogues needlessly slow. The whole
+                # client is replaced between batches, before a Shopify theme's
+                # observed pooled-session stall can escape that boundary.
+                headers = {"Cookie": ""}
                 if suffix:
                     detail = await self.fetcher.json(endpoint, headers=headers)
                 else:
