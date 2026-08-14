@@ -97,6 +97,9 @@ class TestRuns:
         response = await client.post(f"/v1/runs/{body['run_id']}/cancel")
         assert response.status_code == 202
         assert response.json()["cancelled"] == 2
+        detail = (await client.get(f"/v1/runs/{body['run_id']}")).json()
+        assert detail["run"]["status"] == "cancelled"
+        assert {job["state"] for job in detail["jobs"]} == {"cancelled"}
 
     async def test_a_bad_uuid_is_a_400_not_a_500(self, client):
         assert (await client.get("/v1/runs/not-a-uuid")).status_code == 400
@@ -115,6 +118,8 @@ class TestJobControls:
     async def test_cancelling_a_queued_job_is_accepted(self, client):
         job = await self.job_id(client)
         assert (await client.post(f"/v1/jobs/{job}/cancel")).status_code == 202
+        detail = (await client.get(f"/v1/jobs/{job}")).json()["job"]
+        assert detail["state"] == "cancelled"
 
     async def test_pausing_a_job_that_is_not_running_is_a_conflict(self, client):
         """Conditional on the state, so this is "that means nothing right now"

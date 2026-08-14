@@ -77,10 +77,14 @@ select j.id, j.source_id, j.host, j.state, j.attempt, j.max_attempts, j.priority
 
 CANCEL_RUN = """
 update catalogue.jobs
-   set cancel_requested = true
+   set cancel_requested = true,
+       state = case when state in ('queued', 'paused') then 'cancelled' else state end,
+       finished_at = case when state in ('queued', 'paused') then now() else finished_at end,
+       lease_owner = case when state in ('queued', 'paused') then null else lease_owner end,
+       lease_expires_at = case when state in ('queued', 'paused') then null else lease_expires_at end
  where run_id = %(run)s
    and state in ('queued', 'leased', 'running', 'paused')
-returning id, source_id
+returning id, source_id, state
 """
 
 
@@ -145,7 +149,11 @@ returning id, run_id, source_id, state
 
 CANCEL_JOB = """
 update catalogue.jobs
-   set cancel_requested = true
+   set cancel_requested = true,
+       state = case when state in ('queued', 'paused') then 'cancelled' else state end,
+       finished_at = case when state in ('queued', 'paused') then now() else finished_at end,
+       lease_owner = case when state in ('queued', 'paused') then null else lease_owner end,
+       lease_expires_at = case when state in ('queued', 'paused') then null else lease_expires_at end
  where id = %(id)s and state in ('queued', 'leased', 'running', 'paused')
 returning id, run_id, source_id, state
 """

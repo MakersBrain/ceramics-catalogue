@@ -380,6 +380,11 @@ async def _close_run_if_done(connection: Connection, run_id: UUID) -> dict[str, 
     return {"status": status, **summary}
 
 
+async def close_run_if_done(connection: Connection, run_id: UUID) -> dict[str, Any] | None:
+    """Close a run after an operator terminally cancels its last queued job."""
+    return await _close_run_if_done(connection, run_id)
+
+
 async def _promote_canonicals(connection: Connection, run_id: UUID) -> None:
     """Fold what this run collected into the cross-supplier product identities.
 

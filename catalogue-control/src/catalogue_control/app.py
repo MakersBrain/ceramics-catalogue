@@ -208,6 +208,7 @@ async def cancel_run(request: Request) -> Response:
                 connection, events.Topic.JOB, "job.cancel_requested",
                 run_id=run_id, job_id=row["id"], source_id=row["source_id"],
             )
+        await runs.close_run_if_done(connection, run_id)
     return JSONResponse({"cancelled": len(cancelled)}, status_code=202)
 
 
@@ -243,6 +244,8 @@ async def job_action(request: Request) -> Response:
             connection, events.Topic.JOB, f"job.{action}_requested",
             run_id=row["run_id"], job_id=job_id, source_id=row["source_id"],
         )
+        if action == "cancel":
+            await runs.close_run_if_done(connection, row["run_id"])
     return JSONResponse({"job_id": str(job_id), "action": action}, status_code=202)
 
 
