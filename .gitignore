@@ -47,3 +47,6 @@ catalogue-images/
 # Connector tokens and anything else handed to a container as a file rather
 # than an environment variable. Real credentials, mode 0600, never in history.
 deploy/secrets/
+
+# Decodo dashboard endpoint exports contain plaintext proxy credentials.
+decodo.csv
