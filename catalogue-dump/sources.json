@@ -592,6 +592,7 @@
     "label": "Artik Studio",
     "url": "https://www.artikstudio.com/",
     "scraper": "prestashop",
+    "use_advertised_sitemaps": false,
     "product_pattern": "^/product/[0-9]+-",
     "category_urls": [
       "https://www.artikstudio.com/13-glazes-colors",

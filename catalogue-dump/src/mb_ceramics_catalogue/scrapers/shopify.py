@@ -96,7 +96,13 @@ class ShopifyScraper(Scraper):
             if limit is not None:
                 selected = products[:max(limit - seen, 0)]
             if self.config.get("inventory_product_json") or self.config.get("inventory_product_html"):
-                await self._enrich_inventory(selected)
+                # Product detail requests are the expensive part. Do not fetch
+                # inventory for obviously out-of-scope feed entries (Art
+                # Academy, for example, sells far more yarn than ceramics).
+                await self._enrich_inventory([
+                    product for product in selected
+                    if self._category_match(product, collection) is not False
+                ])
             for product in selected:
                 self._emit(product, collection)
                 seen += 1
@@ -232,7 +238,7 @@ class ShopifyScraper(Scraper):
         tags = product.get("tags") or []
         tags = tags if isinstance(tags, list) else [domain.clean(tags)]
         category_path = [value for value in ([collection] if collection else []) + [product_type] if value]
-        category_match = self.category_allows(product_type, " ".join(tags), collection or "", handle)
+        category_match = self._category_match(product, collection)
 
         images = [
             image.get("src") for image in product.get("images") or []
@@ -301,6 +307,16 @@ class ShopifyScraper(Scraper):
                 raw={"product": {k: v for k, v in product.items() if k != "variants"}, "variant": variant},
             )
             self.add(row, category_match)
+
+    def _category_match(self, product: dict[str, Any], collection: str | None) -> bool | None:
+        tags = product.get("tags") or []
+        tags = tags if isinstance(tags, list) else [domain.clean(tags)]
+        return self.category_allows(
+            domain.clean(product.get("product_type")),
+            " ".join(str(tag) for tag in tags),
+            collection or "",
+            domain.clean(product.get("handle")),
+        )
 
     @staticmethod
     def _stock_quantity(variant: dict[str, Any]) -> int | None:

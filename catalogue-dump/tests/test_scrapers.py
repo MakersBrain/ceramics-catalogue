@@ -184,6 +184,16 @@ class PublishedStockTests(unittest.TestCase):
         }
         self.assertIsNone(shopify.ShopifyScraper._stock_quantity(variant))
 
+    def test_shopify_inventory_enrichment_can_skip_rejected_feed_categories(self):
+        scraper = shopify.ShopifyScraper.__new__(shopify.ShopifyScraper)
+        scraper.category_allows = lambda *values: "yarn" not in values[0].casefold()
+        self.assertFalse(scraper._category_match(
+            {"product_type": "Yarn", "tags": [], "handle": "wool"}, None,
+        ))
+        self.assertTrue(scraper._category_match(
+            {"product_type": "Ceramic glaze", "tags": [], "handle": "blue"}, None,
+        ))
+
     def test_verified_shopify_theme_inventory_shapes(self):
         samples = (
             ('{"id":101,"inventory_quantity":12,"inventory_management":"shopify",'
