@@ -1412,14 +1412,24 @@ async def apply_source_policy(
         {"source": source_id},
     )
     before = await before_cursor.fetchone()
+    if policy == "always" and (
+        before is None
+        or before["evidence_state"] != "promoted"
+        or int(before["evidence_count"]) < 3
+    ):
+        return problem(
+            409, "Pilot evidence required", "always requires three promoted pilot runs"
+        )
     try:
         changed = await connection.execute(
             """
             insert into catalogue.source_proxy_policies
-                   (source_id, policy, route_id, max_bytes, pilot, evidence_state, enabled_at,
-                    disabled_at, updated_by)
+                   (source_id, policy, route_id, max_bytes, pilot, evidence_count,
+                    evidence_state, enabled_at, disabled_at, updated_by)
             values (%(source)s, %(policy)s, %(route)s, %(bytes)s, %(pilot)s,
-                    case when %(policy)s = 'fallback' then 'eligible' else 'unproven' end,
+                    case when %(policy)s = 'always' then 3 else 0 end,
+                    case when %(policy)s = 'always' then 'promoted'
+                         when %(policy)s = 'fallback' then 'eligible' else 'unproven' end,
                     case when %(policy)s <> 'never' then now() end,
                     case when %(policy)s = 'never' then now() end, %(actor)s)
             on conflict (source_id) do update

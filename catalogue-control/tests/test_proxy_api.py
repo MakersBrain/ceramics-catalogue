@@ -141,6 +141,55 @@ async def test_provider_write_requires_recent_authentication(proxy_client):
 
 @pytest.mark.postgres
 @requires_postgres
+async def test_promoted_source_can_transition_to_always(proxy_client, db):
+    client, private, _, _ = proxy_client
+    profile_id = uuid4()
+    route_id = uuid4()
+    await db.execute(
+        """insert into catalogue.proxy_profiles
+                  (id, provider, logical_name, provider_resource_id, display_name,
+                   username_mask, username_fingerprint, enabled, lifecycle,
+                   created_by, updated_by)
+           values (%(id)s, 'decodo', 'promoted-test', 'provider-user', 'Promoted test',
+                   'user-***', 'fingerprint', true, 'enabled',
+                   'operator@example.test', 'operator@example.test')""",
+        {"id": profile_id},
+    )
+    await db.execute(
+        """insert into catalogue.proxy_routes
+                  (id, label, profile_id, protocol, max_bytes, pilot, enabled,
+                   created_by, updated_by)
+           values (%(id)s, 'Promoted route', %(profile)s, 'http', 25000000,
+                   true, true, 'operator@example.test', 'operator@example.test')""",
+        {"id": route_id, "profile": profile_id},
+    )
+    await db.execute(
+        """insert into catalogue.source_proxy_policies
+                  (source_id, policy, route_id, max_bytes, pilot, evidence_count,
+                   evidence_state, updated_by)
+           values ('the-ceramic-shop', 'fallback', %(route)s, 25000000, true,
+                   3, 'promoted', 'operator@example.test')""",
+        {"route": route_id},
+    )
+    path = "/v1/sources/the-ceramic-shop"
+    response = await client.put(
+        path,
+        json={
+            "proxy": {
+                "policy": "always",
+                "route_id": str(route_id),
+                "max_megabytes": 25,
+                "pilot": True,
+            }
+        },
+        headers=assertion(private, "PUT", path),
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["proxy"]["policy"] == "always"
+
+
+@pytest.mark.postgres
+@requires_postgres
 async def test_mutation_nonce_is_single_use_and_idempotency_replays(proxy_client, db):
     client, private, _, _ = proxy_client
     now = datetime.now(UTC)
