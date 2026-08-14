@@ -10,7 +10,13 @@ import httpx
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from mb_ceramics_catalogue.providers.base import Subscription, SubUser, UsageBucket, UsageReport
+from mb_ceramics_catalogue.providers.base import (
+    ProviderError,
+    Subscription,
+    SubUser,
+    UsageBucket,
+    UsageReport,
+)
 
 from catalogue_control.app import create_app
 from catalogue_control.settings import Settings
@@ -21,8 +27,11 @@ from .conftest import TOKEN, postgres_dsn, requires_postgres
 class FakeProvider:
     def __init__(self) -> None:
         self.created = 0
+        self.create_error: ProviderError | None = None
 
     async def create_subuser(self, **values):
+        if self.create_error is not None:
+            raise self.create_error
         self.created += 1
         return SubUser(
             id=f"sub-{self.created}", username=values["username"], status="active",
@@ -172,6 +181,38 @@ async def test_profile_creation_is_bounded_and_installs_dynamic_secret(proxy_cli
     installed = json.loads(secret_file.read_text())["primary"]
     assert installed["generation"] == 1
     assert "password" not in response.text and installed["password"] not in response.text
+
+
+@pytest.mark.postgres
+@requires_postgres
+async def test_conclusive_profile_rejection_releases_local_allocation(proxy_client, db):
+    client, private, fake, _ = proxy_client
+    now = datetime.now(UTC)
+    await db.execute(
+        """insert into catalogue.proxy_budget_cycles
+             (provider, cycle_start, cycle_end, purchased_bytes, operational_bytes,
+              daily_bytes, pilot_bytes, lifecycle)
+             values ('decodo', %(start)s, %(end)s, 3000000000, 2400000000,
+                     80000000, 300000000, 'active')""",
+        {"start": now - timedelta(days=1), "end": now + timedelta(days=29)},
+    )
+    fake.create_error = ProviderError("provider_bad_request_password", "rejected")
+    path = "/v1/proxy/profiles"
+    response = await client.post(path, json={
+        "logical_name": "retryable", "display_name": "Retryable",
+        "allocated_bytes": 100_000_000, "provider_traffic_limit_bytes": 90_000_000,
+        "confirmation": "CREATE retryable",
+    }, headers={**assertion(private, "POST", path), "idempotency-key": "rejected-profile"})
+    assert response.status_code == 502
+    assert response.json()["error"] == "provider_bad_request_password"
+    profile = await db.execute(
+        "select count(*) as n from catalogue.proxy_profiles where logical_name = 'retryable'"
+    )
+    allocation = await db.execute(
+        "select count(*) as n from catalogue.proxy_profile_allocations"
+    )
+    assert (await profile.fetchone())["n"] == 0
+    assert (await allocation.fetchone())["n"] == 0
 
 
 @pytest.mark.postgres

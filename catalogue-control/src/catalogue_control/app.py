@@ -151,8 +151,11 @@ async def create_run(request: Request) -> Response:
     except Exception as error:  # noqa: BLE001 - pydantic's message is the useful part
         return problem(422, "Invalid run parameters", str(error))
 
+    selection = body.get("sources") or "all"
+    if not isinstance(selection, str):
+        return problem(422, "Invalid source selection", "sources must be 'all' or a comma-separated string")
     try:
-        selected = sources.select(body.get("sources") or "all")
+        selected = sources.select(selection)
     except ValueError as error:
         return problem(422, "Unknown source", str(error))
 

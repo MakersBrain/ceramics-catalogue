@@ -849,6 +849,22 @@ async def create_profile(request: Request) -> Response:
         except ProviderError as error:
             state = "ambiguous" if error.ambiguous else "failed"
             data = {"error": error.code, "operation_id": str(mutation.operation_id)}
+            if not error.ambiguous:
+                # A conclusive provider rejection created no external resource.
+                # Remove the pending local intent and its allocation so an
+                # operator can correct and retry the same logical profile
+                # without leaking the bounded pilot budget.  Ambiguous network
+                # outcomes deliberately remain pending for reconciliation.
+                async with connection.transaction():
+                    await connection.execute(
+                        "delete from catalogue.proxy_profile_allocations "
+                        "where profile_id = %(id)s", {"id": profile["id"]},
+                    )
+                    await connection.execute(
+                        "delete from catalogue.proxy_profiles where id = %(id)s "
+                        "and lifecycle = 'pending' and provider_resource_id is null",
+                        {"id": profile["id"]},
+                    )
             await finish_mutation(
                 connection, mutation, actor, "profile.create", status=502, data=data,
                 state=state, resource_type="profile", resource_id=str(profile["id"]),

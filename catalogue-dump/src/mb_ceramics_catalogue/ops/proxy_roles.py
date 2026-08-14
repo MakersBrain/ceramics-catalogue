@@ -64,7 +64,15 @@ def provision(dsn: str, control_password: str, worker_password: str, archive_pas
                 )
             )
 
-        for role in ("catalogue_control", "catalogue_worker", "catalogue_proxy_archive"):
+        # PostgreSQL executes referential-integrity checks as the owner of the
+        # referencing table.  The proxy tables are reassigned to the NOLOGIN
+        # owner role above, so that role still needs schema USAGE even though
+        # the login roles have their own table grants.  Without it, inserting a
+        # provider snapshot fails while checking its budget-cycle foreign key.
+        for role in (
+            "catalogue_proxy_owner", "catalogue_control", "catalogue_worker",
+            "catalogue_proxy_archive",
+        ):
             connection.execute(
                 sql.SQL("grant connect on database {} to {}").format(
                     sql.Identifier(connection.info.dbname), sql.Identifier(role)

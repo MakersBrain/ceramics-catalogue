@@ -91,6 +91,17 @@ class DecodoProvider:
                 payload = response.json()
                 if isinstance(payload, dict) and isinstance(payload.get("error_code"), str):
                     code = f"provider_{payload['error_code']}"
+                # Decodo's validation response identifies the rejected fields.
+                # Preserve only those field names, never their values/messages:
+                # the latter may echo credentials supplied in the request.
+                details = payload.get("error") if isinstance(payload, dict) else None
+                if isinstance(details, dict):
+                    fields = sorted(
+                        key for key in details
+                        if isinstance(key, str) and key.replace("_", "").isalnum()
+                    )
+                    if fields:
+                        code = f"{code}_{'_'.join(fields)}"
             except ValueError:
                 pass
             raise ProviderError(code, "Decodo rejected the request")
@@ -252,6 +263,12 @@ class DecodoProvider:
         self, *, username: str, password: str, traffic_limit_bytes: int,
         traffic_count_from: datetime,
     ) -> SubUser:
+        # Decodo starts a new user's counter at creation when this optional
+        # field is omitted.  Backdating it to the account billing-cycle start
+        # is rejected for users created after that date.  Account-level cycle
+        # reconciliation remains authoritative; the sub-user's hard traffic
+        # limit is independent of the counter's displayed start timestamp.
+        del traffic_count_from
         await self._request(
             "POST",
             "/v2/sub-users",
@@ -262,7 +279,6 @@ class DecodoProvider:
                 "service_type": "residential_proxies",
                 "traffic_limit": self._bytes_to_limit(traffic_limit_bytes),
                 "auto_disable": True,
-                "traffic_count_from": traffic_count_from.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S"),
             },
         )
         matches = [user for user in await self.list_subusers() if user.username == username]

@@ -1213,6 +1213,7 @@
     "scraper": "nitrosell",
     "scope": "materials",
     "country": "US",
+    "proxy_eligible": true,
     "vat_status": "exclusive",
     "product_pattern": "/product/",
     "excluded_categories": [

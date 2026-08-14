@@ -87,6 +87,11 @@ class TestRuns:
         assert response.status_code == 422
         assert "ceradle" in response.text
 
+    async def test_a_non_string_source_selection_is_rejected(self, client):
+        response = await client.post("/v1/runs", json={"sources": ["ceradel"]})
+        assert response.status_code == 422
+        assert "comma-separated string" in response.text
+
     async def test_cancelling_a_run_flags_every_unfinished_job(self, client):
         body = await make_run(client)
         response = await client.post(f"/v1/runs/{body['run_id']}/cancel")
