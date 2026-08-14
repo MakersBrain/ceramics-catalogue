@@ -1,11 +1,14 @@
 import { env } from '$env/dynamic/private';
+import { actorHeaders, type Operator } from '$lib/server/operator';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Server-side access to catalogue-control.
  *
  * The browser never sees the control token and never reaches the control
  * service directly. Every call goes through a SvelteKit server route, which
- * attaches the bearer token here — including the SSE stream, which is why
+ * attaches the service bearer token and, for operator endpoints, a short-lived
+ * signed human identity assertion here — including the SSE stream, which is why
  * `EventSource` not being able to set headers costs nothing.
  *
  * Not published on the host is defence in depth; this is the authentication
@@ -26,13 +29,18 @@ export class ControlError extends Error {
 	}
 }
 
-async function request(path: string, init: RequestInit = {}): Promise<Response> {
+async function request(path: string, init: RequestInit = {}, operator?: Operator): Promise<Response> {
+	const method = (init.method || 'GET').toUpperCase();
 	const response = await fetch(`${base()}${path}`, {
 		...init,
 		headers: {
 			...(init.headers ?? {}),
 			authorization: `Bearer ${token()}`,
-			...(init.body ? { 'content-type': 'application/json' } : {})
+			...(init.body ? { 'content-type': 'application/json' } : {}),
+			...(operator ? actorHeaders(operator, method, path.split('?')[0]) : {}),
+			...(operator && method !== 'GET' && method !== 'HEAD'
+				? { 'idempotency-key': randomUUID() }
+				: {})
 		}
 	});
 	if (!response.ok) {
@@ -52,20 +60,30 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
 	return response;
 }
 
-export async function get<T>(path: string): Promise<T> {
-	return (await request(path)).json() as Promise<T>;
+export async function get<T>(path: string, operator?: Operator): Promise<T> {
+	return (await request(path, {}, operator)).json() as Promise<T>;
 }
 
-export async function post<T>(path: string, body?: unknown): Promise<T> {
-	const response = await request(path, {
-		method: 'POST',
-		body: JSON.stringify(body ?? {})
-	});
+export async function post<T>(path: string, body?: unknown, operator?: Operator): Promise<T> {
+	const response = await request(
+		path,
+		{ method: 'POST', body: JSON.stringify(body ?? {}) },
+		operator
+	);
 	return response.json() as Promise<T>;
 }
 
-export async function put<T>(path: string, body: unknown): Promise<T> {
-	const response = await request(path, { method: 'PUT', body: JSON.stringify(body) });
+export async function put<T>(path: string, body: unknown, operator?: Operator): Promise<T> {
+	const response = await request(path, { method: 'PUT', body: JSON.stringify(body) }, operator);
+	return response.json() as Promise<T>;
+}
+
+export async function del<T>(path: string, operator?: Operator, body?: unknown): Promise<T> {
+	const response = await request(
+		path,
+		{ method: 'DELETE', ...(body === undefined ? {} : { body: JSON.stringify(body) }) },
+		operator
+	);
 	return response.json() as Promise<T>;
 }
 

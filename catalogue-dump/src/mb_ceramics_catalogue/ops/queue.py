@@ -171,6 +171,7 @@ class ClaimedJob:
     max_attempts: int
     requires: list[str]
     params: dict[str, Any]
+    proxy_snapshot: dict[str, Any]
     trace_id: str | None = None
 
     @classmethod
@@ -184,6 +185,7 @@ class ClaimedJob:
             max_attempts=row["max_attempts"],
             requires=list(row["requires"] or []),
             params=params or {},
+            proxy_snapshot=dict(row.get("proxy_snapshot") or {}),
             trace_id=row.get("trace_id"),
         )
 

@@ -326,10 +326,289 @@ class SourceSettings(BaseModel):
     schedule_id: str | None = None
     params: dict[str, Any] = Field(default_factory=dict)
     updated_by: str | None = None
+    proxy: SourceProxyPolicyRequest | None = None
 
 
 class SourceUpdated(BaseModel):
     source: dict[str, Any]
+    proxy: dict[str, Any] | None = None
+
+
+class SourceProxyPolicyRequest(BaseModel):
+    policy: Literal["never", "fallback", "always"] = "never"
+    route_id: str | None = None
+    max_megabytes: int = Field(default=25, ge=1, le=25)
+    pilot: bool = True
+
+
+class ProxyCycle(BaseModel):
+    id: str
+    provider: str
+    cycle_start: datetime
+    cycle_end: datetime
+    purchased_bytes: int
+    operational_bytes: int
+    daily_bytes: int
+    pilot_bytes: int
+    pilot_active: bool
+    provider_reported_bytes: int
+    application_bytes: int
+    reconciled_at: datetime | None = None
+    reconciliation_ok: bool
+    kill_switch: bool
+    lifecycle: Literal["proposed", "active", "closed", "rejected"]
+    unmanaged_allocation_bytes: int = 0
+    active_reserved_bytes: int = 0
+    active_reservations: int = 0
+    accounted_bytes: int = 0
+    remaining_operational_bytes: int = 0
+    provider_application_discrepancy_bytes: int = 0
+    reconciliation_age_seconds: float | None = None
+    daily_used_bytes: int = 0
+    dynamic_daily_bytes: int = 0
+
+
+class ProxySubscription(BaseModel):
+    provider_resource_id: str | None = None
+    service_type: str
+    traffic_limit_bytes: int | None = None
+    raw_traffic_limit: str | float | int | None = None
+    valid_from: datetime
+    valid_until: datetime
+    users_limit: int | None = None
+
+
+class ProxyProfileCounts(BaseModel):
+    enabled: int = 0
+    total: int = 0
+
+
+class ProxyOverview(BaseModel):
+    deployment_enabled: bool
+    mutations_enabled: bool
+    paid_probe_enabled: bool
+    provider_configured: bool
+    provider_error: str | None = None
+    subscription: ProxySubscription | None = None
+    cycle: ProxyCycle | None = None
+    profiles: ProxyProfileCounts
+
+
+class ProxyCycleList(BaseModel):
+    cycles: list[ProxyCycle]
+
+
+class ProxyUsageItem(BaseModel):
+    key: str | datetime | None = None
+    transmitted_bytes: int | None = None
+    received_bytes: int | None = None
+    total_bytes: int = 0
+    request_count: int = 0
+    last_observed_at: datetime | None = None
+
+
+class ProxyUsageList(BaseModel):
+    group_by: str
+    usage: list[ProxyUsageItem]
+
+
+class ProxyReservation(BaseModel):
+    id: str
+    job_id: str | None = None
+    probe_id: str | None = None
+    purpose: Literal["job", "probe"]
+    provider: str
+    profile: str
+    profile_id: str | None = None
+    route_id: str | None = None
+    cycle_start: datetime
+    reserved_bytes: int
+    estimated_bytes: int
+    request_count: int
+    pilot: bool
+    state: str
+    created_at: datetime
+    closed_at: datetime | None = None
+    source_id: str | None = None
+    run_id: str | None = None
+    job_state: str | None = None
+    probe_state: str | None = None
+
+
+class ProxyReservationList(BaseModel):
+    reservations: list[ProxyReservation]
+
+
+class ProxyProfile(BaseModel):
+    id: str
+    provider: str
+    logical_name: str
+    provider_resource_id: str | None = None
+    display_name: str
+    username_mask: str | None = None
+    provider_traffic_limit_bytes: int | None = None
+    auto_disable: bool
+    enabled: bool
+    lifecycle: str
+    secret_generation: int
+    secret_installed_at: datetime | None = None
+    provider_observed_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+    allocated_bytes: int | None = None
+    route_count: int = 0
+    source_count: int = 0
+    active_reservations: int = 0
+
+
+class ProxyProfileList(BaseModel):
+    profiles: list[ProxyProfile]
+
+
+class ProxyRoute(BaseModel):
+    id: str
+    label: str
+    profile_id: str
+    profile: str | None = None
+    protocol: Literal["http", "https", "socks5"]
+    country: str | None = None
+    state: str | None = None
+    city: str | None = None
+    session_mode: Literal["random", "sticky"]
+    session_minutes: int
+    max_bytes: int
+    pilot: bool
+    enabled: bool
+    created_at: datetime
+    updated_at: datetime
+    source_count: int = 0
+
+
+class ProxyRouteList(BaseModel):
+    routes: list[ProxyRoute]
+
+
+class ProxyProbe(BaseModel):
+    id: str
+    route_id: str
+    profile_id: str
+    reservation_id: str | None = None
+    state: str
+    requested_at: datetime
+    completed_at: datetime | None = None
+    error_category: str | None = None
+    estimated_bytes: int
+    provider_requests: int
+    exit_country: str | None = None
+    exit_ip: str | None = None
+    latency_ms: int | None = None
+    protocol: str
+    actor: str
+    request_id: str
+
+
+class ProxyProbeList(BaseModel):
+    probes: list[ProxyProbe]
+
+
+class ProxyAudit(BaseModel):
+    id: int
+    operation_id: str
+    actor: str
+    actor_role: str
+    request_id: str
+    action: str
+    resource_type: str
+    resource_id: str | None = None
+    at: datetime
+    state: str
+    success: bool | None = None
+    error_code: str | None = None
+    response_status: int | None = None
+
+
+class ProxyAuditList(BaseModel):
+    audit: list[ProxyAudit]
+
+
+class ProxyCandidateList(BaseModel):
+    candidates: list[dict[str, Any]]
+    eligible_sources: list[str]
+
+
+class ProxyMutationResult(BaseModel):
+    status: str | None = None
+    operation_id: str | None = None
+    provider_reported_bytes: int | None = None
+    kill_switch: bool | None = None
+    revocation_requested: bool | None = None
+    pilot_active: bool | None = None
+    profile_id: str | None = None
+    allocated_bytes: int | None = None
+    provider_traffic_limit_bytes: int | None = None
+    rotation: str | None = None
+    active: int | None = None
+    profile: ProxyProfile | None = None
+    route: ProxyRoute | None = None
+    cycle: ProxyCycle | None = None
+    refreshed: int | None = None
+    drift: list[dict[str, Any]] | None = None
+    probe_id: str | None = None
+    reservation_id: str | None = None
+    state: str | None = None
+    application_bytes: int | None = None
+    reserved_bytes: int | None = None
+    latency_ms: int | None = None
+    exit_country: str | None = None
+    exit_ip: str | None = None
+
+
+class CreateProxyProfileRequest(BaseModel):
+    logical_name: str
+    display_name: str | None = None
+    allocated_bytes: int = Field(gt=0, le=2_400_000_000)
+    provider_traffic_limit_bytes: int | None = Field(default=None, gt=0, le=2_400_000_000)
+    confirmation: str
+
+
+class ProxyProfileActionRequest(BaseModel):
+    mode: Literal["drain", "blue-green"] | None = None
+    allocated_bytes: int | None = Field(default=None, ge=0, le=2_400_000_000)
+    provider_traffic_limit_bytes: int | None = Field(default=None, gt=0, le=2_400_000_000)
+    confirmation: str
+
+
+class ConfirmationRequest(BaseModel):
+    confirmation: str
+
+
+class OptionalConfirmationRequest(BaseModel):
+    confirmation: str | None = None
+
+
+class CreateProxyRouteRequest(BaseModel):
+    label: str
+    profile_id: str
+    protocol: Literal["http", "https", "socks5"] = "http"
+    country: str | None = None
+    state: str | None = None
+    city: str | None = None
+    session_mode: Literal["random", "sticky"] = "random"
+    session_minutes: int = Field(default=30, ge=1, le=1440)
+    max_bytes: int = Field(default=25_000_000, ge=1, le=25_000_000)
+    pilot: bool = True
+    enabled: bool = False
+
+
+class CycleConfirmation(BaseModel):
+    confirmation: str
+    cycle_start: datetime | None = None
+    cycle_end: datetime | None = None
+    purchased_bytes: int | None = None
+    operational_bytes: int | None = None
+    daily_bytes: int | None = None
+    pilot_bytes: int | None = None
+    unmanaged_allocation_bytes: int | None = None
 
 
 class Notification(BaseModel):
@@ -662,6 +941,44 @@ def registry() -> Registry:
         )
     )
 
+    for method, path, operation_id, summary, response, request_model, status in (
+        ("get", "/v1/proxy/overview", "proxyOverview", "Proxy safety and subscription overview", ProxyOverview, None, 200),
+        ("get", "/v1/proxy/cycles", "proxyCycles", "Proxy billing cycles", ProxyCycleList, None, 200),
+        ("get", "/v1/proxy/usage", "proxyUsage", "Provider and application usage", ProxyUsageList, None, 200),
+        ("get", "/v1/proxy/reservations", "proxyReservations", "Proxy reservations", ProxyReservationList, None, 200),
+        ("get", "/v1/proxy/profiles", "proxyProfiles", "Safe proxy profile metadata", ProxyProfileList, None, 200),
+        ("post", "/v1/proxy/profiles", "createProxyProfile", "Create a bounded Decodo sub-user", ProxyMutationResult, CreateProxyProfileRequest, 201),
+        ("post", "/v1/proxy/profiles/refresh", "refreshProxyProfiles", "Refresh safe provider profile metadata", ProxyMutationResult, None, 202),
+        ("post", "/v1/proxy/profiles/{id}/{action}", "mutateProxyProfile", "Rotate or disable a proxy profile", ProxyMutationResult, ProxyProfileActionRequest, 202),
+        ("put", "/v1/proxy/profiles/{id}/{action}", "updateProxyProfile", "Change profile limit or allocation", ProxyMutationResult, ProxyProfileActionRequest, 202),
+        ("delete", "/v1/proxy/profiles/{id}", "retireProxyProfile", "Drain and retire a proxy profile", ProxyMutationResult, ConfirmationRequest, 202),
+        ("get", "/v1/proxy/routes", "proxyRoutes", "Non-secret managed routes", ProxyRouteList, None, 200),
+        ("post", "/v1/proxy/routes", "createProxyRoute", "Create a non-secret route", ProxyMutationResult, CreateProxyRouteRequest, 201),
+        ("put", "/v1/proxy/routes/{id}", "updateProxyRoute", "Update a route", ProxyMutationResult, CreateProxyRouteRequest, 202),
+        ("delete", "/v1/proxy/routes/{id}", "deleteProxyRoute", "Retire an unused route", ProxyMutationResult, None, 202),
+        ("post", "/v1/proxy/routes/{id}/probe", "probeProxyRoute", "Run the fixed-target paid probe", ProxyMutationResult, ConfirmationRequest, 200),
+        ("get", "/v1/proxy/probes", "proxyProbes", "Bounded paid-probe history", ProxyProbeList, None, 200),
+        ("get", "/v1/proxy/audit", "proxyAudit", "Append-only proxy administration audit", ProxyAuditList, None, 200),
+        ("get", "/v1/proxy/candidates", "proxyCandidates", "Proxy pilot candidates", ProxyCandidateList, None, 200),
+        ("post", "/v1/proxy/reconcile", "reconcileProxy", "Reconcile provider usage now", ProxyMutationResult, None, 202),
+        ("post", "/v1/proxy/kill-switch/{action}", "proxyKillSwitch", "Activate, clear, or revoke paid leases", ProxyMutationResult, OptionalConfirmationRequest, 202),
+        ("post", "/v1/proxy/pilot/{action}", "proxyPilot", "Start or stop the bounded pilot", ProxyMutationResult, OptionalConfirmationRequest, 202),
+        ("post", "/v1/proxy/cycles/propose", "proposeProxyCycle", "Propose a cycle from Decodo", ProxyMutationResult, None, 201),
+        ("post", "/v1/proxy/cycles/{id}/{action}", "mutateProxyCycle", "Open or close a confirmed cycle", ProxyMutationResult, CycleConfirmation, 202),
+    ):
+        parameters: tuple[Parameter, ...] = ()
+        if "{id}" in path:
+            parameters += (Parameter("id", location="path"),)
+        if "{action}" in path:
+            parameters += (Parameter("action", location="path"),)
+        api.add(
+            Operation(
+                method, path, operation_id, summary,
+                parameters=parameters, request=request_model, response=response,
+                status=status, errors=(400, 401, 403, 409, 422, 502, 503), tags=("proxy",),
+            )
+        )
+
     api.add(
         Operation(
             "get", "/v1/events", "stream", "The live stream",
@@ -676,7 +993,7 @@ def registry() -> Registry:
                     "topics",
                     description=(
                         "Comma-separated: workers, runs, jobs, progress, notifications, "
-                        "schedules, sources. Omitting this subscribes to everything "
+                        "schedules, sources, proxies. Omitting this subscribes to everything "
                         "except `progress`, which is the expensive one and should be "
                         "asked for deliberately."
                     ),

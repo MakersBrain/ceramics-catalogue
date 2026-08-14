@@ -33,8 +33,10 @@ from starlette.responses import JSONResponse, PlainTextResponse, Response, Strea
 from starlette.routing import Route
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from catalogue_control import queries
+from catalogue_control import proxy_api, queries
+from catalogue_control.auth import load_public_keys
 from catalogue_control.broker import Broker, Subscriber, parse_topics
+from catalogue_control.proxy_control import ReconciliationScheduler
 from catalogue_control.settings import Settings
 from catalogue_control.telemetry import get_logger, render_metrics
 
@@ -460,17 +462,29 @@ async def update_source(request: Request) -> Response:
         except Exception as error:  # noqa: BLE001
             return problem(422, "Invalid source parameters", str(error))
 
-    async with request.app.state.pool.connection() as connection:
+    async with request.app.state.pool.connection() as connection, connection.transaction():
+        current_cursor = await connection.execute(
+            "select * from catalogue.source_settings where source_id = %(id)s",
+            {"id": name},
+        )
+        current = await current_cursor.fetchone() or {}
+        proxy_policy = None
+        if "proxy" in body:
+            proxy_policy = await proxy_api.apply_source_policy(
+                request, connection, name, body.get("proxy")
+            )
+            if isinstance(proxy_policy, Response):
+                return proxy_policy
         row = await queries.one(
             connection,
             queries.UPSERT_SOURCE,
             {
                 "id": name,
-                "enabled": bool(body.get("enabled", True)),
-                "paused": bool(body.get("paused", False)),
-                "schedule": body.get("schedule_id"),
-                "params": queries.as_jsonb(body.get("params")),
-                "by": body.get("updated_by"),
+                "enabled": bool(body.get("enabled", current.get("enabled", True))),
+                "paused": bool(body.get("paused", current.get("paused", False))),
+                "schedule": body.get("schedule_id", current.get("schedule_id")),
+                "params": queries.as_jsonb(body.get("params", current.get("params", {}))),
+                "by": body.get("updated_by", current.get("updated_by")),
             },
         )
         if body.get("paused"):
@@ -480,7 +494,7 @@ async def update_source(request: Request) -> Response:
         await events.emit(
             connection, events.Topic.SOURCE, "source.changed", source_id=name, payload=dict(body)
         )
-    return _json_response({"source": row})
+    return _json_response({"source": row, "proxy": proxy_policy})
 
 
 async def list_notifications(request: Request) -> Response:
@@ -640,7 +654,7 @@ def _json_response(payload: dict[str, Any]) -> Response:
     )
 
 
-def create_app(settings: Settings | None = None) -> Starlette:
+def create_app(settings: Settings | None = None, *, proxy_provider: Any = None) -> Starlette:
     settings = settings or Settings()
     if settings.require_token and not settings.control_token:
         raise ValueError(
@@ -667,6 +681,27 @@ def create_app(settings: Settings | None = None) -> Starlette:
         Route("/v1/schedules/{id}", update_schedule, methods=["PUT"]),
         Route("/v1/notifications", list_notifications),
         Route("/v1/notifications/{id}/ack", acknowledge_notification, methods=["POST"]),
+        Route("/v1/proxy/overview", proxy_api.overview),
+        Route("/v1/proxy/cycles", proxy_api.cycles),
+        Route("/v1/proxy/usage", proxy_api.usage),
+        Route("/v1/proxy/reservations", proxy_api.reservations),
+        Route("/v1/proxy/profiles", proxy_api.profiles, methods=["GET"]),
+        Route("/v1/proxy/profiles", proxy_api.create_profile, methods=["POST"]),
+        Route("/v1/proxy/profiles/refresh", proxy_api.refresh_profiles, methods=["POST"]),
+        Route("/v1/proxy/profiles/{id}/{action}", proxy_api.profile_action, methods=["POST", "PUT"]),
+        Route("/v1/proxy/profiles/{id}", proxy_api.retire_profile, methods=["DELETE"]),
+        Route("/v1/proxy/routes", proxy_api.routes, methods=["GET"]),
+        Route("/v1/proxy/routes", proxy_api.create_route, methods=["POST"]),
+        Route("/v1/proxy/routes/{id}/probe", proxy_api.probe_route, methods=["POST"]),
+        Route("/v1/proxy/routes/{id}", proxy_api.update_or_delete_route, methods=["PUT", "DELETE"]),
+        Route("/v1/proxy/probes", proxy_api.probes),
+        Route("/v1/proxy/audit", proxy_api.audit),
+        Route("/v1/proxy/candidates", proxy_api.candidates),
+        Route("/v1/proxy/reconcile", proxy_api.reconcile_action, methods=["POST"]),
+        Route("/v1/proxy/kill-switch/{action}", proxy_api.kill_switch, methods=["POST"]),
+        Route("/v1/proxy/pilot/{action}", proxy_api.pilot_action, methods=["POST"]),
+        Route("/v1/proxy/cycles/propose", proxy_api.propose_cycle, methods=["POST"]),
+        Route("/v1/proxy/cycles/{id}/{action}", proxy_api.open_or_close_cycle, methods=["POST"]),
         Route("/v1/events", stream),
     ]
 
@@ -678,11 +713,35 @@ def create_app(settings: Settings | None = None) -> Starlette:
             app.state.pool = pool
             app.state.settings = settings
             app.state.sources = SourcesFile.load(default_path())
+            app.state.actor_keys = load_public_keys(settings.proxy_actor_public_keys_file)
+            provider = proxy_provider
+            if provider is None and settings.proxy_api_secret_file:
+                from mb_ceramics_catalogue.observability import logging as obs
+                from mb_ceramics_catalogue.providers.decodo import DecodoProvider
+                from mb_ceramics_catalogue.proxy import load_api_key
+
+                api_key = load_api_key(settings.proxy_api_secret_file)
+                obs.register_secrets({api_key})
+                provider = DecodoProvider(
+                    api_key,
+                    limit_unit=settings.proxy_provider_limit_unit,
+                    base_url=settings.proxy_provider_base_url,
+                )
+            app.state.provider = provider
             app.state.broker = Broker(settings)
             await app.state.broker.start()
+            app.state.proxy_scheduler = None
+            if provider is not None and settings.proxy_enabled:
+                app.state.proxy_scheduler = ReconciliationScheduler(
+                    pool, provider, settings.proxy_reconcile_interval_seconds,
+                    settings.proxy_secret_file,
+                )
+                await app.state.proxy_scheduler.start()
             try:
                 yield
             finally:
+                if app.state.proxy_scheduler is not None:
+                    await app.state.proxy_scheduler.stop()
                 await app.state.broker.stop()
 
     return Starlette(

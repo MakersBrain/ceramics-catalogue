@@ -16,8 +16,8 @@ RUN pip install --no-cache-dir ./catalogue-dump ./catalogue-control \
  && rm -rf /root/.cache /src
 
 RUN useradd --system --uid 10001 catalogue
-USER catalogue
+COPY docker/control/entrypoint.py /usr/local/bin/catalogue-control-entrypoint.py
 
 ENV CATALOGUE_LOG_JSON=true
 EXPOSE 8687
-CMD ["catalogue-control"]
+ENTRYPOINT ["python3", "/usr/local/bin/catalogue-control-entrypoint.py"]

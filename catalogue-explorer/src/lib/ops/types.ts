@@ -44,6 +44,10 @@ export interface ChangedField {
 	after?: unknown | null;
 }
 
+export interface ConfirmationRequest {
+	confirmation: string;
+}
+
 /** Everything that decides how a run collects. Validated once, used twice. */
 export interface CrawlParams {
 	limit?: number | null;
@@ -65,6 +69,28 @@ export interface CrawlParams {
 	allow_empty?: boolean | null;
 }
 
+export interface CreateProxyProfileRequest {
+	logical_name: string;
+	display_name?: string | null;
+	allocated_bytes: number;
+	provider_traffic_limit_bytes?: number | null;
+	confirmation: string;
+}
+
+export interface CreateProxyRouteRequest {
+	label: string;
+	profile_id: string;
+	protocol?: 'http' | 'https' | 'socks5' | null;
+	country?: string | null;
+	state?: string | null;
+	city?: string | null;
+	session_mode?: 'random' | 'sticky' | null;
+	session_minutes?: number | null;
+	max_bytes?: number | null;
+	pilot?: boolean | null;
+	enabled?: boolean | null;
+}
+
 export interface CreateRunRequest {
 	/** A source id, a comma-separated list, or 'all'. */
 	sources?: string | null;
@@ -78,6 +104,17 @@ export interface CreateRunResponse {
 	run_id: string;
 	jobs: number;
 	sources: string[];
+}
+
+export interface CycleConfirmation {
+	confirmation: string;
+	cycle_start?: string | null;
+	cycle_end?: string | null;
+	purchased_bytes?: number | null;
+	operational_bytes?: number | null;
+	daily_bytes?: number | null;
+	pilot_bytes?: number | null;
+	unmanaged_allocation_bytes?: number | null;
 }
 
 export interface Health {
@@ -237,12 +274,245 @@ export interface NotificationList {
 	notifications: Notification[];
 }
 
+export interface OptionalConfirmationRequest {
+	confirmation?: string | null;
+}
+
 /** RFC 9457 `application/problem+json`. */
 export interface Problem {
 	type?: string | null;
 	title: string;
 	status: number;
 	detail?: string | null;
+}
+
+export interface ProxyAudit {
+	id: number;
+	operation_id: string;
+	actor: string;
+	actor_role: string;
+	request_id: string;
+	action: string;
+	resource_type: string;
+	resource_id?: string | null;
+	at: string;
+	state: string;
+	success?: boolean | null;
+	error_code?: string | null;
+	response_status?: number | null;
+}
+
+export interface ProxyAuditList {
+	audit: ProxyAudit[];
+}
+
+export interface ProxyCandidateList {
+	candidates: Record<string, unknown>[];
+	eligible_sources: string[];
+}
+
+export interface ProxyCycle {
+	id: string;
+	provider: string;
+	cycle_start: string;
+	cycle_end: string;
+	purchased_bytes: number;
+	operational_bytes: number;
+	daily_bytes: number;
+	pilot_bytes: number;
+	pilot_active: boolean;
+	provider_reported_bytes: number;
+	application_bytes: number;
+	reconciled_at?: string | null;
+	reconciliation_ok: boolean;
+	kill_switch: boolean;
+	lifecycle: 'proposed' | 'active' | 'closed' | 'rejected';
+	unmanaged_allocation_bytes?: number | null;
+	active_reserved_bytes?: number | null;
+	active_reservations?: number | null;
+	accounted_bytes?: number | null;
+	remaining_operational_bytes?: number | null;
+	provider_application_discrepancy_bytes?: number | null;
+	reconciliation_age_seconds?: number | null;
+	daily_used_bytes?: number | null;
+	dynamic_daily_bytes?: number | null;
+}
+
+export interface ProxyCycleList {
+	cycles: ProxyCycle[];
+}
+
+export interface ProxyMutationResult {
+	status?: string | null;
+	operation_id?: string | null;
+	provider_reported_bytes?: number | null;
+	kill_switch?: boolean | null;
+	revocation_requested?: boolean | null;
+	pilot_active?: boolean | null;
+	profile_id?: string | null;
+	allocated_bytes?: number | null;
+	provider_traffic_limit_bytes?: number | null;
+	rotation?: string | null;
+	active?: number | null;
+	profile?: ProxyProfile | null;
+	route?: ProxyRoute | null;
+	cycle?: ProxyCycle | null;
+	refreshed?: number | null;
+	drift?: Record<string, unknown>[] | null;
+	probe_id?: string | null;
+	reservation_id?: string | null;
+	state?: string | null;
+	application_bytes?: number | null;
+	reserved_bytes?: number | null;
+	latency_ms?: number | null;
+	exit_country?: string | null;
+	exit_ip?: string | null;
+}
+
+export interface ProxyOverview {
+	deployment_enabled: boolean;
+	mutations_enabled: boolean;
+	paid_probe_enabled: boolean;
+	provider_configured: boolean;
+	provider_error?: string | null;
+	subscription?: ProxySubscription | null;
+	cycle?: ProxyCycle | null;
+	profiles: ProxyProfileCounts;
+}
+
+export interface ProxyProbe {
+	id: string;
+	route_id: string;
+	profile_id: string;
+	reservation_id?: string | null;
+	state: string;
+	requested_at: string;
+	completed_at?: string | null;
+	error_category?: string | null;
+	estimated_bytes: number;
+	provider_requests: number;
+	exit_country?: string | null;
+	exit_ip?: string | null;
+	latency_ms?: number | null;
+	protocol: string;
+	actor: string;
+	request_id: string;
+}
+
+export interface ProxyProbeList {
+	probes: ProxyProbe[];
+}
+
+export interface ProxyProfile {
+	id: string;
+	provider: string;
+	logical_name: string;
+	provider_resource_id?: string | null;
+	display_name: string;
+	username_mask?: string | null;
+	provider_traffic_limit_bytes?: number | null;
+	auto_disable: boolean;
+	enabled: boolean;
+	lifecycle: string;
+	secret_generation: number;
+	secret_installed_at?: string | null;
+	provider_observed_at?: string | null;
+	created_at: string;
+	updated_at: string;
+	allocated_bytes?: number | null;
+	route_count?: number | null;
+	source_count?: number | null;
+	active_reservations?: number | null;
+}
+
+export interface ProxyProfileActionRequest {
+	mode?: 'drain' | 'blue-green' | null;
+	allocated_bytes?: number | null;
+	provider_traffic_limit_bytes?: number | null;
+	confirmation: string;
+}
+
+export interface ProxyProfileCounts {
+	enabled?: number | null;
+	total?: number | null;
+}
+
+export interface ProxyProfileList {
+	profiles: ProxyProfile[];
+}
+
+export interface ProxyReservation {
+	id: string;
+	job_id?: string | null;
+	probe_id?: string | null;
+	purpose: 'job' | 'probe';
+	provider: string;
+	profile: string;
+	profile_id?: string | null;
+	route_id?: string | null;
+	cycle_start: string;
+	reserved_bytes: number;
+	estimated_bytes: number;
+	request_count: number;
+	pilot: boolean;
+	state: string;
+	created_at: string;
+	closed_at?: string | null;
+	source_id?: string | null;
+	run_id?: string | null;
+	job_state?: string | null;
+	probe_state?: string | null;
+}
+
+export interface ProxyReservationList {
+	reservations: ProxyReservation[];
+}
+
+export interface ProxyRoute {
+	id: string;
+	label: string;
+	profile_id: string;
+	profile?: string | null;
+	protocol: 'http' | 'https' | 'socks5';
+	country?: string | null;
+	state?: string | null;
+	city?: string | null;
+	session_mode: 'random' | 'sticky';
+	session_minutes: number;
+	max_bytes: number;
+	pilot: boolean;
+	enabled: boolean;
+	created_at: string;
+	updated_at: string;
+	source_count?: number | null;
+}
+
+export interface ProxyRouteList {
+	routes: ProxyRoute[];
+}
+
+export interface ProxySubscription {
+	provider_resource_id?: string | null;
+	service_type: string;
+	traffic_limit_bytes?: number | null;
+	raw_traffic_limit?: string | number | null;
+	valid_from: string;
+	valid_until: string;
+	users_limit?: number | null;
+}
+
+export interface ProxyUsageItem {
+	key?: string | null;
+	transmitted_bytes?: number | null;
+	received_bytes?: number | null;
+	total_bytes?: number | null;
+	request_count?: number | null;
+	last_observed_at?: string | null;
+}
+
+export interface ProxyUsageList {
+	group_by: string;
+	usage: ProxyUsageItem[];
 }
 
 export interface RecordChange {
@@ -348,6 +618,13 @@ export interface SourceList {
 	sources: Source[];
 }
 
+export interface SourceProxyPolicyRequest {
+	policy?: 'never' | 'fallback' | 'always' | null;
+	route_id?: string | null;
+	max_megabytes?: number | null;
+	pilot?: boolean | null;
+}
+
 export interface SourceSettings {
 	enabled?: boolean | null;
 	/** Pausing also pauses this source's jobs that are in flight. Resuming does not automatically resume individually paused jobs: a broad administrative toggle must not silently restart work somebody stopped on purpose. */
@@ -355,10 +632,12 @@ export interface SourceSettings {
 	schedule_id?: string | null;
 	params?: Record<string, unknown> | null;
 	updated_by?: string | null;
+	proxy?: SourceProxyPolicyRequest | null;
 }
 
 export interface SourceUpdated {
 	source: Record<string, unknown>;
+	proxy?: Record<string, unknown> | null;
 }
 
 export interface Worker {

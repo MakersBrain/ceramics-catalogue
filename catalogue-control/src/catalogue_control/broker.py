@@ -70,7 +70,9 @@ COALESCE_SECONDS = 0.5
 #: Per-subscriber queue bound.
 QUEUE_LIMIT = 256
 
-ALL_TOPICS = ("workers", "runs", "jobs", "progress", "notifications", "schedules", "sources")
+ALL_TOPICS = (
+    "workers", "runs", "jobs", "progress", "notifications", "schedules", "sources", "proxies",
+)
 
 #: Omitting `topics` subscribes to everything except progress, which is the
 #: expensive one and should be asked for deliberately.
@@ -84,6 +86,7 @@ TOPIC_OF = {
     "notification": "notifications",
     "schedule": "schedules",
     "source": "sources",
+    "proxy": "proxies",
 }
 
 

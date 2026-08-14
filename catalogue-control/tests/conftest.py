@@ -40,6 +40,7 @@ async def build_schema(connection) -> None:
         "catalogue-reference-schema.sql",
         "catalogue-reference-schema-v2.sql",
         "catalogue-ops-schema.sql",
+        "catalogue-ops-schema-v2.sql",
     ):
         await connection.execute((SCHEMA / name).read_text(encoding="utf-8"))
 

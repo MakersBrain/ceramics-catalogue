@@ -19,6 +19,7 @@ dependencies = [
   # created over HTTP and one started from the CLI cannot disagree about what a
   # valid run is.
   "mb-ceramics-catalogue",
+  "cryptography>=43,<47",
 ]
 
 [project.scripts]

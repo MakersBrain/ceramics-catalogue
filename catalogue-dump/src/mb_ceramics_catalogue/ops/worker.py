@@ -36,12 +36,13 @@ import os
 import signal
 import socket
 import time
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
 import psycopg
+from psycopg.types.json import Jsonb
 
 from mb_ceramics_catalogue import __version__, scrapers
 from mb_ceramics_catalogue.config.settings import CrawlParams, Settings
@@ -56,14 +57,10 @@ from mb_ceramics_catalogue.observability import metrics, tracing
 from mb_ceramics_catalogue.ops import events, leases, monitor, queue, runs, schedule
 from mb_ceramics_catalogue.ops.sink import JobLogHandler, PostgresSink
 from mb_ceramics_catalogue.proxy import (
-    DECIMAL_MB,
     ProxyDenied,
     ProxyLease,
     close_reservation,
-    load_api_key,
     load_profiles,
-    provider_usage,
-    reconcile,
     reserve,
     secret_values,
 )
@@ -89,7 +86,6 @@ DRAIN_GRACE_SECONDS = 120.0
 #: advisory-lock attempts a second across a busy pool for work that is only
 #: meaningful once a minute.
 LEADER_SECONDS = 30.0
-PROXY_RECONCILE_SECONDS = 3600.0
 
 #: Retention runs far less often than the notification rules; deleting a month
 #: of rows is not something to do every half minute.
@@ -150,7 +146,6 @@ class Worker:
         # the interval: a worker starting after downtime should notice a missed
         # schedule now, not in thirty seconds.
         self._last_lead = -LEADER_SECONDS
-        self._last_proxy_reconcile = -PROXY_RECONCILE_SECONDS
         self._last_prune = -PRUNE_SECONDS
 
     def describe(self) -> dict[str, Any]:
@@ -274,6 +269,22 @@ class Worker:
                             # restarting the source.
                             LOGGER.info("job.pause_requested", job_id=str(job["id"]))
                             self._cancel(job["id"])
+                    revoked = await connection.execute(
+                        """
+                        select r.job_id
+                          from catalogue.proxy_reservations r
+                          join catalogue.jobs j on j.id = r.job_id
+                         where j.lease_owner = %(worker)s
+                           and r.state in ('active', 'revocation_requested')
+                           and r.revocation_requested
+                        """,
+                        {"worker": self.state.id},
+                    )
+                    for reservation in await revoked.fetchall():
+                        LOGGER.warning(
+                            "proxy.lease_revoked", job_id=str(reservation["job_id"])
+                        )
+                        self._cancel(reservation["job_id"])
             except psycopg.Error:
                 # A heartbeat that cannot reach the database is exactly when the
                 # worker must not fall over: the database may be restarting, and
@@ -384,9 +395,6 @@ class Worker:
                     return
                 await schedule.fire_due(connection, self.sources)
                 await monitor.check_all(connection)
-                if self.settings.proxy_enabled and now - self._last_proxy_reconcile > PROXY_RECONCILE_SECONDS:
-                    self._last_proxy_reconcile = now
-                    await self._reconcile_proxy(connection)
                 if now - self._last_prune > PRUNE_SECONDS:
                     self._last_prune = now
                     await monitor.prune(connection)
@@ -554,7 +562,7 @@ class Worker:
                                 params, self.settings.cache_dir,
                                 browser=None if proxy_lease else self._renderer(params),
                                 proxy_lease=proxy_lease,
-                                proxy_policy=config.proxy_policy,
+                                proxy_policy=str(job.proxy_snapshot.get("policy", "never")),
                             ) as session,
                             Progress(1, [sink]) as progress,
                         ):
@@ -586,7 +594,6 @@ class Worker:
                     finally:
                         if proxy_lease:
                             await close_reservation(connection, proxy_lease)
-                            await self._reconcile_proxy(connection)
 
                 assert outcome is not None
                 artifact = artifacts.write_source(
@@ -647,69 +654,45 @@ class Worker:
         self, connection: Any, job: queue.ClaimedJob, config: Any, params: CrawlParams,
     ) -> ProxyLease | None:
         """Resolve operator policy without ever accepting a credential URL."""
-        if (
-            config.proxy_policy == "never"
-            or params.proxy_policy == "never"
-            or not self.settings.proxy_enabled
-        ):
+        snapshot = job.proxy_snapshot
+        policy = str(snapshot.get("policy", "never"))
+        if policy == "never" or params.proxy_policy == "never" or not self.settings.proxy_enabled:
             return None
-        if config.proxy_policy == "fallback":
+        if policy == "fallback":
             LOGGER.info("proxy.fallback_ready", source=job.source_id)
         secret_file = self.settings.proxy_secret_file
-        cycle_start = self.settings.proxy_billing_cycle_start
-        cycle_end = self.settings.proxy_billing_cycle_end
-        if not secret_file or not cycle_start or not cycle_end:
-            raise ProxyDenied("proxy is enabled but its secret or billing-cycle boundary is absent")
+        if not secret_file:
+            raise ProxyDenied("proxy is enabled but its secret file is absent")
         profiles = load_profiles(secret_file)
         obs.register_secrets(secret_values(profiles))
-        profile = profiles.get(config.proxy_profile)
+        logical_name = str(snapshot.get("profile", ""))
+        profile = profiles.get(logical_name)
         if profile is None:
-            raise ProxyDenied(f"unknown logical proxy profile {config.proxy_profile!r}")
+            raise ProxyDenied(f"unknown logical proxy profile {logical_name!r}")
+        configured_maximum = int(snapshot.get("max_bytes", 0))
+        if configured_maximum <= 0:
+            raise ProxyDenied("job proxy snapshot has no valid byte maximum")
         maximum = min(
-            config.proxy_max_megabytes,
-            params.proxy_max_megabytes or config.proxy_max_megabytes,
-        ) * DECIMAL_MB
+            configured_maximum,
+            (params.proxy_max_megabytes * 1_000_000)
+            if params.proxy_max_megabytes else configured_maximum,
+        )
         reservation_id = await reserve(
             connection,
             job_id=job.id,
-            profile=config.proxy_profile,
-            cycle_start=cycle_start,
-            cycle_end=cycle_end,
+            profile=logical_name,
+            profile_id=UUID(str(snapshot["profile_id"])),
+            route_id=UUID(str(snapshot["route_id"])),
             requested_bytes=maximum,
-            pilot=config.proxy_pilot,
+            pilot=bool(snapshot.get("pilot", False)),
+            secret_generation=profile.generation,
         )
-        country = config.proxy_country or (config.country.upper() if config.country else None)
+        country = str(snapshot["country"]) if snapshot.get("country") else None
         return ProxyLease.build(
-            reservation_id, job.id, profile, country, config.proxy_session_minutes, maximum
+            reservation_id, job.id, profile, country,
+            int(snapshot.get("session_minutes", 30)), maximum,
+            str(snapshot.get("protocol", "http")),
         )
-
-    async def _reconcile_proxy(self, connection: Any) -> None:
-        """Reconcile provider billing totals; any unsafe read fails closed."""
-        secret_file = self.settings.proxy_secret_file
-        cycle_start = self.settings.proxy_billing_cycle_start
-        cycle_end = self.settings.proxy_billing_cycle_end
-        if not secret_file or not cycle_start or not cycle_end:
-            return
-        try:
-            profile = load_profiles(secret_file)[self.settings.proxy_reconcile_profile]
-            if self.settings.proxy_api_secret_file:
-                api_key = load_api_key(self.settings.proxy_api_secret_file)
-                obs.register_secrets({api_key})
-                profile = replace(profile, api_key=api_key)
-            reported = await provider_usage(profile, cycle_start, cycle_end)
-        except Exception:
-            await reconcile(
-                connection, cycle_start=cycle_start,
-                provider_reported_bytes=0, successful=False,
-            )
-            LOGGER.warning("proxy.reconciliation_failed", exc_info=True)
-            return
-        await reconcile(
-            connection, cycle_start=cycle_start,
-            provider_reported_bytes=reported, successful=True,
-        )
-        LOGGER.info("proxy.reconciled", provider="decodo", bytes=reported)
-
     async def _requeue_for_browser(
         self, job: queue.ClaimedJob, error: BrowserUnavailable
     ) -> bool:
@@ -789,6 +772,37 @@ class Worker:
             await runs.finish_job(
                 connection, job.id, state=state, summary=summary, error=error, artifact=artifact
             )
+            snapshot = job.proxy_snapshot
+            if snapshot.get("pilot") and snapshot.get("route_id") and snapshot.get("policy") != "never":
+                evidence = await connection.execute(
+                    """insert into catalogue.proxy_pilot_evidence
+                               (job_id, source_id, route_id, succeeded, estimated_bytes, details)
+                        select %(job)s, %(source)s, %(route)s, %(succeeded)s,
+                               coalesce(r.estimated_bytes, 0), %(details)s
+                          from catalogue.proxy_reservations r where r.job_id = %(job)s
+                        on conflict (job_id) do nothing returning job_id""",
+                    {
+                        "job": job.id, "source": job.source_id,
+                        "route": UUID(str(snapshot["route_id"])), "succeeded": state == "succeeded",
+                        "details": Jsonb({
+                            "records": int((summary or {}).get("records", 0)),
+                            "error_count": int((summary or {}).get("error_count", 0)),
+                        }),
+                    },
+                )
+                if await evidence.fetchone() is not None:
+                    await connection.execute(
+                        """update catalogue.source_proxy_policies p
+                              set evidence_count = e.successes,
+                                  evidence_state = case when e.successes >= 3 then 'promoted'
+                                                        else 'eligible' end,
+                                  updated_at = now()
+                              from (select count(*) filter (where succeeded) as successes
+                                      from catalogue.proxy_pilot_evidence
+                                     where source_id = %(source)s) e
+                             where p.source_id = %(source)s""",
+                        {"source": job.source_id},
+                    )
             if state == "failed" and job.attempt >= job.max_attempts:
                 await events.notify(
                     connection,

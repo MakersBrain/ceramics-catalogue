@@ -35,6 +35,7 @@ services:
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-reference-schema-v3.sql:/docker-entrypoint-initdb.d/25-catalogue-reference-schema-v3.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-reference-schema-v4.sql:/docker-entrypoint-initdb.d/26-catalogue-reference-schema-v4.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema.sql:/docker-entrypoint-initdb.d/30-catalogue-ops-schema.sql:ro
+      - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema-v2.sql:/docker-entrypoint-initdb.d/35-catalogue-ops-schema-v2.sql:ro
       # Last, and it was missing entirely: it alters `canonical_products` and
       # defines `promote_canonical_products`, which a run calls when its last
       # job lands. A database without it takes every source in and never folds
@@ -112,7 +113,6 @@ services:
   # runs /docker-entrypoint-initdb.d on first creation, so rebuilding an image
   # is not a migration strategy.
   migrate:
-    profiles: ["maintenance"]
     build:
       context: .
       dockerfile: docker/worker/Dockerfile
@@ -124,6 +124,39 @@ services:
       CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
     user: "10001:999"
     entrypoint: ["catalogue-migrate"]
+
+  proxy-db-roles:
+    build:
+      context: .
+      dockerfile: docker/worker/Dockerfile
+      target: worker
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_CONTROL_DB_PASSWORD: ${CATALOGUE_CONTROL_DB_PASSWORD:-catalogue-control}
+      CATALOGUE_WORKER_DB_PASSWORD: ${CATALOGUE_WORKER_DB_PASSWORD:-catalogue-worker}
+      CATALOGUE_PROXY_ARCHIVE_DB_PASSWORD: ${CATALOGUE_PROXY_ARCHIVE_DB_PASSWORD:-catalogue-proxy-archive}
+    entrypoint: ["catalogue-proxy-roles"]
+    restart: "no"
+
+  proxy-secrets-init:
+    image: alpine:3.22
+    user: "0:0"
+    volumes:
+      - proxy-secrets:/run/proxy-secrets
+    command:
+      - sh
+      - -ec
+      - |
+        install -d -m 0700 -o 10001 -g 10001 /run/proxy-secrets
+        if [ ! -e /run/proxy-secrets/profiles.json ]; then
+          printf '{}\n' >/run/proxy-secrets/profiles.json
+        fi
+        chown 10001:10001 /run/proxy-secrets/profiles.json
+        chmod 0400 /run/proxy-secrets/profiles.json
+    restart: "no"
 
   # The operator control plane: run/job/worker/source control, and the live
   # stream the /ops pages read. Deliberately not published on the host — the
@@ -137,16 +170,34 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      proxy-secrets-init:
+        condition: service_completed_successfully
+      proxy-db-roles:
+        condition: service_completed_successfully
     environment:
-      CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_DSN: postgresql://catalogue_control:${CATALOGUE_CONTROL_DB_PASSWORD:-catalogue-control}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
       # No default. The service refuses to start without it, because the one
       # thing worse than having no cancel-run endpoint is an unauthenticated one.
       CATALOGUE_CONTROL_TOKEN: ${CATALOGUE_CONTROL_TOKEN:?set a control token in .env}
       CATALOGUE_ARTIFACTS_DIR: /var/lib/catalogue/dumps
+      CATALOGUE_PROXY_ENABLED: ${CATALOGUE_PROXY_ENABLED:-false}
+      CATALOGUE_PROXY_SECRET_FILE: /run/proxy-secrets/profiles.json
+      CATALOGUE_PROXY_ACTOR_PUBLIC_KEYS_FILE: /run/secrets/operator-public-keys.json
+      CATALOGUE_PROXY_PROVIDER_LIMIT_UNIT: ${CATALOGUE_PROXY_PROVIDER_LIMIT_UNIT:-unconfirmed}
+      CATALOGUE_PROXY_MUTATIONS_ENABLED: ${CATALOGUE_PROXY_MUTATIONS_ENABLED:-false}
+      CATALOGUE_PROXY_PAID_PROBE_ENABLED: ${CATALOGUE_PROXY_PAID_PROBE_ENABLED:-false}
     volumes:
       # Comparison endpoints read immutable scrape artifacts; the control plane
       # never needs permission to alter the audit trail.
       - dumps:/var/lib/catalogue/dumps:ro
+      - proxy-secrets:/run/proxy-secrets
+      # Provider API access exists only in control. Workers receive generated
+      # sub-user credentials through the read-only shared profile volume.
+      - ./decodo.env:/run/secrets/decodo.env:ro
+      - type: bind
+        source: ${CATALOGUE_OPERATOR_PUBLIC_KEYS_FILE:-/dev/null}
+        target: /run/secrets/operator-public-keys.json
+        read_only: true
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8687/health')\""]
@@ -166,24 +217,26 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      proxy-secrets-init:
+        condition: service_completed_successfully
+      proxy-db-roles:
+        condition: service_completed_successfully
     environment:
-      CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_DSN: postgresql://catalogue_worker:${CATALOGUE_WORKER_DB_PASSWORD:-catalogue-worker}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
       # Sources are independent and mostly waiting on someone else's network, so
       # one at a time leaves the process idle for most of a run. Two jobs on one
       # shop are still prevented by catalogue.host_leases, which is per host and
       # cross-process rather than per worker.
       CATALOGUE_JOB_SLOTS: ${CATALOGUE_JOB_SLOTS:-4}
       CATALOGUE_PROXY_ENABLED: ${CATALOGUE_PROXY_ENABLED:-false}
-      CATALOGUE_PROXY_SECRET_FILE: /run/secrets/proxy-profiles.json
-      CATALOGUE_PROXY_API_SECRET_FILE: /run/secrets/decodo.env
+      CATALOGUE_PROXY_SECRET_FILE: /run/proxy-secrets/profiles.json
     volumes:
       # Shared, so a replay works across workers and a run's artifacts are all
       # in one place. The cache is sharded per host and the dumps are namespaced
       # <run-id>/<job-id>/, so concurrent writers never collide.
       - cache:/var/lib/catalogue/cache
       - dumps:/var/lib/catalogue/dumps
-      - ./decodo.env:/run/secrets/decodo.env:ro
-      - ${DECODO_PROFILE_SECRET_FILE:-/dev/null}:/run/secrets/proxy-profiles.json:ro
+      - proxy-secrets:/run/proxy-secrets:ro
     restart: unless-stopped
     # SIGTERM drains: finish the current source, requeue anything unfinished,
     # mark the worker stopped. The default ten seconds is not enough to write a
@@ -208,8 +261,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      proxy-secrets-init:
+        condition: service_completed_successfully
+      proxy-db-roles:
+        condition: service_completed_successfully
     environment:
-      CATALOGUE_DSN: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_DSN: postgresql://catalogue_worker:${CATALOGUE_WORKER_DB_PASSWORD:-catalogue-worker}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
       # camoufox leaks across jobs. A process that has rendered a few hundred
       # pages is one that gets killed by the OOM reaper mid-write, so it is
       # recycled between jobs instead — `restart: unless-stopped` restarts it.
@@ -221,13 +278,11 @@ services:
       CATALOGUE_JOB_SLOTS: ${CATALOGUE_BROWSER_JOB_SLOTS:-1}
       CATALOGUE_BROWSER_PAGES: ${CATALOGUE_BROWSER_PAGES:-2}
       CATALOGUE_PROXY_ENABLED: ${CATALOGUE_PROXY_ENABLED:-false}
-      CATALOGUE_PROXY_SECRET_FILE: /run/secrets/proxy-profiles.json
-      CATALOGUE_PROXY_API_SECRET_FILE: /run/secrets/decodo.env
+      CATALOGUE_PROXY_SECRET_FILE: /run/proxy-secrets/profiles.json
     volumes:
       - cache:/var/lib/catalogue/cache
       - dumps:/var/lib/catalogue/dumps
-      - ./decodo.env:/run/secrets/decodo.env:ro
-      - ${DECODO_PROFILE_SECRET_FILE:-/dev/null}:/run/secrets/proxy-profiles.json:ro
+      - proxy-secrets:/run/proxy-secrets:ro
     # Docker's default is 64 MB, and camoufox needs rather more: below this it
     # renders, slowly and then not at all, rather than failing outright.
     shm_size: 512m
@@ -256,6 +311,17 @@ services:
       DATABASE_URL: postgresql://${CATALOGUE_DB_USER:-catalogue}:${CATALOGUE_DB_PASSWORD:-catalogue}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
       CATALOGUE_CONTROL_URL: http://control:8687
       CATALOGUE_CONTROL_TOKEN: ${CATALOGUE_CONTROL_TOKEN:?set a control token in .env}
+      CATALOGUE_OPERATOR_ID_HEADER: ${CATALOGUE_OPERATOR_ID_HEADER:-cf-access-authenticated-user-email}
+      CATALOGUE_OPERATOR_AUTH_TIME_HEADER: ${CATALOGUE_OPERATOR_AUTH_TIME_HEADER:-x-catalogue-auth-time}
+      CATALOGUE_OPERATOR_ADMINS: ${CATALOGUE_OPERATOR_ADMINS:-}
+      CATALOGUE_OPERATOR_VIEWERS: ${CATALOGUE_OPERATOR_VIEWERS:-}
+      CATALOGUE_OPERATOR_ASSERTION_PRIVATE_KEY_FILE: /run/secrets/operator-private-key.pem
+      CATALOGUE_OPERATOR_ASSERTION_KEY_ID: ${CATALOGUE_OPERATOR_ASSERTION_KEY_ID:-current}
+    volumes:
+      - type: bind
+        source: ${CATALOGUE_OPERATOR_PRIVATE_KEY_FILE:-/dev/null}
+        target: /run/secrets/operator-private-key.pem
+        read_only: true
     restart: unless-stopped
 
   # The public edge: an outbound-only connector publishing the explorer at
@@ -303,3 +369,6 @@ volumes:
   # The NDJSON artifacts. These *are* in the backup set — they are the audit
   # trail each job's recorded sha256 refers to.
   dumps:
+  # Control replaces profiles.json atomically; workers mount the same volume
+  # read-only and resolve a credential generation once per job.
+  proxy-secrets:

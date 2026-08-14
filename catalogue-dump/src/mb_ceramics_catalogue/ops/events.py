@@ -40,6 +40,7 @@ class Topic(StrEnum):
     NOTIFICATION = "notification"
     SCHEDULE = "schedule"
     SOURCE = "source"
+    PROXY = "proxy"
 
 
 class Severity(StrEnum):

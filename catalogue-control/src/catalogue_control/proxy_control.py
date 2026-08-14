@@ -1,0 +1,470 @@
+"""Proxy control-plane reconciliation and durable mutation bookkeeping."""
+
+from __future__ import annotations
+
+import asyncio
+import contextlib
+import json
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+from typing import Any
+from uuid import UUID, uuid4
+
+from mb_ceramics_catalogue.observability import metrics
+from mb_ceramics_catalogue.ops import events
+from mb_ceramics_catalogue.providers.base import ProviderError, ProxyProvider, UsageReport
+from mb_ceramics_catalogue.proxy import reconcile
+from mb_ceramics_catalogue.proxy_secrets import ProfileSecretStore, generate_password
+from psycopg.types.json import Jsonb
+
+from catalogue_control.auth import Actor
+from catalogue_control.telemetry import get_logger
+
+LOGGER = get_logger("catalogue.control.proxy")
+
+
+def _jsonb(value: Any) -> Jsonb:
+    return Jsonb(value, dumps=lambda item: json.dumps(item, default=str))
+
+
+@dataclass(frozen=True)
+class Mutation:
+    operation_id: UUID
+    replay_status: int | None = None
+    replay_data: dict[str, Any] | None = None
+
+
+async def begin_mutation(
+    connection: Any, actor: Actor, action: str, idempotency_key: str | None,
+) -> Mutation:
+    if not idempotency_key or len(idempotency_key) > 200:
+        raise ValueError("Idempotency-Key is required and must be at most 200 characters")
+    operation_id = uuid4()
+    cursor = await connection.execute(
+        """
+        insert into catalogue.proxy_mutation_requests
+               (operation_id, actor, action, idempotency_key)
+        values (%(operation)s, %(actor)s, %(action)s, %(key)s)
+        on conflict (actor, action, idempotency_key) do nothing
+        returning operation_id
+        """,
+        {"operation": operation_id, "actor": actor.id, "action": action, "key": idempotency_key},
+    )
+    if await cursor.fetchone() is None:
+        previous = await connection.execute(
+            """select operation_id, state, response_status, response_data
+                 from catalogue.proxy_mutation_requests
+                where actor = %(actor)s and action = %(action)s and idempotency_key = %(key)s""",
+            {"actor": actor.id, "action": action, "key": idempotency_key},
+        )
+        row = await previous.fetchone()
+        if row is None or row["state"] == "started":
+            raise RuntimeError("the idempotent operation is still in progress or ambiguous")
+        return Mutation(row["operation_id"], row["response_status"], row["response_data"] or {})
+    await append_audit(
+        connection, actor, operation_id, action, "request", None, "started",
+        idempotency_key=idempotency_key,
+    )
+    return Mutation(operation_id)
+
+
+async def finish_mutation(
+    connection: Any,
+    mutation: Mutation,
+    actor: Actor,
+    action: str,
+    *,
+    status: int,
+    data: dict[str, Any],
+    state: str = "succeeded",
+    resource_type: str = "request",
+    resource_id: str | None = None,
+    error_code: str | None = None,
+) -> None:
+    await connection.execute(
+        """
+        update catalogue.proxy_mutation_requests
+           set state = %(state)s, response_status = %(status)s,
+               response_data = %(data)s, completed_at = now()
+         where operation_id = %(operation)s
+        """,
+        {
+            "state": state, "status": status, "data": _jsonb(data),
+            "operation": mutation.operation_id,
+        },
+    )
+    await append_audit(
+        connection, actor, mutation.operation_id, action, resource_type, resource_id,
+        state, success=state == "succeeded", error_code=error_code,
+        response_status=status, response_data=data,
+    )
+
+
+async def append_audit(
+    connection: Any,
+    actor: Actor,
+    operation_id: UUID,
+    action: str,
+    resource_type: str,
+    resource_id: str | None,
+    state: str,
+    *,
+    idempotency_key: str | None = None,
+    success: bool | None = None,
+    error_code: str | None = None,
+    before: dict[str, Any] | None = None,
+    after: dict[str, Any] | None = None,
+    response_status: int | None = None,
+    response_data: dict[str, Any] | None = None,
+) -> None:
+    await connection.execute(
+        """
+        insert into catalogue.proxy_admin_audit
+               (operation_id, actor, actor_role, request_id, idempotency_key,
+                action, resource_type, resource_id, state, success, error_code,
+                before_data, after_data, response_status, response_data)
+        values (%(operation)s, %(actor)s, %(role)s, %(request)s, %(key)s,
+                %(action)s, %(resource_type)s, %(resource_id)s, %(state)s,
+                %(success)s, %(error)s, %(before)s, %(after)s, %(status)s, %(response)s)
+        """,
+        {
+            "operation": operation_id, "actor": actor.id, "role": actor.role,
+            "request": actor.nonce, "key": idempotency_key, "action": action,
+            "resource_type": resource_type, "resource_id": resource_id, "state": state,
+            "success": success, "error": error_code,
+            "before": _jsonb(before) if before is not None else None,
+            "after": _jsonb(after) if after is not None else None,
+            "status": response_status,
+            "response": _jsonb(response_data) if response_data is not None else None,
+        },
+    )
+
+
+def _bucket_bounds(key: str, group_by: str) -> tuple[datetime, datetime]:
+    try:
+        start = datetime.fromisoformat(key.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise ProviderError("provider_invalid_bucket", "Decodo returned an invalid traffic bucket") from error
+    if start.tzinfo is None:
+        start = start.replace(tzinfo=UTC)
+    delta = timedelta(hours=1) if group_by == "hour" else timedelta(days=1)
+    return start.astimezone(UTC), (start + delta).astimezone(UTC)
+
+
+async def reconcile_now(connection: Any, provider: ProxyProvider, *, reason: str) -> UsageReport:
+    locked = await connection.execute("select pg_try_advisory_lock(hashtext('proxy:decodo')) as locked")
+    lock_row = await locked.fetchone()
+    if not lock_row or not lock_row["locked"]:
+        raise RuntimeError("a Decodo reconciliation is already running")
+    try:
+        active = await connection.execute(
+            """select * from catalogue.proxy_budget_cycles
+                where provider = 'decodo' and lifecycle = 'active'"""
+        )
+        cycle = await active.fetchone()
+        if cycle is None:
+            raise RuntimeError("there is no active Decodo billing cycle")
+        try:
+            day_report, target_report = await asyncio.gather(
+                provider.usage(cycle["cycle_start"], cycle["cycle_end"], group_by="day"),
+                provider.usage(cycle["cycle_start"], cycle["cycle_end"], group_by="target"),
+            )
+        except Exception:
+            metrics.proxy_reconciliation(False)
+            await reconcile(
+                connection, cycle_start=cycle["cycle_start"], provider_reported_bytes=0,
+                successful=False,
+            )
+            await connection.execute(
+                """update catalogue.proxy_reconcile_requests
+                      set attempts = attempts + 1, error_code = 'provider_failure', claimed_at = now()
+                    where provider = 'decodo' and completed_at is null"""
+            )
+            await events.notify(
+                connection, "proxy.reconciliation_failed", "Decodo reconciliation failed",
+                severity=events.Severity.CRITICAL, dedup_key="proxy:decodo:reconciliation",
+                body="Paid traffic remains fail-closed until provider usage can be reconciled.",
+            )
+            raise
+
+        async with connection.transaction():
+            for dimension, grouped_report in (("day", day_report), ("target", target_report)):
+                for bucket in grouped_report.buckets:
+                    if dimension == "day":
+                        start, end = _bucket_bounds(bucket.key, "day")
+                        grouping_key = bucket.key
+                    else:
+                        start, end = cycle["cycle_start"], cycle["cycle_end"]
+                        grouping_key = bucket.key[:500]
+                    await connection.execute(
+                        """
+                        insert into catalogue.proxy_provider_snapshots
+                           (provider, cycle_start, source_endpoint, grouping_dimension,
+                            grouping_key, bucket_start, bucket_end, transmitted_bytes,
+                            received_bytes, total_bytes, request_count)
+                    values ('decodo', %(cycle)s, 'traffic', %(dimension)s, %(key)s, %(start)s,
+                            %(end)s, %(tx)s, %(rx)s, %(total)s, %(requests)s)
+                    on conflict (provider, cycle_start, source_endpoint, grouping_dimension,
+                                 grouping_key, bucket_start, bucket_end) do update
+                      set transmitted_bytes = greatest(
+                            catalogue.proxy_provider_snapshots.transmitted_bytes,
+                            excluded.transmitted_bytes),
+                          received_bytes = greatest(
+                            catalogue.proxy_provider_snapshots.received_bytes,
+                            excluded.received_bytes),
+                          total_bytes = greatest(catalogue.proxy_provider_snapshots.total_bytes,
+                                                 excluded.total_bytes),
+                          request_count = greatest(catalogue.proxy_provider_snapshots.request_count,
+                                                   excluded.request_count),
+                          last_observed_at = now()
+                        """,
+                        {
+                            "cycle": cycle["cycle_start"], "dimension": dimension,
+                            "key": grouping_key,
+                            "start": start, "end": end,
+                            "tx": bucket.transmitted_bytes, "rx": bucket.received_bytes,
+                            "total": bucket.total_bytes, "requests": bucket.requests,
+                        },
+                    )
+            await reconcile(
+                connection, cycle_start=cycle["cycle_start"],
+                provider_reported_bytes=day_report.total_bytes, successful=True,
+            )
+            await connection.execute(
+                """update catalogue.proxy_reconcile_requests
+                      set completed_at = now(), claimed_at = coalesce(claimed_at, now()),
+                          attempts = attempts + 1, error_code = null
+                    where provider = 'decodo' and completed_at is null"""
+            )
+            await events.emit(
+                connection, events.Topic.PROXY, "proxy.usage_updated",
+                payload={"provider": "decodo", "bytes": day_report.total_bytes, "reason": reason},
+            )
+            metrics.proxy_reconciliation(True)
+            metrics.proxy_bytes("provider", day_report.total_bytes)
+            metrics.proxy_bytes(
+                "operational_headroom",
+                max(0, cycle["operational_bytes"] - day_report.total_bytes),
+            )
+            await events.resolve(connection, "proxy:decodo:reconciliation")
+            if day_report.total_bytes >= cycle["operational_bytes"]:
+                await events.notify(
+                    connection, "proxy.budget_exhausted", "Decodo operational budget exhausted",
+                    severity=events.Severity.CRITICAL, dedup_key="proxy:decodo:budget",
+                    body="The database kill switch is active; no new paid lease can start.",
+                )
+            else:
+                await events.resolve(connection, "proxy:decodo:budget")
+        return day_report
+    finally:
+        await connection.execute("select pg_advisory_unlock(hashtext('proxy:decodo'))")
+
+
+async def finalize_retirements(connection: Any, provider: ProxyProvider) -> None:
+    cursor = await connection.execute(
+        """
+        select x.*, p.provider_resource_id
+          from catalogue.proxy_profile_retirements x
+          join catalogue.proxy_profiles p on p.id = x.profile_id
+         where x.state = 'draining'
+           and not exists (
+             select 1 from catalogue.proxy_reservations r
+              where r.profile_id = x.profile_id
+                and r.secret_generation = x.old_secret_generation
+                and r.state in ('active', 'revocation_requested')
+           )
+         order by x.created_at for update skip locked
+         limit 10
+        """
+    )
+    for row in await cursor.fetchall():
+        await connection.execute(
+            "update catalogue.proxy_profile_retirements set state = 'finalizing' where id = %(id)s",
+            {"id": row["id"]},
+        )
+        try:
+            await provider.update_subuser(row["old_provider_resource_id"], status="disabled")
+            await provider.delete_subuser(row["old_provider_resource_id"])
+            await provider.update_subuser(
+                row["replacement_resource_id"], traffic_limit_bytes=row["target_limit_bytes"]
+            )
+        except ProviderError as error:
+            await connection.execute(
+                """update catalogue.proxy_profile_retirements
+                      set state = 'failed', error_code = %(error)s where id = %(id)s""",
+                {"id": row["id"], "error": error.code},
+            )
+            await connection.execute(
+                "update catalogue.proxy_budget_cycles set kill_switch = true "
+                "where provider = 'decodo' and lifecycle = 'active'"
+            )
+            continue
+        async with connection.transaction():
+            await connection.execute(
+                """update catalogue.proxy_profile_retirements
+                      set state = 'completed', completed_at = now(), error_code = null
+                    where id = %(id)s""",
+                {"id": row["id"]},
+            )
+            await connection.execute(
+                """update catalogue.proxy_profiles
+                      set provider_traffic_limit_bytes = %(limit)s,
+                          provider_observed_at = now(), updated_at = now()
+                    where id = %(id)s""",
+                {"id": row["profile_id"], "limit": row["target_limit_bytes"]},
+            )
+            await events.emit(
+                connection, events.Topic.PROXY, "proxy.profile_rotation_completed",
+                payload={"profile_id": str(row["profile_id"])},
+            )
+
+
+async def finalize_draining_profiles(
+    connection: Any, provider: ProxyProvider, secret_file: Path,
+) -> None:
+    """Finish drain-first disable, rotation, and retirement after lease quiescence."""
+    cursor = await connection.execute(
+        """select p.* from catalogue.proxy_profiles p
+             where p.lifecycle = 'draining' and p.pending_action is not null
+               and not exists (
+                 select 1 from catalogue.proxy_reservations r
+                  where r.profile_id = p.id
+                    and r.state in ('active', 'revocation_requested')
+               )
+               and not exists (
+                 select 1 from catalogue.proxy_profile_retirements x
+                  where x.profile_id = p.id and x.state in ('draining', 'finalizing')
+               )
+             order by p.updated_at for update skip locked limit 10"""
+    )
+    for row in await cursor.fetchall():
+        resource = row["provider_resource_id"]
+        action = row["pending_action"]
+        try:
+            if action == "rotate":
+                store = ProfileSecretStore(secret_file)
+                installed = store.read_raw().get(row["logical_name"], {})
+                username = str(installed.get("username", ""))
+                if not username:
+                    raise RuntimeError("installed profile username is missing")
+                password = generate_password()
+                await provider.update_subuser(resource, password=password)
+                generation = store.install(
+                    row["logical_name"], username=username, password=password
+                )
+                await connection.execute(
+                    """update catalogue.proxy_profiles set lifecycle = 'enabled', enabled = true,
+                              pending_action = null, secret_generation = %(generation)s,
+                              secret_installed_at = now(), updated_at = now()
+                        where id = %(id)s""",
+                    {"id": row["id"], "generation": generation},
+                )
+            elif action == "disable":
+                await provider.update_subuser(resource, status="disabled")
+                await connection.execute(
+                    """update catalogue.proxy_profiles set lifecycle = 'disabled', enabled = false,
+                              pending_action = null, updated_at = now() where id = %(id)s""",
+                    {"id": row["id"]},
+                )
+            elif action == "retire":
+                await provider.update_subuser(resource, status="disabled")
+                await provider.delete_subuser(resource)
+                ProfileSecretStore(secret_file).remove(row["logical_name"])
+                await connection.execute(
+                    """update catalogue.proxy_profiles set lifecycle = 'retired', enabled = false,
+                              pending_action = null, retired_at = now(), updated_at = now()
+                        where id = %(id)s""",
+                    {"id": row["id"]},
+                )
+            await events.emit(
+                connection, events.Topic.PROXY, "proxy.profile_changed",
+                payload={"profile_id": str(row["id"]), "state": action},
+            )
+        except (ProviderError, OSError, RuntimeError, TypeError, ValueError):
+            await connection.execute(
+                """update catalogue.proxy_profiles
+                      set lifecycle = 'provider_changed_local_failed', enabled = false,
+                          updated_at = now() where id = %(id)s""",
+                {"id": row["id"]},
+            )
+            await connection.execute(
+                "update catalogue.proxy_budget_cycles set kill_switch = true "
+                "where provider = 'decodo' and lifecycle = 'active'"
+            )
+            LOGGER.warning("proxy.profile_drain_finalize_failed", extra={"profile_id": str(row["id"])})
+
+
+async def close_stale_reservations(connection: Any) -> int:
+    """Release envelopes abandoned by terminal jobs or expired worker leases."""
+    async with connection.transaction():
+        cursor = await connection.execute(
+            """update catalogue.proxy_reservations r
+                  set state = 'cancelled', closed_at = now()
+                 from catalogue.jobs j
+                where r.job_id = j.id and r.state in ('active', 'revocation_requested')
+                  and (j.state in ('succeeded', 'failed', 'cancelled', 'skipped')
+                       or (j.state in ('leased', 'running') and j.lease_expires_at < now()))
+                returning r.id, r.provider"""
+        )
+        rows = await cursor.fetchall()
+        for row in rows:
+            await connection.execute(
+                """insert into catalogue.proxy_reconcile_requests
+                           (provider, reason, reservation_id, dedup_key)
+                    values (%(provider)s, 'stale_reservation', %(id)s,
+                            'reservation:' || %(id)s::text)
+                    on conflict (dedup_key) do nothing""",
+                row,
+            )
+        if rows:
+            await events.emit(
+                connection, events.Topic.PROXY, "proxy.reservations_stale_closed",
+                payload={"count": len(rows)},
+            )
+        return len(rows)
+class ReconciliationScheduler:
+    def __init__(
+        self, pool: Any, provider: ProxyProvider, interval: float,
+        secret_file: Path | None = None,
+    ) -> None:
+        self.pool = pool
+        self.provider = provider
+        self.interval = max(60.0, interval)
+        self.secret_file = secret_file
+        self.task: asyncio.Task[None] | None = None
+        self.stopping = False
+
+    async def start(self) -> None:
+        self.task = asyncio.create_task(self._run(), name="proxy-reconciliation")
+
+    async def stop(self) -> None:
+        self.stopping = True
+        if self.task:
+            self.task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self.task
+
+    async def _run(self) -> None:
+        last_scheduled = 0.0
+        while not self.stopping:
+            try:
+                async with self.pool.connection() as connection:
+                    await close_stale_reservations(connection)
+                    await finalize_retirements(connection, self.provider)
+                    if self.secret_file is not None:
+                        await finalize_draining_profiles(
+                            connection, self.provider, self.secret_file
+                        )
+                    pending = await connection.execute(
+                        "select exists(select 1 from catalogue.proxy_reconcile_requests "
+                        "where completed_at is null) as pending"
+                    )
+                    row = await pending.fetchone()
+                    now = asyncio.get_running_loop().time()
+                    if (row and row["pending"]) or now - last_scheduled >= self.interval:
+                        await reconcile_now(connection, self.provider, reason="outbox" if row and row["pending"] else "scheduled")
+                        last_scheduled = now
+            except Exception:
+                LOGGER.warning("proxy.reconciliation_failed", exc_info=True)
+            await asyncio.sleep(5)

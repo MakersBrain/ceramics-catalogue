@@ -10,7 +10,7 @@
 	// One subscription for the whole section. Every page reads from this store;
 	// only /ops/runs/[id] opens a second, narrower one, so a browser never has
 	// more than two streams open against the six-per-origin cap.
-	const stream = new OpsStream('workers,notifications,runs,progress');
+	const stream = new OpsStream('workers,notifications,runs,progress,proxies');
 	setContext('ops-stream', stream);
 
 	onMount(() => {
@@ -23,7 +23,8 @@
 		{ href: '/ops/runs', label: 'Runs' },
 		{ href: '/ops/sources', label: 'Sources' },
 		{ href: '/ops/notifications', label: 'Notifications' },
-		{ href: '/ops/metrics', label: 'Metrics' }
+		{ href: '/ops/metrics', label: 'Metrics' },
+		{ href: '/ops/proxies', label: 'Proxies' }
 	];
 
 	const current = $derived(page.url.pathname);

@@ -118,6 +118,23 @@ async def create_jobs(
             {"names": selected},
         )
     }
+    policy_rows = await _all(
+        connection,
+        """
+        select p.source_id, p.policy, p.max_bytes, p.pilot, p.revision,
+               r.id as route_id, r.protocol, r.country, r.state as route_state,
+               r.city, r.session_mode, r.session_minutes, r.max_bytes as route_max_bytes,
+               r.enabled as route_enabled,
+               f.id as profile_id, f.logical_name as profile,
+               f.enabled as profile_enabled, f.lifecycle as profile_lifecycle
+          from catalogue.source_proxy_policies p
+          left join catalogue.proxy_routes r on r.id = p.route_id
+          left join catalogue.proxy_profiles f on f.id = r.profile_id
+         where p.source_id = any(%(names)s)
+        """,
+        {"names": selected},
+    )
+    policies = {row["source_id"]: row for row in policy_rows}
 
     seen_per_host: dict[str, int] = {}
     created: dict[str, UUID] = {}
@@ -129,6 +146,30 @@ async def create_jobs(
             continue
 
         config = sources[name]
+        proxy_snapshot: dict[str, Any] = {}
+        policy = policies.get(name)
+        if policy and policy["policy"] != "never":
+            if not config.proxy_eligible:
+                raise ValueError(f"source {name!r} is not checked-in as proxy eligible")
+            if not policy["route_enabled"] or not policy["profile_enabled"]:
+                raise ValueError(f"source {name!r} references a disabled proxy route/profile")
+            if policy["profile_lifecycle"] != "enabled":
+                raise ValueError(f"source {name!r} proxy profile is not operational")
+            proxy_snapshot = {
+                "policy": policy["policy"],
+                "policy_revision": policy["revision"],
+                "route_id": str(policy["route_id"]),
+                "profile_id": str(policy["profile_id"]),
+                "profile": policy["profile"],
+                "protocol": policy["protocol"],
+                "country": policy["country"] or (config.country.upper() if config.country else None),
+                "state": policy["route_state"],
+                "city": policy["city"],
+                "session_mode": policy["session_mode"],
+                "session_minutes": policy["session_minutes"],
+                "max_bytes": min(int(policy["max_bytes"]), int(policy["route_max_bytes"])),
+                "pilot": bool(policy["pilot"]),
+            }
         host = host_of(config.url)
         position = seen_per_host.get(host, 0)
         seen_per_host[host] = position + 1
@@ -137,9 +178,10 @@ async def create_jobs(
             connection,
             """
             insert into catalogue.jobs
-                   (run_id, source_id, host, state, priority, max_attempts, requires, scheduled_for)
+                   (run_id, source_id, host, state, priority, max_attempts, requires,
+                    scheduled_for, proxy_snapshot)
             values (%(run_id)s, %(source_id)s, %(host)s, 'queued', %(priority)s, %(max_attempts)s,
-                    %(requires)s, now() + make_interval(secs => %(stagger)s))
+                    %(requires)s, now() + make_interval(secs => %(stagger)s), %(proxy_snapshot)s)
             on conflict (run_id, source_id) do nothing
             returning id
             """,
@@ -150,6 +192,7 @@ async def create_jobs(
                 "priority": priority,
                 "max_attempts": max_attempts,
                 "requires": ["browser"] if name in BROWSER_SOURCES else [],
+                "proxy_snapshot": Jsonb(proxy_snapshot),
                 # Only sources sharing a host are spread out; the common case of
                 # one source per host gets no delay at all.
                 "stagger": position * 30,

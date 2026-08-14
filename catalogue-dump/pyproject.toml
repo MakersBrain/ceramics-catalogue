@@ -7,7 +7,7 @@ dependencies = [
   # Cron expressions for `catalogue.schedules`. A five-field parser is eighty
   # lines and gets DST wrong in ways nobody notices until the clocks change.
   "croniter>=6.0",
-  "httpx>=0.27,<1",
+  "httpx[socks]>=0.27,<1",
   "pydantic>=2.9,<3",
   "pydantic-settings>=2.6,<3",
   "structlog>=24.4",
@@ -54,6 +54,7 @@ catalogue-maintain = "mb_ceramics_catalogue.cli.maintain:main"
 catalogue-benchmark = "mb_ceramics_catalogue.cli.benchmark:main"
 catalogue-proxy-budget = "mb_ceramics_catalogue.cli.proxy_budget:main"
 catalogue-migrate = "mb_ceramics_catalogue.cli.migrate:main"
+catalogue-proxy-roles = "mb_ceramics_catalogue.ops.proxy_roles:main"
 catalogue-compact = "mb_ceramics_catalogue.cli.compact:main"
 
 [dependency-groups]

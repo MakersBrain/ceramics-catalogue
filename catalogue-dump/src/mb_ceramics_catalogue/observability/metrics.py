@@ -259,6 +259,33 @@ def worker_heartbeat_age(worker: str, seconds: float) -> None:
     )
 
 
+def proxy_reservation(state: str, amount: float = 1.0) -> None:
+    REGISTRY.gauge(
+        "catalogue_proxy_reservations", "Proxy reservations by current state.",
+        amount, state=state,
+    )
+
+
+def proxy_bytes(kind: str, value: float) -> None:
+    REGISTRY.gauge(
+        "catalogue_proxy_bytes", "Proxy traffic and budget byte levels.",
+        value, kind=kind,
+    )
+
+
+def proxy_reconciliation(successful: bool) -> None:
+    REGISTRY.counter(
+        "catalogue_proxy_reconciliations_total", "Provider reconciliation outcomes.",
+        outcome="success" if successful else "failure",
+    )
+
+
+def proxy_probe(outcome: str) -> None:
+    REGISTRY.counter(
+        "catalogue_proxy_probes_total", "Bounded paid-probe outcomes.", outcome=outcome,
+    )
+
+
 def source_staleness(source: str, seconds: float) -> None:
     REGISTRY.gauge(
         "catalogue_source_staleness_seconds",
