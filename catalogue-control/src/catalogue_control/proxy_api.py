@@ -268,7 +268,7 @@ async def reservations(request: Request) -> Response:
               from catalogue.proxy_reservations r
               left join catalogue.jobs j on j.id = r.job_id
               left join catalogue.proxy_probes p on p.id = r.probe_id
-             where (%(state)s is null or r.state = %(state)s)
+             where (%(state)s::text is null or r.state = %(state)s::text)
              order by (r.state in ('active', 'revocation_requested')) desc,
                       r.created_at desc limit 500
             """,

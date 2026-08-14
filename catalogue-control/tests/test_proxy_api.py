@@ -97,6 +97,12 @@ async def test_proxy_reads_require_a_verified_operator(proxy_client):
     viewer = assertion(private, "GET", "/v1/proxy/overview", role="viewer")
     assert (await client.get("/v1/proxy/overview", headers=viewer)).status_code == 200
 
+    reservations_path = "/v1/proxy/reservations"
+    reservations_viewer = assertion(private, "GET", reservations_path, role="viewer")
+    reservations = await client.get(reservations_path, headers=reservations_viewer)
+    assert reservations.status_code == 200
+    assert reservations.json() == {"reservations": []}
+
     wrong_path = assertion(private, "GET", "/v1/proxy/cycles", role="viewer")
     assert (await client.get("/v1/proxy/overview", headers=wrong_path)).status_code == 403
     forged = dict(viewer)
