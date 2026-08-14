@@ -822,6 +822,22 @@ class Fetcher:
         self._robots_lock: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
         self.stats = TransportStats()
 
+    async def rotate_client(self) -> None:
+        """Replace this fetcher's HTTP session without losing crawl state.
+
+        Used by large, public Shopify inventory joins: some storefront sessions
+        stop completing requests after a healthy burst even though a fresh
+        session from the same address continues immediately. The limiter,
+        cache, statistics and proxy lease stay attached to this Fetcher.
+        """
+        previous = self.client
+        self.client = httpx.AsyncClient(
+            headers=dict(previous.headers), timeout=previous.timeout,
+            follow_redirects=True,
+            proxy=self.proxy_lease.url if self.proxy_lease else None,
+        )
+        await previous.aclose()
+
     async def robots(self, url: str) -> tuple[urllib.robotparser.RobotFileParser, list[str]]:
         origin = f"{urlparse(url).scheme}://{urlparse(url).netloc}"
         async with self._robots_lock[origin]:

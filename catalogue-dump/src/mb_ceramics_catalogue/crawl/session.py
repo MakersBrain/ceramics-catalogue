@@ -134,6 +134,17 @@ async def open_session(
                     LOGGER.warning("session.proxy_browser_close_failed", exc_info=True)
             if proxy_client is not None:
                 await proxy_client.aclose()
+            # A scraper may deliberately rotate a poisoned storefront session.
+            # The context variables above still name the original clients, so
+            # close their replacements explicitly as well.
+            if fetcher.client is not client:
+                await fetcher.client.aclose()
+            if (
+                proxy_fetcher is not None
+                and proxy_client is not None
+                and proxy_fetcher.client is not proxy_client
+            ):
+                await proxy_fetcher.client.aclose()
 
 
 def cache_directory(explicit: Path | str | None, default: Path) -> Path | None:
