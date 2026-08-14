@@ -1245,6 +1245,7 @@
     "pagination_patterns": [
       "/store/category/"
     ],
+    "card_links_only": true,
     "category_page_limit": 1500,
     "page_limit": 9000,
     "render": false,
