@@ -14,19 +14,26 @@ or platform integrations.
 The migration is complete when:
 
 - Shopify, WooCommerce, Wix, BigCommerce, PrestaShop, and the generic page
-  crawler extract into typed, platform-neutral commerce entities;
-- ceramic classification and enrichment consume neutral entities through a
+  crawler extract into typed, platform-neutral commerce snapshots whose
+  time-varying facts carry their own observation time and evidence;
+- ceramic classification and enrichment consume neutral snapshots through a
   dataset projector instead of being called directly by platform scrapers;
-- one platform crawl can produce catalogue items, price observations, stock
-  observations, document links, and future datasets without repeating
-  discovery or fetching;
+- one platform crawl can produce catalogue items, manufacturer identity
+  records, price observations, stock observations, document links, and future
+  datasets without repeating discovery or fetching;
 - adding a retail vertical requires a projector and enrichment modules, not a
   copy of each platform scraper;
 - adding a platform requires a connector and mapping tests, not changes to the
   ceramics schema or runner;
 - pagination, essential product data, and optional enrichment have declared
   priorities and independent budgets;
-- large crawls can checkpoint and resume from a stable cursor;
+- large crawls commit page output and checkpoints atomically, then resume without
+  losing or duplicating already committed records;
+- peak pipeline memory is bounded by page size and enabled projectors rather than
+  total source size;
+- browser-dependent connectors can run through either the existing managed
+  Camoufox backend or the operator-managed `projects-caddy/cdp-extension-proxy`
+  Chromium backend without changing connector or projector code;
 - every migrated source is output-compatible with its pre-migration golden
   artifact unless an intentional contract migration is reviewed separately;
 - existing schedules, control APIs, proxy policies, loaders, and explorer
@@ -61,6 +68,9 @@ specific interface improvement requires it:
   requests, adaptive rate limits, proxy fallback, traffic accounting, and
   direct-route circuit breaking;
 - `scrapers/base.py::HostLimiter`: per-host and shared-edge pacing;
+- `projects-caddy/cdp-extension-proxy`: an optional Chromium CDP endpoint reached
+  through its MV3 extension and Native Messaging host, retained as an external,
+  operator-managed browser service rather than copied into this package;
 - `crawl/runner.py`: deadlines, cancellation, progress, artifact output, and
   per-source execution;
 - `ops`: leases, jobs, schedules, reservations, monitoring, and recording;
@@ -122,8 +132,8 @@ source policy + run parameters
   discover → fetch → parse → normalize
              │
              ▼
-     CommerceEntity stream
- product / variant / offer / stock / document
+ CommerceProductSnapshot stream
+product with variants / offers / stock / documents
              │
        ┌─────┴────────────┐
        ▼                  ▼
@@ -155,6 +165,9 @@ mb_ceramics_catalogue/
   transport/                 # eventual home of generic fetch infrastructure
     protocols.py
     priorities.py
+    browser.py               # backend-neutral render/evaluate/in-page request
+    camoufox.py               # managed local Firefox-compatible backend
+    cdp_extension_proxy.py   # attach to operator-managed Chromium CDP service
   connectors/
     base.py                  # connector protocols and capabilities
     commerce.py              # neutral commerce entities
@@ -177,6 +190,7 @@ mb_ceramics_catalogue/
   pipeline/
     runner.py                # entity fan-out and dataset projection
     checkpoints.py
+    outputs.py               # per-dataset state and durable page batches
     validation.py
 ```
 
@@ -192,7 +206,7 @@ scrapers continue using the current `Scraper` contract.
 
 ### 6.1 Principles
 
-Neutral entities contain published source facts, not ceramic interpretation.
+Neutral snapshots contain published source facts, not ceramic interpretation.
 They must:
 
 - distinguish a product from a purchasable variant;
@@ -204,6 +218,14 @@ They must:
 - attach evidence to sensitive facts such as stock quantity;
 - avoid floats for money;
 - remain serializable for replay tests and intermediate artifacts.
+
+The initial common contract is deliberately an aggregate
+`CommerceProductSnapshot`, not a mixed union of product, variant, offer, stock,
+and document events. A snapshot represents the platform's published view of one
+product at one observation time. Independent dataset records are produced by
+projectors. If a future platform genuinely supplies independent event streams,
+that requires a reviewed contract version rather than an ambiguous widening of
+this one.
 
 ### 6.2 Core types
 
@@ -228,28 +250,58 @@ class CommerceVariant(BaseModel):
     title: str | None = None
     sku: str | None = None
     gtin: str | None = None
-    options: dict[str, str] = {}
-    offer: CommerceOffer | None = None
-    published_attributes: dict[str, JsonValue] = {}
+    options: dict[str, str] = Field(default_factory=dict)
+    offers: list[CommerceOffer] = Field(default_factory=list)
+    stock: StockState | None = None
+    published_attributes: dict[str, JsonValue] = Field(default_factory=dict)
 
 
-class CommerceProduct(BaseModel):
+class CommerceProductSnapshot(BaseModel):
     source_id: str
     external_id: str
     canonical_url: str
     title: str
     description: str | None = None
     vendor: str | None = None
-    categories: list[CategoryRef] = []
-    images: list[MediaRef] = []
-    documents: list[DocumentRef] = []
-    variants: list[CommerceVariant]
+    observed_at: datetime
+    categories: list[CategoryRef] = Field(default_factory=list)
+    images: list[MediaRef] = Field(default_factory=list)
+    documents: list[DocumentRef] = Field(default_factory=list)
+    variants: list[CommerceVariant] = Field(default_factory=list)
     source_updated_at: datetime | None = None
-    platform_extensions: dict[str, JsonValue] = {}
+    platform_extensions: dict[str, JsonValue] = Field(default_factory=dict)
 ```
 
-Use `Field(default_factory=...)` in the implementation rather than mutable
-literal defaults shown compactly above.
+Product and variant external identifiers are unique only within their declared
+source and connector namespace; global keys include that namespace. Snapshot
+and evidence timestamps are supplied explicitly, never read from the wall clock
+inside a projector. Tests freeze them, making projection deterministic.
+
+`CommerceOffer` must support more than one offer per variant and preserve:
+
+- amount and currency;
+- the time this offer was observed and its evidence;
+- offer role such as regular, sale, member, or quantity tier;
+- VAT status and rate when published or source-configured;
+- minimum quantity, unit, pack size, and price-validity interval;
+- seller identity when the platform is a marketplace;
+- availability and its evidence.
+
+Projectors must not guess how several offers collapse into one catalogue price.
+That selection is an explicit, versioned dataset rule.
+
+Every time-varying nested fact is itself an observation envelope. In
+particular, `CommerceOffer`, `StockState`, and `DocumentRef` carry their own
+`observed_at` and evidence. A connector omits a fact it did not observe in the
+current collection; it must never copy a previous run's value into a new
+snapshot. Dataset projectors emit an observation only from a nested fact that
+was observed in this collection. This preserves one convenient bounded product
+aggregate without representing stale price or stock as fresh.
+
+Manufacturer catalogues may publish identity and specifications without a
+purchasable variant or offer. An empty `variants` list is valid and the snapshot
+preserves manufacturer references and specifications for projection to
+`ceramics.catalogue_identity.v2`.
 
 ### 6.3 Availability and stock
 
@@ -264,6 +316,7 @@ class StockState(BaseModel):
     quantity_kind: Literal[
         "exact", "lower_bound", "upper_bound", "order_limit", "unknown"
     ] = "unknown"
+    observed_at: datetime
     evidence: list[Evidence]
 ```
 
@@ -276,15 +329,19 @@ Connectors return pages rather than appending directly to `ScrapeResult`:
 
 ```python
 class EntityPage(BaseModel, Generic[T]):
+    page_id: str
     items: list[T]
-    cursor: JsonValue | None = None
+    resume_after: JsonValue | None = None
     complete: bool
     discovered: int
-    diagnostics: list[Diagnostic] = []
+    diagnostics: list[Diagnostic] = Field(default_factory=list)
 ```
 
-The cursor is connector-owned but JSON-serializable. `complete=False` has the
-same retirement meaning as today's `truncated=True`.
+`page_id` is stable for the same connector version, source, configuration, and
+logical page. `resume_after` unambiguously means the cursor to use only after
+this page's outputs have been durably committed; it is not the cursor used to
+fetch the page. Both are connector-owned but JSON-serializable.
+`complete=False` has the same retirement meaning as today's `truncated=True`.
 
 ## 7. Connector contract
 
@@ -302,7 +359,7 @@ class CommerceConnector(Protocol):
         self,
         request: CollectionRequest,
         checkpoint: ConnectorCheckpoint | None = None,
-    ) -> AsyncIterator[EntityPage[CommerceProduct]]: ...
+    ) -> AsyncIterator[EntityPage[CommerceProductSnapshot]]: ...
 ```
 
 `CollectionRequest` contains dataset-independent collection intent:
@@ -324,18 +381,26 @@ Capabilities replace implementation-name checks:
 
 ```python
 class ConnectorCapabilities(BaseModel):
-    entity_kinds: frozenset[EntityKind]
+    snapshot_fields: frozenset[SnapshotField]
     refresh_modes: frozenset[RefreshMode]
     stock_kinds: frozenset[StockQuantityKind]
     supports_incremental_cursor: bool
     supports_category_filter: bool
     supports_documents: bool
     browser: Literal["never", "optional", "required"]
+    browser_backends: frozenset[Literal["camoufox", "cdp_extension_proxy"]]
     shared_edge: str | None
 ```
 
 The runner asks whether the requested dataset and refresh mode are supported.
 It never checks `config.scraper in {...}`.
+
+`browser_backends` declares tested compatibility, not a preference or a CDP
+endpoint. A browser-dependent job requires the generic `browser` capability and,
+when its source selects a backend, the exact worker capability such as
+`browser:camoufox` or `browser:cdp_extension_proxy`. An `auto` source may be
+routed to any declared compatible backend. Runtime discovery may add a browser
+requirement as today, but it must not silently change to an unapproved backend.
 
 ### 7.3 Diagnostics
 
@@ -354,6 +419,45 @@ Each diagnostic declares severity, affected URL/entity, retryability, whether
 catalogue completeness is affected, and a safe operator message. Existing
 summary error strings can be produced by the compatibility adapter.
 
+### 7.4 Browser transport backends
+
+Connectors use a narrow `BrowserTransport` protocol exposed by `Fetcher`; they
+do not import Camoufox, Playwright, Chromium CDP types, or the extension proxy:
+
+```python
+class BrowserTransport(Protocol):
+    backend: Literal["camoufox", "cdp_extension_proxy"]
+
+    async def render(self, url: str, wait: BrowserWait) -> RenderedDocument: ...
+    async def evaluate(self, url: str, script: ReviewedScript,
+                       wait: BrowserWait) -> JsonValue: ...
+    async def request_json(self, page_url: str, endpoint: str,
+                           request: BrowserRequest) -> JsonValue: ...
+    async def close(self) -> None: ...
+```
+
+The Camoufox adapter preserves the current managed-browser behavior. The
+`cdp_extension_proxy` adapter attaches Playwright Chromium through the proxy's
+browser-level CDP endpoint, obtains or creates a page target, and implements the
+same three operations. The external service owns Chromium, its extension, and
+Native Messaging lifecycle; the catalogue worker never starts it with remote-
+debugging flags and never assumes full CDP compatibility beyond the proxy's
+documented command subset.
+
+Each CDP-backed job gets a newly created tab, verifies that the returned target
+belongs to that job, and closes/detaches it in `finally` paths. It does not reuse
+cookies, local storage, or authenticated state as catalogue data. Because the
+current proxy MVP has no multi-client attach policy, a configured endpoint is
+protected by a distributed capacity-one lease unless a later proxy release
+advertises and tests a higher safe capacity. Losing the WebSocket is a typed,
+retryable browser-backend failure, never evidence that enumeration completed.
+
+Browser scripts and destination URLs remain connector-owned reviewed code. Run
+requests cannot submit arbitrary CDP methods, JavaScript, target identifiers, or
+navigation URLs. This integration is a compatibility backend for permitted
+public collection, not a challenge, CAPTCHA, authentication, or access-control
+bypass mechanism.
+
 ## 8. Dataset and projector contracts
 
 ### 8.1 Dataset registry
@@ -364,19 +468,27 @@ Add a registry parallel to the connector registry:
 class DatasetDefinition(Protocol):
     name: str
     version: str
-    required_entities: frozenset[EntityKind]
+    record_model: type[BaseModel]
+    required_snapshot_fields: frozenset[SnapshotField]
     required_capabilities: frozenset[str]
 
-    def project(self, entity: CommerceProduct, context: ProjectionContext) \
+    def project(self, entity: CommerceProductSnapshot, context: ProjectionContext) \
             -> Iterable[DatasetRecord]: ...
 ```
 
 Initial registrations:
 
 - `ceramics.catalogue_item.v2`;
+- `ceramics.catalogue_identity.v2`;
 - `commerce.price_observation.v1`;
 - `commerce.stock_observation.v1`;
 - `commerce.document.v1`.
+
+`record_model` is the concrete versioned Pydantic contract for that dataset;
+`DatasetRecord` is only protocol shorthand. Every projected record is validated
+against it before staging, and its JSON schema and canonical serialization are
+frozen in contract tests. The compatibility adapter converts validated ceramics
+records to legacy dictionaries only at the old boundary.
 
 ### 8.2 Ceramics compatibility projector
 
@@ -387,7 +499,8 @@ projector in stages:
 2. invoke the selected ceramics enrichment modules;
 3. apply ceramics scope and exclusions;
 4. call the existing record validation and stable-ID functions;
-5. emit exactly `ceramics.catalogue_item.v2`.
+5. emit exactly `ceramics.catalogue_item.v2` or, for the explicitly selected
+   identity dataset, `ceramics.catalogue_identity.v2`.
 
 Initially the projector may call `record.build()` internally. Once all major
 connectors use it and parity is proven, split `record.py` into contract,
@@ -398,8 +511,9 @@ projection, enrichment, and validation modules.
 The pipeline should fetch once and project many times:
 
 ```text
-CommerceProduct
+CommerceProductSnapshot
   ├── ceramics catalogue rows
+  ├── ceramics manufacturer identity rows
   ├── price observations
   ├── exact-stock observations
   └── document records
@@ -424,6 +538,20 @@ Define field ownership before enabling partial refreshes:
 A partial dataset update may advance fields it owns and must not erase fields
 owned by an unexecuted projector.
 
+### 8.5 Collection intents and cadence
+
+Every scheduled or manual run selects an explicit set of datasets. Before
+fetching, the pipeline validates them against connector capabilities and unions
+their required snapshot fields into one immutable collection request. That is
+the unit of fetch reuse: datasets selected in the same collection share remote
+work; a stock-only run at a different cadence does not pretend to reuse a crawl
+that has already ended.
+
+Schedules may therefore select different dataset sets, for example a daily
+price run and a weekly full catalogue-and-document run. Job and dataset state
+record the selected intent. A lightweight request cannot promote or retire
+fields owned by datasets it did not execute.
+
 ## 9. Typed source configuration
 
 ### 9.1 Separate concerns
@@ -434,7 +562,11 @@ loader for the current JSON shape:
 ```json
 {
   "source": {"label": "...", "url": "...", "country": "GB"},
-  "crawl": {"delay": 0, "timeout_seconds": 3600},
+  "crawl": {
+    "delay": 0,
+    "timeout_seconds": 3600,
+    "browser": {"backend": "auto"}
+  },
   "connector": {
     "type": "shopify",
     "options": {"collections": [], "inventory": {"method": "html"}}
@@ -474,6 +606,19 @@ Do not rewrite `sources.json` in phase 1. Add:
 The control-plane database overlay must use the same typed models. Checked-in
 configuration and operator overrides may not acquire different semantics.
 
+Browser source configuration may select only `auto`, `camoufox`, or
+`cdp_extension_proxy`, plus an optional logical operator profile name. It may
+not contain a CDP URL, token, extension id, browser profile path, or arbitrary
+Chromium arguments. Logical CDP profiles are resolved from worker-owned secret
+configuration and snapshot only non-secret profile identity and backend
+capability onto a job.
+
+An operator CDP profile defines the internal endpoint, token secret reference,
+health timeout, capacity, and allowed worker pool. Production profiles require
+token authentication and a loopback or private-network endpoint. The current
+`cdp-extension-proxy` Docker development default that permits unauthenticated
+access is never accepted by production validation.
+
 ## 10. Priority-aware request budgeting
 
 ### 10.1 Priority classes
@@ -482,13 +627,19 @@ Generalize the Shopify feed reserve into transport priorities:
 
 1. `DISCOVERY`: robots, sitemap, catalogue/category pagination;
 2. `IDENTITY`: product identity required for a valid base record;
-3. `OFFER`: price and availability required by the requested dataset;
-4. `DETAIL`: description, images, technical tables, and documents;
-5. `OPTIONAL`: exact-stock probes or other expensive enrichments.
+3. `DATASET_REQUIRED`: remote facts required by at least one requested dataset;
+4. `DETAIL`: facts requested for completeness but allowed to degrade under the
+   selected dataset's declared policy;
+5. `OPTIONAL`: additional expensive enrichment not required by any selected
+   dataset.
 
-The ordering expresses data completeness, not request urgency. Optional work
-may use remaining capacity but may never consume a reservation needed for
-discovery.
+The ordering expresses data completeness, not request urgency. Discovery is
+always protected. The importance of offer, stock, document, or technical-detail
+work is derived from the selected dataset definitions rather than hard-coded by
+field name. Exact stock is optional during an ordinary ceramics catalogue run,
+but `DATASET_REQUIRED` when `commerce.stock_observation.v1` requests exact
+quantities. Optional work may use remaining capacity but may never consume a
+reservation needed for discovery or another dataset's required fields.
 
 ### 10.2 Budget object
 
@@ -499,6 +650,7 @@ Introduce a per-job `RequestBudget` with:
 - paid-proxy bytes reserved and used;
 - per-priority reserves and ceilings;
 - estimates updated from observed response sizes;
+- the datasets that require each planned request and their degradation policy;
 - a decision method returning allow, downgrade, defer, or deny.
 
 The first implementation wraps existing counters and proxy leases. It must not
@@ -508,14 +660,23 @@ the hard limit.
 ### 10.3 Planning optional work
 
 After each page, estimate optional detail cost from observed mean and a
-conservative high percentile. Stop optional work before the protected discovery
-reserve. Record skipped work as a note/metric, not a source error.
+conservative high percentile. Stop optional work before protected discovery and
+required-dataset reserves. Skipped optional work is a note/metric. Skipped
+required work marks only the affected dataset output partial, degraded, or
+failed according to its declared completeness policy; it may not be hidden as a
+green note, and it does not invalidate an otherwise complete catalogue output.
 
 Static constants such as the current 1 MB Shopify reserve remain as a safe
 fallback until enough measurements exist. Learned estimates may reduce work,
 never override the hard reservation.
 
 ## 11. Checkpointing and resumability
+
+Checkpointing is inseparable from durable page output. Advancing a cursor while
+projected rows exist only in process memory loses those rows after a crash;
+persisting rows before a separately committed cursor duplicates them when the
+page is retried. The pipeline therefore commits a page manifest and its next
+cursor as one logical operation.
 
 ### 11.1 Checkpoint contents
 
@@ -524,7 +685,8 @@ A checkpoint contains:
 - source, connector, and connector version;
 - normalized configuration fingerprint;
 - current enumeration cursor;
-- completed entity/page identifiers where required for idempotency;
+- last committed `page_id` and committed page identifiers required for
+  idempotency;
 - selected datasets and their contract versions;
 - observed budget state;
 - creation time and expiry;
@@ -535,9 +697,29 @@ in a checkpoint.
 
 ### 11.2 Persistence
 
-Persist checkpoints after a complete page, not after every record. Store the
-small current checkpoint in PostgreSQL and include its identifier in job
-events. Completed artifacts remain the durable audit representation.
+For each connector page, the pipeline:
+
+1. validates the stable `page_id` and projects the page into bounded dataset
+   batches;
+2. writes each batch to an attempt-scoped staging object using a deterministic
+   key and computes its checksum;
+3. in one PostgreSQL transaction, inserts the page manifest and dataset batch
+   metadata, records projector outcomes, and advances the checkpoint to the
+   page's `resume_after` cursor;
+4. treats a repeated commit of the same `(job, checkpoint lineage, page_id,
+   dataset, projector version)` and checksum as success;
+5. rejects the same identity with a different checksum as nondeterminism or
+   checkpoint corruption.
+
+The transaction never claims that a staging object exists until its checksum is
+readable. Orphaned attempt-scoped objects are harmless and removed by bounded
+retention. Completed dataset artifacts are compacted from committed page
+batches; process memory and cancelled-job partial artifacts are not resume
+state.
+
+The small current checkpoint and page manifests live in PostgreSQL and their
+identifiers appear in job events. Completed immutable artifacts remain the
+durable audit representation.
 
 ### 11.3 Resume rules
 
@@ -548,6 +730,12 @@ beginning and retain the rejected checkpoint for diagnosis.
 A resumed full crawl is not complete until it reaches the connector's terminal
 cursor. Retirement remains withheld for cancelled, expired, or incomplete
 checkpoint chains.
+
+A resume reconstructs output from every committed page in the lineage, not only
+pages fetched by the latest worker attempt. A terminal checkpoint may be marked
+complete only after all expected page or partition manifests are present. Final
+artifact publication and dataset promotion are idempotent and may safely be
+retried after a crash.
 
 ## 12. Storage and artifact evolution
 
@@ -568,10 +756,12 @@ path until every reader understands the envelope.
 
 ### 12.2 Intermediate neutral artifacts
 
-Do not enable permanent neutral-entity storage by default. It can multiply
+Do not enable permanent neutral-snapshot storage by default. It can multiply
 storage and duplicate source payloads. Initially:
 
-- keep neutral entities in memory/page streams;
+- keep neutral snapshots in bounded page streams during a healthy attempt;
+- durably stage projected dataset batches and page manifests for crash-safe
+  resume, as specified in section 11, without retaining source payloads;
 - permit an opt-in compressed diagnostic artifact for replay and migration;
 - retain sanitized recorded HTTP fixtures for connector tests;
 - evaluate durable neutral artifacts only if cross-dataset reprocessing proves
@@ -587,6 +777,74 @@ Stock observations should record only a change or advance `last_seen_at`, using
 the same history principle as offer observations; they should not create an
 unchanged row every crawl.
 
+### 12.4 Multi-dataset job state
+
+The existing one-job/one-artifact columns remain the ceramics compatibility
+view, but cannot be the new source of truth. Add additive operational tables
+equivalent to:
+
+```text
+job_datasets(job_id, dataset, contract_version, projector_version,
+             state, complete, records, rejected, error, promoted_at)
+job_pages(job_id, checkpoint_lineage, page_id, resume_after,
+          connector_version, committed_at)
+job_page_batches(job_id, page_id, dataset, object_key, sha256, size, records)
+job_artifacts(job_id, dataset, contract_version, kind,
+              location, sha256, size, published_at)
+```
+
+Keys include the dataset and version and enforce idempotency. Dataset state is
+independent: collection can succeed while one projector fails, and successful
+datasets remain publishable. Aggregate job status and the operator UI summarize
+these rows; they do not erase the distinction. Enumeration completeness is a
+collection fact, while projection, loading, and promotion are dataset facts.
+Each dataset independently declares whether an incomplete collection permits an
+adds-only load and whether it ever permits retirement.
+
+Define the aggregate-state matrix as part of the schema/API contract: all
+requested outputs successful means succeeded; at least one usable output plus a
+degraded or failed output means degraded; no usable requested output means
+failed; cancellation remains cancellation even when committed page batches
+exist. The control API exposes dataset output rows explicitly rather than
+flattening their diagnostics into the job's first error.
+
+If a projector fails on a page, its dataset becomes failed for that lineage and
+the pipeline stops invoking that projector while continuing collection and the
+remaining projectors. The failed dataset is not silently retried from later
+pages. Retrying it requires replayable neutral snapshots or a new collection;
+that choice is explicit so fetch reuse never turns into missing earlier pages.
+
+Migrate artifact comparison, retention, download, run detail, progress, and
+promotion readers to `job_artifacts` and `job_datasets` before those tables
+become authoritative. Retention operates per immutable output artifact and may
+not delete page batches referenced by an active checkpoint lineage or an
+unpublished artifact.
+
+### 12.5 Artifact store
+
+Introduce an `ArtifactStore` protocol with local-filesystem and later object-
+store implementations. It provides attempt-scoped staging, immutable publish,
+checksum verification, streaming reads, and bounded orphan cleanup. Artifact
+locations are opaque store locations rather than paths assumed to be locally
+mounted.
+
+The local implementation preserves current paths and atomic rename behavior.
+Before workers run on more than one node, deployment must use either a correctly
+mounted shared filesystem or an object-store implementation. A database row is
+published only after the referenced immutable object is readable and its digest
+matches.
+
+### 12.6 Bounded-memory pipeline
+
+Connectors, projectors, artifact writers, and loaders accept pages or bounded
+batches. The new pipeline must never convert the complete stream back to a list.
+Its target peak memory is `O(page size × enabled projectors)`, independent of
+total source size. Compatibility adapters may accumulate legacy results only
+for explicitly bounded legacy jobs and disappear with the legacy path.
+
+Phase benchmarks include a synthetic source at least ten times larger than the
+largest current source and demonstrate that peak memory reaches a plateau.
+
 ## 13. Migration phases
 
 ### Phase 0: baselines and contracts
@@ -598,13 +856,21 @@ Deliver:
 - per-platform request, record, field-coverage, and byte baselines;
 - typed neutral commerce models;
 - connector capability and dataset projector protocols;
+- backend-neutral browser protocol, backend capability vocabulary, and typed
+  operator browser-profile configuration;
 - compatibility adapter that still returns `ScrapeResult`;
+- page identity, atomic commit, checkpoint-lineage, and artifact-store ADR;
+- additive multi-dataset job/page/artifact schema;
+- compatibility reads in control, retention, comparison, progress, and
+  promotion for per-dataset output state;
 - CI checks for serialization and deterministic projection.
 
 Exit criteria:
 
 - no production behavior changes;
 - old and new contracts can coexist in one process;
+- a crash at every boundary around staging, page commit, compaction, and publish
+  has a specified idempotent recovery outcome;
 - the baseline comparison names changed, missing, and newly populated fields.
 
 ### Phase 1: ceramics projector extraction
@@ -612,6 +878,8 @@ Exit criteria:
 Deliver:
 
 - `CeramicsCatalogueProjector` wrapping existing `record.build()` behavior;
+- `CeramicsIdentityProjector` preserving the active
+  `ceramics.catalogue_identity.v2` manufacturer-without-price path;
 - scope and enrichment configuration passed through projection context;
 - projector-level tests independent of network/platform payloads;
 - typed dataset records before conversion to legacy dictionaries;
@@ -621,8 +889,48 @@ Exit criteria:
 
 - a synthetic neutral product projects to the same v2 rows as direct
   `record.build()` calls;
+- the Mayco identity-only golden fixture retains its identity format,
+  manufacturer references, specifications, and stable IDs without requiring a
+  price or purchasable variant;
 - stable IDs, validity, enrichment, and scope output are unchanged;
 - no platform scraper has migrated yet.
+
+### Phase 1.5: browser backend abstraction and CDP extension proxy
+
+Deliver:
+
+- adapt the existing `BrowserRenderer` behind `BrowserTransport` without
+  changing current Camoufox behavior;
+- add an optional Playwright Chromium adapter that connects through the
+  browser-level endpoint provided by
+  `projects-caddy/cdp-extension-proxy`;
+- declare Playwright as a direct, pinned optional dependency for this adapter
+  rather than relying on Camoufox's transitive packages; the worker attaches to
+  the external Chromium and does not download or launch another Chromium;
+- add worker capability advertisement and exact-backend queue routing;
+- add operator-owned logical CDP profiles with secret token resolution and
+  redaction;
+- acquire a distributed endpoint-capacity lease before attaching;
+- create, attribute, close, and detach a tab per job, including cancellation,
+  timeout, worker shutdown, and WebSocket-loss paths;
+- expose backend health, attach latency, active targets, disconnects, and cleanup
+  failures without logging endpoint tokens;
+- retain Camoufox as the default until source-specific Chromium compatibility is
+  demonstrated by recorded or controlled tests.
+
+Exit criteria:
+
+- the same browser transport contract tests pass against Camoufox and the CDP
+  proxy for render, evaluated JSON, in-page JSON request, timeout, and cleanup;
+- a worker without the selected backend cannot claim the job;
+- concurrent jobs cannot attach to an MVP endpoint beyond its declared
+  capacity;
+- target and connection loss produces an incomplete, retryable outcome and
+  leaves no orphaned catalogue-owned tab;
+- tokens never appear in configuration projections, logs, diagnostics,
+  checkpoints, artifacts, metrics, or trace attributes;
+- production startup rejects unauthenticated or publicly exposed CDP profiles;
+- no connector imports backend-specific libraries or CDP commands.
 
 ### Phase 2: Shopify pilot
 
@@ -637,6 +945,7 @@ Deliver:
 - capability declarations;
 - prioritized feed/detail requests;
 - cursor checkpoints at `products.json` page boundaries;
+- page-batch staging and reconstruction of final artifacts across attempts;
 - compatibility adapter selecting the ceramics projector;
 - replay comparison against Ulster, Ceradel, and at least one shop that exposes
   only the normal Shopify feed.
@@ -648,13 +957,18 @@ Exit criteria:
 - Ulster remains complete under its 10 MB limit with optional-stock notes, not
   errors;
 - cancellation after a page resumes without refetching earlier pages;
+- forced worker death before and after every page-commit step loses and
+  duplicates no output;
+- peak memory remains bounded as synthetic product count increases;
 - old Shopify implementation remains selectable for canary rollback.
 
 Rollout:
 
-1. replay only;
-2. shadow projection in production without loading;
-3. compare summaries and artifacts;
+1. replay the same recorded raw responses through the legacy scraper and the
+   new connector/projector path;
+2. run the new path as a production shadow without loading and compare it to
+   the most recent trusted legacy artifact for that source;
+3. compare summaries, artifacts, request plans, and field-level reasons;
 4. enable a small source allowlist;
 5. expand after two successful scheduled cycles;
 6. remove the old path only after all Shopify sources pass.
@@ -707,7 +1021,7 @@ Exit criteria:
 
 - generic parser-empty results do not automatically trigger browser work;
 - discovery completeness is represented consistently;
-- bespoke connectors emit the same neutral entities as platform connectors.
+- bespoke connectors emit the same neutral snapshots as platform connectors.
 
 ### Phase 5: additional datasets
 
@@ -717,6 +1031,8 @@ Add one dataset at a time to prove reuse.
 
 - emit only exact quantities with evidence;
 - retain availability when quantity is unknown;
+- treat missing required exact-stock work as partial/degraded stock output even
+  when the catalogue output succeeds;
 - use change-based storage with `first_seen_at`/`last_seen_at`;
 - expose coverage by source and evidence method;
 - schedule expensive stock work independently from ordinary catalogue refresh.
@@ -769,12 +1085,18 @@ Exit criteria:
 ### 14.1 Test pyramid
 
 1. **Model tests:** validation, serialization, money, stock semantics, evidence.
-2. **Connector mapping tests:** recorded platform payload to neutral entities.
-3. **Projector tests:** neutral entities to dataset records.
+2. **Connector mapping tests:** recorded platform payload to neutral snapshots.
+3. **Projector tests:** neutral snapshots to dataset records.
 4. **Pipeline tests:** paging, fan-out, priorities, cancellation, checkpoints.
 5. **Golden tests:** old and new final ceramics artifacts.
 6. **PostgreSQL tests:** idempotency, partial updates, retirement, observations.
 7. **Deployment smoke tests:** worker capability, control run, health, artifact.
+8. **Browser contract tests:** the same render/evaluate/in-page-request suite
+   against Camoufox and a controlled `cdp-extension-proxy` instance.
+
+The golden set includes both purchasable catalogue items and the active Mayco
+`ceramics.catalogue_identity.v2` path; parity is not complete if only priced
+offers match.
 
 ### 14.2 Fixture policy
 
@@ -805,15 +1127,26 @@ or new behavior is correct.
 
 Add tests proving:
 
-- projection is deterministic and does not mutate neutral entities;
+- projection is deterministic and does not mutate neutral snapshots;
 - pagination cursors cannot skip or duplicate pages during retry;
+- crashes before staging, after staging, before database commit, after database
+  commit, during compaction, and after artifact publication are recoverable;
 - optional budget exhaustion cannot stop discovery;
 - connector cancellation leaves a resumable page-boundary checkpoint;
 - an invalid checkpoint cannot corrupt a full run;
 - one projector failure does not discard other dataset output;
+- repeated page commits and dataset promotion are idempotent;
 - exact stock is never produced from an unverified order limit;
+- an unobserved or carried-forward offer/stock value cannot produce a fresh
+  observation record;
+- required stock budget exhaustion degrades only the stock dataset while
+  optional stock exhaustion remains a catalogue note;
 - partial refresh cannot erase fields owned by another dataset;
 - secrets cannot enter entities, checkpoints, diagnostics, or artifacts.
+- CDP disconnect, target close, extension detach, and worker cancellation always
+  release endpoint leases and attempt tab cleanup;
+- an untrusted run cannot choose a CDP endpoint, token, target, method, script,
+  or off-source navigation URL.
 
 ## 15. Observability
 
@@ -827,9 +1160,16 @@ Add dimensions without unbounded-cardinality labels:
 - stock coverage by quantity kind and evidence method;
 - projector failures by stable diagnostic code;
 - parity differences during shadow rollout.
+- browser operations, failures, attach latency, and active targets by backend;
+- CDP endpoint lease contention, disconnects, detach events, and cleanup
+  failures by bounded logical profile name.
 
 URLs, entity IDs, product names, cursors, and exception bodies remain in bounded
 job diagnostics rather than metric labels.
+
+CDP endpoint URLs, WebSocket URLs, and query strings are also excluded from
+logs, diagnostics, metrics, and traces because the proxy token may be carried in
+the query string. Observability records only the logical profile and backend.
 
 The operator view should answer:
 
@@ -838,7 +1178,9 @@ The operator view should answer:
 - which optional fields were skipped and why;
 - how much direct/browser/proxy traffic each priority used;
 - whether the run resumed;
-- whether the connector schema appears to have changed.
+- whether the connector schema appears to have changed;
+- which browser backend and logical profile ran, whether it is healthy, and
+  whether endpoint capacity or cleanup affected the job.
 
 ## 16. Rollout and compatibility policy
 
@@ -852,8 +1194,15 @@ Every connector uses the same rollout ladder:
 6. default new path with old rollback flag;
 7. remove old path after a documented observation window.
 
-During shadow mode, fetch once and run both projections over the same neutral
-entity stream. Do not crawl the live source twice merely to compare code paths.
+The legacy platform scraper is not a projector over neutral snapshots, so the
+plan must not claim that two projections over the new connector's output prove
+extraction parity. Extraction parity is established offline by replaying the
+same frozen raw responses through both complete paths. Production shadow mode
+runs only the new live path and compares its output with the last trusted legacy
+artifact, accounting for expected source changes by observation time and stable
+identity. If a future legacy adapter can consume captured raw responses without
+a second network request, it may run in shadow too. Never crawl a live source
+twice merely to compare implementations.
 
 Database migrations are additive. Readers accept both old and new metadata
 before writers switch. Removal happens only after all deployed readers use the
@@ -872,7 +1221,13 @@ The migration must preserve:
 7. no browser fallback merely because a parser returned no entity;
 8. no arbitrary code, selectors, or URLs accepted from ordinary run requests;
 9. exact stock only from published or explicitly verified evidence;
-10. connector extensions treated as untrusted external data and size-bounded.
+10. connector extensions treated as untrusted external data and size-bounded;
+11. CDP endpoints and tokens resolved only from operator-owned worker secrets;
+12. production CDP profiles authenticated and reachable only through loopback or
+    a private network boundary;
+13. no arbitrary CDP command, JavaScript, browser target, or navigation URL from
+    ordinary run requests;
+14. a browser session never supplies authenticated state to dataset output.
 
 ## 18. Risks and mitigations
 
@@ -893,10 +1248,56 @@ approval for intentional corrections.
 
 ### Increased memory
 
-Risk: collecting neutral entities before projection duplicates large payloads.
+Risk: collecting neutral snapshots before projection duplicates large payloads.
 
-Mitigation: page streams and immediate projection; never retain a whole source
-unless a dataset explicitly requires it.
+Mitigation: bounded page streams, streaming projectors and sinks, durable page
+batches, and a scaling benchmark; never retain a whole source in process memory.
+
+### Checkpoint/output split brain
+
+Risk: a crash between writing projected output and advancing a cursor loses or
+duplicates a committed page.
+
+Mitigation: stable page identities, content-addressed staging, a transactional
+page manifest plus cursor advance, idempotent compaction, and fault injection at
+each boundary.
+
+### Multi-dataset partial failure
+
+Risk: one failed projector makes a successful dataset appear failed, or a green
+aggregate job hides a missing dataset.
+
+Mitigation: dataset-specific state, artifacts, completeness, promotion, and
+operator-visible errors with an explicitly derived aggregate job state.
+
+### Multi-node artifact visibility
+
+Risk: a worker publishes a local path that the loader or control service on
+another node cannot read.
+
+Mitigation: require shared storage or an `ArtifactStore` implementation before
+multi-node rollout, and verify object readability and checksum before publish.
+
+### CDP endpoint compromise or session leakage
+
+Risk: a token-bearing CDP URL leaks through telemetry, an exposed endpoint gives
+control of Chromium to another network peer, or a shared profile carries cookies
+between source jobs.
+
+Mitigation: operator-owned secret profiles, production token requirement,
+loopback/private-network validation, aggressive URL redaction, capacity-one
+distributed leases for the current MVP, a fresh attributed tab per job, cleanup
+on every exit path, and no reliance on persistent authenticated browser state.
+
+### CDP compatibility drift
+
+Risk: the extension proxy implements a documented CDP subset rather than every
+browser-level command expected by a new Playwright or Chromium release.
+
+Mitigation: pin and test the client/browser/proxy compatibility matrix, probe
+`/json/version` and required commands at worker readiness, advertise the backend
+capability only after the probe passes, and fall back to Camoufox only when the
+source permits that backend.
 
 ### Duplicate requests
 
@@ -925,49 +1326,158 @@ Risk: a green source silently loses stock or documents.
 Mitigation: dataset-specific coverage, skipped counts, thresholds, and operator
 alerts separate from source enumeration success.
 
-## 19. Implementation order by repository path
+## 19. Scaling and capacity
 
-1. Add contracts under `catalogue-dump/src/mb_ceramics_catalogue/connectors/`
+### 19.1 Capacity model before autoscaling
+
+Record and review these limits per deployment:
+
+- runnable jobs and oldest queue age by required worker capability;
+- HTTP job slots, browser processes/pages, and measured memory per active page;
+- Camoufox page capacity and CDP-extension-proxy endpoint/target capacity by
+  logical profile;
+- PostgreSQL pool size, active connections, claim latency, transaction latency,
+  and page-manifest write rate;
+- artifact staging, compaction, and read throughput;
+- host and shared-edge lease contention, response latency, 429 rate, and
+  published rate limits;
+- direct, browser, and paid-proxy byte ceilings.
+
+Worker slot defaults must fit the PostgreSQL connection budget and worst-case
+page memory, not merely CPU count. Autoscaling uses oldest runnable-job age and
+capability-specific saturation. Raw queue length is insufficient because jobs
+blocked on host leases or unavailable capabilities are not runnable capacity.
+
+### 19.2 Scale across independent sources first
+
+The existing PostgreSQL `FOR UPDATE SKIP LOCKED` queue, job leases, and host
+leases remain the horizontal-scaling mechanism. Add stateless worker replicas
+and separate capability pools:
+
+- HTTP-only workers for ordinary connectors;
+- Camoufox workers with lower job concurrency and explicit memory limits;
+- `cdp_extension_proxy` workers attached only to their operator-configured
+  Chromium service and bounded by endpoint leases;
+- projection/loading workers only if measurements show those stages dominate.
+
+More workers increase throughput across independent sources. They must not
+multiply traffic to one origin or storefront provider. Host and shared-edge
+politeness remains globally enforced; in-process adaptive pacing is an
+additional local safeguard, not the fleet-wide authority.
+
+### 19.3 Split stages only after measurement
+
+Collection and projection initially remain in one leased job and communicate
+through bounded pages. If CPU projection, document processing, or loading
+becomes the bottleneck, committed page batches may become durable work inputs
+for independently leased dataset tasks. PostgreSQL remains the queue; no new
+broker is required.
+
+Stage separation must preserve the collection lineage, projector version,
+idempotency key, dataset state, cancellation semantics, and paid-traffic
+authority. It must never cause a second remote fetch merely because a projector
+worker retried.
+
+### 19.4 Partition exceptional sources
+
+A single source remains one sequential connector stream by default. Adding
+workers cannot shorten it. A connector may optionally declare stable,
+independently resumable partitions only when the remote platform exposes a safe
+boundary, such as sitemap shards, disjoint collections, API partitions, or a
+completed discovery manifest of product identifiers.
+
+Each partition has a stable key, cursor, lease, page manifests, and deduplication
+rule. A parent collection is complete only after the expected partition set is
+sealed and every partition reaches its terminal cursor. Missing or changed
+partitions withhold retirement. All partitions still share global host/edge
+pacing and request budgets; partitioning is not permission to exceed a remote
+service's rate limit.
+
+### 19.5 Storage and database growth
+
+Use the local artifact store for one-node deployments and shared/object storage
+before adding nodes. Apply bounded retention to orphan staging objects and
+committed page batches after immutable artifact publication and checkpoint
+expiry. Observation and history tables use batch writes, change-based rows, and
+appropriate time/source partitioning only when measured table or index growth
+justifies it.
+
+Scaling is accepted only when a load test demonstrates no record loss or
+duplication, bounded memory, stable database latency, globally respected host
+pacing, and correct recovery after worker termination.
+
+## 20. Implementation order by repository path
+
+1. Write the boundary, page-commit/recovery, multi-dataset state, artifact-store,
+   and capacity ADRs.
+2. Add contracts under `catalogue-dump/src/mb_ceramics_catalogue/connectors/`
    and `datasets/` with unit tests.
-2. Add a pipeline compatibility adapter that returns the existing
+3. Add the additive job-dataset, page-manifest, batch, and artifact schema.
+4. Add a pipeline compatibility adapter that returns the existing
    `ScrapeResult` and summary shape.
-3. Extract the ceramics projector while leaving `record.py` as its internal
-   implementation.
-4. Extend the registry to distinguish connectors from legacy scrapers.
-5. Add capabilities and remove runner platform-name branching.
-6. Add request priorities to `Fetcher` and proxy budget planning.
-7. Implement Shopify connector, replay fixtures, checkpointing, and shadow
+5. Extract the ceramics catalogue and identity projectors while leaving
+   `record.py` as their internal implementation.
+6. Extend the registry to distinguish connectors from legacy scrapers.
+7. Add capabilities and remove runner platform-name branching.
+8. Introduce `BrowserTransport`, adapt Camoufox, then integrate
+   `projects-caddy/cdp-extension-proxy` with capability routing, operator secret
+   profiles, endpoint leases, contract tests, and cleanup fault tests.
+9. Add request priorities to `Fetcher` and proxy budget planning.
+10. Implement the local `ArtifactStore`, bounded page pipeline, atomic page
+   commit protocol, compaction, and fault-injection tests.
+11. Implement Shopify connector, replay fixtures, checkpointing, and shadow
    comparison.
-8. Roll Shopify out and retire only its legacy path.
-9. Repeat for structured platforms.
-10. Compose generic page discovery/parsers and migrate bespoke scrapers.
-11. Add stock, price, and document datasets with storage migrations.
-12. Migrate `sources.json` and control overlays to discriminated options.
-13. Remove compatibility code and update documentation.
+12. Roll Shopify out and retire only its legacy path.
+13. Repeat for structured platforms.
+14. Compose generic page discovery/parsers and migrate bespoke scrapers.
+15. Add stock, price, and document datasets with storage migrations.
+16. Migrate `sources.json` and control overlays to discriminated options.
+17. Add stage separation, source partitioning, or an object store only when the
+    capacity measurements in section 19 require them.
+18. Remove compatibility code and update documentation.
 
 Do not combine more than one platform migration in a commit. A platform commit
 must be revertible without reverting contracts already used by another one.
 
-## 20. Completion checklist
+## 21. Completion checklist
 
 - [ ] Neutral commerce and evidence contracts are versioned and documented.
 - [ ] Connector and dataset protocols are stable.
+- [ ] Camoufox and `cdp_extension_proxy` pass the same browser transport contract
+  and jobs route only to workers advertising the selected backend.
+- [ ] CDP profiles are operator-owned, authenticated, redacted, capacity-leased,
+  health-checked, and clean up catalogue-owned targets on every exit path.
 - [ ] Ceramics projection is platform-independent.
+- [ ] `ceramics.catalogue_identity.v2` retains Mayco parity without requiring a
+  price or purchasable variant.
 - [ ] Shopify golden parity and production rollout are complete.
 - [ ] WooCommerce golden parity and production rollout are complete.
 - [ ] Remaining structured platform migrations are complete.
-- [ ] Generic and bespoke scrapers emit neutral entities.
+- [ ] Generic and bespoke scrapers emit neutral snapshots.
 - [ ] Runner contains no scraper-name feature switches.
 - [ ] Source configuration uses typed connector/dataset sections.
-- [ ] Discovery, identity, detail, and optional budgets are enforced.
+- [ ] Discovery and dataset-derived required/detail/optional budgets are
+  enforced independently for every requested output.
 - [ ] Page-boundary checkpoints resume safely.
+- [ ] Atomic page commits survive fault injection without loss or duplication.
+- [ ] Pipeline memory is bounded independently of total source size.
+- [ ] Dataset-specific state and artifacts expose partial success accurately.
+- [ ] Control, progress, comparison, retention, download, load, and promotion
+  consume per-dataset output state.
+- [ ] Offers, stock, and documents cannot be emitted as newly observed unless
+  their snapshot carries a current observation time and evidence.
+- [ ] Artifact locations are readable by every deployed consumer.
+- [ ] Capacity and recovery load tests pass at the intended worker count.
 - [ ] Stock, price, and document datasets reuse one collection stream.
 - [ ] Existing ceramics API output remains contract-compatible.
+- [ ] Raw-response replay compares legacy and new extraction paths, and live
+  shadow rollout compares against trusted legacy artifacts without a second
+  crawl.
 - [ ] All old paths and temporary rollback flags are removed.
 - [ ] Operator documentation and contributor examples are current.
 - [ ] Full unit, golden, PostgreSQL, service, and deployment smoke suites pass.
 
-## 21. Definition of fully migrated
+## 22. Definition of fully migrated
 
 The code is fully migrated only when the dependency directions are true in
 both source code and tests:
