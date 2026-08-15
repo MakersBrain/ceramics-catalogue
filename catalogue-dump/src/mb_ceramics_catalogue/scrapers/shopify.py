@@ -159,7 +159,9 @@ class ShopifyScraper(Scraper):
         # A few large themes silently park a storefront session after a burst:
         # no 429, just requests that stop completing while a new session works.
         # Stay below the observed window and rotate between bounded batches.
-        batch_size = 50
+        # Ulster's theme has parked a session after only fifteen successful
+        # reads, so keep the boundary below the smallest observed stall window.
+        batch_size = 10
         for offset in range(0, len(products), batch_size):
             await asyncio.gather(*(load(product) for product in products[offset:offset + batch_size]))
             if offset + batch_size < len(products):
