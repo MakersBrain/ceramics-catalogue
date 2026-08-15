@@ -60,6 +60,8 @@ export interface CrawlParams {
 	cache_mode?: 'off' | 'auto' | 'replay' | 'refresh' | null;
 	cache_max_age_hours?: number | null;
 	stale_on_error?: boolean | null;
+	pipeline?: 'legacy' | 'connector_canary' | null;
+	datasets?: 'ceramics' | 'ceramics.catalogue_item.v2' | 'ceramics.catalogue_identity.v2' | 'commerce.price_observation.v1' | 'commerce.stock_observation.v1' | 'commerce.document.v1'[] | null;
 	refresh_mode?: 'price' | 'full' | null;
 	proxy_policy?: 'never' | null;
 	proxy_max_megabytes?: number | null;
@@ -136,6 +138,8 @@ export interface Job {
 	max_attempts: number;
 	priority: number;
 	requires?: string[] | null;
+	requires_any?: string[] | null;
+	selected_browser_backend?: 'camoufox' | 'cdp_extension_proxy' | null;
 	scheduled_for: string;
 	started_at?: string | null;
 	finished_at?: string | null;
@@ -148,6 +152,8 @@ export interface Job {
 	cancel_requested?: boolean | null;
 	pause_requested?: boolean | null;
 	summary?: JobSummary | null;
+	datasets?: JobDataset[] | null;
+	artifacts?: JobArtifact[] | null;
 	phase?: string | null;
 	records?: number | null;
 	requests?: number | null;
@@ -158,6 +164,20 @@ export interface Job {
 	in_flight?: InFlight[] | null;
 	/** The previous successful run's record count, so a progress bar has a scale. */
 	previous_records?: number | null;
+}
+
+export interface JobArtifact {
+	id: string;
+	dataset: string;
+	contract_version: string;
+	projector_version: string;
+	kind: string;
+	location: string;
+	sha256: string;
+	size: number;
+	published_at: string;
+	available?: boolean | null;
+	retained_at?: string | null;
 }
 
 export interface JobChanges {
@@ -171,6 +191,20 @@ export interface JobChanges {
 	unchanged?: number | null;
 	matched?: number | null;
 	items?: RecordChange[] | null;
+}
+
+export interface JobDataset {
+	dataset: string;
+	contract_version: string;
+	projector_version: string;
+	state: 'pending' | 'projecting' | 'staged' | 'publishing' | 'published' | 'loading' | 'succeeded' | 'degraded' | 'failed' | 'cancelled' | 'skipped';
+	complete?: boolean | null;
+	records?: number | null;
+	rejected?: number | null;
+	error?: string | null;
+	promoted_at?: string | null;
+	created_at: string;
+	updated_at: string;
 }
 
 export interface JobDetail {
@@ -540,6 +574,7 @@ export interface Run {
 	summary?: RunSummary | null;
 	jobs?: number | null;
 	succeeded?: number | null;
+	degraded?: number | null;
 	failed?: number | null;
 	active?: number | null;
 }
@@ -566,6 +601,7 @@ export interface RunList {
 
 export interface RunSummary {
 	succeeded?: number | null;
+	degraded?: number | null;
 	failed?: number | null;
 	cancelled?: number | null;
 	skipped?: number | null;
