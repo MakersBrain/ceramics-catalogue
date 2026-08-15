@@ -301,7 +301,7 @@
 										<input type="hidden" name="id" value={profile.id} />
 										<input type="hidden" name="logical_name" value={profile.logical_name} />
 										<input type="hidden" name="mode" value="rotate" />
-										<NativeSelect class="h-7 w-32 text-xs" name="rotation_mode">
+										<NativeSelect class="h-7 text-xs" wrapperClass="w-32" name="rotation_mode">
 											<option value="drain">Drain first</option>
 											<option value="blue-green">Blue-green</option>
 										</NativeSelect>
@@ -545,12 +545,12 @@
 								{#if admin}
 									<form method="POST" action="?/sourcePolicy" class="flex gap-1">
 										<input type="hidden" name="source_id" value={row.source_id} />
-										<NativeSelect class="h-7 w-24 text-xs" name="policy">
+										<NativeSelect class="h-7 text-xs" wrapperClass="w-24" name="policy">
 											<option value="never" selected={row.policy === 'never'}>never</option>
 											<option value="fallback" selected={row.policy === 'fallback'}>fallback</option>
 											<option value="always" selected={row.policy === 'always'}>always</option>
 										</NativeSelect>
-										<NativeSelect class="h-7 w-32 text-xs" name="route_id">
+										<NativeSelect class="h-7 text-xs" wrapperClass="w-32" name="route_id">
 											<option value="">no route</option>
 											{#each data.routes as route}
 												<option value={route.id} selected={row.route_id === route.id}>

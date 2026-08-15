@@ -134,7 +134,7 @@
 									<Checkbox name="paused" checked={source.paused} />
 									paused
 								</label>
-								<NativeSelect name="schedule_id" class="h-7 w-28 text-xs">
+								<NativeSelect name="schedule_id" class="h-7 text-xs" wrapperClass="w-28">
 									<option value="">default</option>
 									{#each data.schedules ?? [] as schedule (schedule.id)}
 										<option value={schedule.id} selected={source.schedule_id === schedule.id}>

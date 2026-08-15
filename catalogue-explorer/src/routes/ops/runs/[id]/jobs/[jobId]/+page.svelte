@@ -135,7 +135,7 @@
 			</div>
 
 			<form method="GET" class="mb-2 flex flex-wrap items-center gap-2">
-				<NativeSelect name="change_kind" class="h-7 w-auto text-xs" value={data.changeKind ?? ''}>
+				<NativeSelect name="change_kind" class="h-7 text-xs" fit value={data.changeKind ?? ''}>
 					<option value="">all changes</option>
 					<option value="added">added</option>
 					<option value="removed">removed</option>
@@ -267,7 +267,7 @@
 	<section>
 		<form method="GET" class="mb-2 flex flex-wrap items-center gap-2">
 			<h2 class="eyebrow mr-2">Log</h2>
-			<NativeSelect name="level" class="h-7 w-auto text-xs" value={data.level ?? ''}>
+			<NativeSelect name="level" class="h-7 text-xs" fit value={data.level ?? ''}>
 				<option value="">all levels</option>
 				<option value="error">error</option>
 				<option value="warning">warning</option>
