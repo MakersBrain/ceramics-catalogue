@@ -256,6 +256,36 @@ class PublishedStockTests(unittest.TestCase):
         self.assertEqual(1, scraper._inventory_failures)
         self.assertEqual(0, scraper.result.requests)
 
+    def test_shopify_inventory_batches_are_serial_and_rotate_between_batches(self):
+        class TrackingFetcher:
+            active = peak = rotations = 0
+
+            async def text(self, *_args, **_kwargs):
+                self.active += 1
+                self.peak = max(self.peak, self.active)
+                await asyncio.sleep(0)
+                self.active -= 1
+                return ""
+
+            async def rotate_client(self):
+                self.rotations += 1
+
+        fetcher = TrackingFetcher()
+        scraper = shopify.ShopifyScraper.__new__(shopify.ShopifyScraper)
+        scraper.config = {"inventory_product_html": True}
+        scraper.fetcher = fetcher
+        scraper.result = SimpleNamespace(requests=0)
+        scraper._inventory_failures = 0
+        scraper.origin = lambda: "https://shop.test"
+        products = [
+            {"handle": f"glaze-{index}", "variants": []}
+            for index in range(11)
+        ]
+        asyncio.run(scraper._enrich_inventory(products))
+        self.assertEqual(1, fetcher.peak)
+        self.assertEqual(1, fetcher.rotations)
+        self.assertEqual(11, scraper.result.requests)
+
     def test_verified_shopify_theme_inventory_shapes(self):
         samples = (
             ('{"id":101,"inventory_quantity":12,"inventory_management":"shopify",'

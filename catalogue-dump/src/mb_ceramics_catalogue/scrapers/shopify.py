@@ -8,7 +8,6 @@ count proportional to the part of the shop we actually want.
 
 from __future__ import annotations
 
-import asyncio
 import re
 from typing import Any
 from urllib.parse import urlencode
@@ -163,9 +162,13 @@ class ShopifyScraper(Scraper):
         # Stay below the observed window and rotate between bounded batches.
         # Ulster's theme has parked a session after only fifteen successful
         # reads, so keep the boundary below the smallest observed stall window.
+        # Read a batch serially: firing ten simultaneous fallbacks at one
+        # storefront made every request race through the direct 429 before the
+        # circuit opened, then overloaded the shared residential proxy session.
         batch_size = 10
         for offset in range(0, len(products), batch_size):
-            await asyncio.gather(*(load(product) for product in products[offset:offset + batch_size]))
+            for product in products[offset:offset + batch_size]:
+                await load(product)
             if offset + batch_size < len(products):
                 await self.fetcher.rotate_client()
 
