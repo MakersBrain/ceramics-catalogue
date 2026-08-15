@@ -9,6 +9,14 @@ import { themeQuartz } from 'ag-grid-community';
  * being told. `browserColorScheme: 'inherit'` is what carries that as far as
  * the scrollbars, which are drawn by the browser and not by us.
  *
+ * It draws from both palettes, and which one each token comes from is the
+ * point. The sheet's own surfaces and rules are the data palette, because the
+ * cells hold values and a chart may be rendered beside them. Selection, hover
+ * and the range border are `--primary`: those are the interface talking about
+ * itself - what you clicked, what you dragged - and the brand clay is what says
+ * so everywhere else on the page. `fontFamily: 'inherit'` picks up IBM Plex
+ * from the body for the same reason.
+ *
  * The shape is deliberately a spreadsheet rather than a card: no outer border,
  * no rounded corners, no zebra striping, and a rule on all four sides of every
  * cell. Density comes from `spacing`, which every padding in the grid derives
@@ -19,7 +27,7 @@ export const gridTheme = themeQuartz.withParams({
 	foregroundColor: 'var(--text-primary)',
 	borderColor: 'var(--gridline)',
 	chromeBackgroundColor: 'var(--surface-1)',
-	accentColor: 'var(--accent)',
+	accentColor: 'var(--primary)',
 	browserColorScheme: 'inherit',
 
 	fontFamily: 'inherit',
@@ -50,9 +58,9 @@ export const gridTheme = themeQuartz.withParams({
 	// No stripes: the gridlines already separate the rows, and a stripe would
 	// be a second, weaker answer to the same question.
 	oddRowBackgroundColor: 'transparent',
-	rowHoverColor: 'color-mix(in srgb, var(--accent) 8%, transparent)',
-	selectedRowBackgroundColor: 'color-mix(in srgb, var(--accent) 14%, transparent)',
-	rangeSelectionBackgroundColor: 'color-mix(in srgb, var(--accent) 12%, transparent)',
-	rangeSelectionBorderColor: 'var(--accent)',
+	rowHoverColor: 'color-mix(in srgb, var(--primary) 8%, transparent)',
+	selectedRowBackgroundColor: 'color-mix(in srgb, var(--primary) 14%, transparent)',
+	rangeSelectionBackgroundColor: 'color-mix(in srgb, var(--primary) 12%, transparent)',
+	rangeSelectionBorderColor: 'var(--primary)',
 	headerColumnResizeHandleColor: 'var(--baseline)'
 });

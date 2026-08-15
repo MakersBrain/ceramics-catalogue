@@ -2,6 +2,12 @@
 	import { enhance } from '$app/forms';
 	import Unavailable from '$lib/ops/Unavailable.svelte';
 	import { relative, severityTone } from '$lib/ops/format';
+	import * as Table from '$lib/components/ui/table';
+	import { Card, CardContent } from '$lib/components/ui/card';
+	import { StatusBadge } from '$lib/components/ui/status-badge';
+	import { Button } from '$lib/components/ui/button';
+	import { NativeSelect } from '$lib/components/ui/native-select';
+	import { Notice } from '$lib/components/ui/notice';
 
 	let { data, form } = $props();
 
@@ -29,49 +35,55 @@
 	<div class="mb-4 flex flex-wrap items-center gap-3">
 		<h1 class="text-lg font-semibold">Notifications</h1>
 		<form method="GET" class="flex items-center gap-2">
-			<select name="severity" class="select select-bordered select-sm" value={data.severity ?? ''}>
+			<NativeSelect name="severity" class="h-8 w-auto text-xs" value={data.severity ?? ''}>
 				<option value="">all severities</option>
 				<option value="critical">critical</option>
 				<option value="warning">warning</option>
 				<option value="info">info</option>
-			</select>
-			<button class="btn btn-sm" type="submit">Filter</button>
+			</NativeSelect>
+			<Button variant="secondary" size="sm" type="submit">Filter</Button>
 		</form>
 	</div>
 
 	{#if form?.error}
-		<div class="alert alert-error mb-4 text-sm">{form.error}</div>
+		<Notice kind="error" class="mb-4">{form.error}</Notice>
 	{/if}
 
 	<section class="mb-8">
-		<h2 class="mb-2 text-sm font-semibold uppercase opacity-60">
+		<h2 class="eyebrow mb-2">
 			Needs attention ({open.length})
 		</h2>
 		{#if open.length === 0}
-			<p class="text-base-content/60 text-sm">Nothing outstanding.</p>
+			<p class="text-muted-foreground text-sm">Nothing outstanding.</p>
 		{:else}
 			<ul class="grid gap-2">
 				{#each open as entry (entry.id)}
-					<li class="card bg-base-100 shadow-sm">
-						<div class="card-body flex-row items-start gap-3 p-4">
-							<span class="badge {severityTone(entry.severity)} badge-sm">{entry.severity}</span>
-							<div class="min-w-0 flex-1">
-								<div class="font-medium">{entry.title}</div>
-								{#if entry.body}
-									<p class="text-base-content/60 mt-0.5 text-sm">{entry.body}</p>
-								{/if}
-								<div class="text-base-content/40 mt-1 text-xs">
-									{entry.kind} · {relative(entry.at)}
-									{#if link(entry)}
-										· <a class="link" href={link(entry)}>{entry.source_id ?? 'run'}</a>
+					<li>
+						<Card class="gap-0 [--card-spacing:--spacing(4)]">
+							<CardContent class="flex flex-row items-start gap-3">
+								<StatusBadge tone={severityTone(entry.severity)}>{entry.severity}</StatusBadge>
+								<div class="min-w-0 flex-1">
+									<div class="font-medium">{entry.title}</div>
+									{#if entry.body}
+										<p class="text-muted-foreground mt-0.5 text-sm">{entry.body}</p>
 									{/if}
+									<div class="text-muted-foreground/70 mt-1 text-xs">
+										{entry.kind} · {relative(entry.at)}
+										{#if link(entry)}
+											·
+											<a
+												class="text-accent-foreground underline-offset-4 hover:underline"
+												href={link(entry)}>{entry.source_id ?? 'run'}</a
+											>
+										{/if}
+									</div>
 								</div>
-							</div>
-							<form method="POST" action="?/ack" use:enhance>
-								<input type="hidden" name="id" value={entry.id} />
-								<button class="btn btn-sm" type="submit">Acknowledge</button>
-							</form>
-						</div>
+								<form method="POST" action="?/ack" use:enhance>
+									<input type="hidden" name="id" value={entry.id} />
+									<Button variant="secondary" size="sm" type="submit">Acknowledge</Button>
+								</form>
+							</CardContent>
+						</Card>
 					</li>
 				{/each}
 			</ul>
@@ -79,28 +91,42 @@
 	</section>
 
 	<section>
-		<h2 class="mb-2 text-sm font-semibold uppercase opacity-60">Resolved and acknowledged</h2>
-		<div class="overflow-x-auto">
-			<table class="table-zebra table table-sm bg-base-100 rounded shadow-sm">
-				<thead>
-					<tr><th>When</th><th>Severity</th><th>Kind</th><th>Title</th><th>Closed</th></tr>
-				</thead>
-				<tbody>
+		<h2 class="eyebrow mb-2">
+			Resolved and acknowledged
+		</h2>
+		<div class="bg-card overflow-hidden rounded-lg border">
+			<Table.Root>
+				<Table.Header>
+					<Table.Row>
+						<Table.Head>When</Table.Head>
+						<Table.Head>Severity</Table.Head>
+						<Table.Head>Kind</Table.Head>
+						<Table.Head>Title</Table.Head>
+						<Table.Head>Closed</Table.Head>
+					</Table.Row>
+				</Table.Header>
+				<Table.Body>
 					{#each closed as entry (entry.id)}
-						<tr>
-							<td>{relative(entry.at)}</td>
-							<td><span class="badge badge-sm {severityTone(entry.severity)}">{entry.severity}</span></td>
-							<td class="text-xs">{entry.kind}</td>
-							<td class="max-w-96 truncate">{entry.title}</td>
-							<td class="text-xs opacity-60">
-								{entry.resolved_at ? 'resolved' : `acknowledged by ${entry.acknowledged_by ?? '—'}`}
-							</td>
-						</tr>
+						<Table.Row>
+							<Table.Cell>{relative(entry.at)}</Table.Cell>
+							<Table.Cell>
+								<StatusBadge tone={severityTone(entry.severity)}>{entry.severity}</StatusBadge>
+							</Table.Cell>
+							<Table.Cell class="text-xs">{entry.kind}</Table.Cell>
+							<Table.Cell class="max-w-96 truncate">{entry.title}</Table.Cell>
+							<Table.Cell class="text-muted-foreground text-xs">
+								{entry.resolved_at
+									? 'resolved'
+									: `acknowledged by ${entry.acknowledged_by ?? '—'}`}
+							</Table.Cell>
+						</Table.Row>
 					{:else}
-						<tr><td colspan="5" class="text-base-content/60">Nothing yet.</td></tr>
+						<Table.Row>
+							<Table.Cell colspan={5} class="text-muted-foreground">Nothing yet.</Table.Cell>
+						</Table.Row>
 					{/each}
-				</tbody>
-			</table>
+				</Table.Body>
+			</Table.Root>
 		</div>
 	</section>
 {/if}

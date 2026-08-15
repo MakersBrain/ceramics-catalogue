@@ -118,11 +118,11 @@
 							x2={right}
 							y1={y}
 							y2={y}
-							class="stroke-[var(--accent-soft)]"
+							class="stroke-[var(--accent-data-soft)]"
 							stroke-width={2}
 						/>
-						<Circle cx={left} cy={y} r={5} class="fill-[var(--accent)]" />
-						<Circle cx={right} cy={y} r={5} class="fill-[var(--accent-soft)]" />
+						<Circle cx={left} cy={y} r={5} class="fill-[var(--accent-data)]" />
+						<Circle cx={right} cy={y} r={5} class="fill-[var(--accent-data-soft)]" />
 					</Group>
 				{/each}
 			</Svg>
@@ -134,11 +134,11 @@
      rides on the shade alone. -->
 <div class="mt-3 flex flex-wrap items-center gap-4 text-xs" style="color: var(--text-secondary)">
 	<span class="flex items-center gap-2">
-		<span class="inline-block h-2.5 w-2.5 rounded-full" style="background: var(--accent)"></span>
+		<span class="inline-block h-2.5 w-2.5 rounded-full" style="background: var(--accent-data)"></span>
 		cheapest supplier
 	</span>
 	<span class="flex items-center gap-2">
-		<span class="inline-block h-2.5 w-2.5 rounded-full" style="background: var(--accent-soft)"
+		<span class="inline-block h-2.5 w-2.5 rounded-full" style="background: var(--accent-data-soft)"
 		></span>
 		dearest supplier
 	</span>

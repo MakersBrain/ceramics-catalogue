@@ -109,7 +109,7 @@
 	<button
 		type="submit"
 		class="shrink-0 rounded-lg px-4 py-2 text-sm font-medium"
-		style="background: var(--accent); color: #ffffff">Search</button
+		style="background: var(--primary); color: var(--primary-foreground)">Search</button
 	>
 </form>
 
@@ -175,7 +175,7 @@
 									<button
 										type="button"
 										class="text-left underline decoration-dotted underline-offset-2"
-										style="color: var(--accent)"
+										style="color: var(--primary)"
 										onclick={() => (openedSupplier = { id: offer.supplier })}
 									>
 										{offer.supplier}
@@ -185,7 +185,7 @@
 									<button
 										type="button"
 										class="text-left underline decoration-dotted underline-offset-2"
-										style="color: var(--accent)"
+										style="color: var(--primary)"
 										onclick={() => (openedProduct = seed(offer))}
 									>
 										{offer.name}
@@ -222,7 +222,7 @@
 										href={offer.url}
 										target="_blank"
 										rel="noreferrer noopener"
-										style="color: var(--accent)">open</a
+										style="color: var(--primary)">open</a
 									>
 								</td>
 							</tr>

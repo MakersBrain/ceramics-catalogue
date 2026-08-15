@@ -40,37 +40,47 @@ export function delta(now: number | null | undefined, before: number | null | un
 	return { change, share: (100 * change) / before };
 }
 
-/** Colour for a source's staleness badge. */
+/**
+ * The tones below are `StatusBadge` values, not class names.
+ *
+ * They used to be daisyUI badge classes, which meant a helper in the formatting
+ * module decided what a failed run looked like. Naming the outcome instead
+ * leaves that decision in one component, and it is why the ops pages could move
+ * off daisyUI without re-deciding the palette in nine files.
+ *
+ * `busy` covers what was `badge-info`: work in progress is not an outcome and
+ * must not borrow a colour that means one.
+ */
+export type Tone = 'neutral' | 'good' | 'bad' | 'warn' | 'busy';
+
+/** Tone for a source's staleness badge. */
 export function staleness(seconds: number | null | undefined): {
-	tone: string;
+	tone: Tone;
 	label: string;
 } {
-	if (seconds == null) return { tone: 'badge-ghost', label: 'never' };
-	if (seconds < 36 * 3600) return { tone: 'badge-success', label: compact(seconds) };
-	if (seconds < 7 * 86400) return { tone: 'badge-warning', label: compact(seconds) };
-	return { tone: 'badge-error', label: compact(seconds) };
+	if (seconds == null) return { tone: 'neutral', label: 'never' };
+	if (seconds < 36 * 3600) return { tone: 'good', label: compact(seconds) };
+	if (seconds < 7 * 86400) return { tone: 'warn', label: compact(seconds) };
+	return { tone: 'bad', label: compact(seconds) };
 }
 
-export function stateTone(state: string): string {
+export function stateTone(state: string): Tone {
 	return (
 		{
-			succeeded: 'badge-success',
-			complete: 'badge-success',
-			running: 'badge-info',
-			leased: 'badge-info',
-			queued: 'badge-ghost',
-			paused: 'badge-warning',
-			degraded: 'badge-warning',
-			failed: 'badge-error',
-			cancelled: 'badge-ghost',
-			skipped: 'badge-ghost'
-		}[state] ?? 'badge-ghost'
-	);
+			succeeded: 'good',
+			complete: 'good',
+			running: 'busy',
+			leased: 'busy',
+			queued: 'neutral',
+			paused: 'warn',
+			degraded: 'warn',
+			failed: 'bad',
+			cancelled: 'neutral',
+			skipped: 'neutral'
+		}[state] ?? 'neutral'
+	) as Tone;
 }
 
-export function severityTone(severity: string): string {
-	return (
-		{ critical: 'badge-error', warning: 'badge-warning', info: 'badge-info' }[severity] ??
-		'badge-ghost'
-	);
+export function severityTone(severity: string): Tone {
+	return ({ critical: 'bad', warning: 'warn', info: 'busy' }[severity] ?? 'neutral') as Tone;
 }

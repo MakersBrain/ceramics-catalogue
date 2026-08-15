@@ -39,7 +39,7 @@
 
 	function tab(active: boolean) {
 		return `color: ${active ? 'var(--text-primary)' : 'var(--text-secondary)'}; background: ${
-			active ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent'
+			active ? 'color-mix(in srgb, var(--primary) 12%, transparent)' : 'transparent'
 		}`;
 	}
 
@@ -85,12 +85,9 @@
 			class="mx-auto flex w-full max-w-(--shell) items-center gap-3 px-3 py-2 sm:gap-6 sm:px-6 sm:py-3"
 		>
 			<!--
-				The lockup reads MakersBrain's token names. This page is not on that
-				token system and is deliberately not being moved onto it -- the chart
-				palette below was validated for colour-blind contrast against these
-				surfaces. So the three names the lockup actually uses are bridged to
-				this page's equivalents here, rather than importing a whole second
-				palette to satisfy a logo.
+				The product word takes the nav's own muted colour and size rather than
+				the brand's defaults, so it sits with the tabs beside it instead of
+				with the wordmark it follows. The mark and the wordmark are left alone.
 			-->
 			<BrandLockup
 				product="Catalogue"

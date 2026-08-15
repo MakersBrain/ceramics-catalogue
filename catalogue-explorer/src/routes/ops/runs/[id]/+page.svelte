@@ -57,7 +57,7 @@
 			{data.run.kind} run
 			<span class="badge {stateTone(data.run.status)} ml-2">{data.run.status}</span>
 		</h1>
-		<span class="text-base-content/60 text-sm">
+		<span class="text-muted-foreground text-sm">
 			{relative(data.run.created_at)} · {duration(data.run.started_at, data.run.finished_at)}
 			{#if data.run.requested_by}· {data.run.requested_by}{/if}
 		</span>
@@ -74,7 +74,7 @@
 	{/if}
 
 	<div class="overflow-x-auto">
-		<table class="table table-sm bg-base-100 rounded shadow-sm">
+		<table class="table table-sm bg-card rounded shadow-sm">
 			<thead>
 				<tr>
 					<th>Source</th>
@@ -96,29 +96,29 @@
 							<a class="link font-medium" href="/ops/runs/{data.run.id}/jobs/{job.id}">
 								{job.source_id}
 							</a>
-							<div class="text-base-content/40 text-xs">{job.host}</div>
+							<div class="text-muted-foreground/70 text-xs">{job.host}</div>
 						</td>
 						<td><span class="badge badge-sm {stateTone(job.state)}">{job.state}</span></td>
-						<td class="text-base-content/60 text-xs">{now.phase ?? '—'}</td>
+						<td class="text-muted-foreground text-xs">{now.phase ?? '—'}</td>
 						<td>
 							<div class="flex items-center gap-2">
 								<span class="tabular-nums">{count(now.records)}</span>
 								{#if bar !== null}
 									<progress class="progress progress-primary h-1.5 w-20" value={bar} max="100"
 									></progress>
-									<span class="text-base-content/40 text-xs" title="previous run">
+									<span class="text-muted-foreground/70 text-xs" title="previous run">
 										/{count(job.previous_records)}
 									</span>
 								{/if}
 							</div>
 							{#if now.inFlight.length}
-								<div class="text-base-content/40 truncate text-xs" title={now.inFlight[0].url}>
+								<div class="text-muted-foreground/70 truncate text-xs" title={now.inFlight[0].url}>
 									{now.inFlight[0].seconds}s · {now.inFlight[0].url}
 								</div>
 							{/if}
 						</td>
 						<td class="text-right tabular-nums">{count(now.requests)}</td>
-						<td class="text-right tabular-nums {now.errors ? 'text-error' : ''}">
+						<td class="text-right tabular-nums {now.errors ? 'text-destructive' : ''}">
 							{count(now.errors)}
 						</td>
 						<td class="text-xs">{job.attempt}/{job.max_attempts}</td>
@@ -140,7 +140,7 @@
 	</div>
 
 	{#if data.run.summary}
-		<p class="text-base-content/60 mt-4 text-sm">
+		<p class="text-muted-foreground mt-4 text-sm">
 			{count(data.run.summary.records)} records ·
 			{data.run.summary.succeeded} succeeded ·
 			{data.run.summary.failed} failed ·

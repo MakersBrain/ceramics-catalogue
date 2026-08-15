@@ -4,6 +4,7 @@
 	import { onMount, setContext } from 'svelte';
 	import { OpsStream } from '$lib/ops/stream.svelte';
 	import ConnectionBadge from '$lib/ops/ConnectionBadge.svelte';
+	import { StatusBadge } from '$lib/components/ui/status-badge';
 
 	let { children } = $props();
 
@@ -35,16 +36,16 @@
 	);
 </script>
 
-<div class="bg-base-200/40 min-h-dvh">
-	<header class="border-base-300 bg-base-100 border-b">
+<div class="bg-background min-h-dvh">
+	<header class="border-border bg-card border-b">
 		<!-- The breadcrumb and the worker count are the first things to go on a
 		     phone: the tabs and the connection state are what this header is for. -->
 		<div class="mx-auto flex max-w-(--shell) items-center gap-3 px-3 py-2 sm:gap-4 sm:px-4 sm:py-3">
-			<a href="/" class="text-base-content/60 hover:text-base-content shrink-0 text-sm">
+			<a href="/" class="text-muted-foreground hover:text-foreground shrink-0 text-sm">
 				<span class="hidden sm:inline">catalogue</span>
 				<span class="sm:hidden">&larr;</span>
 			</a>
-			<span class="text-base-content/30 hidden sm:inline">/</span>
+			<span class="text-muted-foreground/60 hidden sm:inline">/</span>
 			<span class="hidden font-semibold sm:inline">operations</span>
 
 			<!-- Five tabs plus a breadcrumb and a badge do not fit until about 900px,
@@ -58,19 +59,22 @@
 						href={tab.href}
 						class="rounded px-2.5 py-1 text-sm whitespace-nowrap transition-colors sm:px-3
 						{current === tab.href || (tab.href !== '/ops' && current.startsWith(tab.href))
-							? 'bg-primary text-primary-content'
-							: 'hover:bg-base-200'}"
+							? 'bg-primary text-primary-foreground'
+							: 'hover:bg-muted'}"
 					>
 						{tab.label}
 						{#if tab.href === '/ops/notifications' && unacknowledged > 0}
-							<span class="badge badge-warning badge-sm ml-1">{unacknowledged}</span>
+							<StatusBadge tone="warn" class="ml-1 px-1.5 py-0 tabular-nums">
+								{unacknowledged}
+								<span class="sr-only">unacknowledged</span>
+							</StatusBadge>
 						{/if}
 					</a>
 				{/each}
 			</nav>
 
 			<div class="ml-auto flex shrink-0 items-center gap-3 text-sm">
-				<span class="text-base-content/60 hidden lg:inline">
+				<span class="text-muted-foreground hidden lg:inline">
 					{busy}/{stream.workers.length} workers busy · {activeJobs} active jobs
 				</span>
 				<ConnectionBadge state={stream.connection} />

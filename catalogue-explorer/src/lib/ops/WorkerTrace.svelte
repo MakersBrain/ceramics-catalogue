@@ -8,10 +8,10 @@
 	let error = $state<string | null>(null);
 
 	const tones: Record<string, string> = {
-		error: 'text-error',
+		error: 'text-destructive',
 		warning: 'text-warning',
 		info: '',
-		debug: 'text-base-content/40'
+		debug: 'text-muted-foreground/70'
 	};
 
 	async function refresh() {
@@ -36,7 +36,7 @@
 	});
 </script>
 
-<div class="bg-base-200 mt-2 max-h-52 overflow-y-auto rounded p-2 font-mono text-[0.68rem]">
+<div class="bg-muted mt-2 max-h-52 overflow-y-auto rounded p-2 font-mono text-[0.68rem]">
 	{#each lines as line (line.id)}
 		<div class="grid grid-cols-[3.8rem_4.5rem_1fr] gap-1 {tones[line.level] ?? ''}">
 			<span class="opacity-40">{new Date(line.at).toLocaleTimeString('en-GB')}</span>
@@ -44,7 +44,7 @@
 			<span class="min-w-0 break-words">{line.message}</span>
 		</div>
 	{:else}
-		<p class="text-base-content/50">Waiting for log lines…</p>
+		<p class="text-muted-foreground">Waiting for log lines…</p>
 	{/each}
-	{#if error}<p class="text-error mt-1">{error}</p>{/if}
+	{#if error}<p class="text-destructive mt-1">{error}</p>{/if}
 </div>

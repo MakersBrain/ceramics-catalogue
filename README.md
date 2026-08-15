@@ -83,29 +83,25 @@ registries, run `make openapi`, commit the diff. `make openapi-check` fails the
 build on drift, and a test asserts the read API's document contains no operation
 other than `get`.
 
-**The brand is a dependency, not a copy.** The mark, the wordmark and the
-favicon come from `@makersbrain/brand`, which is its own repository and its own
-package. The explorer holds no copy of them and nothing here regenerates them —
-a change to the mark is a version bump.
+**The design system is a dependency, not a copy.** Colour, type, the component
+layer and the mark all come from `@makersbrain/brand`, which is its own
+repository and its own package. Nothing here regenerates any of it — a change to
+the system is a version bump, and `package-lock.json` records which one this app
+is on.
 
-Until that package has been published for the first time, `package.json`
-resolves it as `file:../../makersbrain-brand`, so `npm install` needs the brand
-repository checked out beside this one. Once it is published, that becomes an
-ordinary version range and the sibling checkout stops being needed:
+It is published to GitHub Packages rather than npmjs.com, so npm has to be told
+where the scope lives. `catalogue-explorer/.npmrc` carries that mapping and no
+credential; a person keeps a token with `read:packages` in `~/.npmrc`, and CI
+writes one from the workflow's own `GITHUB_TOKEN` before `npm ci`.
 
-```sh
-npm --prefix catalogue-explorer install @makersbrain/brand@^0.1.0
-```
-
-That also needs an `.npmrc` pointing the scope at GitHub Packages, since the
-package is not on npmjs.com. The brand repository's `.npmrc.example` is the file
-to copy.
-
-Only the header and the favicon use it. The page is deliberately *not* on
-MakersBrain's token system: the chart palette below was validated for
-colour-blind contrast against these surfaces, and importing a second palette to
-satisfy a logo would invalidate that work. The three token names the lockup
-actually reads are bridged to this page's equivalents in `+layout.svelte`.
+**Two palettes meet in `app.css`, and the split is deliberate.** The interface —
+surfaces, controls, type — is the brand's. The charts and the grid are not: those
+values are the validated data-viz reference set, whose separations were measured
+under protanopia, deuteranopia and tritanopia against these particular surfaces.
+Replacing them with brand colours would throw that away, so the brand dresses the
+interface and the data palette dresses the data. `--accent` belongs to the
+interface and `--accent-data` to the charts; they are different colours doing
+different jobs and the rename exists so one name cannot mean both.
 
 **The golden files are how "no behaviour change" is checked rather than
 claimed.** `make test-golden` replays every source the recorded response cache

@@ -370,7 +370,7 @@
 		<button
 			type="submit"
 			class="shrink-0 rounded-lg px-4 py-2 text-sm font-medium lg:hidden"
-			style="background: var(--accent); color: #ffffff">Apply</button
+			style="background: var(--primary); color: var(--primary-foreground)">Apply</button
 		>
 	</div>
 
@@ -484,7 +484,7 @@
 				     full so the ticks below stay an honest account of the selection,
 				     and so a shared URL keeps meaning what it meant when it was sent. -->
 				<div class="mb-2 flex items-center gap-3 text-xs">
-					<a href={href({ page: null }, columns, { countries: schengenHere })} style="color: var(--accent)">
+					<a href={href({ page: null }, columns, { countries: schengenHere })} style="color: var(--primary)">
 						Schengen
 					</a>
 					<a href={href({ page: null }, columns, { countries: [] })} style="color: var(--text-secondary)">
@@ -526,7 +526,7 @@
 	<button
 		type="submit"
 		class="hidden rounded-lg px-4 py-2 text-sm font-medium lg:block"
-		style="background: var(--accent); color: #ffffff">Apply</button
+		style="background: var(--primary); color: var(--primary-foreground)">Apply</button
 	>
 	{#if active.length || data.filters.q}
 		<a
@@ -568,7 +568,7 @@
 				style="color: {data.view === mode.id
 					? 'var(--text-primary)'
 					: 'var(--text-secondary)'}; background: {data.view === mode.id
-					? 'color-mix(in srgb, var(--accent) 14%, transparent)'
+					? 'color-mix(in srgb, var(--primary) 14%, transparent)'
 					: 'transparent'}">{mode.label}</a
 			>
 		{/each}
@@ -634,7 +634,7 @@
 						<button
 							type="submit"
 							class="rounded-lg px-3 py-1 text-xs font-medium"
-							style="background: var(--accent); color: #ffffff">Apply</button
+							style="background: var(--primary); color: var(--primary-foreground)">Apply</button
 						>
 						<!-- Reset drops the saved arrangement as well as the one on screen.
 						     Without that it would be undone by the next bare /explore. -->
@@ -780,7 +780,7 @@
 							href="/compare?q={encodeURIComponent(row.code)}"
 							onclick={(event) => event.stopPropagation()}
 							class="rounded px-1.5 py-0.5 tabular-nums"
-							style="background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--text-primary)"
+							style="background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--text-primary)"
 							>{row.code}</a
 						>
 					{/if}
