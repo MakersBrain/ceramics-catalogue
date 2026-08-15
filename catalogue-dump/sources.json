@@ -712,7 +712,12 @@
     "inventory_prefilter_materials": true,
     "delay": 0.5,
     "scope": "materials",
+    "material_categories": [
+      "Glazes",
+      "Pottery"
+    ],
     "country": "MT",
+    "note": "A mixed fine-art catalogue: only the shop's Glazes and Pottery product types are ceramic materials. Generic title classification mislabels acrylics, canvas, resin and drawing supplies as stains or clay, so the storefront category allowlist is authoritative for both inventory requests and emitted rows.",
     "enrichments": [
       "ceramic-materials"
     ]

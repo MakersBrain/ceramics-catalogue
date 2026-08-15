@@ -73,6 +73,10 @@ class SourceConfigTests(unittest.TestCase):
             with self.subTest(scraper=name):
                 self.assertTrue(callable(scrapers.load(name)))
 
+    def test_art_academy_uses_its_authoritative_ceramics_categories(self):
+        source = self.config["art-academy-direct"]
+        self.assertEqual(["Glazes", "Pottery"], source["material_categories"])
+
     def test_robots_may_only_be_ignored_deliberately(self):
         """An ignore_robots source must record why and slow itself down."""
         for name, source in self.config.items():
