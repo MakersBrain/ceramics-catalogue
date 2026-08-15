@@ -4,7 +4,7 @@
 	// usually open at once, and a tab is the one place the wordmark beside the
 	// mark is too small to say which of them a tab belongs to.
 	import favicon from '@makersbrain/brand/logo/chop.svg';
-	import { BrandLockup } from '@makersbrain/brand/svelte';
+	import SurfaceLockup from '$lib/components/SurfaceLockup.svelte';
 	import { page } from '$app/state';
 
 	let { children } = $props();
@@ -85,15 +85,15 @@
 			class="mx-auto flex w-full max-w-(--shell) items-center gap-3 px-3 py-2 sm:gap-6 sm:px-6 sm:py-3"
 		>
 			<!--
-				The product word takes the nav's own muted colour and size rather than
-				the brand's defaults, so it sits with the tabs beside it instead of
-				with the wordmark it follows. The mark and the wordmark are left alone.
+				The product word only needs its size bringing down to the nav's, so it
+				sits with the tabs beside it rather than with the wordmark it follows.
+				The colours are the brand's own and are no longer bridged: the page
+				neutrals now resolve to `--mb-*` themselves, so restating them here
+				once meant `--mb-text-muted: var(--text-secondary)` pointing at a
+				`--text-secondary` that was already `var(--mb-text-muted)` -- a
+				custom-property cycle, which CSS resolves by throwing both away.
 			-->
-			<BrandLockup
-				product="Catalogue"
-				size="1.25rem"
-				style="color: var(--text-primary); --mb-text-muted: var(--text-secondary); --mb-text-body: 0.875rem"
-			/>
+			<SurfaceLockup product="Catalogue" size="1.25rem" style="--mb-text-body: 0.875rem" />
 			<div class="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
 				{#each TABS as entry (entry.href)}
 					<a

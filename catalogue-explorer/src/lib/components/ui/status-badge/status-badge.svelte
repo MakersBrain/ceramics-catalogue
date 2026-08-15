@@ -17,17 +17,17 @@
 	 * COLOUR IS NEVER THE ONLY CARRIER. Every call site puts a word inside, so a
 	 * greyscale reader loses the emphasis and keeps the meaning.
 	 */
-	import type { Snippet } from 'svelte';
-	import { cn } from '$lib/utils';
+	import type { HTMLAttributes } from 'svelte/elements';
+	import { cn, type WithElementRef } from '$lib/utils';
 
 	let {
+		ref = $bindable(null),
 		tone = 'neutral',
 		class: className,
-		children
-	}: {
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLSpanElement>, HTMLSpanElement> & {
 		tone?: 'neutral' | 'good' | 'bad' | 'warn' | 'busy';
-		class?: string;
-		children?: Snippet;
 	} = $props();
 
 	/**
@@ -48,12 +48,14 @@
 </script>
 
 <span
+	bind:this={ref}
 	data-slot="status-badge"
 	class={cn(
 		'inline-flex items-center gap-1.5 rounded-sm px-2 py-0.5 text-xs font-semibold whitespace-nowrap',
 		tones[tone],
 		className
 	)}
+	{...restProps}
 >
 	{@render children?.()}
 </span>

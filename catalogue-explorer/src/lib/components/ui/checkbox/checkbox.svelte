@@ -1,3 +1,15 @@
+<script lang="ts" module>
+	/**
+	 * Exported because `bind:group` is a compiler feature of the native `<input>`
+	 * element and does not cross a component boundary - Svelte has no way to
+	 * marshal a group binding through props. A multi-select list therefore has to
+	 * write the element itself, and this is what keeps it looking like every
+	 * other checkbox instead of drifting the moment one of them is edited.
+	 */
+	export const checkboxClass =
+		'border-input accent-primary focus-visible:ring-ring/30 size-4 shrink-0 cursor-pointer rounded-xs outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50';
+</script>
+
 <script lang="ts">
 	import type { HTMLInputAttributes } from 'svelte/elements';
 	import { cn, type WithElementRef } from '$lib/utils';
@@ -29,10 +41,7 @@
 	bind:this={ref}
 	type="checkbox"
 	data-slot="checkbox"
-	class={cn(
-		'border-input accent-primary focus-visible:ring-ring/30 size-4 shrink-0 cursor-pointer rounded-xs outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50',
-		className
-	)}
+	class={cn(checkboxClass, className)}
 	bind:checked
 	{...restProps}
 />

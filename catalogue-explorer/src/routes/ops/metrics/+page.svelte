@@ -2,6 +2,7 @@
 	import Unavailable from '$lib/ops/Unavailable.svelte';
 	import Sparkline from '$lib/ops/Sparkline.svelte';
 	import { count } from '$lib/ops/format';
+	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 
 	let { data } = $props();
 
@@ -18,19 +19,19 @@
 	<h1 class="mb-4 text-lg font-semibold">Metrics</h1>
 
 	<div class="grid gap-4 lg:grid-cols-2">
-		<div class="card bg-card shadow-sm">
-			<div class="card-body p-4">
-				<h2 class="card-title text-sm">Records collected per day</h2>
+		<Card size="sm">
+			<CardHeader><CardTitle>Records collected per day</CardTitle></CardHeader>
+			<CardContent>
 				<Sparkline
 					points={(data.runs ?? []).map((r: any) => ({ label: r.day, value: r.records }))}
 					format={count}
 				/>
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 
-		<div class="card bg-card shadow-sm">
-			<div class="card-body p-4">
-				<h2 class="card-title text-sm">Median run duration</h2>
+		<Card size="sm">
+			<CardHeader><CardTitle>Median run duration</CardTitle></CardHeader>
+			<CardContent>
 				<Sparkline
 					points={(data.runs ?? []).map((r: any) => ({
 						label: r.day,
@@ -38,22 +39,22 @@
 					}))}
 					format={(v) => `${Math.round(v / 60)}m`}
 				/>
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 
-		<div class="card bg-card shadow-sm">
-			<div class="card-body p-4">
-				<h2 class="card-title text-sm">Price observations written per day</h2>
+		<Card size="sm">
+			<CardHeader><CardTitle>Price observations written per day</CardTitle></CardHeader>
+			<CardContent>
 				<Sparkline
 					points={(data.offers ?? []).map((o: any) => ({ label: o.day, value: o.offers }))}
 					format={count}
 				/>
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 
-		<div class="card bg-card shadow-sm">
-			<div class="card-body p-4">
-				<h2 class="card-title text-sm">Source freshness</h2>
+		<Card size="sm">
+			<CardHeader><CardTitle>Source freshness</CardTitle></CardHeader>
+			<CardContent>
 				<p class="text-muted-foreground mb-2 text-xs">
 					A source that has silently stopped returning records is the failure this whole
 					pipeline exists to catch.
@@ -74,12 +75,12 @@
 				<div class="text-muted-foreground mt-2 flex gap-4 text-xs">
 					<span>fresh &lt; 36h</span><span>ageing &lt; 7d</span><span>stale</span>
 				</div>
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 
-		<div class="card bg-card shadow-sm lg:col-span-2">
-			<div class="card-body p-4">
-				<h2 class="card-title text-sm">Errors by host, last 7 days</h2>
+		<Card size="sm" class="lg:col-span-2">
+			<CardHeader><CardTitle>Errors by host, last 7 days</CardTitle></CardHeader>
+			<CardContent>
 				{#if (data.hosts ?? []).length === 0}
 					<p class="text-muted-foreground text-sm">No errors recorded.</p>
 				{:else}
@@ -97,8 +98,8 @@
 						{/each}
 					</div>
 				{/if}
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 	</div>
 
 	<p class="text-muted-foreground mt-6 text-xs">

@@ -2,6 +2,14 @@
 	import { page } from '$app/state';
 	import Unavailable from '$lib/ops/Unavailable.svelte';
 	import { relative, duration, count, stateTone } from '$lib/ops/format';
+	import * as Table from '$lib/components/ui/table';
+	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
+	import { Metric } from '$lib/components/ui/metric';
+	import { StatusBadge } from '$lib/components/ui/status-badge';
+	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
+	import { NativeSelect } from '$lib/components/ui/native-select';
+	import { Progress } from '$lib/components/ui/progress';
 
 	let { data } = $props();
 
@@ -31,9 +39,12 @@
 	<Unavailable reason={data.unavailable} />
 {:else if job}
 	<div class="mb-4 flex flex-wrap items-baseline gap-3">
-		<a class="link text-sm" href="/ops/runs/{page.params.id}">← run</a>
+		<a
+			class="text-accent-foreground text-sm underline-offset-4 hover:underline"
+			href="/ops/runs/{page.params.id}">← run</a
+		>
 		<h1 class="text-lg font-semibold">{job.source_id}</h1>
-		<span class="badge {stateTone(job.state)}">{job.state}</span>
+		<StatusBadge tone={stateTone(job.state)}>{job.state}</StatusBadge>
 		<span class="text-muted-foreground text-sm">
 			attempt {job.attempt}/{job.max_attempts} · {duration(job.started_at, job.finished_at)}
 			{#if job.finished_at}· finished {relative(job.finished_at)}{/if}
@@ -41,9 +52,9 @@
 	</div>
 
 	<div class="mb-6 grid gap-4 lg:grid-cols-3">
-		<div class="card bg-card shadow-sm">
-			<div class="card-body p-4 text-sm">
-				<h2 class="text-muted-foreground text-xs uppercase">Collection</h2>
+		<Card size="sm">
+			<CardHeader><CardTitle class="eyebrow">Collection</CardTitle></CardHeader>
+			<CardContent class="grid gap-1 text-sm">
 				<dl class="grid grid-cols-2 gap-x-3 gap-y-1">
 					<dt class="text-muted-foreground">records</dt>
 					<dd class="tabular-nums">{count(job.records ?? job.summary?.records)}</dd>
@@ -56,12 +67,12 @@
 					<dt class="text-muted-foreground">truncated</dt>
 					<dd>{job.summary?.truncated ? 'yes' : 'no'}</dd>
 				</dl>
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 
-		<div class="card bg-card shadow-sm">
-			<div class="card-body p-4 text-sm">
-				<h2 class="text-muted-foreground text-xs uppercase">Artifact</h2>
+		<Card size="sm">
+			<CardHeader><CardTitle class="eyebrow">Artifact</CardTitle></CardHeader>
+			<CardContent class="grid gap-1 text-sm">
 				{#if job.artifact_path}
 					<p class="break-all font-mono text-xs">{job.artifact_path}</p>
 					<p class="text-muted-foreground text-xs">
@@ -76,12 +87,12 @@
 				{#if job.trace_id}
 					<p class="text-muted-foreground/70 mt-2 font-mono text-xs">trace {job.trace_id}</p>
 				{/if}
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 
-		<div class="card bg-card shadow-sm">
-			<div class="card-body p-4 text-sm">
-				<h2 class="text-muted-foreground text-xs uppercase">In flight</h2>
+		<Card size="sm">
+			<CardHeader><CardTitle class="eyebrow">In flight</CardTitle></CardHeader>
+			<CardContent class="grid gap-1 text-sm">
 				{#if (job.in_flight ?? []).length}
 					<ul class="space-y-1">
 						{#each job.in_flight as request (request.url)}
@@ -94,16 +105,16 @@
 				{:else}
 					<p class="text-muted-foreground">Nothing in flight.</p>
 				{/if}
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 	</div>
 
 	<section class="mb-6">
 		<div class="mb-2 flex flex-wrap items-baseline gap-2">
-			<h2 class="text-sm font-semibold uppercase opacity-60">Changes since previous scrape</h2>
+			<h2 class="eyebrow">Changes since previous scrape</h2>
 			{#if changes}
 				<a
-					class="link text-xs"
+					class="text-accent-foreground text-xs underline-offset-4 hover:underline"
 					href="/ops/runs/{changes.previous_run_id}/jobs/{changes.previous_job_id}"
 				>
 					previous artifact · {relative(changes.previous_finished_at)}
@@ -112,57 +123,67 @@
 		</div>
 
 		{#if changes}
-			<div class="stats stats-horizontal bg-card mb-3 shadow-sm">
-				<div class="stat px-4 py-2">
-					<div class="stat-title text-xs">Added</div><div class="stat-value text-success text-lg">{count(changes.added)}</div>
-				</div>
-				<div class="stat px-4 py-2">
-					<div class="stat-title text-xs">Removed</div><div class="stat-value text-destructive text-lg">{count(changes.removed)}</div>
-				</div>
-				<div class="stat px-4 py-2">
-					<div class="stat-title text-xs">Changed</div><div class="stat-value text-warning text-lg">{count(changes.changed)}</div>
-				</div>
-				<div class="stat px-4 py-2">
-					<div class="stat-title text-xs">Unchanged</div><div class="stat-value text-lg">{count(changes.unchanged)}</div>
-				</div>
+			<!-- Four metrics rather than daisyUI's joined `stats` strip: the tones
+			     here are the validated status trio, and a joined strip put them in
+			     one box where added-green and changed-violet sat edge to edge with
+			     no rule between them. -->
+			<div class="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+				<Metric label="Added" value={count(changes.added)} tone="text-success" />
+				<Metric label="Removed" value={count(changes.removed)} tone="text-destructive" />
+				<Metric label="Changed" value={count(changes.changed)} tone="text-warning" />
+				<Metric label="Unchanged" value={count(changes.unchanged)} />
 			</div>
 
 			<form method="GET" class="mb-2 flex flex-wrap items-center gap-2">
-				<select name="change_kind" class="select select-bordered select-xs" value={data.changeKind ?? ''}>
+				<NativeSelect name="change_kind" class="h-7 w-auto text-xs" value={data.changeKind ?? ''}>
 					<option value="">all changes</option>
 					<option value="added">added</option>
 					<option value="removed">removed</option>
 					<option value="changed">changed</option>
-				</select>
-				<input
+				</NativeSelect>
+				<Input
 					name="change_q"
-					class="input input-bordered input-xs"
+					class="h-7 w-56 text-xs"
 					placeholder="product name or id"
 					value={data.changeSearch ?? ''}
 				/>
-				<button class="btn btn-xs" type="submit">Filter</button>
+				<Button variant="secondary" size="xs" type="submit">Filter</Button>
 				<span class="text-muted-foreground text-xs">
 					{count(changes.matched)} matching{(changes.matched ?? 0) > changeItems.length ? ` · showing first ${changeItems.length}` : ''}
 				</span>
 			</form>
 
-			<div class="overflow-x-auto rounded bg-card shadow-sm">
-				<table class="table table-sm">
-					<thead><tr><th>Change</th><th>Product</th><th>Fields</th></tr></thead>
-					<tbody>
+			<div class="bg-card overflow-hidden rounded-lg border">
+				<Table.Root>
+					<Table.Header>
+						<Table.Row>
+							<Table.Head>Change</Table.Head>
+							<Table.Head>Product</Table.Head>
+							<Table.Head>Fields</Table.Head>
+						</Table.Row>
+					</Table.Header>
+					<Table.Body>
 						{#each changeItems as change (change.kind + change.external_id)}
 							{@const fields = change.fields ?? []}
-							<tr class="align-top">
-								<td>
-									<span class="badge badge-sm {change.kind === 'added' ? 'badge-success' : change.kind === 'removed' ? 'badge-error' : 'badge-warning'}">
+							<Table.Row class="align-top">
+								<Table.Cell class="align-top">
+									<StatusBadge
+										tone={change.kind === 'added'
+											? 'good'
+											: change.kind === 'removed'
+												? 'bad'
+												: 'warn'}
+									>
 										{change.kind}
-									</span>
-								</td>
-								<td>
+									</StatusBadge>
+								</Table.Cell>
+								<Table.Cell class="align-top">
 									<div>{change.name ?? 'unnamed record'}</div>
-									<div class="text-muted-foreground/70 break-all font-mono text-xs">{change.external_id}</div>
-								</td>
-								<td class="min-w-80">
+									<div class="text-muted-foreground/70 break-all font-mono text-xs">
+										{change.external_id}
+									</div>
+								</Table.Cell>
+								<Table.Cell class="min-w-80 align-top">
 									{#if fields.length}
 										<dl class="space-y-1 text-xs">
 											{#each fields as field (field.field)}
@@ -179,16 +200,20 @@
 									{:else}
 										<span class="text-muted-foreground/70 text-xs">whole record</span>
 									{/if}
-								</td>
-							</tr>
+								</Table.Cell>
+							</Table.Row>
 						{:else}
-							<tr><td colspan="3" class="text-muted-foreground">No matching changes.</td></tr>
+							<Table.Row>
+								<Table.Cell colspan={3} class="text-muted-foreground">
+									No matching changes.
+								</Table.Cell>
+							</Table.Row>
 						{/each}
-					</tbody>
-				</table>
+					</Table.Body>
+				</Table.Root>
 			</div>
 		{:else}
-			<div class="bg-card text-muted-foreground rounded p-4 text-sm shadow-sm">
+			<div class="bg-card text-muted-foreground rounded-lg border p-4 text-sm">
 				{data.changesUnavailable ?? 'Comparison is not available yet.'}
 			</div>
 		{/if}
@@ -196,67 +221,70 @@
 
 	{#if coverage.length}
 		<section class="mb-6">
-			<h2 class="mb-2 text-sm font-semibold uppercase opacity-60">
+			<h2 class="eyebrow mb-2">
 				Field coverage
-				<span class="ml-1 font-normal normal-case opacity-70">
+				<span class="text-muted-foreground/70 ml-1 font-normal tracking-normal normal-case">
 					— rows carrying each field, so a thin scraper is visible
 				</span>
 			</h2>
-			<div class="card bg-card shadow-sm">
-				<div class="card-body grid gap-1 p-4 sm:grid-cols-2 lg:grid-cols-3">
+			<Card size="sm">
+				<CardContent class="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
 					{#each coverage.sort((a, b) => b[1] - a[1]) as [field, rows] (field)}
 						{@const share = job.summary?.records ? (100 * rows) / job.summary.records : 0}
 						<div class="flex items-center gap-2 text-xs">
 							<span class="w-40 truncate">{field}</span>
-							<progress class="progress h-1.5 flex-1" value={share} max="100"></progress>
-							<span class="tabular-nums w-10 text-right opacity-60">{share.toFixed(0)}%</span>
+							<Progress value={share} class="flex-1" label="{field} coverage" />
+							<span class="text-muted-foreground w-10 text-right tabular-nums">
+								{share.toFixed(0)}%
+							</span>
 						</div>
 					{/each}
-				</div>
-			</div>
+				</CardContent>
+			</Card>
 		</section>
 	{/if}
 
 	{#if errors.length}
 		<section class="mb-6">
-			<h2 class="mb-2 text-sm font-semibold uppercase opacity-60">Errors</h2>
-			<div class="card bg-card shadow-sm">
-				<ul class="card-body gap-2 p-4 text-xs">
+			<h2 class="eyebrow mb-2">Errors</h2>
+			<Card size="sm">
+				<CardContent>
+					<ul class="grid gap-2 text-xs">
 					{#each errors as entry (entry.url + entry.error)}
 						<li>
-							<div class="truncate font-mono opacity-60" title={entry.url}>{entry.url}</div>
-							<div class="text-destructive">{entry.error}</div>
-						</li>
-					{/each}
-				</ul>
-			</div>
+								<div class="text-muted-foreground truncate font-mono" title={entry.url}>
+									{entry.url}
+								</div>
+								<div class="text-destructive">{entry.error}</div>
+							</li>
+						{/each}
+					</ul>
+				</CardContent>
+			</Card>
 		</section>
 	{/if}
 
 	<section>
 		<form method="GET" class="mb-2 flex flex-wrap items-center gap-2">
-			<h2 class="mr-2 text-sm font-semibold uppercase opacity-60">Log</h2>
-			<select name="level" class="select select-bordered select-xs" value={data.level ?? ''}>
+			<h2 class="eyebrow mr-2">Log</h2>
+			<NativeSelect name="level" class="h-7 w-auto text-xs" value={data.level ?? ''}>
 				<option value="">all levels</option>
 				<option value="error">error</option>
 				<option value="warning">warning</option>
 				<option value="info">info</option>
 				<option value="debug">debug</option>
-			</select>
-			<input
-				name="q"
-				class="input input-bordered input-xs"
-				placeholder="search"
-				value={data.search ?? ''}
-			/>
-			<button class="btn btn-xs" type="submit">Filter</button>
+			</NativeSelect>
+			<Input name="q" class="h-7 w-48 text-xs" placeholder="search" value={data.search ?? ''} />
+			<Button variant="secondary" size="xs" type="submit">Filter</Button>
 		</form>
 
-		<div class="bg-card max-h-[32rem] overflow-y-auto rounded p-3 font-mono text-xs shadow-sm">
+		<div class="bg-card max-h-[32rem] overflow-y-auto rounded-lg border p-3 font-mono text-xs">
 			{#each data.lines ?? [] as line (line.id)}
 				<div class="flex gap-2 {levelTone[line.level] ?? ''}">
-					<span class="opacity-40">{new Date(line.at).toLocaleTimeString('en-GB')}</span>
-					<span class="w-16 shrink-0 opacity-60">{line.event ?? line.level}</span>
+					<span class="text-muted-foreground/70">
+						{new Date(line.at).toLocaleTimeString('en-GB')}
+					</span>
+					<span class="text-muted-foreground w-16 shrink-0">{line.event ?? line.level}</span>
 					<span class="break-all">{line.message}</span>
 				</div>
 			{:else}

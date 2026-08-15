@@ -199,13 +199,34 @@
  * data accent is this blue.
  */
 :root {
+	/**
+	 * THE NEUTRALS ARE THE BRAND'S; THE COLOURS ARE NOT.
+	 *
+	 * This is the line that lets the whole application be one warm system
+	 * without reopening the colour-blind work. What was measured is the eight
+	 * categorical hues, the status trio, and their separation against the two
+	 * grounds below - none of which is a grey. The greys were only ever generic
+	 * neutrals that happened to be picked at the same time, and holding them
+	 * apart from the brand is what made `/explore` read as cool next to a warm
+	 * `/ops`: the same page, in two temperatures, either side of a nav.
+	 *
+	 * So the text, rules and hairlines defer to the brand and the hues do not.
+	 * Contrast against `--surface-1` improves rather than degrades in the swap -
+	 * the muted tone goes from about 3.4:1 to 6.5:1 in light, and stays above
+	 * 7:1 in dark - because the brand's neutrals were chosen as text colours
+	 * and these were chosen to sit quietly.
+	 *
+	 * `--surface-1` itself stays a literal. It is the ground every one of those
+	 * measurements was taken against, and it is the one value here that genuinely
+	 * cannot move without redoing them.
+	 */
 	--surface-1: #fcfcfb;
-	--text-primary: #0b0b0b;
-	--text-secondary: #52514e;
-	--text-muted: #898781;
-	--gridline: #e1e0d9;
-	--baseline: #c3c2b7;
-	--hairline: rgba(11, 11, 11, 0.1);
+	--text-primary: var(--mb-text);
+	--text-secondary: var(--mb-text-muted);
+	--text-muted: var(--mb-text-subtle);
+	--gridline: var(--mb-line);
+	--baseline: var(--mb-line-strong);
+	--hairline: var(--mb-line);
 
 	--series-1: #2a78d6; /* blue */
 	--series-2: #eb6834; /* orange */
@@ -237,15 +258,17 @@
 	--warning: #7a5cd6;
 }
 
+/**
+ * The dark blocks carry the surface and the hues only.
+ *
+ * The neutrals above are `var(--mb-*)` references and the brand already
+ * re-points those under both dark conditions, so repeating them here would be
+ * a second definition of the same thing - the exact drift the brand's own
+ * README warns about.
+ */
 @media (prefers-color-scheme: dark) {
 	:root:where(:not([data-theme='light'])) {
 		--surface-1: #1a1a19;
-		--text-primary: #ffffff;
-		--text-secondary: #c3c2b7;
-		--text-muted: #898781;
-		--gridline: #2c2c2a;
-		--baseline: #383835;
-		--hairline: rgba(255, 255, 255, 0.1);
 
 		--series-1: #3987e5;
 		--series-2: #d95926;
@@ -264,12 +287,6 @@
 
 :root[data-theme='dark'] {
 	--surface-1: #1a1a19;
-	--text-primary: #ffffff;
-	--text-secondary: #c3c2b7;
-	--text-muted: #898781;
-	--gridline: #2c2c2a;
-	--baseline: #383835;
-	--hairline: rgba(255, 255, 255, 0.1);
 
 	--series-1: #3987e5;
 	--series-2: #d95926;
