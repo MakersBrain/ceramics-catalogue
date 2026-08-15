@@ -21,6 +21,7 @@ from . import record as record_module
 from .base import Blocked, Scraper
 
 PAGE_SIZE = 250
+INVENTORY_PROXY_RESERVE = 1_000_000
 
 
 class ShopifyScraper(Scraper):
@@ -167,7 +168,15 @@ class ShopifyScraper(Scraper):
         # circuit opened, then overloaded the shared residential proxy session.
         batch_size = 10
         for offset in range(0, len(products), batch_size):
-            for product in products[offset:offset + batch_size]:
+            batch = products[offset:offset + batch_size]
+            for index, product in enumerate(batch):
+                remaining = getattr(self.fetcher, "proxy_bytes_remaining", None)
+                if remaining is not None and remaining <= INVENTORY_PROXY_RESERVE:
+                    # Product detail HTML is optional enrichment and much
+                    # larger than products.json. Preserve enough of the same
+                    # bounded reservation to discover every later feed page.
+                    self._inventory_failures += len(products) - offset - index
+                    return
                 await load(product)
             if offset + batch_size < len(products):
                 await self.fetcher.rotate_client()

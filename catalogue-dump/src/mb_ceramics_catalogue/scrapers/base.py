@@ -823,6 +823,15 @@ class Fetcher:
         self._proxy_until = 0.0
         self.stats = TransportStats()
 
+    @property
+    def proxy_bytes_remaining(self) -> int | None:
+        """Return this request path's remaining paid-proxy reservation."""
+        if self.proxy_lease is not None:
+            return max(0, self.proxy_lease.max_bytes - self.proxy_lease.used_bytes)
+        if self.proxy_fallback is not None:
+            return self.proxy_fallback.proxy_bytes_remaining
+        return None
+
     async def rotate_client(self) -> None:
         """Replace this fetcher's HTTP session without losing crawl state.
 

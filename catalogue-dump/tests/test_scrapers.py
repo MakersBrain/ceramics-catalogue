@@ -286,6 +286,30 @@ class PublishedStockTests(unittest.TestCase):
         self.assertEqual(1, fetcher.rotations)
         self.assertEqual(11, scraper.result.requests)
 
+    def test_shopify_inventory_preserves_proxy_bytes_for_later_feed_pages(self):
+        class ReservedFetcher:
+            proxy_bytes_remaining = 900_000
+
+            async def text(self, *_args, **_kwargs):
+                raise AssertionError("optional inventory must not spend the feed reserve")
+
+            async def rotate_client(self):
+                raise AssertionError("an untouched batch must not rotate")
+
+        scraper = shopify.ShopifyScraper.__new__(shopify.ShopifyScraper)
+        scraper.config = {"inventory_product_html": True}
+        scraper.fetcher = ReservedFetcher()
+        scraper.result = SimpleNamespace(requests=0)
+        scraper._inventory_failures = 0
+        scraper.origin = lambda: "https://shop.test"
+        products = [
+            {"handle": "glaze-one", "variants": []},
+            {"handle": "glaze-two", "variants": []},
+        ]
+        asyncio.run(scraper._enrich_inventory(products))
+        self.assertEqual(2, scraper._inventory_failures)
+        self.assertEqual(0, scraper.result.requests)
+
     def test_verified_shopify_theme_inventory_shapes(self):
         samples = (
             ('{"id":101,"inventory_quantity":12,"inventory_management":"shopify",'
