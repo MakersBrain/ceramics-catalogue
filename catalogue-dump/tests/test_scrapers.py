@@ -77,6 +77,9 @@ class SourceConfigTests(unittest.TestCase):
         source = self.config["art-academy-direct"]
         self.assertEqual(["Glazes", "Pottery"], source["material_categories"])
 
+    def test_ulster_prefilters_inventory_to_material_products(self):
+        self.assertTrue(self.config["ulster-ceramics"]["inventory_prefilter_materials"])
+
     def test_robots_may_only_be_ignored_deliberately(self):
         """An ignore_robots source must record why and slow itself down."""
         for name, source in self.config.items():
@@ -481,6 +484,17 @@ class ClassificationTests(unittest.TestCase):
         )
         self.assertEqual("underglaze", block["family"])
         self.assertTrue(block["is_material"])
+
+    def test_brush_on_glaze_is_a_material_but_a_glaze_brush_is_a_tool(self):
+        for name in (
+            "Yellow Mid Temp Glaze - Brush On",
+            "Black Botz Earthenware Brush-On Glaze",
+        ):
+            with self.subTest(name=name):
+                family = domain.family(name)
+                self.assertEqual("glaze", family)
+                self.assertTrue(domain.is_material(family, name))
+        self.assertTrue(domain.looks_non_material("Glaze Brush No. 8"))
 
     def test_equipment_is_out_of_scope(self):
         self.assertTrue(domain.looks_non_material("Kiln shelf 30cm"))
@@ -1698,7 +1712,7 @@ class ProxyFallbackRoutingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(2, direct_calls, "research and browser user agents precede proxying")
         self.assertEqual(1, proxy_calls)
 
-    async def test_exhausted_429_uses_the_proxy_fallback(self):
+    async def test_definitive_429_uses_the_proxy_fallback_immediately(self):
         direct_calls = proxy_calls = 0
 
         def direct_handler(request):
@@ -1715,7 +1729,7 @@ class ProxyFallbackRoutingTests(unittest.IsolatedAsyncioTestCase):
         with unittest.mock.patch("asyncio.sleep", unittest.mock.AsyncMock()):
             async with direct_client, proxy_client:
                 self.assertEqual("served", await fetcher.text("https://shop.test/p"))
-        self.assertEqual(4, direct_calls)
+        self.assertEqual(1, direct_calls)
         self.assertEqual(1, proxy_calls)
 
     async def test_retry_after_503_is_a_rate_limit_proxy_fallback(self):
@@ -1735,7 +1749,7 @@ class ProxyFallbackRoutingTests(unittest.IsolatedAsyncioTestCase):
         with unittest.mock.patch("asyncio.sleep", unittest.mock.AsyncMock()):
             async with direct_client, proxy_client:
                 self.assertEqual("served", await fetcher.text("https://shop.test/p"))
-        self.assertEqual(4, direct_calls)
+        self.assertEqual(1, direct_calls)
         self.assertEqual(1, proxy_calls)
 
     async def test_plain_503_does_not_spend_proxy_traffic(self):

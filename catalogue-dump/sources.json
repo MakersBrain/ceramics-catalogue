@@ -696,6 +696,7 @@
     "scraper": "shopify",
     "proxy_eligible": true,
     "inventory_product_html": true,
+    "inventory_prefilter_materials": true,
     "delay": 0.5,
     "scope": "materials",
     "country": "GB",

@@ -1076,19 +1076,36 @@ class Fetcher:
                 self.limiter.record_success(url)
                 break
             self.limiter.record_failure(url, response.status_code)
+            retry_after = response.headers.get("retry-after")
             if response.status_code == 429:
                 # A host that says how long to wait has said what its limit is.
                 # Hold that as a floor rather than only sleeping once, so the
                 # rest of the source is paced instead of racing back into it.
-                retry_after = response.headers.get("retry-after")
                 try:
                     if retry_after and float(retry_after) > 0:
                         self.limiter.set_delay(url, min(float(retry_after), HostLimiter.BACKOFF_MAX))
                 except ValueError:
                     pass
+            rate_limited = response.status_code == 429 or (
+                response.status_code >= 500 and bool(retry_after)
+            )
+            prefer_stale = stale is not None and self.stale_on_error and method == "GET"
+            if (
+                rate_limited
+                and self.proxy_fallback is not None
+                and allow_proxy_fallback
+                and not prefer_stale
+            ):
+                # A 429, or an edge 5xx carrying Retry-After, is conclusive
+                # evidence that this network identity is throttled. Repeating
+                # the same request through several multi-minute waits cannot
+                # add evidence; use the already-approved bounded fallback now.
+                return await self.proxy_fallback.response(
+                    url, browser_user_agent=browser_user_agent, params=params,
+                    accept=accept, method=method, json_body=json_body, headers=headers,
+                )
             if attempt == 3:
                 break
-            retry_after = response.headers.get("retry-after")
             try:
                 pause = float(retry_after) if retry_after else min(2 ** attempt, 8)
             except ValueError:

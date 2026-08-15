@@ -584,6 +584,10 @@ def looks_non_material(*texts: Any) -> bool:
     keywords over free description text rejects the very products we want.
     """
     text = fold(" ".join(clean(value) for value in texts if value))
+    # "Brush-on" states the supplied form of a glaze; it does not name a
+    # brush. Keep an actual "glaze brush" classified as a tool.
+    if _SAYS_FAMILY.search(text):
+        text = re.sub(r"\bbrush[\s-]+on\b", " ", text)
     # "kiln" has to stay a keyword - it is how half the equipment in this
     # catalogue is named - but it is also the first word of Amaco's Kiln Ice
     # glaze. When the same text says outright that the thing is a glaze, that
