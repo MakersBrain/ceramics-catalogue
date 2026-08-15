@@ -820,6 +820,7 @@ class Fetcher:
         self._robots: dict[str, urllib.robotparser.RobotFileParser] = {}
         self._sitemaps: dict[str, list[str]] = {}
         self._robots_lock: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        self._proxy_until = 0.0
         self.stats = TransportStats()
 
     async def rotate_client(self) -> None:
@@ -1027,6 +1028,19 @@ class Fetcher:
             if modified := stale.headers.get("last-modified"):
                 request_headers.setdefault("if-modified-since", modified)
 
+        if (
+            self.proxy_fallback is not None
+            and allow_proxy_fallback
+            and time.monotonic() < self._proxy_until
+        ):
+            if stale is not None and self.stale_on_error and method == "GET":
+                self.stats.outcomes["stale_on_error"] += 1
+                return self._stale_response(stale, method, url)
+            return await self.proxy_fallback.response(
+                url, browser_user_agent=browser_user_agent, params=params,
+                accept=accept, method=method, json_body=json_body, headers=headers,
+            )
+
         response: httpx.Response | None = None
         for attempt in range(4):
             if self.proxy_lease:
@@ -1109,6 +1123,13 @@ class Fetcher:
                 # evidence that this network identity is throttled. Repeating
                 # the same request through several multi-minute waits cannot
                 # add evidence; use the already-approved bounded fallback now.
+                try:
+                    requested_cooldown = float(retry_after) if retry_after else 0.0
+                except ValueError:
+                    requested_cooldown = 0.0
+                self._proxy_until = max(
+                    self._proxy_until, time.monotonic() + max(60.0, requested_cooldown),
+                )
                 return await self.proxy_fallback.response(
                     url, browser_user_agent=browser_user_agent, params=params,
                     accept=accept, method=method, json_body=json_body, headers=headers,

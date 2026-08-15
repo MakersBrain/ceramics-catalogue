@@ -15,6 +15,8 @@ from urllib.parse import urlencode
 
 import httpx
 
+from mb_ceramics_catalogue.proxy import ProxyDenied
+
 from . import domain
 from . import record as record_module
 from .base import Blocked, Scraper
@@ -142,7 +144,7 @@ class ShopifyScraper(Scraper):
                         {str(variant.get("id")) for variant in product.get("variants") or []},
                     ).values())}
                 self.result.requests += 1
-            except (httpx.HTTPError, Blocked):
+            except (httpx.HTTPError, Blocked, ProxyDenied):
                 self._inventory_failures += 1
                 return
             by_id = {

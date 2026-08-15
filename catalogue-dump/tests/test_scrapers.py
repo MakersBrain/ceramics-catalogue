@@ -238,6 +238,24 @@ class PublishedStockTests(unittest.TestCase):
             "body_html": "Brush on and fire to cone 6.",
         }, None))
 
+    def test_shopify_proxy_exhaustion_only_skips_that_inventory_read(self):
+        class DeniedFetcher:
+            async def text(self, *_args, **_kwargs):
+                raise shopify.ProxyDenied("reservation exhausted")
+
+            async def rotate_client(self):
+                return None
+
+        scraper = shopify.ShopifyScraper.__new__(shopify.ShopifyScraper)
+        scraper.config = {"inventory_product_html": True}
+        scraper.fetcher = DeniedFetcher()
+        scraper.result = SimpleNamespace(requests=0)
+        scraper._inventory_failures = 0
+        scraper.origin = lambda: "https://shop.test"
+        asyncio.run(scraper._enrich_inventory([{"handle": "glaze", "variants": []}]))
+        self.assertEqual(1, scraper._inventory_failures)
+        self.assertEqual(0, scraper.result.requests)
+
     def test_verified_shopify_theme_inventory_shapes(self):
         samples = (
             ('{"id":101,"inventory_quantity":12,"inventory_management":"shopify",'
@@ -1751,6 +1769,26 @@ class ProxyFallbackRoutingTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual("served", await fetcher.text("https://shop.test/p"))
         self.assertEqual(1, direct_calls)
         self.assertEqual(1, proxy_calls)
+
+    async def test_rate_limit_opens_a_short_direct_route_circuit(self):
+        direct_calls = proxy_calls = 0
+
+        def direct_handler(request):
+            nonlocal direct_calls
+            direct_calls += 1
+            return httpx.Response(429, text="slow down")
+
+        def proxy_handler(request):
+            nonlocal proxy_calls
+            proxy_calls += 1
+            return httpx.Response(200, text="served")
+
+        direct_client, proxy_client, fetcher = self.fetchers(direct_handler, proxy_handler)
+        async with direct_client, proxy_client:
+            self.assertEqual("served", await fetcher.text("https://shop.test/one"))
+            self.assertEqual("served", await fetcher.text("https://shop.test/two"))
+        self.assertEqual(1, direct_calls)
+        self.assertEqual(2, proxy_calls)
 
     async def test_plain_503_does_not_spend_proxy_traffic(self):
         proxy_calls = 0
