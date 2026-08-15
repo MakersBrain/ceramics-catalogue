@@ -6,6 +6,11 @@
 	import { OpsStream } from '$lib/ops/stream.svelte';
 	import Unavailable from '$lib/ops/Unavailable.svelte';
 	import { relative, duration, count, stateTone } from '$lib/ops/format';
+	import * as Table from '$lib/components/ui/table';
+	import { StatusBadge } from '$lib/components/ui/status-badge';
+	import { Button } from '$lib/components/ui/button';
+	import { Progress } from '$lib/components/ui/progress';
+	import { Notice } from '$lib/components/ui/notice';
 
 	let { data, form } = $props();
 
@@ -52,10 +57,13 @@
 	<Unavailable reason={data.unavailable} />
 {:else if data.run}
 	<div class="mb-4 flex flex-wrap items-center gap-3">
-		<a class="link text-sm" href="/ops/runs">← runs</a>
+		<a
+			class="text-accent-foreground text-sm underline-offset-4 hover:underline"
+			href="/ops/runs">← runs</a
+		>
 		<h1 class="text-lg font-semibold">
 			{data.run.kind} run
-			<span class="badge {stateTone(data.run.status)} ml-2">{data.run.status}</span>
+			<StatusBadge tone={stateTone(data.run.status)} class="ml-2">{data.run.status}</StatusBadge>
 		</h1>
 		<span class="text-muted-foreground text-sm">
 			{relative(data.run.created_at)} · {duration(data.run.started_at, data.run.finished_at)}
@@ -64,48 +72,54 @@
 
 		{#if active}
 			<form method="POST" action="?/cancel" use:enhance class="ml-auto">
-				<button class="btn btn-error btn-outline btn-sm" type="submit">Cancel run</button>
+				<Button variant="destructive" size="sm" type="submit">Cancel run</Button>
 			</form>
 		{/if}
 	</div>
 
 	{#if form?.error}
-		<div class="alert alert-error mb-4 text-sm">{form.error}</div>
+		<Notice kind="error" class="mb-4">{form.error}</Notice>
 	{/if}
 
-	<div class="overflow-x-auto">
-		<table class="table table-sm bg-card rounded shadow-sm">
-			<thead>
-				<tr>
-					<th>Source</th>
-					<th>State</th>
-					<th>Phase</th>
-					<th class="w-48">Records</th>
-					<th class="text-right">Requests</th>
-					<th class="text-right">Errors</th>
-					<th>Attempt</th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
+	<div class="bg-card overflow-hidden rounded-lg border">
+		<Table.Root>
+			<Table.Header>
+				<Table.Row>
+					<Table.Head>Source</Table.Head>
+					<Table.Head>State</Table.Head>
+					<Table.Head>Phase</Table.Head>
+					<Table.Head class="w-48">Records</Table.Head>
+					<Table.Head class="text-right">Requests</Table.Head>
+					<Table.Head class="text-right">Errors</Table.Head>
+					<Table.Head>Attempt</Table.Head>
+					<Table.Head><span class="sr-only">Job controls</span></Table.Head>
+				</Table.Row>
+			</Table.Header>
+			<Table.Body>
 				{#each jobs as job (job.id)}
 					{@const now = live(job)}
 					{@const bar = share(job, now.records)}
-					<tr class="hover">
-						<td>
-							<a class="link font-medium" href="/ops/runs/{data.run.id}/jobs/{job.id}">
+					<Table.Row>
+						<Table.Cell>
+							<a
+								class="text-accent-foreground font-medium underline-offset-4 hover:underline"
+								href="/ops/runs/{data.run.id}/jobs/{job.id}"
+							>
 								{job.source_id}
 							</a>
 							<div class="text-muted-foreground/70 text-xs">{job.host}</div>
-						</td>
-						<td><span class="badge badge-sm {stateTone(job.state)}">{job.state}</span></td>
-						<td class="text-muted-foreground text-xs">{now.phase ?? '—'}</td>
-						<td>
+						</Table.Cell>
+						<Table.Cell><StatusBadge tone={stateTone(job.state)}>{job.state}</StatusBadge></Table.Cell>
+						<Table.Cell class="text-muted-foreground text-xs">{now.phase ?? '—'}</Table.Cell>
+						<Table.Cell>
 							<div class="flex items-center gap-2">
 								<span class="tabular-nums">{count(now.records)}</span>
 								{#if bar !== null}
-									<progress class="progress progress-primary h-1.5 w-20" value={bar} max="100"
-									></progress>
+									<Progress
+										value={bar}
+										class="w-20"
+										label="progress against the previous run's record count"
+									/>
 									<span class="text-muted-foreground/70 text-xs" title="previous run">
 										/{count(job.previous_records)}
 									</span>
@@ -116,27 +130,27 @@
 									{now.inFlight[0].seconds}s · {now.inFlight[0].url}
 								</div>
 							{/if}
-						</td>
-						<td class="text-right tabular-nums">{count(now.requests)}</td>
-						<td class="text-right tabular-nums {now.errors ? 'text-destructive' : ''}">
+						</Table.Cell>
+						<Table.Cell class="text-right tabular-nums">{count(now.requests)}</Table.Cell>
+						<Table.Cell class="text-right tabular-nums {now.errors ? 'text-destructive' : ''}">
 							{count(now.errors)}
-						</td>
-						<td class="text-xs">{job.attempt}/{job.max_attempts}</td>
-						<td>
+						</Table.Cell>
+						<Table.Cell class="text-xs">{job.attempt}/{job.max_attempts}</Table.Cell>
+						<Table.Cell>
 							<div class="flex gap-1">
 								{#each ['pause', 'resume', 'cancel', 'retry'] as action (action)}
 									<form method="POST" action="?/job" use:enhance>
 										<input type="hidden" name="id" value={job.id} />
 										<input type="hidden" name="action" value={action} />
-										<button class="btn btn-ghost btn-xs" type="submit">{action}</button>
+										<Button variant="ghost" size="xs" type="submit">{action}</Button>
 									</form>
 								{/each}
 							</div>
-						</td>
-					</tr>
+						</Table.Cell>
+					</Table.Row>
 				{/each}
-			</tbody>
-		</table>
+			</Table.Body>
+		</Table.Root>
 	</div>
 
 	{#if data.run.summary}

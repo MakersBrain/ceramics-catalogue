@@ -36,7 +36,12 @@
 	);
 </script>
 
-<div class="bg-background min-h-dvh">
+<!--
+	A slightly sunken ground, as this section always had. It is the one visual
+	cue that operations is a different place from the catalogue, and mapping the
+	old translucent tint to a flat `bg-background` had quietly removed it.
+-->
+<div class="bg-muted/40 min-h-dvh">
 	<header class="border-border bg-card border-b">
 		<!-- The breadcrumb and the worker count are the first things to go on a
 		     phone: the tabs and the connection state are what this header is for. -->

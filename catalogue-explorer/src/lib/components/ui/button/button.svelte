@@ -35,6 +35,12 @@
 				   opposite of what it should invite. */
 				destructive:
 					'text-destructive bg-destructive/10 hover:bg-destructive/20 focus-visible:ring-destructive/30',
+				/* The middle rung. The proxy page has a real ladder - stop new
+				   traffic, revoke live leases, retire a sub-user - and collapsing
+				   the first two into `destructive` would make the reversible one
+				   look exactly like the one that is not. Violet, from the
+				   validated trio, so it is not a second red. */
+				warning: 'text-warning bg-warning/10 hover:bg-warning/20 focus-visible:ring-warning/30',
 				link: 'text-accent-foreground underline-offset-4 hover:underline'
 			},
 			size: {
