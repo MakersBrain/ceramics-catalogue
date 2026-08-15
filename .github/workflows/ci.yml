@@ -30,6 +30,11 @@ jobs:
   check:
     name: Lint, types, contracts and unit tests
     runs-on: ubuntu-latest
+    # The explorer's brand package lives in GitHub Packages, which npm cannot
+    # reach anonymously even for a package in the same org as this repository.
+    permissions:
+      contents: read
+      packages: read
     strategy:
       fail-fast: false
       matrix:
@@ -49,6 +54,10 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: catalogue-ceramics/catalogue-explorer/package-lock.json
+      - name: Authenticate to GitHub Packages
+        run: npm config set --location=user //npm.pkg.github.com/:_authToken "$GITHUB_TOKEN"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Sync every project
         run: |
           for project in catalogue-dump catalogue-control catalogue-service; do

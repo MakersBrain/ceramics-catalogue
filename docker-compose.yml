@@ -320,7 +320,14 @@ services:
 
   explorer:
     profiles: ["ui"]
-    build: ./catalogue-explorer
+    # The build installs @makersbrain/brand from GitHub Packages. The credential
+    # is handed to BuildKit as a secret rather than baked in, so it is mounted
+    # only for the `npm ci` layer. It comes from the developer's own ~/.npmrc;
+    # set NPMRC to point somewhere else.
+    build:
+      context: ./catalogue-explorer
+      secrets:
+        - npmrc
     container_name: catalogue-explorer
     depends_on:
       postgres:
@@ -394,3 +401,7 @@ volumes:
   # Explorer-only copy of the assertion signing key. The one-shot initializer
   # preserves the host key's 0600 mode while assigning it to the container UID.
   operator-secrets:
+
+secrets:
+  npmrc:
+    file: ${NPMRC:-~/.npmrc}

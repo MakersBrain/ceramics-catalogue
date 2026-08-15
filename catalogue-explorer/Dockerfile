@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 # The catalogue explorer, including the /ops pages.
 #
 # adapter-node, so the server routes run: /ops needs them for the SSE proxy that
@@ -6,8 +7,12 @@
 FROM node:22-slim AS build
 
 WORKDIR /src
-COPY package.json package-lock.json ./
-RUN npm ci
+# .npmrc carries the registry mapping for @makersbrain/brand and no credential.
+# The credential arrives as a BuildKit secret mounted only for this RUN, so it
+# never lands in a layer or in the pushed image.
+COPY package.json package-lock.json .npmrc ./
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+    npm ci
 COPY . .
 RUN npm run build && npm prune --omit=dev
 
