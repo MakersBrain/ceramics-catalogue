@@ -132,6 +132,12 @@ jobs:
   images:
     name: Build the images
     runs-on: ubuntu-latest
+    # The explorer image installs @makersbrain/brand from GitHub Packages, which
+    # npm cannot reach anonymously even for a package in this repository's own
+    # organisation. The other three images are Python and need nothing.
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -162,3 +168,31 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # The explorer was the one image nothing built, and it is the one with a
+      # build that can fail on its own: the other three install from PyPI, this
+      # one needs a credential for GitHub Packages. A broken secret mount or an
+      # unpublished brand version would have surfaced at deploy time rather than
+      # here.
+      #
+      # The credential is written to a file rather than passed with `secrets:`
+      # because the Dockerfile mounts it at `/root/.npmrc`, so what the secret
+      # has to contain is a whole npmrc, not a token. `secret-files` keeps the
+      # multi-line value out of the workflow's argument list.
+      - name: Write an npmrc for the explorer build
+        run: |
+          printf '@makersbrain:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n' \
+            "$GITHUB_TOKEN" > "$RUNNER_TEMP/npmrc"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Explorer
+        uses: docker/build-push-action@v6
+        with:
+          context: ./catalogue-explorer
+          push: false
+          secret-files: |
+            npmrc=${{ runner.temp }}/npmrc
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Drop the npmrc
+        if: always()
+        run: rm -f "$RUNNER_TEMP/npmrc"
