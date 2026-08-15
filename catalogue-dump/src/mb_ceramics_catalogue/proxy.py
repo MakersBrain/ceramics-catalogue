@@ -151,6 +151,10 @@ class ProxyLease:
         self.used_bytes += max(0, tx_bytes) + max(0, rx_bytes)
         self.requests += max(0, requests)
 
+    def rotate_session(self) -> None:
+        """Request a new provider identity without changing the reservation."""
+        self.session = secrets.token_hex(12)
+
     @property
     def display_name(self) -> str:
         return f"decodo/{self.profile.name}/{self.country or 'any'}/{self.session[:6]}"

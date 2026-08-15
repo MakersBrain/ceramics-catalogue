@@ -136,6 +136,13 @@ class ProxyLeaseTests(unittest.TestCase):
         self.assertNotIn("base-user", lease.display_name)
         self.assertNotIn("secret", lease.display_name)
 
+    def test_session_rotation_requests_a_new_provider_identity(self):
+        lease = self.lease()
+        previous = lease.session
+        lease.rotate_session()
+        self.assertNotEqual(previous, lease.session)
+        self.assertIn(lease.session, lease.username)
+
     def test_no_new_request_starts_after_the_reservation_is_spent(self):
         lease = self.lease(100)
         lease.account(40, 60)
@@ -158,6 +165,11 @@ async def test_fallback_proxy_has_an_independent_rate_limiter():
         fallback = session.fetcher.proxy_fallback
         assert fallback is not None
         assert fallback.limiter is not session.limiter
+        previous_session = lease.session
+        previous_client = fallback.client
+        await session.fetcher.rotate_client()
+        assert lease.session != previous_session
+        assert fallback.client is not previous_client
 
 
 async def test_provider_usage_reads_upload_plus_download_total():

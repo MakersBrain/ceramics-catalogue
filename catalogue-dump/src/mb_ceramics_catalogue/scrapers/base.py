@@ -831,12 +831,21 @@ class Fetcher:
         cache, statistics and proxy lease stay attached to this Fetcher.
         """
         previous = self.client
+        if self.proxy_lease:
+            # Decodo's sticky identity lives in the username. Replacing only
+            # the HTTP connection keeps the same residential IP and therefore
+            # keeps Shopify's IP-level throttle. Batch rotation is a safe point
+            # to request a fresh identity: all requests using the old client
+            # have completed, while accounting remains on the same lease.
+            self.proxy_lease.rotate_session()
         self.client = httpx.AsyncClient(
             headers=dict(previous.headers), timeout=previous.timeout,
             follow_redirects=True,
             proxy=self.proxy_lease.url if self.proxy_lease else None,
         )
         await previous.aclose()
+        if self.proxy_fallback:
+            await self.proxy_fallback.rotate_client()
 
     async def robots(self, url: str) -> tuple[urllib.robotparser.RobotFileParser, list[str]]:
         origin = f"{urlparse(url).scheme}://{urlparse(url).netloc}"
