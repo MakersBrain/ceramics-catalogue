@@ -89,6 +89,12 @@ async def open_session(
         proxy_browser: BrowserRenderer | None = None
         proxy_fetcher: Fetcher | None = None
         if fallback_proxy and proxy_lease:
+            # A storefront's adaptive delay describes the direct network
+            # identity. Carrying that cooldown into Decodo would pay for a new
+            # identity and then leave it parked behind the old IP's rate limit.
+            # The proxy still has its own full limiter and learns any limit the
+            # shop applies to that route independently.
+            proxy_limiter = HostLimiter(params.delay, params.concurrency)
             proxy_client = httpx.AsyncClient(
                 headers={"user-agent": USER_AGENT}, timeout=REQUEST_TIMEOUT,
                 follow_redirects=True, proxy=proxy_lease.url,
@@ -97,7 +103,7 @@ async def open_session(
                 params.browser != "never", pages=1, proxy_lease=proxy_lease
             )
             proxy_fetcher = Fetcher(
-                proxy_client, limiter, proxy_browser, params.browser, cache=cache,
+                proxy_client, proxy_limiter, proxy_browser, params.browser, cache=cache,
                 impersonate_policy=params.impersonate, robots_policy=params.robots,
                 stale_on_error=params.stale_on_error, proxy_lease=proxy_lease,
             )

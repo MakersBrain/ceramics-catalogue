@@ -18,6 +18,7 @@ from pydantic import ValidationError
 
 from mb_ceramics_catalogue.config.settings import CrawlParams
 from mb_ceramics_catalogue.config.sources import SourceConfig
+from mb_ceramics_catalogue.crawl.session import open_session
 from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.proxy import (
     ProxyDenied,
@@ -146,6 +147,17 @@ class ProxyLeaseTests(unittest.TestCase):
         lease.account(-10, 20)
         self.assertEqual(20, lease.used_bytes)
         self.assertEqual(1, lease.requests)
+
+
+async def test_fallback_proxy_has_an_independent_rate_limiter():
+    profile = ProxyProfile("decodo", "gate.example", 10000, "base-user", "secret")
+    lease = ProxyLease.build(uuid4(), uuid4(), profile, "FR", 30, 100_000)
+    params = CrawlParams(browser="never", impersonate="never", cache_mode="off")
+
+    async with open_session(params, proxy_lease=lease, proxy_policy="fallback") as session:
+        fallback = session.fetcher.proxy_fallback
+        assert fallback is not None
+        assert fallback.limiter is not session.limiter
 
 
 async def test_provider_usage_reads_upload_plus_download_total():
