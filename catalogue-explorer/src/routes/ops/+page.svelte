@@ -121,7 +121,7 @@
 					<div class="flex flex-wrap items-center gap-3">
 						<label class="flex items-center gap-2 text-sm">
 							<span class="text-muted-foreground">cache</span>
-							<NativeSelect name="cache_mode" class="h-8 w-auto text-xs">
+							<NativeSelect name="cache_mode" class="h-8 text-xs" fit>
 								<!-- refresh first and by default: a run under `auto` with a
 								     stale max age replays yesterday's pages and reports
 								     success while changing no prices. -->

@@ -35,7 +35,7 @@
 	<div class="mb-4 flex flex-wrap items-center gap-3">
 		<h1 class="text-lg font-semibold">Notifications</h1>
 		<form method="GET" class="flex items-center gap-2">
-			<NativeSelect name="severity" class="h-8 w-auto text-xs" value={data.severity ?? ''}>
+			<NativeSelect name="severity" class="h-8 text-xs" fit value={data.severity ?? ''}>
 				<option value="">all severities</option>
 				<option value="critical">critical</option>
 				<option value="warning">warning</option>
