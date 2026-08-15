@@ -83,6 +83,30 @@ registries, run `make openapi`, commit the diff. `make openapi-check` fails the
 build on drift, and a test asserts the read API's document contains no operation
 other than `get`.
 
+**The brand is a dependency, not a copy.** The mark, the wordmark and the
+favicon come from `@makersbrain/brand`, which is its own repository and its own
+package. The explorer holds no copy of them and nothing here regenerates them —
+a change to the mark is a version bump.
+
+Until that package has been published for the first time, `package.json`
+resolves it as `file:../../makersbrain-brand`, so `npm install` needs the brand
+repository checked out beside this one. Once it is published, that becomes an
+ordinary version range and the sibling checkout stops being needed:
+
+```sh
+npm --prefix catalogue-explorer install @makersbrain/brand@^0.1.0
+```
+
+That also needs an `.npmrc` pointing the scope at GitHub Packages, since the
+package is not on npmjs.com. The brand repository's `.npmrc.example` is the file
+to copy.
+
+Only the header and the favicon use it. The page is deliberately *not* on
+MakersBrain's token system: the chart palette below was validated for
+colour-blind contrast against these surfaces, and importing a second palette to
+satisfy a logo would invalidate that work. The three token names the lockup
+actually reads are bridged to this page's equivalents in `+layout.svelte`.
+
 **The golden files are how "no behaviour change" is checked rather than
 claimed.** `make test-golden` replays every source the recorded response cache
 covers and compares the output against a frozen digest. During the refactor they

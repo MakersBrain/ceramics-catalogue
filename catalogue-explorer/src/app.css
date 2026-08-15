@@ -60,6 +60,14 @@
 	   adjacent ΔE 24.4 protan, 12.7 tritan). The word beside it carries the
 	   meaning; the hue only has to be distinguishable. */
 	--warning: #7a5cd6;
+
+	/* The one brand colour, and the only one on this page that is not ours to
+	   choose: clay-500 from makersbrain-odoo's `brand/tokens.css`, where it is
+	   `--mb-brand`, the tone reserved for marks and decoration. It is here and
+	   not in the chart palette above on purpose -- it dresses the logo in the
+	   nav and nothing else, and it is deliberately not `--accent`, which the
+	   charts have already validated for contrast. */
+	--mb-brand: #c05f3d;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -84,6 +92,10 @@
 		--accent: #3987e5;
 		--accent-soft: #6da7ec;
 		--recede: #383835;
+
+		/* clay-400. The brand steps two shades lighter on a dark ground for the
+		   same reason `weave-dark.svg` does: clay-500 goes muddy against it. */
+		--mb-brand: #d27c5c;
 	}
 }
 
@@ -108,6 +120,9 @@
 	--accent: #3987e5;
 	--accent-soft: #6da7ec;
 	--recede: #383835;
+
+	/* clay-400, repeated so the explicit toggle wins in this direction too. */
+	--mb-brand: #d27c5c;
 }
 
 /* The charts are validated against these surfaces, so the card they sit on

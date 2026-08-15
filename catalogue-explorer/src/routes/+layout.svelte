@@ -1,6 +1,10 @@
 <script lang="ts">
 	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
+	// The chop rather than the plain weave: several MakersBrain surfaces are
+	// usually open at once, and a tab is the one place the wordmark beside the
+	// mark is too small to say which of them a tab belongs to.
+	import favicon from '@makersbrain/brand/logo/chop.svg';
+	import { BrandLockup } from '@makersbrain/brand/svelte';
 	import { page } from '$app/state';
 
 	let { children } = $props();
@@ -80,14 +84,19 @@
 		<nav
 			class="mx-auto flex w-full max-w-(--shell) items-center gap-3 px-3 py-2 sm:gap-6 sm:px-6 sm:py-3"
 		>
-			<span
-				class="shrink-0 text-sm font-semibold"
-				style="color: var(--text-primary)"
-				title="Ceramics catalogue"
-			>
-				<span class="hidden sm:inline">Ceramics catalogue</span>
-				<span class="sm:hidden">Ceramics</span>
-			</span>
+			<!--
+				The lockup reads MakersBrain's token names. This page is not on that
+				token system and is deliberately not being moved onto it -- the chart
+				palette below was validated for colour-blind contrast against these
+				surfaces. So the three names the lockup actually uses are bridged to
+				this page's equivalents here, rather than importing a whole second
+				palette to satisfy a logo.
+			-->
+			<BrandLockup
+				product="Catalogue"
+				size="1.25rem"
+				style="color: var(--text-primary); --mb-text-muted: var(--text-secondary); --mb-text-body: 0.875rem"
+			/>
 			<div class="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
 				{#each TABS as entry (entry.href)}
 					<a
