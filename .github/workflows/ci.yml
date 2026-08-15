@@ -5,14 +5,20 @@
 # needs a database. `golden` replays ten thousand recorded responses to prove
 # the collection output has not moved, which takes minutes and is the thing the
 # refactor is checked against.
+#
+# Every path here is relative to the repository root, which is also the project
+# root. It was not always: this file was written against a monorepo layout that
+# put the project under a `catalogue-ceramics/` subdirectory, and carried a
+# `defaults.run.working-directory` and a set of `paths:` filters to match. No
+# such directory exists. The filters therefore matched no file, so the push
+# trigger never fired, and the image builds could not resolve their context --
+# the workflow had never completed a single run.
 name: catalogue-ceramics
 
 on:
   pull_request:
-    paths: ["catalogue-ceramics/**", ".github/workflows/ci.yml"]
   push:
     branches: [main]
-    paths: ["catalogue-ceramics/**"]
   workflow_dispatch:
 
 permissions:
@@ -21,10 +27,6 @@ permissions:
 concurrency:
   group: catalogue-ceramics-${{ github.ref }}
   cancel-in-progress: true
-
-defaults:
-  run:
-    working-directory: catalogue-ceramics
 
 jobs:
   check:
@@ -48,12 +50,12 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-          cache-dependency-glob: catalogue-ceramics/**/uv.lock
+          cache-dependency-glob: '**/uv.lock'
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: catalogue-ceramics/catalogue-explorer/package-lock.json
+          cache-dependency-path: catalogue-explorer/package-lock.json
       - name: Authenticate to GitHub Packages
         run: npm config set --location=user //npm.pkg.github.com/:_authToken "$GITHUB_TOKEN"
         env:
@@ -89,7 +91,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-          cache-dependency-glob: catalogue-ceramics/**/uv.lock
+          cache-dependency-glob: '**/uv.lock'
       - name: Sync
         run: |
           uv --directory catalogue-dump sync --all-groups
@@ -114,7 +116,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-          cache-dependency-glob: catalogue-ceramics/catalogue-dump/uv.lock
+          cache-dependency-glob: catalogue-dump/uv.lock
       - name: Sync
         run: uv --directory catalogue-dump sync --all-groups
       - name: Replay every cached source
@@ -138,8 +140,8 @@ jobs:
       - name: Worker
         uses: docker/build-push-action@v6
         with:
-          context: catalogue-ceramics
-          file: catalogue-ceramics/docker/worker/Dockerfile
+          context: .
+          file: docker/worker/Dockerfile
           target: worker
           push: false
           cache-from: type=gha
@@ -147,16 +149,16 @@ jobs:
       - name: Control
         uses: docker/build-push-action@v6
         with:
-          context: catalogue-ceramics
-          file: catalogue-ceramics/docker/control/Dockerfile
+          context: .
+          file: docker/control/Dockerfile
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Read API
         uses: docker/build-push-action@v6
         with:
-          context: catalogue-ceramics
-          file: catalogue-ceramics/catalogue-service/Dockerfile
+          context: .
+          file: catalogue-service/Dockerfile
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
