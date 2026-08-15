@@ -14,12 +14,12 @@
 				text: 'reconnecting',
 				title: 'the stream dropped; polling every 5s until it returns'
 			},
-			offline: { dot: 'bg-error', text: 'offline', title: 'no stream; polling every 5s' }
+			offline: { dot: 'bg-destructive', text: 'offline', title: 'no stream; polling every 5s' }
 		}[state]
 	);
 </script>
 
 <span class="flex items-center gap-1.5" title={look.title}>
 	<span class="inline-block h-2 w-2 rounded-full {look.dot}"></span>
-	<span class="text-base-content/60 text-xs">{look.text}</span>
+	<span class="text-muted-foreground text-xs">{look.text}</span>
 </span>

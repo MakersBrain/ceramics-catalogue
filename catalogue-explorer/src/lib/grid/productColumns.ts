@@ -184,7 +184,7 @@ export function productColumns(
 							? linkCell(
 									`/compare?q=${encodeURIComponent(params.data.code)}`,
 									params.data.code,
-									'var(--accent)',
+									'var(--primary)',
 								)
 							: MISSING,
 				};

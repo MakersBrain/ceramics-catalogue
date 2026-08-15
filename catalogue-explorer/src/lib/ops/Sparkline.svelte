@@ -33,12 +33,12 @@
 </script>
 
 {#if points.length === 0}
-	<p class="text-base-content/50 text-sm">No data yet.</p>
+	<p class="text-muted-foreground text-sm">No data yet.</p>
 {:else}
 	<div class="flex items-baseline gap-2">
 		<span class="text-2xl font-semibold tabular-nums">{format(latest?.value ?? 0)}</span>
-		<span class="text-base-content/50 text-xs">{latest?.label}</span>
-		<span class="text-base-content/40 ml-auto text-xs">peak {format(highest)}</span>
+		<span class="text-muted-foreground text-xs">{latest?.label}</span>
+		<span class="text-muted-foreground/70 ml-auto text-xs">peak {format(highest)}</span>
 	</div>
 	<svg
 		viewBox="0 0 {width} {height}"

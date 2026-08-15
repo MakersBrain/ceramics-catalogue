@@ -253,17 +253,17 @@
 				<!-- The spread of what the shop quoted at each crawl, behind the
 				     middle of it. Soft, because it is context for the line rather
 				     than a second series. -->
-				<path d={bandPath} fill="var(--accent)" fill-opacity="0.16" stroke="none" />
+				<path d={bandPath} fill="var(--accent-data)" fill-opacity="0.16" stroke="none" />
 			{/if}
 
-			<path d={path} fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" />
+			<path d={path} fill="none" stroke="var(--accent-data)" stroke-width="2" stroke-linejoin="round" />
 
 			{#each placed as point, index (index)}
 				<circle
 					cx={point.cx}
 					cy={point.cy}
 					r={hovered === index ? 5 : 4}
-					fill="var(--accent)"
+					fill="var(--accent-data)"
 					stroke="var(--surface-1)"
 					stroke-width="2"
 				/>

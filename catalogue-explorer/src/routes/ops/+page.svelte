@@ -32,49 +32,49 @@
 {:else}
 	<div class="grid gap-6">
 		<section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-			<div class="card bg-base-100 shadow-sm">
+			<div class="card bg-card shadow-sm">
 				<div class="card-body p-4">
-					<div class="text-base-content/60 text-xs uppercase">Queue</div>
+					<div class="text-muted-foreground text-xs uppercase">Queue</div>
 					<div class="text-2xl font-semibold">{queued}</div>
-					<div class="text-base-content/60 text-xs">{running} running</div>
+					<div class="text-muted-foreground text-xs">{running} running</div>
 				</div>
 			</div>
-			<div class="card bg-base-100 shadow-sm">
+			<div class="card bg-card shadow-sm">
 				<div class="card-body p-4">
-					<div class="text-base-content/60 text-xs uppercase">Last run</div>
+					<div class="text-muted-foreground text-xs uppercase">Last run</div>
 					{#if lastRun}
 						<div class="text-2xl font-semibold">{lastRun.status}</div>
-						<div class="text-base-content/60 text-xs">
+						<div class="text-muted-foreground text-xs">
 							{relative(lastRun.created_at)} · {lastRun.succeeded}/{lastRun.jobs} ok
 						</div>
 					{:else}
-						<div class="text-base-content/40 text-2xl font-semibold">—</div>
+						<div class="text-muted-foreground/70 text-2xl font-semibold">—</div>
 					{/if}
 				</div>
 			</div>
-			<div class="card bg-base-100 shadow-sm">
+			<div class="card bg-card shadow-sm">
 				<div class="card-body p-4">
-					<div class="text-base-content/60 text-xs uppercase">Next scheduled</div>
+					<div class="text-muted-foreground text-xs uppercase">Next scheduled</div>
 					<div class="text-2xl font-semibold">
 						{nextFire ? relative(nextFire.next_fire_at) : '—'}
 					</div>
-					<div class="text-base-content/60 text-xs">{nextFire?.id ?? 'no schedule enabled'}</div>
+					<div class="text-muted-foreground text-xs">{nextFire?.id ?? 'no schedule enabled'}</div>
 				</div>
 			</div>
-			<div class="card bg-base-100 shadow-sm">
+			<div class="card bg-card shadow-sm">
 				<div class="card-body p-4">
-					<div class="text-base-content/60 text-xs uppercase">Unacknowledged</div>
+					<div class="text-muted-foreground text-xs uppercase">Unacknowledged</div>
 					<div
 						class="text-2xl font-semibold {stream.unacknowledged.length ? 'text-warning' : ''}"
 					>
 						{stream.unacknowledged.length}
 					</div>
-					<a class="link text-base-content/60 text-xs" href="/ops/notifications">notifications</a>
+					<a class="link text-muted-foreground text-xs" href="/ops/notifications">notifications</a>
 				</div>
 			</div>
 		</section>
 
-		<section class="card bg-base-100 shadow-sm">
+		<section class="card bg-card shadow-sm">
 			<div class="card-body">
 				<div class="flex flex-wrap items-center gap-3">
 					<h2 class="card-title text-base">Run now</h2>
@@ -82,7 +82,7 @@
 						{picking ? 'all sources' : 'pick sources'}
 					</button>
 					{#if form?.error}
-						<span class="text-error text-sm">{form.error}</span>
+						<span class="text-destructive text-sm">{form.error}</span>
 					{:else if form?.run_id}
 						<a class="link text-success text-sm" href="/ops/runs/{form.run_id}">
 							started {form.jobs} jobs
@@ -93,7 +93,7 @@
 				<form method="POST" action="?/run" use:enhance class="mt-2 grid gap-3">
 					{#if picking}
 						<div
-							class="border-base-300 grid max-h-56 grid-cols-2 gap-1 overflow-y-auto rounded border p-2 sm:grid-cols-3 lg:grid-cols-4"
+							class="border-border grid max-h-56 grid-cols-2 gap-1 overflow-y-auto rounded border p-2 sm:grid-cols-3 lg:grid-cols-4"
 						>
 							{#each data.sources ?? [] as source (source.source_id)}
 								<label class="flex items-center gap-2 text-sm">
@@ -112,7 +112,7 @@
 
 					<div class="flex flex-wrap items-center gap-3">
 						<label class="flex items-center gap-2 text-sm">
-							<span class="text-base-content/60">cache</span>
+							<span class="text-muted-foreground">cache</span>
 							<select name="cache_mode" class="select select-bordered select-sm">
 								<!-- refresh first and by default: a run under `auto` with a
 								     stale max age replays yesterday's pages and reports
@@ -133,7 +133,7 @@
 		<section>
 			<h2 class="mb-3 text-sm font-semibold uppercase tracking-wide opacity-60">Workers</h2>
 			{#if workers.length === 0}
-				<p class="text-base-content/60 text-sm">
+				<p class="text-muted-foreground text-sm">
 					No workers have registered. Start one with <code>catalogue-worker</code>.
 				</p>
 			{:else}
@@ -151,7 +151,7 @@
 				<a class="link text-sm" href="/ops/runs">all runs</a>
 			</div>
 			<div class="overflow-x-auto">
-				<table class="table-zebra table table-sm bg-base-100 rounded shadow-sm">
+				<table class="table-zebra table table-sm bg-card rounded shadow-sm">
 					<thead>
 						<tr>
 							<th>Started</th><th>Kind</th><th>Status</th><th>Sources</th><th>Duration</th>
@@ -167,7 +167,7 @@
 								<td>{duration(run.started_at, run.finished_at)}</td>
 							</tr>
 						{:else}
-							<tr><td colspan="5" class="text-base-content/60">No runs yet.</td></tr>
+							<tr><td colspan="5" class="text-muted-foreground">No runs yet.</td></tr>
 						{/each}
 					</tbody>
 				</table>

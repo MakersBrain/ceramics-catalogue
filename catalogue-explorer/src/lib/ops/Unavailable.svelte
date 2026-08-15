@@ -2,13 +2,15 @@
 	// The control service is optional from the explorer's point of view: /explore
 	// and /compare read the database directly and work without it. So this is a
 	// clear explanation rather than an error page.
+	import { Notice } from '$lib/components/ui/notice';
+
 	let { reason }: { reason: string } = $props();
 	const operatorProblem = $derived(reason.startsWith('Operator identity'));
 </script>
 
-<div class="alert alert-warning">
+<Notice kind="warning">
 	<div>
-		<h2 class="font-semibold">
+		<h2 class="font-sans text-sm font-semibold">
 			{operatorProblem ? 'Operator access is required' : 'The control service is not reachable'}
 		</h2>
 		<p class="mt-1 text-sm">{reason}</p>
@@ -26,4 +28,4 @@
 			</p>
 		{/if}
 	</div>
-</div>
+</Notice>

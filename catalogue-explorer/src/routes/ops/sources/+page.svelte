@@ -44,20 +44,20 @@
 			<input type="checkbox" class="checkbox checkbox-sm" bind:checked={onlyProblems} />
 			needs attention
 		</label>
-		<span class="text-base-content/50 ml-auto text-sm">{rows.length} shown</span>
+		<span class="text-muted-foreground ml-auto text-sm">{rows.length} shown</span>
 	</div>
 
 	{#if form?.error}
 		<div class="alert alert-error mb-4 text-sm">{form.error}</div>
 	{/if}
 
-	<p class="text-base-content/60 mb-3 text-sm">
+	<p class="text-muted-foreground mb-3 text-sm">
 		The staleness badge is the point of this page: a source that silently stopped returning
 		records is the failure the whole pipeline exists to catch, and nothing else surfaces it.
 	</p>
 
 	<div class="overflow-x-auto">
-		<table class="table table-sm bg-base-100 rounded shadow-sm">
+		<table class="table table-sm bg-card rounded shadow-sm">
 			<thead>
 				<tr>
 					<th>Source</th>
@@ -80,7 +80,7 @@
 							{:else}
 								<div class="font-medium">{source.source_id}</div>
 							{/if}
-							<div class="text-base-content/40 max-w-56 truncate text-xs">{source.label}</div>
+							<div class="text-muted-foreground/70 max-w-56 truncate text-xs">{source.label}</div>
 						</td>
 						<td class="text-xs">{source.scraper}</td>
 						<td>
@@ -91,7 +91,7 @@
 						<td class="text-right tabular-nums">{count(source.last_records)}</td>
 						<td class="text-right tabular-nums">
 							{#if change}
-								<span class={change.share < -30 ? 'text-error font-medium' : change.share < 0 ? 'text-warning' : 'opacity-60'}>
+								<span class={change.share < -30 ? 'text-destructive font-medium' : change.share < 0 ? 'text-warning' : 'opacity-60'}>
 									{change.change > 0 ? '+' : ''}{count(change.change)}
 									<span class="text-xs">({change.share.toFixed(0)}%)</span>
 								</span>
@@ -99,7 +99,7 @@
 								<span class="opacity-30">—</span>
 							{/if}
 						</td>
-						<td class="text-right tabular-nums {source.failures_7d ? 'text-error' : 'opacity-40'}">
+						<td class="text-right tabular-nums {source.failures_7d ? 'text-destructive' : 'opacity-40'}">
 							{source.failures_7d}
 						</td>
 						<td>

@@ -48,7 +48,7 @@
 	 */
 	const TONES: Record<string, string> = {
 		series: 'var(--series-1)',
-		accent: 'var(--accent)',
+		accent: 'var(--accent-data)',
 		recede: 'var(--recede)'
 	};
 
@@ -142,7 +142,7 @@
 			// Gridlines run along the value axis only. A line between two
 			// categories would divide names that are already separate.
 			grid: { x: true, y: false, class: 'stroke-[var(--gridline)]' },
-			highlight: { area: { class: 'fill-[var(--accent)] opacity-10' } }
+			highlight: { area: { class: 'fill-[var(--accent-data)] opacity-10' } }
 		}}
 	>
 		{#snippet tooltip()}

@@ -103,7 +103,7 @@
 						target="_blank"
 						rel="noreferrer noopener"
 						class="shrink-0 rounded-lg px-2.5 py-1.5 text-xs whitespace-nowrap sm:px-3"
-						style="border: 1px solid var(--hairline); color: var(--accent)"
+						style="border: 1px solid var(--hairline); color: var(--primary)"
 					>
 						<span class="hidden sm:inline">Visit shop</span>
 						<span class="sm:hidden">Shop</span>
@@ -165,7 +165,7 @@
 									>
 										<span
 											class="block h-full rounded"
-											style="width: {entry.share}%; background: var(--accent)"
+											style="width: {entry.share}%; background: var(--primary)"
 										></span>
 									</span>
 									<span

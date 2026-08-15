@@ -210,7 +210,7 @@
 						<button
 							type="button"
 							class="underline decoration-dotted underline-offset-2"
-							style="color: var(--accent)"
+							style="color: var(--primary)"
 							onclick={() => (openedSupplier = { id: sourceId, label: row?.supplier_label })}
 							disabled={!sourceId}
 						>
@@ -225,7 +225,7 @@
 					target="_blank"
 					rel="noreferrer noopener"
 					class="shrink-0 rounded-lg px-2.5 py-1.5 text-xs whitespace-nowrap sm:px-3"
-					style="border: 1px solid var(--hairline); color: var(--accent)"
+					style="border: 1px solid var(--hairline); color: var(--primary)"
 				>
 					<!-- The full phrase costs a phone most of the title's line. -->
 					<span class="hidden sm:inline">Open on storefront</span>
@@ -269,7 +269,7 @@
 											aria-pressed={url === large}
 											class="h-10 w-10 overflow-hidden rounded"
 											style="outline: 2px solid {url === large
-												? 'var(--accent)'
+												? 'var(--primary)'
 												: 'transparent'}; outline-offset: 1px"
 										>
 											<img
