@@ -26,6 +26,7 @@ from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.proxy import ProxyLease
 from mb_ceramics_catalogue.scrapers.base import USER_AGENT, BrowserRenderer, Fetcher, HostLimiter
 from mb_ceramics_catalogue.scrapers.cache import ResponseCache
+from mb_ceramics_catalogue.transports.browser import BrowserBackend, BrowserJobContext, BrowserSession
 
 LOGGER = obs.get_logger("catalogue.session")
 
@@ -40,7 +41,7 @@ class CrawlSession:
 
     client: httpx.AsyncClient
     limiter: HostLimiter
-    browser: BrowserRenderer
+    browser: BrowserSession
     cache: ResponseCache
     fetcher: Fetcher
 
@@ -52,9 +53,10 @@ class CrawlSession:
 async def open_session(
     params: CrawlParams,
     cache_dir: Path | str | None = None,
-    browser: BrowserRenderer | None = None,
+    browser: BrowserBackend | None = None,
     proxy_lease: ProxyLease | None = None,
     proxy_policy: str = "never",
+    browser_job: BrowserJobContext | None = None,
 ) -> AsyncIterator[CrawlSession]:
     """Build the fetch stack for one crawl and guarantee it is torn down.
 
@@ -81,12 +83,17 @@ async def open_session(
     if always_proxy and not owned:
         raise ValueError("a proxied job must use its own browser identity")
 
+    browser_context = browser.open_session(browser_job)
+    browser_session = await browser_context.__aenter__()
+
     async with httpx.AsyncClient(
         headers={"user-agent": USER_AGENT}, timeout=REQUEST_TIMEOUT, follow_redirects=True,
         proxy=proxy_lease.url if always_proxy and proxy_lease else None,
     ) as client:
         proxy_client: httpx.AsyncClient | None = None
         proxy_browser: BrowserRenderer | None = None
+        proxy_browser_context: Any = None
+        proxy_browser_session: BrowserSession | None = None
         proxy_fetcher: Fetcher | None = None
         if fallback_proxy and proxy_lease:
             # A storefront's adaptive delay describes the direct network
@@ -102,13 +109,15 @@ async def open_session(
             proxy_browser = BrowserRenderer(
                 params.browser != "never", pages=1, proxy_lease=proxy_lease
             )
+            proxy_browser_context = proxy_browser.open_session()
+            proxy_browser_session = await proxy_browser_context.__aenter__()
             proxy_fetcher = Fetcher(
-                proxy_client, proxy_limiter, proxy_browser, params.browser, cache=cache,
+                proxy_client, proxy_limiter, proxy_browser_session, params.browser, cache=cache,
                 impersonate_policy=params.impersonate, robots_policy=params.robots,
                 stale_on_error=params.stale_on_error, proxy_lease=proxy_lease,
             )
         fetcher = Fetcher(
-            client, limiter, browser, params.browser, cache=cache,
+            client, limiter, browser_session, params.browser, cache=cache,
             impersonate_policy=params.impersonate,
             robots_policy=params.robots,
             stale_on_error=params.stale_on_error,
@@ -116,11 +125,20 @@ async def open_session(
             proxy_fallback=proxy_fetcher,
         )
         session = CrawlSession(
-            client=client, limiter=limiter, browser=browser, cache=cache, fetcher=fetcher
+            client=client, limiter=limiter, browser=browser_session, cache=cache, fetcher=fetcher
         )
         try:
             yield session
         finally:
+            try:
+                await browser_context.__aexit__(None, None, None)
+            except Exception:
+                LOGGER.warning("session.browser_session_close_failed", exc_info=True)
+            if proxy_browser_context is not None:
+                try:
+                    await proxy_browser_context.__aexit__(None, None, None)
+                except Exception:
+                    LOGGER.warning("session.proxy_browser_session_close_failed", exc_info=True)
             # Not conditional on how the block was left. A cancelled run that
             # leaves camoufox running leaks a browser process per attempt, and
             # a long-lived worker would accumulate one per cancelled job.
@@ -130,7 +148,7 @@ async def open_session(
             # here would take the browser out from under them.
             if owned:
                 try:
-                    await browser.close()
+                    await browser.shutdown()
                 except Exception:
                     LOGGER.warning("session.browser_close_failed", exc_info=True)
             if proxy_browser is not None:
@@ -180,6 +198,7 @@ def describe(params: CrawlParams) -> dict[str, Any]:
         "cache_mode": params.cache_mode,
         "cache_max_age_hours": params.cache_max_age_hours,
         "stale_on_error": params.stale_on_error,
+        "pipeline": params.pipeline,
         "refresh_mode": params.refresh_mode,
         "proxy_policy": params.proxy_policy,
         "proxy_max_megabytes": params.proxy_max_megabytes,

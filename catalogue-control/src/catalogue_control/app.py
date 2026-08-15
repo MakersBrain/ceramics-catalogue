@@ -29,7 +29,7 @@ from starlette.applications import Starlette
 from starlette.datastructures import Headers
 from starlette.middleware import Middleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse, PlainTextResponse, Response, StreamingResponse
+from starlette.responses import FileResponse, JSONResponse, PlainTextResponse, Response, StreamingResponse
 from starlette.routing import Route
 from starlette.types import ASGIApp, Receive, Scope, Send
 
@@ -294,18 +294,10 @@ async def get_job_changes(request: Request) -> Response:
         job = await queries.one(connection, queries.JOB, {"id": job_id})
         if job is None:
             return problem(404, "Not Found", "no such job")
-        summary = job["summary"] or {}
-        complete = (
-            summary.get("write_status") == "replaced"
-            and not summary.get("truncated")
-            and not summary.get("interrupted")
+        artifact = await queries.one(
+            connection, queries.JOB_CERAMICS_ARTIFACT, {"id": job_id}
         )
-        if (
-            job["state"] != "succeeded"
-            or not job["finished_at"]
-            or not job["artifact_path"]
-            or not complete
-        ):
+        if artifact is None:
             return problem(409, "Comparison unavailable", "this job has no completed artifact")
         previous = await queries.one(
             connection,
@@ -326,8 +318,8 @@ async def get_job_changes(request: Request) -> Response:
             asyncio.to_thread(
                 read_artifact,
                 request.app.state.settings.artifacts_dir,
-                job["artifact_path"],
-                job["artifact_sha256"],
+                artifact["artifact_path"],
+                artifact["artifact_sha256"],
             ),
         )
     except ArtifactError as error:
@@ -350,6 +342,45 @@ async def get_job_changes(request: Request) -> Response:
             **result,
         }
     )
+
+
+async def download_job_artifact(request: Request) -> Response:
+    """Serve one usable job dataset artifact through the authenticated API."""
+    from catalogue_control.changes import ArtifactError, resolve_artifact
+
+    job_id = _uuid(request, "id")
+    if job_id is None:
+        return problem(400, "Bad Request", "id must be a uuid")
+    dataset = request.query_params.get("dataset")
+    if dataset is not None and (not dataset.strip() or len(dataset) > 200):
+        return problem(400, "Bad Request", "dataset must be a non-empty dataset name")
+    async with request.app.state.pool.connection() as connection:
+        if dataset is None:
+            artifact = await queries.one(
+                connection, queries.JOB_CERAMICS_ARTIFACT, {"id": job_id}
+            )
+        else:
+            matches = await queries.all_rows(
+                connection, queries.JOB_DATASET_ARTIFACTS,
+                {"id": job_id, "dataset": dataset},
+            )
+            if len(matches) > 1:
+                return problem(
+                    409, "Artifact ambiguous",
+                    "multiple versions or artifact kinds match this dataset",
+                )
+            artifact = matches[0] if matches else None
+    if artifact is None:
+        return problem(404, "Not Found", "this job has no completed artifact for that dataset")
+    try:
+        path = resolve_artifact(
+            request.app.state.settings.artifacts_dir,
+            artifact["artifact_path"],
+            artifact["artifact_sha256"],
+        )
+    except ArtifactError as error:
+        return problem(409, "Artifact unavailable", str(error))
+    return FileResponse(path, filename=path.name, media_type="application/octet-stream")
 
 
 async def list_workers(request: Request) -> Response:
@@ -677,6 +708,7 @@ def create_app(settings: Settings | None = None, *, proxy_provider: Any = None) 
         Route("/v1/runs/{id}/cancel", cancel_run, methods=["POST"]),
         Route("/v1/jobs/{id}", get_job),
         Route("/v1/jobs/{id}/changes", get_job_changes),
+        Route("/v1/jobs/{id}/artifact", download_job_artifact),
         Route("/v1/jobs/{id}/logs", job_logs),
         Route("/v1/jobs/{id}/{action}", job_action, methods=["POST"]),
         Route("/v1/workers", list_workers),

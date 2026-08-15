@@ -136,6 +136,7 @@ export class OpsStream {
 		// out of step with the database is worse than one that refetches.
 		for (const type of [
 			'job.succeeded',
+			'job.degraded',
 			'job.failed',
 			'job.cancelled',
 			'job.started',

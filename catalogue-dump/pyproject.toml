@@ -27,6 +27,10 @@ postgres = [
 # Camoufox is most of the image size, and only two sources need it (§5.5).
 browser = [
   "camoufox>=0.5,<0.6",
+  # Directly pinned because the CDP adapter is a supported client, not an
+  # accidental consumer of whichever Playwright Camoufox happens to install.
+  # It attaches to operator Chromium and never downloads/launches Chromium.
+  "playwright==1.60.0",
 ]
 # A browser TLS handshake for the handful of hosts that fingerprint ours and
 # refuse it. Optional for the same reason camoufox is: most sources never need
@@ -56,6 +60,8 @@ catalogue-proxy-budget = "mb_ceramics_catalogue.cli.proxy_budget:main"
 catalogue-migrate = "mb_ceramics_catalogue.cli.migrate:main"
 catalogue-proxy-roles = "mb_ceramics_catalogue.ops.proxy_roles:main"
 catalogue-compact = "mb_ceramics_catalogue.cli.compact:main"
+catalogue-source-config = "mb_ceramics_catalogue.cli.source_config:main"
+catalogue-shadow-compare = "mb_ceramics_catalogue.cli.shadow_compare:main"
 
 [dependency-groups]
 dev = [

@@ -146,8 +146,153 @@ class TestJobControls:
         assert body["lines"] == []
         assert body["next_after"] is None
 
+    async def test_job_detail_exposes_dataset_outputs_and_immutable_artifacts(self, client, db):
+        job = await self.job_id(client)
+        digest = "b" * 64
+        await db.execute(
+            """insert into catalogue.job_datasets
+                         (job_id, dataset, contract_version, projector_version, state,
+                          complete, records)
+                  values (%s, 'stock', 'v1', 'stock-1', 'succeeded', true, 4)""",
+            (job,),
+        )
+        await db.execute(
+            """insert into catalogue.job_artifacts
+                         (job_id, dataset, contract_version, projector_version, kind,
+                          location, sha256, size)
+                  values (%s, 'stock', 'v1', 'stock-1', 'ndjson',
+                          'published/stock.ndjson', %s, 42)""",
+            (job, digest),
+        )
+        detail = (await client.get(f"/v1/jobs/{job}")).json()["job"]
+        assert detail["datasets"][0]["dataset"] == "stock"
+        assert detail["datasets"][0]["complete"] is True
+        assert detail["artifacts"][0]["location"] == "published/stock.ndjson"
+
+    async def test_a_degraded_job_can_be_explicitly_retried(self, client, db):
+        job = await self.job_id(client)
+        await db.execute(
+            "update catalogue.jobs set state = 'degraded', finished_at = now(), attempt = 2 "
+            "where id = %s",
+            (job,),
+        )
+        response = await client.post(f"/v1/jobs/{job}/retry")
+        assert response.status_code == 202
+        detail = (await client.get(f"/v1/jobs/{job}")).json()["job"]
+        assert detail["state"] == "queued"
+        assert detail["attempt"] == 0
+
 
 class TestJobChanges:
+    async def test_degraded_job_download_uses_its_successful_ceramics_dataset(
+        self, client, db, tmp_path
+    ):
+        run = await make_run(client, "ceradel")
+        job = (await client.get(f"/v1/runs/{run['run_id']}")).json()["jobs"][0]["id"]
+        body = b'{"external_id":"ceradel:a","name":"A"}\n'
+        path = tmp_path / "ceramics.ndjson"
+        path.write_bytes(body)
+        await db.execute(
+            "update catalogue.jobs set state = 'degraded', finished_at = now() where id = %s",
+            (job,),
+        )
+        await db.execute(
+            """insert into catalogue.job_datasets
+                         (job_id, dataset, contract_version, projector_version,
+                          state, complete, records)
+                  values (%s, 'ceramics.catalogue_item.v2', 'v2', 'projector-1',
+                          'degraded', true, 1)""",
+            (job,),
+        )
+        await db.execute(
+            """insert into catalogue.job_artifacts
+                         (job_id, dataset, contract_version, projector_version, kind,
+                          location, sha256, size)
+                  values (%s, 'ceramics.catalogue_item.v2', 'v2', 'projector-1',
+                          'ndjson', %s, %s, %s)""",
+            (job, str(path), hashlib.sha256(body).hexdigest(), len(body)),
+        )
+
+        response = await client.get(f"/v1/jobs/{job}/artifact")
+        assert response.status_code == 200
+        assert response.content == body
+        stock = b'{"external_id":"ceradel:a","stock":3}\n'
+        stock_path = tmp_path / "stock.ndjson"
+        stock_path.write_bytes(stock)
+        await db.execute(
+            """insert into catalogue.job_datasets
+                         (job_id, dataset, contract_version, projector_version,
+                          state, complete, records)
+                  values (%s, 'commerce.stock.v1', 'v1', 'stock-1',
+                          'succeeded', true, 1)""",
+            (job,),
+        )
+        await db.execute(
+            """insert into catalogue.job_artifacts
+                         (job_id, dataset, contract_version, projector_version, kind,
+                          location, sha256, size)
+                  values (%s, 'commerce.stock.v1', 'v1', 'stock-1',
+                          'ndjson', %s, %s, %s)""",
+            (job, str(stock_path), hashlib.sha256(stock).hexdigest(), len(stock)),
+        )
+        selected = await client.get(
+            f"/v1/jobs/{job}/artifact", params={"dataset": "commerce.stock.v1"}
+        )
+        assert selected.status_code == 200 and selected.content == stock
+        await db.execute(
+            """insert into catalogue.job_datasets
+                         (job_id, dataset, contract_version, projector_version,
+                          state, complete, records)
+                  values (%s, 'commerce.stock.v1', 'v2', 'stock-2',
+                          'succeeded', true, 1)""",
+            (job,),
+        )
+        await db.execute(
+            """insert into catalogue.job_artifacts
+                         (job_id, dataset, contract_version, projector_version, kind,
+                          location, sha256, size)
+                  values (%s, 'commerce.stock.v1', 'v2', 'stock-2', 'ndjson',
+                          'stock-v2.ndjson', %s, 0)""",
+            (job, hashlib.sha256(b"").hexdigest()),
+        )
+        ambiguous = await client.get(
+            f"/v1/jobs/{job}/artifact", params={"dataset": "commerce.stock.v1"}
+        )
+        assert ambiguous.status_code == 409
+        assert (await client.get(
+            f"/v1/jobs/{job}/artifact", headers={"authorization": ""}
+        )).status_code == 401
+
+    async def test_download_refuses_a_recorded_path_outside_the_artifact_root(
+        self, client, db, tmp_path
+    ):
+        run = await make_run(client, "ceradel")
+        job = (await client.get(f"/v1/runs/{run['run_id']}")).json()["jobs"][0]["id"]
+        outside = tmp_path.parent / "outside.ndjson"
+        outside.write_bytes(b"{}\n")
+        await db.execute(
+            "update catalogue.jobs set state = 'succeeded', finished_at = now() where id = %s",
+            (job,),
+        )
+        await db.execute(
+            """insert into catalogue.job_datasets
+                         (job_id, dataset, contract_version, projector_version,
+                          state, complete, records)
+                  values (%s, 'ceramics.catalogue_item.v2', 'v2', 'projector-1',
+                          'succeeded', true, 1)""",
+            (job,),
+        )
+        await db.execute(
+            """insert into catalogue.job_artifacts
+                         (job_id, dataset, contract_version, projector_version, kind,
+                          location, sha256, size)
+                  values (%s, 'ceramics.catalogue_item.v2', 'v2', 'projector-1',
+                          'ndjson', %s, %s, 3)""",
+            (job, str(outside), hashlib.sha256(b"{}\n").hexdigest()),
+        )
+        response = await client.get(f"/v1/jobs/{job}/artifact")
+        assert response.status_code == 409
+
     async def test_a_completed_job_is_compared_with_the_previous_artifact(
         self, client, db, tmp_path
     ):

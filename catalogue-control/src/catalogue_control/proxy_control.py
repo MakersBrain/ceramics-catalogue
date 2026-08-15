@@ -403,7 +403,7 @@ async def close_stale_reservations(connection: Any) -> int:
                   set state = 'cancelled', closed_at = now()
                  from catalogue.jobs j
                 where r.job_id = j.id and r.state in ('active', 'revocation_requested')
-                  and (j.state in ('succeeded', 'failed', 'cancelled', 'skipped')
+                  and (j.state in ('succeeded', 'degraded', 'failed', 'cancelled', 'skipped')
                        or (j.state in ('leased', 'running') and j.lease_expires_at < now()))
                 returning r.id, r.provider"""
         )

@@ -32,10 +32,14 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import gzip
+import hashlib
+import json
 import os
 import signal
 import socket
 import time
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -47,15 +51,26 @@ from psycopg.types.json import Jsonb
 from mb_ceramics_catalogue import __version__, scrapers
 from mb_ceramics_catalogue.config.settings import CrawlParams, Settings
 from mb_ceramics_catalogue.config.sources import SourcesFile
+from mb_ceramics_catalogue.connectors import (
+    BrowserBackendName,
+    CollectionRequest,
+    RefreshMode,
+)
 from mb_ceramics_catalogue.crawl import artifacts
 from mb_ceramics_catalogue.crawl.progress import Progress
 from mb_ceramics_catalogue.crawl.runner import barren as run_source_barren
 from mb_ceramics_catalogue.crawl.runner import run_source
 from mb_ceramics_catalogue.crawl.session import open_session
+from mb_ceramics_catalogue.datasets import built_in_registry
 from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.observability import metrics, tracing
 from mb_ceramics_catalogue.ops import events, leases, monitor, queue, runs, schedule
+from mb_ceramics_catalogue.ops import outputs as ops_outputs
+from mb_ceramics_catalogue.ops.connector_adapters import runtime_plan
 from mb_ceramics_catalogue.ops.sink import JobLogHandler, PostgresSink
+from mb_ceramics_catalogue.pipeline.budget import RequestBudget, RequestCost
+from mb_ceramics_catalogue.pipeline.outputs import LocalArtifactStore
+from mb_ceramics_catalogue.pipeline.runner import ConnectorPipeline, DatasetPageState, PipelineResult
 from mb_ceramics_catalogue.proxy import (
     ProxyDenied,
     ProxyLease,
@@ -65,10 +80,16 @@ from mb_ceramics_catalogue.proxy import (
     secret_values,
 )
 from mb_ceramics_catalogue.scrapers.activity import CURRENT_JOB
-from mb_ceramics_catalogue.scrapers.base import BrowserRenderer, BrowserUnavailable
+from mb_ceramics_catalogue.scrapers.base import BrowserRenderer
 from mb_ceramics_catalogue.scrapers.record import RecordBuilder
 from mb_ceramics_catalogue.storage import postgres
 from mb_ceramics_catalogue.storage.db import DictPool
+from mb_ceramics_catalogue.transports.browser import (
+    BrowserBackend,
+    BrowserJobContext,
+    BrowserUnavailable,
+)
+from mb_ceramics_catalogue.transports.cdp_extension_proxy import CdpExtensionProxyBackend
 
 LOGGER = obs.get_logger("catalogue.worker")
 
@@ -125,6 +146,7 @@ class Worker:
         settings: Settings,
         *,
         capabilities: list[str] | None = None,
+        browser_backends: Mapping[BrowserBackendName, BrowserBackend] | None = None,
         once: bool = False,
     ) -> None:
         self.pool = pool
@@ -141,7 +163,21 @@ class Worker:
         #: One camoufox for this process, shared by every job that renders and
         #: started on the first one that does. Per job it was sixteen across the
         #: fleet; see `BrowserRenderer`.
-        self._browser: BrowserRenderer | None = None
+        self._browser_backends: dict[BrowserBackendName, BrowserBackend] = dict(
+            browser_backends or {}
+        )
+        for name, backend in self._browser_backends.items():
+            if backend.backend != name.value:
+                raise ValueError(
+                    f"browser backend registry key {name.value!r} does not match "
+                    f"implementation {backend.backend!r}"
+                )
+        cdp_capability = f"browser:{BrowserBackendName.CDP_EXTENSION_PROXY.value}"
+        if (
+            cdp_capability in self.state.capabilities
+            and BrowserBackendName.CDP_EXTENSION_PROXY not in self._browser_backends
+        ):
+            raise ValueError("worker cannot advertise cdp_extension_proxy without a ready backend")
         # Negative, so the first tick leads immediately rather than waiting out
         # the interval: a worker starting after downtime should notice a missed
         # schedule now, not in thirty seconds.
@@ -515,31 +551,57 @@ class Worker:
                 )
         return True
 
-    def _renderer(self, params: CrawlParams) -> BrowserRenderer | None:
-        """This process's one browser, started on the first job that needs it.
+    def _browser_for_job(
+        self, job: queue.ClaimedJob, params: CrawlParams, proxy_lease: ProxyLease | None,
+    ) -> tuple[BrowserBackend | None, BrowserJobContext | None]:
+        """Resolve the snapshotted backend without inspecting scraper/platform names.
 
-        Returning None for a job that has rendering switched off lets the
-        session build its own disabled renderer, so `--browser never` still
-        means "this crawl does not render" rather than "this crawl may use the
-        shared one".
+        Jobs created before exact backend routing default to Camoufox. Once
+        `selected_browser_backend` exists it is lineage: an unavailable backend
+        fails/requeues on that exact requirement rather than silently changing
+        browser identity midway through a collection.
         """
         if params.browser == "never":
-            return None
-        if self._browser is None:
-            self._browser = BrowserRenderer(True, pages=self.settings.browser_pages)
-        return self._browser
+            return None, None
+        try:
+            selected = (
+                BrowserBackendName(job.selected_browser_backend)
+                if job.selected_browser_backend
+                else BrowserBackendName.CAMOUFOX
+            )
+        except ValueError as error:
+            raise BrowserUnavailable(
+                f"unsupported selected browser backend {job.selected_browser_backend!r}"
+            ) from error
+
+        if selected == BrowserBackendName.CDP_EXTENSION_PROXY and proxy_lease is not None:
+            raise BrowserUnavailable(
+                "cdp_extension_proxy is direct-route only and cannot use a paid proxy lease"
+            )
+        backend = self._browser_backends.get(selected)
+        if backend is None and selected == BrowserBackendName.CAMOUFOX:
+            backend = BrowserRenderer(True, pages=self.settings.browser_pages)
+            self._browser_backends[selected] = backend
+        if backend is None:
+            raise BrowserUnavailable(f"selected browser backend {selected.value!r} is unavailable")
+
+        logical_profile: str | None = None
+        if isinstance(backend, CdpExtensionProxyBackend):
+            if backend.profile.allowed_worker_pool != self.settings.cdp_worker_pool:
+                raise BrowserUnavailable("CDP profile is not allowed in this worker pool")
+            logical_profile = backend.profile.name
+        return backend, BrowserJobContext(str(job.id), logical_profile)
 
     async def _close_browser(self) -> None:
-        """Shut the shared browser down. Idempotent, and never fatal."""
-        browser, self._browser = self._browser, None
-        if browser is None:
-            return
-        try:
-            await browser.close()
-        except Exception:
-            # A stuck browser must not block a drain: the jobs are already back
-            # on the queue and the process is about to exit regardless.
-            LOGGER.warning("worker.browser_close_failed", exc_info=True)
+        """Shut every process-owned backend down. Idempotent and never fatal."""
+        backends, self._browser_backends = self._browser_backends, {}
+        for name, browser in backends.items():
+            try:
+                await browser.shutdown()
+            except Exception:
+                # A stuck browser must not block a drain: the jobs are already
+                # back on the queue and the process is exiting regardless.
+                LOGGER.warning("worker.browser_close_failed", backend=name.value, exc_info=True)
 
     async def _crawl_and_load(self, job: queue.ClaimedJob) -> None:
         """Collect one source, write its artifact, load it, and finish the job."""
@@ -552,17 +614,22 @@ class Worker:
 
         cancelled = False
         try:
+            if params.pipeline == "connector_canary":
+                await self._crawl_connector_canary(job, params, config)
+                return
             async with self.pool.connection() as connection:
                 proxy_lease = await self._proxy_lease(connection, job, config, params)
+                browser_backend, browser_job = self._browser_for_job(job, params, proxy_lease)
                 sink = PostgresSink(connection, job.run_id, {job.source_id: job.id})
                 with RecordBuilder(self.sources.as_scraper_configs()):
                     try:
                         async with (
                             open_session(
                                 params, self.settings.cache_dir,
-                                browser=None if proxy_lease else self._renderer(params),
+                                browser=None if proxy_lease else browser_backend,
                                 proxy_lease=proxy_lease,
                                 proxy_policy=str(job.proxy_snapshot.get("policy", "never")),
+                                browser_job=browser_job,
                             ) as session,
                             Progress(1, [sink]) as progress,
                         ):
@@ -608,14 +675,9 @@ class Worker:
                 await log_handler.flush_to(connection)
 
             # The same question `plan_load` asks of a manifest entry, asked of
-            # the source this worker has just collected — and asked of the same
-            # function, so the two can no longer answer it differently.
+            # the source this worker has just collected.
             whole, why_not = postgres.may_retire(artifact.status, outcome.summary.get("truncated"))
             if why_not:
-                # Logged rather than written through `connection`, which the
-                # block above has already returned to the pool. The job's log
-                # handler is still attached, so this reaches `job_events` and
-                # the summary carries it for anyone reading the job later.
                 outcome.summary["retirement_withheld"] = why_not
                 LOGGER.warning("job.adds_only", source=job.source_id, reason=why_not)
             load_started = time.monotonic()
@@ -624,15 +686,9 @@ class Worker:
             outcome.summary["loaded"] = loaded.records
             outcome.summary["retired"] = loaded.retired
             if loaded.rejected:
-                # On the summary rather than only in the log: a source quietly
-                # dropping rows at the database is exactly the kind of thing
-                # that goes unnoticed while every job stays green.
                 outcome.summary["rejected"] = loaded.rejected
                 outcome.summary["rejects"] = loaded.rejects
 
-            # Two ways to have collected nothing. The first is the loud one:
-            # something refused us and said so. The second is silent — every
-            # request answered, nothing recognised — and used to report success.
             error = None
             if outcome.summary["error_count"] and not outcome.summary["records"]:
                 error = _first_error(outcome.summary)
@@ -640,7 +696,7 @@ class Worker:
                 error = nothing
             await self._finish(
                 job,
-                "failed" if error else "succeeded",
+                _legacy_terminal_state(error, loaded.rejected),
                 summary=outcome.summary,
                 artifact=artifact,
                 error=error,
@@ -649,6 +705,303 @@ class Worker:
             obs.detach(log_handler)
             async with self.pool.connection() as connection:
                 await log_handler.flush_to(connection)
+
+    async def _crawl_connector_canary(
+        self, job: queue.ClaimedJob, params: CrawlParams, config: Any
+    ) -> None:
+        """Run a registered reusable connector only when explicitly selected."""
+        if params.refresh_mode != "full":
+            raise ValueError("connector canary currently requires refresh_mode=full")
+        adapter = runtime_plan(config)
+
+        registry = built_in_registry()
+        current_ceramics = (
+            "ceramics.catalogue_identity.v2" if config.identity_only
+            else "ceramics.catalogue_item.v2"
+        )
+        selected = tuple(current_ceramics if name == "ceramics" else name for name in params.datasets)
+        definitions = tuple(registry.get(name) for name in selected)
+        keys = {
+            definition.name: ops_outputs.DatasetKey(
+                definition.name, definition.version, definition.projector_version
+            )
+            for definition in definitions
+        }
+        ceramics_projection = {
+            "scope": config.scope,
+            "enrichments": tuple(config.enrichments or ()),
+            "brand": config.brand,
+            "is_manufacturer": config.is_manufacturer,
+            "extraction_method": adapter.extraction_method,
+            "source_detail_level": adapter.source_detail_level,
+            # The durable pipeline has no legacy Scraper.add category gate;
+            # keep scope enforcement in the projector composition root.
+            "apply_scope": True,
+            **adapter.ceramics_projection,
+        }
+        request = CollectionRequest(
+            source_id=job.source_id,
+            base_url=config.url,
+            refresh_mode=RefreshMode.FULL,
+            requested_fields=registry.collection_requirements(selected)[0],
+            result_limit=params.limit,
+            collections=adapter.collections,
+            categories=adapter.categories,
+            cancellation_check=self._cancels[job.id].is_set,
+        )
+        connector_identity = {
+            "source_url": config.url,
+            "connector": adapter.name,
+            "options": adapter.options,
+            "collections": list(adapter.collections),
+            "categories": list(adapter.categories),
+        }
+        projection_configuration = {
+            name: ceramics_projection if name.startswith("ceramics.") else {}
+            for name in selected
+        }
+        dataset_selection = [
+            {
+                "dataset": key.dataset,
+                "contract_version": key.contract_version,
+                "projector_version": key.projector_version,
+                "projection": projection_configuration[key.dataset],
+            }
+            for key in keys.values()
+        ]
+        connector_fingerprint = _fingerprint(connector_identity)
+        dataset_fingerprint = _fingerprint(dataset_selection)
+        store = LocalArtifactStore(self.settings.dumps_dir / "pipeline")
+
+        async with self.pool.connection() as connection:
+            lineage = await ops_outputs.find_compatible_lineage(
+                connection,
+                job.id,
+                source_url=config.url,
+                connector=adapter.name,
+                connector_version=adapter.connector_version,
+                connector_config_fingerprint=connector_fingerprint,
+                dataset_fingerprint=dataset_fingerprint,
+            )
+            resuming = lineage is not None
+            for key in keys.values():
+                await ops_outputs.prepare_dataset_for_collection(
+                    connection, job.id, key, resuming=resuming
+                )
+            if lineage is None:
+                lineage = await ops_outputs.create_lineage(
+                    connection,
+                    job.id,
+                    source_id=job.source_id,
+                    source_url=config.url,
+                    connector=adapter.name,
+                    connector_version=adapter.connector_version,
+                    connector_configuration={
+                        "partitions": list(adapter.partitions)
+                    },
+                    connector_config_fingerprint=connector_fingerprint,
+                    dataset_fingerprint=dataset_fingerprint,
+                    dataset_selection=dataset_selection,
+                    budget_state={"request_budget": request.request_budget},
+                )
+            checkpoint = await ops_outputs.resume_checkpoint(connection, job.id, lineage)
+            restored_states = await ops_outputs.pipeline_dataset_states(
+                connection, job.id, list(keys.values())
+            )
+
+            proxy_lease = await self._proxy_lease(connection, job, config, params)
+            try:
+                browser_backend, browser_job = self._browser_for_job(job, params, proxy_lease)
+                async with open_session(
+                    params,
+                    self.settings.cache_dir,
+                    browser=None if proxy_lease else browser_backend,
+                    proxy_lease=proxy_lease,
+                    proxy_policy=str(job.proxy_snapshot.get("policy", "never")),
+                    browser_job=browser_job,
+                ) as session:
+                    remaining = getattr(session.fetcher, "proxy_bytes_remaining", None)
+                    budget = (
+                        RequestBudget(
+                            RequestCost(http_requests=2**31 - 1, proxy_bytes=remaining)
+                        )
+                        if isinstance(remaining, int) and remaining >= 0
+                        else None
+                    )
+                    connector = adapter.build(session.fetcher, budget)
+                    committer = ops_outputs.PostgresPageCommitter(
+                        connection,
+                        job.id,
+                        lineage,
+                        connector.version,
+                        keys,
+                        dynamic_partitions=adapter.dynamic_partitions,
+                    )
+                    result = await ConnectorPipeline(registry, store, committer).run(
+                        job_id=str(job.id),
+                        checkpoint_lineage=str(lineage),
+                        connector=connector,
+                        request=request,
+                        datasets=selected,
+                        checkpoint=checkpoint,
+                        projection_configuration=projection_configuration,
+                        initial_states={
+                            name: DatasetPageState(state)
+                            for name, state in restored_states.items()
+                        },
+                    )
+                    traffic_requests = (
+                        session.fetcher.stats.direct_requests
+                        + session.fetcher.stats.impersonated_requests
+                        + session.fetcher.stats.browser_requests
+                    )
+                    rendered_pages = session.fetcher.stats.browser_requests
+            finally:
+                if proxy_lease:
+                    await close_reservation(connection, proxy_lease)
+
+            summary: dict[str, Any] = {
+                "source": job.source_id,
+                "label": config.label,
+                "scraper": f"{adapter.name}-connector-canary",
+                "extraction_method": adapter.extraction_method,
+                "records": 0,
+                "discovered": 0,
+                "requests": traffic_requests,
+                "connector_pages": result.pages,
+                "rendered_pages": rendered_pages,
+                "truncated": not result.enumeration_intact,
+                "error_count": 0,
+                "errors": [],
+                "notes": ["reusable connector canary"],
+                "field_coverage": {},
+            }
+            if self._cancels[job.id].is_set() or not result.terminal:
+                for key in keys.values():
+                    await ops_outputs.finish_dataset(
+                        connection, job.id, key, state="cancelled", complete=False
+                    )
+                summary["interrupted"] = True
+                await self._finish(job, "cancelled", summary=summary)
+                return
+            if not result.enumeration_intact:
+                for key in keys.values():
+                    await ops_outputs.finish_dataset(
+                        connection, job.id, key, state="failed", complete=False,
+                        error="connector enumeration incomplete",
+                    )
+                summary["error_count"] = 1
+                await self._finish(
+                    job, "failed", summary=summary, error="connector enumeration incomplete"
+                )
+                return
+
+            checksum = await ops_outputs.lineage_checksum(connection, job.id, lineage)
+            await ops_outputs.complete_lineage(
+                connection,
+                job.id,
+                lineage,
+                expected_partitions=(
+                    adapter.partitions
+                    or await ops_outputs.declared_partitions(connection, job.id, lineage)
+                ),
+                checksum=checksum,
+            )
+            published_by_dataset: dict[str, Any] = {}
+            failed = [name for name, state in result.datasets.items() if state == DatasetPageState.FAILED]
+            for name in failed:
+                await ops_outputs.finish_dataset(
+                    connection, job.id, keys[name], state="failed", complete=False,
+                    error=f"{name} projector failed",
+                )
+            for name, key in keys.items():
+                if name in failed:
+                    continue
+                published_by_dataset[name] = await ops_outputs.publish_dataset(
+                    connection, store, job.id, lineage, key
+                )
+                if not name.startswith("ceramics."):
+                    await ops_outputs.finish_dataset(
+                        connection, job.id, key, state="succeeded", complete=True
+                    )
+            summary["datasets"] = {
+                name: {
+                    "state": "failed" if name in failed else "published",
+                    "records": getattr(published_by_dataset.get(name), "records", 0),
+                }
+                for name in selected
+            }
+            summary["error_count"] = len(failed)
+
+        ceramics_name = next((name for name in selected if name.startswith("ceramics.")), None)
+        compatibility_artifact = None
+        loaded = None
+        if ceramics_name is not None and ceramics_name in published_by_dataset:
+            published = published_by_dataset[ceramics_name]
+            summary.update({
+                "records": published.records,
+                "discovered": published.records,
+                "write_status": "replaced",
+                "artifact_path": published.location,
+                "artifact_sha256": published.sha256,
+                "artifact_size": published.size,
+            })
+            if published.records == 0 and not params.allow_empty:
+                async with self.pool.connection() as connection:
+                    await ops_outputs.finish_dataset(
+                        connection, job.id, keys[ceramics_name], state="failed", complete=True,
+                        error="connector canary produced no ceramics records",
+                    )
+                await self._finish(job, "failed", summary=summary, error="connector canary produced no ceramics records")
+                return
+            try:
+                loaded = await asyncio.to_thread(
+                    self._load_connector_artifact,
+                    job,
+                    published.location,
+                    _connector_load_is_whole(result),
+                )
+            except Exception as error:
+                async with self.pool.connection() as connection:
+                    await ops_outputs.finish_dataset(
+                        connection, job.id, keys[ceramics_name], state="failed", complete=True,
+                        error=str(error)[:2000],
+                    )
+                raise
+            summary.update(loaded=loaded.records, retired=loaded.retired, rejected=loaded.rejected)
+            async with self.pool.connection() as connection:
+                await ops_outputs.finish_dataset(
+                    connection, job.id, keys[ceramics_name],
+                    state="degraded" if loaded.rejected else "succeeded", complete=True,
+                    rejected=loaded.rejected,
+                    error="database rejected projected records" if loaded.rejected else None,
+                )
+            compatibility_artifact = artifacts.Artifact(
+                Path(published.location), published.sha256, published.size, "replaced"
+            )
+
+        succeeded = len(published_by_dataset)
+        job_state = "failed" if not succeeded else "degraded" if failed or (loaded and loaded.rejected) else "succeeded"
+        await self._finish(
+            job, job_state, summary=summary, artifact=compatibility_artifact,
+            error="all selected dataset projectors failed" if job_state == "failed" else None,
+        )
+
+    def _load_connector_artifact(
+        self, job: queue.ClaimedJob, location: str, whole: bool
+    ) -> postgres.SourceReport:
+        from psycopg.rows import dict_row
+
+        def records() -> Iterator[dict[str, Any]]:
+            with gzip.open(location, "rt", encoding="utf-8") as source:
+                for line in source:
+                    yield json.loads(line)
+
+        with psycopg.connect(self.settings.dsn, row_factory=dict_row, autocommit=True) as connection:
+            postgres.ensure_staging(connection)
+            return postgres.load_source(
+                connection, job.source_id, records(), whole=whole, run_id=None
+            )
 
     async def _proxy_lease(
         self, connection: Any, job: queue.ClaimedJob, config: Any, params: CrawlParams,
@@ -893,6 +1246,24 @@ class Worker:
 def _first_error(summary: dict[str, Any]) -> str | None:
     errors = summary.get("errors") or []
     return str(errors[0].get("error"))[:2000] if errors else None
+
+
+def _legacy_terminal_state(error: str | None, rejected: int) -> str:
+    if error:
+        return "failed"
+    return "degraded" if rejected else "succeeded"
+
+
+def _fingerprint(value: Any) -> str:
+    encoded = json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=True, default=str
+    ).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _connector_load_is_whole(result: PipelineResult) -> bool:
+    """Retirement requires both a terminal cursor and intact enumeration."""
+    return result.terminal and result.enumeration_intact
 
 
 async def _one(

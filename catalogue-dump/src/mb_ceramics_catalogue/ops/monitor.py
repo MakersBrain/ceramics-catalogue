@@ -73,7 +73,7 @@ with recent as (
          (summary->>'records')::int as records,
          row_number() over (partition by source_id order by finished_at desc) as rank
     from catalogue.jobs
-   where state in ('succeeded', 'failed') and finished_at is not null
+   where state in ('succeeded', 'degraded', 'failed') and finished_at is not null
 )
 select source_id,
        count(*) filter (where coalesce(records, 0) = 0) as empty_runs,

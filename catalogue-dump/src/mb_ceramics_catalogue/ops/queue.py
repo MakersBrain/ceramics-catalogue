@@ -26,6 +26,7 @@ from uuid import UUID
 
 import psycopg
 
+from mb_ceramics_catalogue.connectors import BrowserBackendName
 from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.ops import events
 
@@ -53,6 +54,13 @@ with candidate as (
      -- containment: a plain worker cannot take a job needing a browser, and a
      -- browser worker can still take plain jobs.
      and j.requires <@ %(capabilities)s::text[]
+     -- `requires_any` is one optional OR group. A previously selected browser
+     -- backend is stricter still: retries stay on that backend unless an
+     -- explicit lineage reset clears the snapshot.
+     and (cardinality(j.requires_any) = 0
+          or j.requires_any && %(capabilities)s::text[])
+     and (j.selected_browser_backend is null
+          or ('browser:' || j.selected_browser_backend) = any(%(capabilities)s::text[]))
      and coalesce(s.enabled, true)
      and not coalesce(s.paused, false)
      and not j.cancel_requested
@@ -84,12 +92,18 @@ update catalogue.jobs
        resume_without_attempt = false,
        started_at = coalesce(started_at, now()),
        trace_id = coalesce(%(trace)s, trace_id),
+       selected_browser_backend = coalesce(selected_browser_backend, %(backend)s),
        lease_expires_at = now() + make_interval(secs => %(lease)s)
  where id = %(id)s
    and lease_owner = %(worker)s
    and state = 'leased'
    and lease_expires_at > now()
-returning attempt, max_attempts
+   and (selected_browser_backend is null or selected_browser_backend = %(backend)s)
+   and (
+     cardinality(requires_any) = 0
+     or %(backend_capability)s = any(requires_any)
+   )
+returning attempt, max_attempts, selected_browser_backend
 """
 
 RENEW = """
@@ -170,8 +184,10 @@ class ClaimedJob:
     attempt: int
     max_attempts: int
     requires: list[str]
+    requires_any: list[str]
     params: dict[str, Any]
     proxy_snapshot: dict[str, Any]
+    selected_browser_backend: BrowserBackendName | None = None
     trace_id: str | None = None
 
     @classmethod
@@ -184,8 +200,14 @@ class ClaimedJob:
             attempt=row["attempt"],
             max_attempts=row["max_attempts"],
             requires=list(row["requires"] or []),
+            requires_any=list(row.get("requires_any") or []),
             params=params or {},
             proxy_snapshot=dict(row.get("proxy_snapshot") or {}),
+            selected_browser_backend=(
+                BrowserBackendName(row["selected_browser_backend"])
+                if row.get("selected_browser_backend")
+                else None
+            ),
             trace_id=row.get("trace_id"),
         )
 
@@ -206,6 +228,18 @@ async def claim(
         return None
 
     job = ClaimedJob.from_row(row, await _run_params(connection, row["run_id"], row["source_id"]))
+    if job.requires_any and job.selected_browser_backend is None:
+        matches = sorted(set(job.requires_any).intersection(capabilities))
+        browser_matches = [value for value in matches if value.startswith("browser:")]
+        if not browser_matches:
+            # The schema currently gives `requires_any` one purpose: browser
+            # backend selection. Refuse an unknown OR-group shape before START
+            # can consume an attempt without recording its choice.
+            await release(connection, job, worker_id, delay=0, reason="unsupported any capability")
+            return None
+        job.selected_browser_backend = BrowserBackendName(
+            browser_matches[0].removeprefix("browser:")
+        )
     await events.emit(
         connection,
         events.Topic.JOB,
@@ -252,16 +286,29 @@ async def start(
     Returns False when the lease was lost in between — which means another
     worker has legitimately taken this job, and this one must not run it too.
     """
+    backend = _browser_backend_for_start(job)
     row = await _one(
         connection,
         START,
-        {"id": job.id, "worker": worker_id, "trace": trace_id, "lease": lease},
+        {
+            "id": job.id,
+            "worker": worker_id,
+            "trace": trace_id,
+            "lease": lease,
+            "backend": backend,
+            "backend_capability": f"browser:{backend}" if backend else None,
+        },
     )
     if row is None:
         LOGGER.warning("job.lease_lost", job_id=str(job.id), source=job.source_id)
         return False
 
     job.attempt = row["attempt"]
+    job.selected_browser_backend = (
+        BrowserBackendName(row["selected_browser_backend"])
+        if row["selected_browser_backend"]
+        else None
+    )
     await events.emit(
         connection,
         events.Topic.JOB,
@@ -270,9 +317,25 @@ async def start(
         job_id=job.id,
         worker_id=worker_id,
         source_id=job.source_id,
-        payload={"attempt": job.attempt, "max_attempts": job.max_attempts},
+        payload={
+            "attempt": job.attempt,
+            "max_attempts": job.max_attempts,
+            "selected_browser_backend": job.selected_browser_backend,
+        },
     )
     return True
+
+
+def _browser_backend_for_start(job: ClaimedJob) -> BrowserBackendName | None:
+    """Choose the deterministic backend represented by an any-of capability.
+
+    Claiming already proved that the worker has one matching capability. The
+    claimed row intentionally carries the intersection result indirectly: the
+    worker capability chosen by the claim is recorded by callers on the job's
+    selected field. For a new auto job, `claim` fills it from that intersection;
+    an existing snapshot is preserved across retries.
+    """
+    return job.selected_browser_backend
 
 
 async def renew(
@@ -432,7 +495,8 @@ async def queue_depth(connection: Connection) -> dict[str, int]:
     async with connection.cursor() as cursor:
         await cursor.execute(
             "select state, count(*) as n from catalogue.jobs "
-            "where state not in ('succeeded','cancelled','skipped') group by state"
+            "where state not in ('succeeded','degraded','failed','cancelled','skipped') "
+            "group by state"
         )
         return {row["state"]: int(row["n"]) for row in await cursor.fetchall()}
 

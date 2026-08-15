@@ -42,6 +42,7 @@ select r.id, r.kind, r.status, r.requested_by, r.created_at, r.started_at, r.fin
        r.params, r.summary, r.schedule_id,
        count(j.id) as jobs,
        count(j.id) filter (where j.state = 'succeeded') as succeeded,
+       count(j.id) filter (where j.state = 'degraded')  as degraded,
        count(j.id) filter (where j.state = 'failed')    as failed,
        count(j.id) filter (where j.state in ('queued','leased','running','paused')) as active
   from catalogue.runs r
@@ -56,18 +57,42 @@ RUN = "select * from catalogue.runs where id = %(id)s"
 
 RUN_JOBS = """
 select j.id, j.source_id, j.host, j.state, j.attempt, j.max_attempts, j.priority,
-       j.scheduled_for, j.started_at, j.finished_at, j.error, j.requires,
+       j.scheduled_for, j.started_at, j.finished_at, j.error, j.requires, j.requires_any,
+       j.selected_browser_backend,
        j.lease_owner, j.lease_expires_at, j.cancel_requested, j.pause_requested,
        j.trace_id, j.artifact_path, j.artifact_sha256, j.artifact_size, j.summary,
+       coalesce((select jsonb_agg(to_jsonb(d) - 'job_id'
+                                 order by d.dataset, d.contract_version, d.projector_version)
+                   from catalogue.job_datasets d where d.job_id = j.id), '[]'::jsonb) as datasets,
+       coalesce((select jsonb_agg(to_jsonb(a) - 'job_id'
+                                 order by a.dataset, a.kind, a.published_at)
+                   from catalogue.job_artifacts a where a.job_id = j.id), '[]'::jsonb) as artifacts,
        p.phase, p.records, p.requests, p.rendered_pages, p.error_count,
        p.discovered, p.truncated, p.in_flight, p.updated_at as progress_at,
        -- The previous run's record count, so the UI can draw a bar against
        -- something rather than an unbounded number.
-       (select (previous.summary->>'records')::int
+       (select coalesce(
+                 (select max(d.records)::int from catalogue.job_datasets d
+                   where d.job_id = previous.id
+                     and d.dataset in ('ceramics.catalogue_item.v2', 'ceramics.catalogue_identity.v2')
+                     and d.state in ('succeeded', 'degraded') and d.complete),
+                 (previous.summary->>'records')::int)
           from catalogue.jobs previous
          where previous.source_id = j.source_id
-           and previous.state = 'succeeded'
+           and previous.state in ('succeeded', 'degraded')
            and previous.finished_at < coalesce(j.finished_at, now())
+           and (exists (
+                 select 1 from catalogue.job_datasets d where d.job_id = previous.id
+                   and d.dataset in ('ceramics.catalogue_item.v2', 'ceramics.catalogue_identity.v2')
+                   and d.state in ('succeeded', 'degraded') and d.complete
+               ) or (
+                 not exists (select 1 from catalogue.job_datasets d where d.job_id = previous.id)
+                 and (previous.state = 'succeeded' or (
+                   previous.summary->>'write_status' = 'replaced'
+                   and not coalesce((previous.summary->>'truncated')::boolean, false)
+                   and not coalesce((previous.summary->>'interrupted')::boolean, false)
+                 ))
+               ))
          order by previous.finished_at desc limit 1) as previous_records
   from catalogue.jobs j
   left join catalogue.job_progress p on p.job_id = j.id
@@ -92,6 +117,12 @@ returning id, source_id, state
 
 JOB = """
 select j.*, r.kind as run_kind,
+       coalesce((select jsonb_agg(to_jsonb(d) - 'job_id'
+                                 order by d.dataset, d.contract_version, d.projector_version)
+                   from catalogue.job_datasets d where d.job_id = j.id), '[]'::jsonb) as datasets,
+       coalesce((select jsonb_agg(to_jsonb(a) - 'job_id'
+                                 order by a.dataset, a.kind, a.published_at)
+                   from catalogue.job_artifacts a where a.job_id = j.id), '[]'::jsonb) as artifacts,
        p.phase, p.records, p.requests, p.rendered_pages, p.error_count,
        p.discovered, p.truncated, p.in_flight, p.updated_at as progress_at
   from catalogue.jobs j
@@ -112,17 +143,79 @@ select id, at, level, event, message, data
 """
 
 PREVIOUS_SUCCESSFUL_JOB = """
-select id, run_id, source_id, finished_at, artifact_path, artifact_sha256, artifact_size
-  from catalogue.jobs
- where source_id = %(source)s
-   and state = 'succeeded'
-   and artifact_path is not null
-   and summary->>'write_status' = 'replaced'
-   and not coalesce((summary->>'truncated')::boolean, false)
-   and not coalesce((summary->>'interrupted')::boolean, false)
-   and finished_at < %(finished)s
- order by finished_at desc
+select j.id, j.run_id, j.source_id, j.finished_at,
+       coalesce(a.location, j.artifact_path) as artifact_path,
+       coalesce(a.sha256, j.artifact_sha256) as artifact_sha256,
+       coalesce(a.size, j.artifact_size) as artifact_size
+  from catalogue.jobs j
+  left join lateral (
+    select a.location, a.sha256, a.size
+      from catalogue.job_datasets d
+      join catalogue.job_artifacts a
+        on (a.job_id, a.dataset, a.contract_version, a.projector_version) =
+           (d.job_id, d.dataset, d.contract_version, d.projector_version)
+     where d.job_id = j.id
+       and d.dataset in ('ceramics.catalogue_item.v2', 'ceramics.catalogue_identity.v2')
+       and d.state in ('succeeded', 'degraded') and d.complete and a.available
+     order by (d.dataset = 'ceramics.catalogue_item.v2') desc, a.published_at desc
+     limit 1
+  ) a on true
+ where j.source_id = %(source)s
+   and j.state in ('succeeded', 'degraded')
+   and j.finished_at < %(finished)s
+   and (a.location is not null or (
+     not exists (select 1 from catalogue.job_datasets d where d.job_id = j.id)
+     and j.artifact_path is not null
+     and j.summary->>'write_status' = 'replaced'
+     and not coalesce((j.summary->>'truncated')::boolean, false)
+     and not coalesce((j.summary->>'interrupted')::boolean, false)
+   ))
+ order by j.finished_at desc
  limit 1
+"""
+
+JOB_CERAMICS_ARTIFACT = """
+select j.id, j.run_id, j.source_id, j.finished_at,
+       coalesce(a.location, j.artifact_path) as artifact_path,
+       coalesce(a.sha256, j.artifact_sha256) as artifact_sha256,
+       coalesce(a.size, j.artifact_size) as artifact_size
+  from catalogue.jobs j
+  left join lateral (
+    select a.location, a.sha256, a.size
+      from catalogue.job_datasets d
+      join catalogue.job_artifacts a
+        on (a.job_id, a.dataset, a.contract_version, a.projector_version) =
+           (d.job_id, d.dataset, d.contract_version, d.projector_version)
+     where d.job_id = j.id
+       and d.dataset in ('ceramics.catalogue_item.v2', 'ceramics.catalogue_identity.v2')
+       and d.state in ('succeeded', 'degraded') and d.complete and a.available
+     order by (d.dataset = 'ceramics.catalogue_item.v2') desc, a.published_at desc
+     limit 1
+  ) a on true
+ where j.id = %(id)s
+   and j.state in ('succeeded', 'degraded') and j.finished_at is not null
+   and (a.location is not null or (
+     not exists (select 1 from catalogue.job_datasets d where d.job_id = j.id)
+     and j.artifact_path is not null
+     and j.summary->>'write_status' = 'replaced'
+     and not coalesce((j.summary->>'truncated')::boolean, false)
+     and not coalesce((j.summary->>'interrupted')::boolean, false)
+   ))
+"""
+
+JOB_DATASET_ARTIFACTS = """
+select j.id, j.run_id, j.source_id, j.finished_at, a.location as artifact_path,
+       a.sha256 as artifact_sha256, a.size as artifact_size,
+       d.dataset, d.contract_version, d.projector_version, a.kind
+  from catalogue.jobs j
+  join catalogue.job_datasets d on d.job_id = j.id
+  join catalogue.job_artifacts a
+    on (a.job_id, a.dataset, a.contract_version, a.projector_version) =
+       (d.job_id, d.dataset, d.contract_version, d.projector_version)
+ where j.id = %(id)s and d.dataset = %(dataset)s
+   and j.state in ('succeeded', 'degraded') and j.finished_at is not null
+   and d.state in ('succeeded', 'degraded') and d.complete and a.available
+ order by d.contract_version, d.projector_version, a.kind
 """
 
 # Conditional on the state, so pressing a button twice is a no-op rather than
@@ -172,7 +265,7 @@ update catalogue.jobs
        lease_expires_at = null,
        finished_at = null,
        scheduled_for = now()
- where id = %(id)s and state in ('failed', 'cancelled', 'succeeded', 'skipped')
+ where id = %(id)s and state in ('failed', 'degraded', 'cancelled', 'succeeded', 'skipped')
 returning id, run_id, source_id
 """
 
@@ -242,18 +335,36 @@ with known as (
   select source_id from catalogue.jobs
   union
   select source_id from catalogue.source_settings
-),
-history as (
+), eligible as (
+  select j.*,
+         coalesce((select max(d.records)::int from catalogue.job_datasets d
+                    where d.job_id = j.id
+                      and d.dataset in ('ceramics.catalogue_item.v2', 'ceramics.catalogue_identity.v2')
+                      and d.state in ('succeeded', 'degraded') and d.complete),
+                  (j.summary->>'records')::int) as usable_records
+    from catalogue.jobs j
+   where j.state in ('succeeded', 'degraded')
+     and (exists (
+       select 1 from catalogue.job_datasets d where d.job_id = j.id
+         and d.dataset in ('ceramics.catalogue_item.v2', 'ceramics.catalogue_identity.v2')
+         and d.state in ('succeeded', 'degraded') and d.complete
+     ) or (not exists (select 1 from catalogue.job_datasets d where d.job_id = j.id)
+           and (j.state = 'succeeded' or (
+             j.summary->>'write_status' = 'replaced'
+             and not coalesce((j.summary->>'truncated')::boolean, false)
+             and not coalesce((j.summary->>'interrupted')::boolean, false)
+           ))))
+), history as (
   select j.source_id,
-         max(j.finished_at) filter (where j.state = 'succeeded') as last_success_at,
-         (array_agg((j.summary->>'records')::int order by j.finished_at desc)
-           filter (where j.state = 'succeeded'))[1] as last_records,
-         (array_agg((j.summary->>'records')::int order by j.finished_at desc)
-           filter (where j.state = 'succeeded'))[2] as previous_records,
-         (array_agg(j.id order by j.finished_at desc)
-           filter (where j.state = 'succeeded'))[1] as last_job_id,
-         (array_agg(j.run_id order by j.finished_at desc)
-           filter (where j.state = 'succeeded'))[1] as last_run_id,
+         max(j.finished_at) as last_success_at,
+         (array_agg(j.usable_records order by j.finished_at desc))[1] as last_records,
+         (array_agg(j.usable_records order by j.finished_at desc))[2] as previous_records,
+         (array_agg(j.id order by j.finished_at desc))[1] as last_job_id,
+         (array_agg(j.run_id order by j.finished_at desc))[1] as last_run_id
+    from eligible j
+   group by j.source_id
+), activity as (
+  select j.source_id,
          count(*) filter (where j.finished_at > now() - interval '7 days') as runs_7d,
          count(*) filter (where j.state = 'failed'
                             and j.finished_at > now() - interval '7 days') as failures_7d
@@ -270,11 +381,12 @@ select k.source_id,
        h.previous_records,
        h.last_job_id,
        h.last_run_id,
-       coalesce(h.runs_7d, 0)     as runs_7d,
-       coalesce(h.failures_7d, 0) as failures_7d,
+       coalesce(a.runs_7d, 0)     as runs_7d,
+       coalesce(a.failures_7d, 0) as failures_7d,
        extract(epoch from (now() - h.last_success_at)) as staleness_seconds
   from known k
   left join history h on h.source_id = k.source_id
+  left join activity a on a.source_id = k.source_id
   left join catalogue.source_settings t on t.source_id = k.source_id
  order by k.source_id
 """
@@ -370,7 +482,7 @@ async def queue_depth(connection: Connection) -> dict[str, int]:
     rows = await all_rows(
         connection,
         "select state, count(*) as n from catalogue.jobs "
-        "where state not in ('succeeded','cancelled','skipped') group by state",
+        "where state not in ('succeeded','degraded','failed','cancelled','skipped') group by state",
     )
     return {row["state"]: int(row["n"]) for row in rows}
 

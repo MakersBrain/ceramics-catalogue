@@ -20,7 +20,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BrowserPolicy = Literal["never", "auto", "always"]
@@ -39,6 +39,15 @@ ImpersonatePolicy = Literal["never", "auto"]
 RobotsPolicy = Literal["obey", "ignore"]
 CacheMode = Literal["off", "auto", "replay", "refresh"]
 RefreshMode = Literal["price", "full"]
+PipelineMode = Literal["legacy", "connector_canary"]
+DatasetSelection = Literal[
+    "ceramics",
+    "ceramics.catalogue_item.v2",
+    "ceramics.catalogue_identity.v2",
+    "commerce.price_observation.v1",
+    "commerce.stock_observation.v1",
+    "commerce.document.v1",
+]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 
 #: Seconds one source may run before the crawl gives up on it. Generous, because
@@ -80,6 +89,13 @@ class CrawlParams(BaseModel):
     #: ends in a transient transport failure. Off by default: freshness must
     #: never be weakened silently.
     stale_on_error: bool = False
+    #: Explicit migration selector. Legacy remains the default; the connector
+    #: pipeline is enabled only on a deliberately requested canary run.
+    pipeline: PipelineMode = "legacy"
+    #: Versioned outputs requested from the connector pipeline. ``ceramics`` is
+    #: the compatibility alias for the source's current catalogue/identity
+    #: output, preserving the pre-migration default.
+    datasets: tuple[DatasetSelection, ...] = ("ceramics",)
     #: Daily structured-API runs keep identity/offer fields; weekly runs own
     #: descriptive enrichment. The loader preserves enrichment on price rows.
     refresh_mode: RefreshMode = "full"
@@ -112,7 +128,24 @@ class CrawlParams(BaseModel):
         """
         if self.cache_mode == "replay" and self.browser == "always":
             raise ValueError("cache_mode=replay cannot be combined with browser=always")
+        if self.pipeline == "legacy" and self.datasets != ("ceramics",):
+            raise ValueError("versioned dataset selection requires pipeline=connector_canary")
         return self
+
+    @field_validator("datasets")
+    @classmethod
+    def _datasets_are_nonempty_and_unique(
+        cls, value: tuple[DatasetSelection, ...]
+    ) -> tuple[DatasetSelection, ...]:
+        if not value:
+            raise ValueError("at least one dataset must be selected")
+        if len(value) != len(set(value)):
+            raise ValueError("datasets must not contain duplicates")
+        if "ceramics" in value and any(name.startswith("ceramics.") for name in value):
+            raise ValueError("ceramics alias cannot be combined with a versioned ceramics dataset")
+        if sum(name.startswith("ceramics.") or name == "ceramics" for name in value) > 1:
+            raise ValueError("at most one ceramics dataset may be selected")
+        return value
 
     def timeout_for(self, source_timeout: float | None) -> float:
         """The deadline for one source: the stricter of its own and the run's."""
@@ -139,6 +172,8 @@ class CrawlParams(BaseModel):
             cache_mode=options.cache_mode if options.cache else "off",
             cache_max_age_hours=options.cache_max_age,
             stale_on_error=getattr(options, "stale_on_error", False),
+            pipeline=getattr(options, "pipeline", "legacy"),
+            datasets=tuple(getattr(options, "datasets", None) or ("ceramics",)),
             refresh_mode=getattr(options, "refresh_mode", "full"),
             source_timeout_seconds=options.source_timeout,
             log_level=options.log_level,
@@ -208,6 +243,17 @@ class Settings(BaseSettings):
     #: four jobs with a browser apiece is how a three-second render became nine
     #: minutes on 2026-08-10.
     browser_pages: int = 2
+    #: Optional operator-owned CDP configuration. Crawl/job parameters carry
+    #: only a logical profile name; connection URLs and tokens never enter the
+    #: queue. The pool allocates a disposable instance for each job.
+    cdp_profiles_file: Path | None = None
+    cdp_secrets_file: Path | None = None
+    cdp_pool_endpoint: str | None = None
+    cdp_pool_trusted_hostnames: frozenset[str] = frozenset()
+    cdp_pool_token_secret_ref: str = "cdp/pool_token"
+    cdp_default_profile: str | None = None
+    cdp_worker_pool: str = "browser-cdp"
+    cdp_production: bool = True
     #: Bearer token `catalogue-control` requires on every /v1 route.
     control_token: str = ""
 

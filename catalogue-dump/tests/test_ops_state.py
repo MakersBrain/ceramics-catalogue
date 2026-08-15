@@ -19,12 +19,23 @@ import pytest
 
 from mb_ceramics_catalogue import scrapers
 from mb_ceramics_catalogue.config.sources import SourcesFile
-from mb_ceramics_catalogue.ops import events, leases, runs
+from mb_ceramics_catalogue.connectors.base import CollectionRequest, EntityPage, RefreshMode, SnapshotField
+from mb_ceramics_catalogue.connectors.prestashop import (
+    PrestaShopConnector,
+    PrestaShopOptions,
+    declared_partition_keys,
+)
+from mb_ceramics_catalogue.connectors.shopify import ShopifyConnector, ShopifyOptions
+from mb_ceramics_catalogue.ops import events, leases, outputs, runs
 from mb_ceramics_catalogue.ops.sink import JobLogHandler, PostgresSink
+from mb_ceramics_catalogue.pipeline.outputs import BatchIdentity, LocalArtifactStore, StoredBatch
+from mb_ceramics_catalogue.pipeline.runner import DatasetPageOutcome, DatasetPageState
 from mb_ceramics_catalogue.scrapers.activity import CURRENT_JOB
 from mb_ceramics_catalogue.storage import db as storage_db
 
 from .conftest import requires_postgres
+from .test_prestashop_connector import Transport as PrestaTransport
+from .test_shopify_connector import FakeFetcher as ShopifyFetcher
 
 pytestmark = [pytest.mark.postgres, requires_postgres]
 
@@ -169,6 +180,29 @@ class TestRunClosure:
         jobs = await runs.create_jobs(db, run_id, SOURCES, ["ceradel"])
         result = await runs.finish_job(db, jobs["ceradel"], state="failed", summary={"records": 0})
         assert result["status"] == "failed"
+
+    async def test_a_degraded_job_is_terminal_and_counted_separately(self, db):
+        run_id = await runs.create_run(db)
+        jobs = await runs.create_jobs(db, run_id, SOURCES, ["ceradel"])
+        result = await runs.finish_job(
+            db, jobs["ceradel"], state="degraded", summary={"records": 9, "requests": 2}
+        )
+        assert result == {
+            "status": "degraded", "succeeded": 0, "degraded": 1, "failed": 0,
+            "cancelled": 0, "skipped": 0, "records": 9, "requests": 2,
+        }
+        stored = await rows(db, "select state from catalogue.jobs where id = %s", (jobs["ceradel"],))
+        assert stored[0]["state"] == "degraded"
+
+    async def test_a_degraded_job_does_not_leave_a_run_open(self, db):
+        run_id = await runs.create_run(db)
+        jobs = await runs.create_jobs(db, run_id, SOURCES, ["les-cousins", "ceradel"])
+        await runs.finish_job(db, jobs["les-cousins"], state="succeeded", summary={"records": 1})
+        result = await runs.finish_job(db, jobs["ceradel"], state="degraded", summary={"records": 1})
+        assert result is not None
+        assert result["status"] == "degraded"
+        assert result["succeeded"] == 1
+        assert result["degraded"] == 1
 
     async def test_closing_a_run_promotes_what_it_collected(self, db):
         """A loaded source is only half the point.
@@ -497,6 +531,355 @@ class TestImportRunLink:
         assert len(found) == 1
 
 
+class TestCheckpointOutputs:
+    async def connector_lineage(self, db, connector, partitions):
+        run_id = await runs.create_run(db)
+        job_id = (await runs.create_jobs(db, run_id, SOURCES, ["ceradel"]))["ceradel"]
+        lineage = await outputs.create_lineage(
+            db, job_id, source_id="ceradel", source_url="https://shop.test/",
+            connector=connector, connector_version="1",
+            connector_configuration={"partitions": list(partitions)},
+            connector_config_fingerprint="a" * 64, dataset_fingerprint="b" * 64,
+            dataset_selection=[],
+        )
+        return job_id, lineage
+
+    async def test_shopify_crash_between_partitions_resumes_without_refetch(self, db):
+        partitions = ("zeta", "alpha")
+        job_id, lineage = await self.connector_lineage(db, "shopify", partitions)
+        request = CollectionRequest(
+            source_id="ceradel", base_url="https://shop.test/", refresh_mode=RefreshMode.FULL,
+            requested_fields=frozenset({SnapshotField.IDENTITY}), collections=partitions,
+        )
+        first_fetcher = ShopifyFetcher([{"products": []}])
+        first = await anext(ShopifyConnector(first_fetcher, ShopifyOptions()).collect(request))
+        assert first.partition_key == "zeta" and first.partition_terminal and not first.terminal
+        committer = outputs.PostgresPageCommitter(db, job_id, lineage, "1", {})
+        await committer.commit_page(first, [], [])
+        checkpoint = await outputs.resume_checkpoint(db, job_id, lineage)
+        assert checkpoint is not None
+        assert checkpoint.resume_after == {"partition": "alpha", "page": 1}
+
+        resumed_fetcher = ShopifyFetcher([{"products": []}])
+        resumed = [
+            page async for page in ShopifyConnector(
+                resumed_fetcher, ShopifyOptions()
+            ).collect(request, checkpoint)
+        ]
+        assert [page.partition_key for page in resumed] == ["alpha"]
+        await committer.commit_page(resumed[0], [], [])
+        checksum = await outputs.lineage_checksum(db, job_id, lineage)
+        await outputs.complete_lineage(
+            db, job_id, lineage, expected_partitions=partitions, checksum=checksum
+        )
+
+    async def test_prestashop_crash_between_hashed_roots_resumes_exactly(self, db):
+        categories = ("https://shop.test/zeta", "https://shop.test/alpha")
+        options = PrestaShopOptions(
+            category_urls=categories, use_advertised_sitemaps=False,
+            product_pattern=r"/product/", variant_combinations=False,
+        )
+        partitions = declared_partition_keys(options, "https://shop.test/")
+        job_id, lineage = await self.connector_lineage(db, "prestashop", partitions)
+        documents = {
+            categories[0]: '<a href="/product/1.html">one</a>',
+            categories[1]: '<a href="/product/2.html">two</a>',
+            "https://shop.test/product/1.html": "<html></html>",
+            "https://shop.test/product/2.html": "<html></html>",
+        }
+        request = CollectionRequest(
+            source_id="ceradel", base_url="https://shop.test/", refresh_mode=RefreshMode.FULL,
+            requested_fields=frozenset({SnapshotField.IDENTITY}),
+        )
+        first_transport = PrestaTransport(documents)
+        first = await anext(PrestaShopConnector(first_transport, options).collect(request))
+        assert first.partition_key == partitions[0] and first.partition_terminal
+        committer = outputs.PostgresPageCommitter(db, job_id, lineage, "1", {})
+        await committer.commit_page(first, [], [])
+        checkpoint = await outputs.resume_checkpoint(db, job_id, lineage)
+        assert checkpoint is not None
+        assert checkpoint.resume_after == {
+            "partition": partitions[1], "offset": 0, "sequence": 1
+        }
+
+        resumed_transport = PrestaTransport(documents)
+        resumed = [
+            page async for page in PrestaShopConnector(
+                resumed_transport, options
+            ).collect(request, checkpoint)
+        ]
+        assert [page.partition_key for page in resumed] == [partitions[1]]
+        assert not any(call[0].endswith("/product/1.html") for call in resumed_transport.calls)
+        await committer.commit_page(resumed[0], [], [])
+        checksum = await outputs.lineage_checksum(db, job_id, lineage)
+        await outputs.complete_lineage(
+            db, job_id, lineage, expected_partitions=partitions, checksum=checksum
+        )
+
+    async def prepared(self, db):
+        run_id = await runs.create_run(db)
+        jobs = await runs.create_jobs(db, run_id, SOURCES, ["ceradel"])
+        job_id = jobs["ceradel"]
+        key = outputs.DatasetKey("ceramics", "v2", "projector-1")
+        await outputs.declare_dataset(db, job_id, key)
+        lineage = await outputs.create_lineage(
+            db,
+            job_id,
+            source_id="ceradel",
+            source_url="https://ceradel.fr/",
+            connector="shopify",
+            connector_version="1",
+            connector_config_fingerprint="c" * 64,
+            dataset_fingerprint="d" * 64,
+            dataset_selection=[{"dataset": "ceramics", "contract_version": "v2"}],
+        )
+        return job_id, key, lineage
+
+    async def test_replaying_an_identical_page_is_idempotent(self, db):
+        job_id, key, lineage = await self.prepared(db)
+        batch = outputs.PageBatch(key, "stage/page-0", "e" * 64, 20, 2)
+        arguments = {
+            "partition_key": "catalogue",
+            "page_id": "page-0",
+            "page_sequence": 0,
+            "resume_after": {"cursor": 1},
+            "terminal": False,
+            "enumeration_intact": True,
+            "connector_version": "1",
+            "batches": [batch],
+        }
+        assert await outputs.commit_page(db, job_id, lineage, **arguments)
+        assert not await outputs.commit_page(db, job_id, lineage, **arguments)
+        stored = await rows(db, "select records from catalogue.job_datasets where job_id = %s", (job_id,))
+        assert stored[0]["records"] == 2
+
+    async def test_a_replayed_page_with_different_output_is_rejected(self, db):
+        job_id, key, lineage = await self.prepared(db)
+        common = {
+            "partition_key": "catalogue", "page_id": "page-0", "page_sequence": 0,
+            "resume_after": None, "terminal": True, "enumeration_intact": True,
+            "connector_version": "1",
+        }
+        await outputs.commit_page(
+            db, job_id, lineage,
+            batches=[outputs.PageBatch(key, "stage/page-0", "e" * 64, 20, 2)], **common,
+        )
+        with pytest.raises(ValueError, match="differs"):
+            await outputs.commit_page(
+                db, job_id, lineage,
+                batches=[outputs.PageBatch(key, "stage/page-0", "f" * 64, 20, 2)], **common,
+            )
+
+    async def test_page_sequence_must_advance_and_terminal_stops_the_partition(self, db):
+        job_id, _, lineage = await self.prepared(db)
+        await outputs.commit_page(
+            db, job_id, lineage, partition_key="catalogue", page_id="page-2",
+            page_sequence=2, resume_after={"cursor": 2}, terminal=False,
+            enumeration_intact=True, connector_version="1", batches=[],
+        )
+        with pytest.raises(ValueError, match="monotonically"):
+            await outputs.commit_page(
+                db, job_id, lineage, partition_key="catalogue", page_id="page-1",
+                page_sequence=1, resume_after={"cursor": 1}, terminal=False,
+                enumeration_intact=True, connector_version="1", batches=[],
+            )
+        await outputs.commit_page(
+            db, job_id, lineage, partition_key="catalogue", page_id="page-3",
+            page_sequence=3, resume_after=None, terminal=True,
+            enumeration_intact=True, connector_version="1", batches=[],
+        )
+        with pytest.raises(ValueError, match="terminal"):
+            await outputs.commit_page(
+                db, job_id, lineage, partition_key="catalogue", page_id="page-4",
+                page_sequence=4, resume_after=None, terminal=True,
+                enumeration_intact=True, connector_version="1", batches=[],
+            )
+        assert await outputs.complete_lineage(
+            db, job_id, lineage, expected_partitions={"catalogue"}, checksum="f" * 64
+        )
+        assert not await outputs.complete_lineage(
+            db, job_id, lineage, expected_partitions={"catalogue"}, checksum="f" * 64
+        )
+
+    def test_dataset_states_aggregate_without_hiding_partial_success(self):
+        assert outputs.aggregate_job_state(["succeeded", "succeeded"]) == "succeeded"
+        assert outputs.aggregate_job_state(["succeeded", "failed"]) == "degraded"
+        assert outputs.aggregate_job_state(["failed", "failed"]) == "failed"
+        assert outputs.aggregate_job_state(["succeeded"], cancelled=True) == "cancelled"
+
+    async def test_pipeline_committer_supports_resume_and_ordered_reconstruction(self, db):
+        job_id, key, lineage = await self.prepared(db)
+        committer = outputs.PostgresPageCommitter(
+            db, job_id, lineage, "1", {key.dataset: key}
+        )
+        first = StoredBatch(
+            "stage/page-0", "1" * 64, 10, 1,
+            BatchIdentity(
+                str(job_id), str(lineage), "main", "page-0", 0,
+                key.dataset, key.contract_version, key.projector_version,
+            ),
+        )
+        page = EntityPage(
+            page_id="page-0", partition_key="main", sequence=0, items=(),
+            resume_after={"page": 2}, terminal=False, discovered=0,
+        )
+        outcome = DatasetPageOutcome(key.dataset, DatasetPageState.SUCCEEDED, records=1)
+        await committer.commit_page(page, [first], [outcome])
+        checkpoint = await outputs.resume_checkpoint(db, job_id, lineage)
+        assert checkpoint is not None and checkpoint.resume_after == {"page": 2}
+        assert await outputs.reconstruct_batches(db, job_id, lineage, key) == [first]
+
+        # A crash after commit replays the same page. It must neither duplicate
+        # records nor accept a changed projector outcome.
+        await committer.commit_page(page, [first], [outcome])
+        stored = await rows(db, "select records from catalogue.job_datasets where job_id = %s", (job_id,))
+        assert stored[0]["records"] == 1
+        with pytest.raises(ValueError, match="outcomes"):
+            await committer.commit_page(
+                page, [first],
+                [DatasetPageOutcome(key.dataset, DatasetPageState.SUCCEEDED, records=0)],
+            )
+
+    async def test_resume_uses_the_connector_owned_next_partition_cursor(self, db):
+        job_id, key, lineage = await self.prepared(db)
+        await db.execute(
+            "update catalogue.job_checkpoint_lineages "
+            "set connector_configuration = '{\"partitions\":[\"first\",\"second\"]}'::jsonb "
+            "where job_id = %s and checkpoint_lineage = %s",
+            (job_id, lineage),
+        )
+        committer = outputs.PostgresPageCommitter(
+            db, job_id, lineage, "1", {key.dataset: key}
+        )
+        page = EntityPage(
+            page_id="first:1", partition_key="first", sequence=0, items=(),
+            resume_after={"partition": "second", "offset": 0, "sequence": 1},
+            terminal=False, partition_terminal=True, discovered=0,
+        )
+        batch = StoredBatch(
+            "stage/first", "2" * 64, 10, 0,
+            BatchIdentity(
+                str(job_id), str(lineage), "first", "first:1", 0,
+                key.dataset, key.contract_version, key.projector_version,
+            ),
+        )
+        await committer.commit_page(
+            page, [batch],
+            [DatasetPageOutcome(key.dataset, DatasetPageState.SUCCEEDED, records=0)],
+        )
+        checkpoint = await outputs.resume_checkpoint(db, job_id, lineage)
+        assert checkpoint is not None
+        assert checkpoint.resume_after == {
+            "partition": "second", "offset": 0, "sequence": 1
+        }
+
+    async def test_failed_projector_is_persisted_and_later_skip_is_sticky(self, db):
+        job_id, key, lineage = await self.prepared(db)
+        committer = outputs.PostgresPageCommitter(
+            db, job_id, lineage, "1", {key.dataset: key}
+        )
+        failed = EntityPage(
+            page_id="page-0", sequence=0, items=(), resume_after={"page": 2},
+            terminal=False, discovered=0,
+        )
+        await committer.commit_page(
+            failed, [],
+            [DatasetPageOutcome(key.dataset, DatasetPageState.FAILED, error="boom")],
+        )
+        later = EntityPage(
+            page_id="page-1", sequence=1, items=(), resume_after=None,
+            terminal=True, discovered=0,
+        )
+        await committer.commit_page(
+            later, [], [DatasetPageOutcome(key.dataset, DatasetPageState.SKIPPED)]
+        )
+        stored = await rows(
+            db,
+            "select state, error from catalogue.job_datasets where job_id = %s",
+            (job_id,),
+        )
+        assert stored == [{"state": "failed", "error": "boom"}]
+
+    async def test_publication_recovers_after_object_write_before_database_registration(
+        self, db, tmp_path
+    ):
+        job_id, key, lineage = await self.prepared(db)
+        store = LocalArtifactStore(tmp_path)
+        identity = BatchIdentity(
+            str(job_id), str(lineage), "main", "page-0", 0,
+            key.dataset, key.contract_version, key.projector_version,
+        )
+        staged = store.stage_batch(identity, [{"value": "durable"}])
+        committer = outputs.PostgresPageCommitter(
+            db, job_id, lineage, "1", {key.dataset: key}
+        )
+        page = EntityPage(
+            page_id="page-0", sequence=0, items=(), resume_after=None,
+            terminal=True, discovered=0,
+        )
+        await committer.commit_page(
+            page, [staged],
+            [DatasetPageOutcome(key.dataset, DatasetPageState.SUCCEEDED, records=1)],
+        )
+        checksum = await outputs.lineage_checksum(db, job_id, lineage)
+        await outputs.complete_lineage(
+            db, job_id, lineage, expected_partitions={"main"}, checksum=checksum
+        )
+
+        # Simulated crash boundary: publication reached the artifact store but
+        # no job_artifacts row was committed. Retry compacts to the same object.
+        orphan = store.publish_dataset(str(job_id), key.dataset, key.contract_version, [staged])
+        published = await outputs.publish_dataset(db, store, job_id, lineage, key)
+        assert published == orphan
+        assert await outputs.publish_dataset(db, store, job_id, lineage, key) == orphan
+        registered = await rows(db, "select location from catalogue.job_artifacts where job_id = %s", (job_id,))
+        assert registered == [{"location": orphan.location}]
+
+    async def test_reconstruction_preserves_nonlexical_declared_partition_order(
+        self, db, tmp_path
+    ):
+        job_id, key, lineage = await self.prepared(db)
+        await db.execute(
+            "update catalogue.job_checkpoint_lineages "
+            "set connector_configuration = '{\"partitions\":[\"zeta\",\"alpha\"]}'::jsonb "
+            "where job_id = %s and checkpoint_lineage = %s",
+            (job_id, lineage),
+        )
+        store = LocalArtifactStore(tmp_path)
+        committer = outputs.PostgresPageCommitter(
+            db, job_id, lineage, "1", {key.dataset: key}
+        )
+        committed = []
+        for partition, value, terminal in (
+            ("zeta", "first", False), ("alpha", "second", True)
+        ):
+            identity = BatchIdentity(
+                str(job_id), str(lineage), partition, f"{partition}:0", 0,
+                key.dataset, key.contract_version, key.projector_version,
+            )
+            batch = store.stage_batch(identity, [{"value": value}])
+            committed.append(batch)
+            await committer.commit_page(
+                EntityPage(
+                    page_id=f"{partition}:0", partition_key=partition, sequence=0,
+                    items=(),
+                    resume_after=(
+                        {"partition": "alpha", "offset": 0, "sequence": 0}
+                        if not terminal else None
+                    ),
+                    terminal=terminal, partition_terminal=True, discovered=0,
+                ),
+                [batch],
+                [DatasetPageOutcome(key.dataset, DatasetPageState.SUCCEEDED, records=1)],
+            )
+        rebuilt = await outputs.reconstruct_batches(db, job_id, lineage, key)
+        assert [batch.location for batch in rebuilt] == [batch.location for batch in committed]
+        checksum = await outputs.lineage_checksum(db, job_id, lineage)
+        await outputs.complete_lineage(
+            db, job_id, lineage, expected_partitions=("zeta", "alpha"), checksum=checksum
+        )
+
+
 class TestScheduleDefault:
     async def test_the_daily_run_refreshes_rather_than_replaying(self, db):
         """A daily price run under the old seven-day cache default would replay
@@ -526,3 +909,59 @@ class TestSchemaMigration:
         assert await storage_db.apply_schema(db) == []
         applied = await rows(db, "select filename from catalogue.schema_migrations")
         assert {row["filename"] for row in applied} == set(storage_db.SCHEMA_FILES)
+
+    async def test_multi_dataset_page_and_artifact_schema_enforces_identity(self, db):
+        run_id = await runs.create_run(db)
+        jobs = await runs.create_jobs(db, run_id, SOURCES, ["ceradel"])
+        job_id = jobs["ceradel"]
+        lineage = uuid4()
+        digest = "a" * 64
+        await db.execute(
+            "insert into catalogue.job_datasets "
+            "(job_id, dataset, contract_version, projector_version) "
+            "values (%s, 'ceramics', 'v2', 'legacy')",
+            (job_id,),
+        )
+        await db.execute(
+            """insert into catalogue.job_checkpoint_lineages
+                         (job_id, checkpoint_lineage, source_id, connector, connector_version,
+                          source_url, connector_config_fingerprint, dataset_fingerprint)
+                  values (%s, %s, 'ceradel', 'shopify', '1', 'https://ceradel.fr/', %s, %s)""",
+            (job_id, lineage, digest, digest),
+        )
+        await db.execute(
+            """insert into catalogue.job_pages
+                         (job_id, checkpoint_lineage, partition_key, page_sequence, page_id,
+                          resume_after, terminal, enumeration_intact, connector_version)
+                  values (%s, %s, 'catalogue', 0, 'page-0', '{"cursor":1}', false, true, '1')""",
+            (job_id, lineage),
+        )
+        await db.execute(
+            """insert into catalogue.job_page_batches
+                         (job_id, checkpoint_lineage, partition_key, page_id, page_sequence, dataset,
+                          contract_version, projector_version, object_key, sha256, size, records)
+                  values (%s, %s, 'catalogue', 'page-0', 0, 'ceramics', 'v2', 'legacy',
+                          'staged/job/page-0', %s, 12, 1)""",
+            (job_id, lineage, digest),
+        )
+        await db.execute(
+            """insert into catalogue.job_artifacts
+                         (job_id, dataset, contract_version, projector_version, kind,
+                          location, sha256, size)
+                  values (%s, 'ceramics', 'v2', 'legacy', 'ndjson',
+                          'published/job/ceramics.ndjson', %s, 12)""",
+            (job_id, digest),
+        )
+
+        stored = await rows(
+            db,
+            "select p.partition_key, p.page_sequence, b.object_key, a.location "
+            "from catalogue.job_pages p join catalogue.job_page_batches b using "
+            "(job_id, checkpoint_lineage, partition_key, page_id) "
+            "join catalogue.job_artifacts a using (job_id) where p.job_id = %s",
+            (job_id,),
+        )
+        assert stored == [{
+            "partition_key": "catalogue", "page_sequence": 0,
+            "object_key": "staged/job/page-0", "location": "published/job/ceramics.ndjson",
+        }]

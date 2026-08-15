@@ -12,15 +12,21 @@ import time
 import urllib.robotparser
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from collections.abc import Iterator
-from contextlib import contextmanager
+from collections.abc import AsyncIterator, Iterator
+from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import urljoin, urlparse
 
 import httpx
 
 from mb_ceramics_catalogue.proxy import ProxyDenied
+from mb_ceramics_catalogue.transports.browser import (
+    BrowserJobContext,
+    BrowserSession,
+    BrowserUnavailable,
+    TransportBlocked,
+)
 
 if TYPE_CHECKING:
     from mb_ceramics_catalogue.proxy import ProxyLease
@@ -36,8 +42,9 @@ USER_AGENT = "AtelieraCatalogueResearch/1.0 (+catalogue import; contact operator
 BROWSER_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
 
 
-class Blocked(Exception):
-    """Raised when a site's own rules or defences stop a fetch."""
+# Compatibility export for legacy scrapers and callers.  The exception is
+# transport-owned so low-level backends never need to import this module.
+Blocked = TransportBlocked
 
 
 #: Block pages that arrive with a 200. Matched against the document title only,
@@ -99,21 +106,6 @@ class NotCached(Blocked):
     A subclass of Blocked so a replay gap is handled exactly like any other
     reason a page could not be read: the source records it and carries on
     instead of the run dying on the first missing entry.
-    """
-
-
-class BrowserUnavailable(Exception):
-    """Raised when this process cannot start a browser at all.
-
-    Deliberately **not** a Blocked: a Blocked is the site refusing this page,
-    which the source records and carries on from. This is the process being
-    wrong for the job — no camoufox in the image — and it will be just as true
-    for every remaining page, so it has to escape the per-page handlers and the
-    catch-all in `run_source` to reach the worker, which requeues the job for a
-    worker that does have a browser (§5.5).
-
-    A source's pages are not at fault here, so nothing raising this may count as
-    a failed attempt against the source.
     """
 
 
@@ -541,6 +533,8 @@ class BrowserRenderer:
     everywhere and hid the cost of the extra instances.
     """
 
+    backend: Literal["camoufox"] = "camoufox"
+
     def __init__(
         self, enabled: bool, pages: int = 1, proxy_lease: ProxyLease | None = None,
     ) -> None:
@@ -717,6 +711,102 @@ class BrowserRenderer:
             await self.manager.__aexit__(None, None, None)
             self.manager = self.browser = None
 
+    async def shutdown(self) -> None:
+        """Implement the process-owned :class:`BrowserBackend` contract."""
+        await self.close()
+
+    @asynccontextmanager
+    async def open_session(
+        self, job: BrowserJobContext | None = None,
+    ) -> AsyncIterator[BrowserSession]:
+        """Open a job-owned view over this shared Camoufox process.
+
+        `job` is intentionally unused by Camoufox, but accepted so this backend
+        has the same lifecycle contract as externally provisioned CDP sessions.
+        Each view owns its persistent origin pages; sequential or concurrent
+        jobs therefore never inherit page cookies through a reused tab.
+        """
+        session = CamoufoxBrowserSession(self)
+        try:
+            yield session
+        finally:
+            await session.close()
+
+
+class CamoufoxBrowserSession:
+    """Job-scoped pages backed by a process-scoped :class:`BrowserRenderer`."""
+
+    def __init__(self, backend: BrowserRenderer) -> None:
+        self.backend = backend
+        self._pages: dict[str, Any] = {}
+        self._page_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        self._closed = False
+
+    async def render(
+        self, url: str, wait_ms: int = 1500, wait_for: str | None = None,
+    ) -> str:
+        self._ensure_open()
+        return await self.backend.render(url, wait_ms, wait_for)
+
+    async def evaluate(
+        self, url: str, script: str, wait_ms: int = 2000,
+        wait_for: str | None = None,
+    ) -> Any:
+        self._ensure_open()
+        return await self.backend.evaluate(url, script, wait_ms, wait_for)
+
+    async def request_json(
+        self, page_url: str, endpoint: str, *, method: str = "POST",
+        headers: dict[str, str] | None = None, body: Any = None,
+    ) -> Any:
+        self._ensure_open()
+        if not self.backend.enabled:
+            raise Blocked("browser rendering disabled (use --browser auto or always)")
+        origin = urlparse(page_url).netloc
+        async with self.backend.pages, self._page_locks[origin]:
+            await self.backend._started()
+            page = self._pages.get(origin)
+            if page is None or page.is_closed():
+                page = await self.backend.browser.new_page()
+                await self.backend._meter_page(page)
+                await page.goto(page_url, wait_until="domcontentloaded", timeout=45_000)
+                self._pages[origin] = page
+            result = await page.evaluate(
+                """async ({endpoint, method, headers, body}) => {
+                    const response = await fetch(endpoint, {
+                        method, headers,
+                        body: body === null ? undefined : JSON.stringify(body),
+                        credentials: 'include',
+                    });
+                    return {status: response.status, text: await response.text()};
+                }""",
+                {"endpoint": endpoint, "method": method, "headers": headers or {}, "body": body},
+            )
+            if result["status"] >= 400:
+                raise Blocked(
+                    f"{endpoint} returned {result['status']} in the browser context: "
+                    f"{result['text'][:400]}"
+                )
+            try:
+                return json_lib.loads(result["text"])
+            except json_lib.JSONDecodeError as error:
+                raise Blocked(
+                    f"{endpoint} did not return JSON in the browser context"
+                ) from error
+
+    def _ensure_open(self) -> None:
+        if self._closed:
+            raise BrowserUnavailable("browser session is closed")
+
+    async def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        pages, self._pages = list(self._pages.values()), {}
+        for page in pages:
+            if not page.is_closed():
+                await page.close()
+
 
 def _headers_size(headers: Any) -> int:
     return sum(len(str(name).encode()) + len(str(value).encode()) + 4 for name, value in headers.items())
@@ -794,7 +884,7 @@ class Fetcher:
         self,
         client: httpx.AsyncClient,
         limiter: HostLimiter,
-        browser: BrowserRenderer,
+        browser: BrowserSession,
         browser_policy: str = "auto",
         cache: ResponseCache | None = None,
         impersonate_policy: str = "auto",

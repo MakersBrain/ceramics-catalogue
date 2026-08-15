@@ -19,8 +19,8 @@ class ArtifactError(ValueError):
     """An artifact cannot safely be used for a comparison."""
 
 
-def read_artifact(root: Path, recorded: str, expected_sha256: str | None) -> dict[str, dict[str, Any]]:
-    """Read one artifact, constrained to the configured read-only artifact root."""
+def resolve_artifact(root: Path, recorded: str, expected_sha256: str | None) -> Path:
+    """Resolve a verified artifact without allowing a path to escape its root."""
     base = root.resolve()
     candidate = Path(recorded)
     path = candidate.resolve() if candidate.is_absolute() else (base / candidate).resolve()
@@ -37,6 +37,13 @@ def read_artifact(root: Path, recorded: str, expected_sha256: str | None) -> dic
     digest = hashlib.sha256(body).hexdigest()
     if expected_sha256 and digest != expected_sha256:
         raise ArtifactError("artifact checksum does not match the job record")
+    return path
+
+
+def read_artifact(root: Path, recorded: str, expected_sha256: str | None) -> dict[str, dict[str, Any]]:
+    """Read one artifact, constrained to the configured read-only artifact root."""
+    path = resolve_artifact(root, recorded, expected_sha256)
+    body = path.read_bytes()
 
     try:
         decoded = gzip.decompress(body) if path.name.endswith(".gz") else body

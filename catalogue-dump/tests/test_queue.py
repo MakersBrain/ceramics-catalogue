@@ -143,6 +143,51 @@ class TestClaiming:
 
 class TestCapabilities:
 
+    async def test_requires_any_defaults_to_an_empty_non_null_group(self, db):
+        worker = await register_worker(db)
+        await queued_run(db, ["ceradel"])
+        job = await queue.claim(db, worker, [])
+        assert job is not None
+        assert job.requires_any == []
+
+    async def test_auto_browser_job_accepts_an_exact_backend_and_snapshots_at_start(self, db):
+        generic = await register_worker(db, ["browser"])
+        camoufox = await register_worker(db, ["browser", "browser:camoufox"])
+        _, jobs = await queued_run(db, ["ceradel"])
+        await db.execute(
+            "update catalogue.jobs set requires = '{browser}', "
+            "requires_any = '{browser:camoufox,browser:cdp_extension_proxy}' where id = %s",
+            (jobs["ceradel"],),
+        )
+
+        assert await queue.claim(db, generic, ["browser"]) is None
+        job = await queue.claim(db, camoufox, ["browser", "browser:camoufox"])
+        assert job is not None
+        assert job.selected_browser_backend == "camoufox"
+        before = await one(db, "select selected_browser_backend from catalogue.jobs")
+        assert before["selected_browser_backend"] is None, "claiming must not create lineage"
+
+        assert await queue.start(db, job, camoufox)
+        after = await one(db, "select selected_browser_backend from catalogue.jobs")
+        assert after["selected_browser_backend"] == "camoufox"
+
+    async def test_selected_backend_prevents_a_retry_moving_to_another_backend(self, db):
+        cdp = await register_worker(db, ["browser", "browser:cdp_extension_proxy"])
+        camoufox = await register_worker(db, ["browser", "browser:camoufox"])
+        _, jobs = await queued_run(db, ["ceradel"])
+        await db.execute(
+            "update catalogue.jobs set requires = '{browser}', "
+            "requires_any = '{browser:camoufox,browser:cdp_extension_proxy}', "
+            "selected_browser_backend = 'cdp_extension_proxy' where id = %s",
+            (jobs["ceradel"],),
+        )
+
+        assert await queue.claim(db, camoufox, ["browser", "browser:camoufox"]) is None
+        job = await queue.claim(db, cdp, ["browser", "browser:cdp_extension_proxy"])
+        assert job is not None
+        assert await queue.start(db, job, cdp)
+        assert job.selected_browser_backend == "cdp_extension_proxy"
+
     async def test_one_worker_may_hold_several_jobs_at_once(self, db):
         """`job_slots` lets one process carry several sources.
 

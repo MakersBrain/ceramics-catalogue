@@ -90,3 +90,53 @@ def test_artifact_retention_selection_matches_execution_and_protects_shared_path
         ).fetchone()
         assert row["artifact_path"] is None
         assert row["summary"]["artifact_unavailable"] is True
+
+
+@pytest.mark.postgres
+@requires_postgres
+def test_retention_marks_old_dataset_artifact_unavailable_but_keeps_lineage(db, tmp_path):
+    dsn = postgres_dsn()
+    assert dsn
+    with psycopg.connect(dsn, row_factory=dict_row, autocommit=True) as connection:
+        artifacts = []
+        for index, age in enumerate(("20 days", "10 days", "1 day")):
+            path = tmp_path / f"dataset-{index}.ndjson"
+            path.write_bytes(str(index).encode())
+            run_id, job_id = uuid4(), uuid4()
+            connection.execute(
+                "insert into catalogue.runs(id, kind, status) values (%s, 'manual', 'complete')",
+                (run_id,),
+            )
+            connection.execute(
+                """insert into catalogue.jobs
+                           (id, run_id, source_id, host, state, finished_at)
+                    values (%s, %s, 'shop', 'shop.test', 'degraded', now() - %s::interval)""",
+                (job_id, run_id, age),
+            )
+            connection.execute(
+                """insert into catalogue.job_datasets
+                           (job_id, dataset, contract_version, projector_version,
+                            state, complete, records)
+                    values (%s, 'ceramics.catalogue_item.v2', 'v2', 'p1',
+                            'degraded', true, 1)""",
+                (job_id,),
+            )
+            artifact_id = connection.execute(
+                """insert into catalogue.job_artifacts
+                           (job_id, dataset, contract_version, projector_version, kind,
+                            location, sha256, size)
+                    values (%s, 'ceramics.catalogue_item.v2', 'v2', 'p1', 'ndjson',
+                            %s, %s, %s) returning id""",
+                (job_id, str(path), f"{index + 1:x}" * 64, path.stat().st_size),
+            ).fetchone()["id"]
+            artifacts.append((artifact_id, path))
+
+        preview = retention.select(connection, tmp_path)
+        assert [target.artifact_id for target in preview.targets] == [str(artifacts[0][0])]
+        retention.execute(connection, preview)
+        assert not artifacts[0][1].exists()
+        row = connection.execute(
+            "select available, retained_at from catalogue.job_artifacts where id = %s",
+            (artifacts[0][0],),
+        ).fetchone()
+        assert row["available"] is False and row["retained_at"] is not None

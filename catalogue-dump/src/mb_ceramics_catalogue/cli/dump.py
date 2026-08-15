@@ -26,6 +26,7 @@ from mb_ceramics_catalogue.crawl.session import open_session
 from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.observability import tracing
 from mb_ceramics_catalogue.ops import recording
+from mb_ceramics_catalogue.ops.connector_adapters import runtime_plan
 from mb_ceramics_catalogue.scrapers.cache import MODES as CACHE_MODES
 from mb_ceramics_catalogue.scrapers.record import RecordBuilder
 from mb_ceramics_catalogue.storage.history import persist_history
@@ -84,6 +85,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--refresh-mode", choices=("price", "full"), default="full",
         help="price keeps API identity/offer fields; full also refreshes enrichment",
+    )
+    parser.add_argument(
+        "--pipeline", choices=("legacy", "connector_canary"), default="legacy",
+        help="explicitly select the reusable connector canary; legacy remains the default",
+    )
+    parser.add_argument(
+        "--dataset", dest="datasets", action="append",
+        choices=(
+            "ceramics", "ceramics.catalogue_item.v2", "ceramics.catalogue_identity.v2",
+            "commerce.price_observation.v1", "commerce.stock_observation.v1",
+            "commerce.document.v1",
+        ),
+        help="connector dataset to publish (repeatable; default: current ceramics output)",
     )
     parser.add_argument("--log-level", choices=("DEBUG", "INFO", "WARNING", "ERROR"), default="INFO")
     parser.add_argument("--log-json", action="store_true",
@@ -154,6 +168,23 @@ async def run(options: argparse.Namespace) -> int:
     params = CrawlParams.from_namespace(options)
     sources = SourcesFile.load(options.sources_file or default_path())
     selected = sources.select(options.source)
+    if params.pipeline == "connector_canary":
+        if params.datasets != ("ceramics",):
+            raise ValueError(
+                "local connector_canary currently writes only the ceramics compatibility "
+                "dataset; multi-dataset publication requires the PostgreSQL worker"
+            )
+        plans = {name: runtime_plan(sources[name]) for name in selected}
+        sources = SourcesFile.model_validate(
+            {
+                name: source.model_copy(
+                    update={"scraper": plans[name].legacy_scraper_adapter}
+                    if name in selected
+                    else {}
+                )
+                for name, source in sources.items()
+            }
+        )
 
     output = Path(options.out)
     if not params.dry_run:

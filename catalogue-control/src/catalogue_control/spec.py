@@ -47,7 +47,7 @@ union. **Which messages carry an `id:` is the contract**:
 | `worker.roster` | `WorkerRoster` | no | no |
 | `worker.changed` | `WorkerChanged` | yes | yes |
 | `run.started` / `run.complete` / `run.degraded` / `run.failed` | `RunEvent` | yes | yes |
-| `job.leased` / `job.started` / `job.succeeded` / `job.failed` / `job.cancelled` | `JobStateChanged` | yes | yes |
+| `job.leased` / `job.started` / `job.succeeded` / `job.degraded` / `job.failed` / `job.cancelled` | `JobStateChanged` | yes | yes |
 | `job.progress` | `JobProgress` | no | no |
 | `notification.raised` / `notification.resolved` | `NotificationEvent` | yes | yes |
 | `resync` | `Resync` | no | no |
@@ -90,6 +90,7 @@ class CreateRunResponse(BaseModel):
 
 class RunSummary(BaseModel):
     succeeded: int = 0
+    degraded: int = 0
     failed: int = 0
     cancelled: int = 0
     skipped: int = 0
@@ -110,6 +111,7 @@ class Run(BaseModel):
     summary: RunSummary | None = None
     jobs: int = 0
     succeeded: int = 0
+    degraded: int = 0
     failed: int = 0
     active: int = 0
 
@@ -155,18 +157,52 @@ class JobSummary(BaseModel):
     retired: int | None = None
 
 
+class JobDataset(BaseModel):
+    dataset: str
+    contract_version: str
+    projector_version: str
+    state: Literal[
+        "pending", "projecting", "staged", "publishing", "published", "loading",
+        "succeeded", "degraded", "failed", "cancelled", "skipped"
+    ]
+    complete: bool = False
+    records: int = 0
+    rejected: int = 0
+    error: str | None = None
+    promoted_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class JobArtifact(BaseModel):
+    id: str
+    dataset: str
+    contract_version: str
+    projector_version: str
+    kind: str
+    location: str
+    sha256: str
+    size: int
+    published_at: datetime
+    available: bool = True
+    retained_at: datetime | None = None
+
+
 class Job(BaseModel):
     id: str
     run_id: str
     source_id: str
     host: str
     state: Literal[
-        "queued", "leased", "running", "paused", "succeeded", "failed", "cancelled", "skipped"
+        "queued", "leased", "running", "paused", "succeeded", "degraded", "failed",
+        "cancelled", "skipped"
     ]
     attempt: int
     max_attempts: int
     priority: int
     requires: list[str] = Field(default_factory=list)
+    requires_any: list[str] = Field(default_factory=list)
+    selected_browser_backend: Literal["camoufox", "cdp_extension_proxy"] | None = None
     scheduled_for: datetime
     started_at: datetime | None = None
     finished_at: datetime | None = None
@@ -180,6 +216,8 @@ class Job(BaseModel):
     cancel_requested: bool = False
     pause_requested: bool = False
     summary: JobSummary | None = None
+    datasets: list[JobDataset] = Field(default_factory=list)
+    artifacts: list[JobArtifact] = Field(default_factory=list)
     phase: str | None = None
     records: int | None = None
     requests: int | None = None
@@ -790,7 +828,13 @@ def registry() -> Registry:
     api.add(
         Operation(
             "get", "/v1/runs/{id}", "getRun", "One run with its jobs and their progress",
-            parameters=(Parameter("id", location="path"),),
+            parameters=(
+                Parameter("id", location="path"),
+                Parameter(
+                    "dataset",
+                    description="Exact dataset name; defaults to the ceramics compatibility output.",
+                ),
+            ),
             response=RunDetail, errors=(400, 401, 404), tags=("runs",),
         )
     )
@@ -825,6 +869,19 @@ def registry() -> Registry:
                 Parameter("limit", schema={"type": "integer", "maximum": 1000, "default": 200}),
             ),
             response=JobChanges, errors=(400, 401, 404, 409), tags=("jobs",),
+        )
+    )
+    api.add(
+        Operation(
+            "get", "/v1/jobs/{id}/artifact", "downloadJobArtifact",
+            "Download a completed ceramics artifact",
+            description=(
+                "Returns only an available, complete ceramics dataset artifact. "
+                "Legacy job columns are considered only when the job has no dataset rows."
+            ),
+            parameters=(Parameter("id", location="path"),),
+            response=None, media_type="application/octet-stream",
+            errors=(400, 401, 404, 409), tags=("jobs",),
         )
     )
     api.add(

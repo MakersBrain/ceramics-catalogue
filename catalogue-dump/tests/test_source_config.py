@@ -12,12 +12,14 @@ without a 638 MB cache checked out.
 
 from __future__ import annotations
 
+import hashlib
 import json
 
 import pytest
 from pydantic import ValidationError
 
 from mb_ceramics_catalogue import scrapers
+from mb_ceramics_catalogue.config.source_projection import inspect_sources, project_legacy_source
 from mb_ceramics_catalogue.config.sources import SourceConfig, SourcesFile, default_path
 
 MINIMAL = {"label": "Test", "url": "https://example.test/", "scraper": "shopify"}
@@ -37,6 +39,111 @@ def test_the_real_sources_file_validates(parsed: SourcesFile):
     assert len(parsed) >= 20
     for name, config in parsed.items():
         assert config.scraper in scrapers.REGISTRY, name
+
+
+def test_typed_projection_golden_covers_every_checked_in_source(parsed: SourcesFile):
+    reports = inspect_sources(parsed)
+    assert [report.source.source_id for report in reports] == sorted(parsed.names())
+    encoded = json.dumps(
+        [report.model_dump(mode="json") for report in reports],
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    assert hashlib.sha256(encoded).hexdigest() == (
+        "9706610cfc5da69112b6d18443d48823e0f8bb51b1bf7f58ca1c3166ea5efbb6"
+    )
+
+
+def test_shopify_projection_separates_connector_browser_and_datasets():
+    report = project_legacy_source(
+        "shop", SourceConfig(**MINIMAL, collections=["clay"], render=True)
+    )
+    assert report.source.connector.kind == "shopify"
+    assert report.source.browser.kind == "camoufox"
+    assert {item.dataset for item in report.source.datasets} == {
+        "ceramics.catalogue_item.v2",
+    }
+    assert "commerce.stock_observation.v1" in report.source.available_datasets
+
+
+def test_typed_projection_preserves_source_semantics_for_every_entry(parsed: SourcesFile):
+    """Every non-connector concern survives in its typed owner losslessly."""
+    for name, legacy in parsed.items():
+        report = project_legacy_source(name, legacy)
+        typed = report.source
+        assert (typed.label, typed.url, typed.country, typed.note) == (
+            legacy.label, legacy.url, legacy.country, legacy.note
+        )
+        assert typed.crawl.model_dump() == {
+            "delay": legacy.delay,
+            "timeout_seconds": legacy.timeout_seconds,
+            "product_concurrency": legacy.product_concurrency,
+            "ignore_robots": legacy.ignore_robots,
+            "obey_robots": legacy.obey_robots,
+            "render": legacy.render,
+            "proxy_eligible": legacy.proxy_eligible,
+            "proxy_policy": legacy.proxy_policy,
+            "proxy_profile": legacy.proxy_profile,
+            "proxy_country": legacy.proxy_country,
+            "proxy_session_minutes": legacy.proxy_session_minutes,
+            "proxy_max_megabytes": legacy.proxy_max_megabytes,
+            "proxy_pilot": legacy.proxy_pilot,
+        }
+        ceramics = typed.datasets[0]
+        assert ceramics.kind == "ceramics"
+        assert ceramics.scope == legacy.scope
+        assert ceramics.enrichments == tuple(legacy.enrichments or ())
+        assert ceramics.brand == legacy.brand
+        assert ceramics.is_manufacturer == legacy.is_manufacturer
+        assert ceramics.material_categories == tuple(legacy.material_categories or ())
+        assert ceramics.excluded_categories == tuple(legacy.excluded_categories or ())
+        assert ceramics.currency == legacy.currency
+        assert ceramics.vat_status == legacy.vat_status
+        assert ceramics.vat_rate == legacy.vat_rate
+        assert not report.ambiguous_fields
+        expected_unused = {
+            "amaco": ("sitemaps",),
+            "keramik-kraft": ("product_pattern",),
+        }
+        assert report.unused_fields == expected_unused.get(name, ())
+        if typed.connector.kind == "shopify":
+            assert typed.connector.collections == tuple(legacy.collections or ())
+            assert typed.connector.page_limit == (legacy.page_limit or 200)
+        elif typed.connector.kind == "woocommerce":
+            assert typed.connector.store_categories == tuple(legacy.store_categories or ())
+            assert typed.connector.page_limit == (legacy.page_limit or 100)
+        elif typed.connector.kind == "bigcommerce":
+            assert typed.connector.token_page == legacy.category_url
+            assert typed.connector.page_limit == (legacy.page_limit or 200)
+        elif typed.connector.kind == "wix":
+            assert typed.connector.sitemaps == tuple(legacy.sitemaps or ())
+            assert typed.connector.product_pattern == legacy.product_pattern
+        elif typed.connector.kind in {
+            "shopware", "sumup", "starweb", "nitrosell", "prestashop", "sio2", "pagecommerce"
+        }:
+            assert typed.connector.category_urls == tuple(legacy.category_urls or ())
+            assert typed.connector.product_pattern == legacy.product_pattern
+            assert typed.connector.page_limit == (legacy.page_limit or 500)
+        elif typed.connector.kind in {"axner", "ceramicolours", "keramik_kraft"}:
+            assert typed.connector.page_limit == (legacy.page_limit or 500)
+        else:
+            assert typed.connector.kind == "legacy"
+            raw = legacy.as_scraper_config()
+            expected = {
+                key: raw[key]
+                for key in sorted(legacy.model_fields_set)
+                if key in raw and key in {
+                    "sitemaps", "use_advertised_sitemaps", "product_pattern",
+                    "pagination_patterns", "page_limit", "category_url", "category_urls",
+                    "category_ids", "category_paths", "category_page_limit", "collections",
+                    "store_categories", "card_links_only", "enrich_product_pages",
+                    "variation_page_limit", "variant_combinations",
+                    "stock_from_add_to_cart_maximum", "stock_from_quantity_maximum",
+                    "inventory_product_json", "inventory_product_html", "inventory_section_id",
+                    "inventory_prefilter_materials",
+                }
+            }
+            assert typed.connector.options == expected
 
 
 def test_the_projection_is_the_raw_entry_plus_nothing_surprising(raw: dict, parsed: SourcesFile):

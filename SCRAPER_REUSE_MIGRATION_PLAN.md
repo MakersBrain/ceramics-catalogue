@@ -1,9 +1,43 @@
 # Reusable scraping architecture migration plan
 
-Status: proposed; implementation not started
+Status: code migration implemented behind explicit canaries; production shadow,
+allowlist rollout, deployment-capacity evidence, and legacy-path retirement
+remain
 Prepared: 2026-08-15
 Scope: `catalogue-dump`, catalogue workers, control-plane source configuration,
 artifacts, PostgreSQL loading, monitoring, and platform scraper tests.
+
+Implementation snapshot (2026-08-15):
+
+- phase 1 contracts, dataset registry, ceramics compatibility/identity
+  projectors, bounded batch store, priority budget, and platform-neutral runner
+  are implemented;
+- phase 1.5 Camoufox/CDP browser abstraction, authenticated disposable
+  `cdp_extension_proxy` leasing, exact-backend worker routing, and readiness
+  gating are implemented;
+- additive PostgreSQL page/checkpoint/dataset/artifact state, degraded job state,
+  dataset-aware control/retention/promotion/download behavior, and deterministic
+  ordered resume/publication are implemented;
+- Shopify, WooCommerce, BigCommerce, Wix, PrestaShop, and SIO-2 have neutral
+  connectors and explicit compatibility canaries while their legacy registry
+  keys remain the default; Shopify optional exact-inventory enrichment is
+  budget-aware and preserves discovery capacity;
+- price, stock, and document observation datasets can fan out from the same
+  bounded connector page;
+- the generic PageCommerce connector now covers bounded sitemap/category
+  discovery plus JSON-LD, microdata, OpenGraph, and reviewed DOM selectors;
+- every scraper family referenced by the checked-in source configuration has a
+  neutral runtime, a distinct canary selector, and its unchanged legacy rollback
+  selector; a strict registry matrix prevents partial registrations;
+- shared priority budgets are wired through every registered runtime; required
+  exhaustion is resumable and incomplete, while optional work preserves future
+  discovery capacity and the external proxy lease remains the spending authority;
+- `catalogue-shadow-compare` provides bounded, artifact-only legacy/canary
+  comparison without a second crawl, and scaling tests prove bounded retained
+  normalized entities across 2,000 streamed pages;
+- production shadow/allowlist rollout, deployment-capacity evidence, and final
+  legacy removal remain operator actions. That evidence cannot be manufactured
+  by unit tests.
 
 ## 1. Outcome
 
@@ -119,6 +153,37 @@ The migration should extend patterns already proven in this repository:
 - make optional inference opt-in and record its provenance;
 - use recorded responses and golden artifacts rather than live websites in CI.
 
+### 3.4 Transport compatibility ladder
+
+Do not describe these modes as generic security bypasses. They are a bounded
+compatibility ladder for public, authorized collection, used only when the
+lower-cost mode cannot correctly read a source. Robots policy, rate limits,
+operator proxy budgets, authentication boundaries, and source-specific approval
+still apply at every layer.
+
+There are five supported execution modes and one deliberately restricted
+diagnostic mechanism:
+
+| Mode | Implementation | Intended use | Production policy |
+| --- | --- | --- | --- |
+| Plain HTTP | `httpx` through `Fetcher` | APIs, feeds, HTML, sitemaps | default |
+| TLS/browser impersonation | optional `curl_cffi` client | public hosts that reject non-browser TLS handshakes | retry only after an ordinary refusal |
+| Managed Firefox-compatible browser | Camoufox `BrowserBackend` | JavaScript rendering and browser-origin requests | tested backend, job-isolated pages/state |
+| Browser-session request/evaluation | backend-neutral `BrowserSession` | public data available only from the page's own runtime | connector sees only the protocol, not backend APIs |
+| Managed Chromium CDP service | Playwright attached to `cdp_extension_proxy` | sources explicitly tested against Chromium or extension-mediated networking | authenticated, direct-only, attested, capacity-one disposable lease |
+| Raw CDP commands | operator diagnostics only | backend bring-up and narrowly reviewed missing protocol features | never imported or issued by connectors; promote a needed operation into `BrowserSession` after contract tests |
+
+Playwright is the safe CDP client used by the managed Chromium mode, not another
+automatic escalation layer and not a locally launched second Chromium. Likewise,
+`cdp_extension_proxy` is a deployment/backend choice, not permission to route a
+source through a proxy: production readiness rejects its proxy-routed,
+unauthenticated, or persistent-shared-profile configurations.
+
+The ladder never includes CAPTCHA solving, credential harvesting, stolen browser
+state, cross-job cookie reuse, challenge-token resale, or attempts to defeat an
+origin that has explicitly denied collection. A connector records a typed
+blocked/incomplete outcome when approved modes are exhausted.
+
 ## 4. Target architecture
 
 ```text
@@ -162,7 +227,7 @@ Introduce the following layout incrementally:
 
 ```text
 mb_ceramics_catalogue/
-  transport/                 # eventual home of generic fetch infrastructure
+  transports/                # eventual home of generic fetch infrastructure
     protocols.py
     priorities.py
     browser.py               # backend-neutral render/evaluate/in-page request
@@ -330,18 +395,43 @@ Connectors return pages rather than appending directly to `ScrapeResult`:
 ```python
 class EntityPage(BaseModel, Generic[T]):
     page_id: str
+    sequence: int = Field(ge=0)
     items: list[T]
     resume_after: JsonValue | None = None
-    complete: bool
+    terminal: bool
+    partition_terminal: bool = False
+    enumeration_intact: bool = True
     discovered: int
     diagnostics: list[Diagnostic] = Field(default_factory=list)
 ```
 
 `page_id` is stable for the same connector version, source, configuration, and
-logical page. `resume_after` unambiguously means the cursor to use only after
+logical page. `sequence` is monotonic within a sequential lineage and supplies
+deterministic compaction order after a restart; partitioned collection uses the
+pair `(partition_key, sequence)`. `resume_after` unambiguously means the cursor to use only after
 this page's outputs have been durably committed; it is not the cursor used to
 fetch the page. Both are connector-owned but JSON-serializable.
-`complete=False` has the same retirement meaning as today's `truncated=True`.
+
+`terminal`, `partition_terminal`, and `enumeration_intact` are deliberately
+independent. `terminal` means the whole collection stream ended;
+`partition_terminal` marks the last committed page of one declared partition.
+Every ordinary non-final page has both terminal flags false and
+`enumeration_intact=True`. An intermediate partition terminal has
+`terminal=False, partition_terminal=True` and carries the connector-owned cursor
+for the next partition. The final successful page has `terminal=True` and
+`enumeration_intact=True`; collection terminality also implies partition
+terminality when persisted. A connector that cannot continue emits a terminal page or
+the runner records an equivalent terminal outcome when the connector raises,
+with `enumeration_intact=False` and a diagnostic. Enumeration integrity is
+sticky within a lineage: once false, no later page can restore it.
+`resume_after` must be `None` for a successful collection-terminal page, while
+an intermediate partition terminal must carry the exact next-partition cursor.
+Reaching a caller-supplied result limit is an incomplete terminal outcome with a
+typed diagnostic and an exact resume cursor; it is never natural exhaustion.
+Retirement is permitted only after a committed terminal outcome with
+`enumeration_intact=True`; no intermediate page makes a retirement decision.
+`enumeration_intact=False` has the same safety meaning as today's
+`truncated=True`.
 
 ## 7. Connector contract
 
@@ -396,11 +486,28 @@ The runner asks whether the requested dataset and refresh mode are supported.
 It never checks `config.scraper in {...}`.
 
 `browser_backends` declares tested compatibility, not a preference or a CDP
-endpoint. A browser-dependent job requires the generic `browser` capability and,
-when its source selects a backend, the exact worker capability such as
-`browser:camoufox` or `browser:cdp_extension_proxy`. An `auto` source may be
-routed to any declared compatible backend. Runtime discovery may add a browser
-requirement as today, but it must not silently change to an unapproved backend.
+endpoint. A browser-dependent job puts the generic `browser` capability in its
+existing all-of `requires` column. An explicitly selected backend also goes in
+`requires`. For `auto`, add an additive `requires_any text[]` job column
+containing the connector/source intersection, such as
+`{"browser:camoufox", "browser:cdp_extension_proxy"}`. Claiming requires:
+
+```sql
+j.requires <@ worker_capabilities
+and (
+  cardinality(j.requires_any) = 0
+  or j.requires_any && worker_capabilities
+)
+```
+
+Workers advertise `browser` only when at least one probed backend is ready, plus
+each ready exact capability. When an `auto` job starts, the worker selects one
+capability from the intersection and atomically records it in a non-secret
+`selected_browser_backend` job field before collection. Checkpoints, summaries,
+diagnostics, and retries use that selection. A retry may change it only by
+explicitly rejecting the old checkpoint lineage and starting a new collection.
+Runtime discovery may add the generic and allowed-any requirements as today, but
+it must not silently change to an unapproved backend.
 
 ### 7.3 Diagnostics
 
@@ -421,13 +528,20 @@ summary error strings can be produced by the compatibility adapter.
 
 ### 7.4 Browser transport backends
 
-Connectors use a narrow `BrowserTransport` protocol exposed by `Fetcher`; they
+Connectors use a narrow job-scoped `BrowserSession` protocol exposed by
+`Fetcher`; they
 do not import Camoufox, Playwright, Chromium CDP types, or the extension proxy:
 
 ```python
-class BrowserTransport(Protocol):
+class BrowserBackend(Protocol):
     backend: Literal["camoufox", "cdp_extension_proxy"]
 
+    async def open_session(self, job: BrowserJobContext) \
+            -> AsyncContextManager[BrowserSession]: ...
+    async def shutdown(self) -> None: ...
+
+
+class BrowserSession(Protocol):
     async def render(self, url: str, wait: BrowserWait) -> RenderedDocument: ...
     async def evaluate(self, url: str, script: ReviewedScript,
                        wait: BrowserWait) -> JsonValue: ...
@@ -435,6 +549,13 @@ class BrowserTransport(Protocol):
                            request: BrowserRequest) -> JsonValue: ...
     async def close(self) -> None: ...
 ```
+
+`BrowserBackend` is process-owned; `BrowserSession` is job-owned. Closing a
+Camoufox job session closes only that job's pages and state, while worker
+shutdown closes the shared browser process. Closing a CDP job session closes its
+attributed target, disconnects its client, releases its endpoint lease, and
+requests destruction of its disposable browser instance; it never shuts down an
+unrelated operator browser.
 
 The Camoufox adapter preserves the current managed-browser behavior. The
 `cdp_extension_proxy` adapter attaches Playwright Chromium through the proxy's
@@ -444,13 +565,41 @@ Native Messaging lifecycle; the catalogue worker never starts it with remote-
 debugging flags and never assumes full CDP compatibility beyond the proxy's
 documented command subset.
 
-Each CDP-backed job gets a newly created tab, verifies that the returned target
-belongs to that job, and closes/detaches it in `finally` paths. It does not reuse
-cookies, local storage, or authenticated state as catalogue data. Because the
-current proxy MVP has no multi-client attach policy, a configured endpoint is
-protected by a distributed capacity-one lease unless a later proxy release
+Each CDP-backed job receives a disposable Chromium user-data directory or a true
+isolated browser context, verifies that every returned target belongs to that
+isolation boundary, and destroys it in `finally` paths. A fresh tab in the
+proxy's current persistent default context is explicitly insufficient because
+it shares cookies, storage, cache, and service workers across sequential jobs.
+Until `cdp-extension-proxy` supports contract-tested isolated contexts, its
+production pool provisions one clean proxy/Chromium instance and profile per
+job, capacity one, then destroys and replaces the instance after release. The
+current persistent-profile Docker mode is development/diagnostic only.
+
+Provisioning is represented by an operator-owned `CdpEndpointProvider`, not
+shell commands inside connectors. `acquire(job_id, logical_profile)` returns a
+short-lived endpoint lease containing an opaque instance id, secret-resolved
+connection information, attested route/isolation/service generation, and
+expiry. `release(lease, destroy=True)` destroys the Chromium process and
+user-data directory even when target cleanup failed. A static endpoint provider
+is permitted only for development diagnostics. The initial production provider
+may manage a bounded pre-warmed container pool, but an instance is never handed
+to another job until its previous profile has been destroyed and a new clean
+generation has been attested.
+
+Because the current proxy MVP has no multi-client attach policy, every endpoint
+is protected by a distributed capacity-one lease unless a later proxy release
 advertises and tests a higher safe capacity. Losing the WebSocket is a typed,
 retryable browser-backend failure, never evidence that enumeration completed.
+
+The first production CDP integration is direct-route only. Its logical profile
+declares `route="direct"`, the Chromium service starts with `PROXY_SERVER=`, and
+worker readiness verifies operator-provided route/isolation attestation. A CDP
+endpoint using an external or paid proxy is rejected. CDP proxy routing remains
+disabled until the service can bind a job to a PostgreSQL proxy reservation,
+enforce its route and byte ceiling, attribute navigation and subresource bytes,
+fail closed on expiry, and reconcile usage with the provider ledger. Browser
+traffic must never bypass `ProxyLease` spending authority merely because it runs
+outside `Fetcher`.
 
 Browser scripts and destination URLs remain connector-owned reviewed code. Run
 requests cannot submit arbitrary CDP methods, JavaScript, target identifiers, or
@@ -614,10 +763,19 @@ configuration and snapshot only non-secret profile identity and backend
 capability onto a job.
 
 An operator CDP profile defines the internal endpoint, token secret reference,
-health timeout, capacity, and allowed worker pool. Production profiles require
-token authentication and a loopback or private-network endpoint. The current
-`cdp-extension-proxy` Docker development default that permits unauthenticated
-access is never accepted by production validation.
+health timeout, capacity, allowed worker pool, route mode, isolation mode, and
+expected service/profile generation. Production profiles require token
+authentication, a loopback or private-network endpoint, `route="direct"`, and
+either an ephemeral instance/profile per job or contract-tested isolated browser
+contexts. The current `cdp-extension-proxy` Docker defaults—unauthenticated,
+proxy-routed, and backed by one persistent Chromium profile—are development-only
+and rejected by production readiness validation.
+
+The cross-project service contract must expose or provide trusted deployment
+attestation for instance identity, service version, route mode, isolation mode,
+and clean profile generation. A worker advertises
+`browser:cdp_extension_proxy` only after these values match its logical profile
+and the required CDP command probe succeeds.
 
 ## 10. Priority-aware request budgeting
 
@@ -786,14 +944,18 @@ equivalent to:
 ```text
 job_datasets(job_id, dataset, contract_version, projector_version,
              state, complete, records, rejected, error, promoted_at)
-job_pages(job_id, checkpoint_lineage, page_id, resume_after,
-          connector_version, committed_at)
-job_page_batches(job_id, page_id, dataset, object_key, sha256, size, records)
+job_pages(job_id, checkpoint_lineage, partition_key, page_id, page_sequence,
+          resume_after, terminal,
+          enumeration_intact, connector_version, committed_at)
+job_page_batches(job_id, checkpoint_lineage, partition_key, page_id, page_sequence, dataset,
+                 contract_version, projector_version,
+                 object_key, sha256, size, records)
 job_artifacts(job_id, dataset, contract_version, kind,
               location, sha256, size, published_at)
 ```
 
-Keys include the dataset and version and enforce idempotency. Dataset state is
+Primary/unique keys include checkpoint lineage, page, dataset, contract version,
+and projector version and enforce idempotency. Dataset state is
 independent: collection can succeed while one projector fails, and successful
 datasets remain publishable. Aggregate job status and the operator UI summarize
 these rows; they do not erase the distinction. Enumeration completeness is a
@@ -807,6 +969,17 @@ degraded or failed output means degraded; no usable requested output means
 failed; cancellation remains cancellation even when committed page batches
 exist. The control API exposes dataset output rows explicitly rather than
 flattening their diagnostics into the job's first error.
+
+`degraded` becomes an explicit terminal value of `catalogue.jobs.state`, not
+only a summary label. The additive migration updates the jobs check constraint
+and every closed enumeration of terminal/success states: worker finishing and
+events, `ops.runs.TERMINAL` and run tallies, claim/reap/retry logic, control API
+models and queries, monitoring, comparison eligibility, retention, promotion,
+source-history selection, and proxy-route success evidence. A degraded job is
+terminal and retryable by operator policy. Its aggregate state alone is not a
+comparison or promotion signal, but each complete successful dataset remains
+eligible independently. Run summaries count degraded jobs separately and derive
+run status from succeeded/degraded/failed/cancelled/skipped counts.
 
 If a projector fails on a page, its dataset becomes failed for that lineage and
 the pipeline stops invoking that projector while continuing collection and the
@@ -860,7 +1033,8 @@ Deliver:
   operator browser-profile configuration;
 - compatibility adapter that still returns `ScrapeResult`;
 - page identity, atomic commit, checkpoint-lineage, and artifact-store ADR;
-- additive multi-dataset job/page/artifact schema;
+- additive multi-dataset job/page/artifact schema, `degraded` job state,
+  `requires_any`, and selected-browser-backend snapshot;
 - compatibility reads in control, retention, comparison, progress, and
   promotion for per-dataset output state;
 - CI checks for serialization and deterministic projection.
@@ -899,8 +1073,9 @@ Exit criteria:
 
 Deliver:
 
-- adapt the existing `BrowserRenderer` behind `BrowserTransport` without
-  changing current Camoufox behavior;
+- adapt the existing `BrowserRenderer` behind process-owned `BrowserBackend` and
+  job-owned `BrowserSession` protocols without changing current Camoufox
+  behavior;
 - add an optional Playwright Chromium adapter that connects through the
   browser-level endpoint provided by
   `projects-caddy/cdp-extension-proxy`;
@@ -908,11 +1083,22 @@ Deliver:
   rather than relying on Camoufox's transitive packages; the worker attaches to
   the external Chromium and does not download or launch another Chromium;
 - add worker capability advertisement and exact-backend queue routing;
+- add all-of/any-of capability claiming and atomically snapshot the backend
+  selected for an `auto` job;
 - add operator-owned logical CDP profiles with secret token resolution and
   redaction;
+- add a `CdpEndpointProvider` and a bounded disposable/pre-warmed production
+  pool; keep static endpoints development-only;
+- extend `projects-caddy/cdp-extension-proxy` readiness metadata or trusted
+  deployment attestation with service version, instance id, route mode,
+  isolation mode, and clean profile generation;
 - acquire a distributed endpoint-capacity lease before attaching;
-- create, attribute, close, and detach a tab per job, including cancellation,
-  timeout, worker shutdown, and WebSocket-loss paths;
+- provision or lease a disposable clean CDP instance/profile per job until true
+  isolated browser contexts pass the shared backend contract;
+- create, attribute, close, and detach targets inside that isolation boundary,
+  including cancellation, timeout, worker shutdown, and WebSocket-loss paths;
+- enforce direct-only CDP routing and verify route/isolation/service-generation
+  attestation during readiness;
 - expose backend health, attach latency, active targets, disconnects, and cleanup
   failures without logging endpoint tokens;
 - retain Camoufox as the default until source-specific Chromium compatibility is
@@ -920,16 +1106,19 @@ Deliver:
 
 Exit criteria:
 
-- the same browser transport contract tests pass against Camoufox and the CDP
+- the same browser session contract tests pass against Camoufox and the CDP
   proxy for render, evaluated JSON, in-page JSON request, timeout, and cleanup;
 - a worker without the selected backend cannot claim the job;
 - concurrent jobs cannot attach to an MVP endpoint beyond its declared
   capacity;
+- sequential jobs cannot observe cookies, storage, cache, service workers, or
+  authenticated state from an earlier job;
 - target and connection loss produces an incomplete, retryable outcome and
-  leaves no orphaned catalogue-owned tab;
+  leaves no orphaned catalogue-owned tab, instance, or user-data directory;
 - tokens never appear in configuration projections, logs, diagnostics,
   checkpoints, artifacts, metrics, or trace attributes;
-- production startup rejects unauthenticated or publicly exposed CDP profiles;
+- production startup rejects unauthenticated, publicly exposed, proxy-routed,
+  persistently shared, or unattested CDP profiles;
 - no connector imports backend-specific libraries or CDP commands.
 
 ### Phase 2: Shopify pilot
@@ -1068,7 +1257,7 @@ Deliver:
 - control-plane overlay migration;
 - removal of legacy dictionary projection after all readers migrate;
 - removal of old scraper implementations and rollback flags;
-- move generic fetch classes into `transport/` if the move still improves
+- move generic fetch classes into `transports/` if the move still improves
   ownership;
 - update operator and contributor documentation.
 
@@ -1129,6 +1318,8 @@ Add tests proving:
 
 - projection is deterministic and does not mutate neutral snapshots;
 - pagination cursors cannot skip or duplicate pages during retry;
+- a healthy non-terminal page never marks enumeration incomplete, and retirement
+  requires an intact committed terminal outcome;
 - crashes before staging, after staging, before database commit, after database
   commit, during compaction, and after artifact publication are recoverable;
 - optional budget exhaustion cannot stop discovery;
@@ -1145,6 +1336,12 @@ Add tests proving:
 - secrets cannot enter entities, checkpoints, diagnostics, or artifacts.
 - CDP disconnect, target close, extension detach, and worker cancellation always
   release endpoint leases and attempt tab cleanup;
+- sequential CDP jobs cannot observe each other's cookies, storage, cache, or
+  service workers;
+- CDP readiness rejects a proxy-routed, persistent-profile, incorrectly
+  generated, or unattested service;
+- `auto` jobs are claimable by either allowed exact backend, record one selected
+  backend atomically, and never treat backend alternatives as all-of requirements;
 - an untrusted run cannot choose a CDP endpoint, token, target, method, script,
   or off-source navigation URL.
 
@@ -1204,6 +1401,13 @@ identity. If a future legacy adapter can consume captured raw responses without
 a second network request, it may run in shadow too. Never crawl a live source
 twice merely to compare implementations.
 
+The artifact-only gate is `catalogue-shadow-compare`. It streams existing
+legacy and connector NDJSON/NDJSON.gz artifacts through a bounded temporary
+index keyed by stable record identity, emits deterministic redacted JSON, and
+uses reviewed versioned ignore/tolerance rules. Optional existing job summaries
+add record and request metadata to the same gate; the command never invokes a
+scraper or transport.
+
 Database migrations are additive. Readers accept both old and new metadata
 before writers switch. Removal happens only after all deployed readers use the
 new contract.
@@ -1227,7 +1431,11 @@ The migration must preserve:
     a private network boundary;
 13. no arbitrary CDP command, JavaScript, browser target, or navigation URL from
     ordinary run requests;
-14. a browser session never supplies authenticated state to dataset output.
+14. a browser session never supplies authenticated state to dataset output;
+15. CDP jobs use disposable profiles or contract-tested isolated contexts, never
+    a sequentially shared persistent default context;
+16. CDP traffic is direct-only until it participates in the same reservation,
+    enforcement, accounting, and reconciliation authority as other paid traffic.
 
 ## 18. Risks and mitigations
 
@@ -1286,8 +1494,20 @@ between source jobs.
 
 Mitigation: operator-owned secret profiles, production token requirement,
 loopback/private-network validation, aggressive URL redaction, capacity-one
-distributed leases for the current MVP, a fresh attributed tab per job, cleanup
-on every exit path, and no reliance on persistent authenticated browser state.
+distributed leases for the current MVP, a disposable clean browser profile or
+contract-tested isolated context per job, cleanup on every exit path, and no
+reliance on persistent authenticated browser state. A fresh tab in the default
+context is not isolation.
+
+### CDP egress escapes paid-traffic authority
+
+Risk: the external Chromium uses its own configured proxy and sends navigation
+or subresource traffic outside the catalogue reservation and byte ledger.
+
+Mitigation: production CDP profiles are direct-only and attest their route.
+Proxy-routed CDP is enabled only after the service binds each job to a database
+reservation, enforces its route and ceiling, meters all relevant traffic, fails
+closed on expiry, and reconciles provider usage.
 
 ### CDP compatibility drift
 
@@ -1357,7 +1577,7 @@ and separate capability pools:
 - HTTP-only workers for ordinary connectors;
 - Camoufox workers with lower job concurrency and explicit memory limits;
 - `cdp_extension_proxy` workers attached only to their operator-configured
-  Chromium service and bounded by endpoint leases;
+  pool of disposable clean Chromium services and bounded by endpoint leases;
 - projection/loading workers only if measurements show those stages dominate.
 
 More workers increase throughput across independent sources. They must not
@@ -1412,16 +1632,19 @@ pacing, and correct recovery after worker termination.
    and capacity ADRs.
 2. Add contracts under `catalogue-dump/src/mb_ceramics_catalogue/connectors/`
    and `datasets/` with unit tests.
-3. Add the additive job-dataset, page-manifest, batch, and artifact schema.
+3. Add the job-dataset, page-manifest, batch, and artifact schema plus
+   `requires_any`, `selected_browser_backend`, and terminal `degraded` job-state
+   migrations across every worker/control consumer.
 4. Add a pipeline compatibility adapter that returns the existing
    `ScrapeResult` and summary shape.
 5. Extract the ceramics catalogue and identity projectors while leaving
    `record.py` as their internal implementation.
 6. Extend the registry to distinguish connectors from legacy scrapers.
 7. Add capabilities and remove runner platform-name branching.
-8. Introduce `BrowserTransport`, adapt Camoufox, then integrate
+8. Introduce `BrowserBackend`/`BrowserSession`, adapt Camoufox, then integrate
    `projects-caddy/cdp-extension-proxy` with capability routing, operator secret
-   profiles, endpoint leases, contract tests, and cleanup fault tests.
+   profiles, all-of/any-of claims, direct-route attestation, disposable profile
+   isolation, endpoint leases, contract tests, and cleanup fault tests.
 9. Add request priorities to `Fetcher` and proxy budget planning.
 10. Implement the local `ArtifactStore`, bounded page pipeline, atomic page
    commit protocol, compaction, and fault-injection tests.
@@ -1441,35 +1664,49 @@ must be revertible without reverting contracts already used by another one.
 
 ## 21. Completion checklist
 
-- [ ] Neutral commerce and evidence contracts are versioned and documented.
-- [ ] Connector and dataset protocols are stable.
-- [ ] Camoufox and `cdp_extension_proxy` pass the same browser transport contract
+Checked items are implemented and test-verified in this repository. Unchecked
+items require production/operator evidence or deliberate post-rollout removal;
+they are not implied complete by the canary implementation.
+
+- [x] Neutral commerce and evidence contracts are versioned and documented.
+- [x] Connector and dataset protocols are stable.
+- [x] Camoufox and `cdp_extension_proxy` pass the same browser session contract
   and jobs route only to workers advertising the selected backend.
 - [ ] CDP profiles are operator-owned, authenticated, redacted, capacity-leased,
-  health-checked, and clean up catalogue-owned targets on every exit path.
-- [ ] Ceramics projection is platform-independent.
-- [ ] `ceramics.catalogue_identity.v2` retains Mayco parity without requiring a
+  direct-routed, isolation-attested, health-checked, and clean up disposable
+  profiles and catalogue-owned targets on every exit path.
+- [x] `auto` browser jobs use any-of capability claims and persist exactly one
+  selected backend before collection.
+- [x] Ceramics projection is platform-independent.
+- [x] `ceramics.catalogue_identity.v2` retains Mayco parity without requiring a
   price or purchasable variant.
 - [ ] Shopify golden parity and production rollout are complete.
 - [ ] WooCommerce golden parity and production rollout are complete.
-- [ ] Remaining structured platform migrations are complete.
-- [ ] Generic and bespoke scrapers emit neutral snapshots.
-- [ ] Runner contains no scraper-name feature switches.
-- [ ] Source configuration uses typed connector/dataset sections.
-- [ ] Discovery and dataset-derived required/detail/optional budgets are
+- [x] Remaining structured platform code migrations are complete behind
+  explicit canaries.
+- [x] Generic and bespoke scrapers emit neutral snapshots.
+- [x] Runner contains no scraper-name feature switches.
+- [x] Source configuration uses typed connector/dataset sections.
+- [x] Discovery and dataset-derived required/detail/optional budgets are
   enforced independently for every requested output.
-- [ ] Page-boundary checkpoints resume safely.
-- [ ] Atomic page commits survive fault injection without loss or duplication.
-- [ ] Pipeline memory is bounded independently of total source size.
-- [ ] Dataset-specific state and artifacts expose partial success accurately.
-- [ ] Control, progress, comparison, retention, download, load, and promotion
+- [x] Page-boundary checkpoints resume safely for every registered runtime,
+  including declared-order and hashed PrestaShop/SIO-2 partitions.
+- [x] Page terminality is independent of enumeration integrity, and retirement
+  requires an intact committed terminal outcome.
+- [x] Atomic page commits survive fault injection without loss or duplication.
+- [x] Pipeline memory is bounded independently of total source size.
+- [x] Dataset-specific state and artifacts expose partial success accurately.
+- [x] `degraded` is a terminal job state understood consistently by workers,
+  runs, control APIs, monitoring, retention, comparison, promotion, history, and
+  proxy evidence.
+- [x] Control, progress, comparison, retention, download, load, and promotion
   consume per-dataset output state.
-- [ ] Offers, stock, and documents cannot be emitted as newly observed unless
+- [x] Offers, stock, and documents cannot be emitted as newly observed unless
   their snapshot carries a current observation time and evidence.
 - [ ] Artifact locations are readable by every deployed consumer.
 - [ ] Capacity and recovery load tests pass at the intended worker count.
-- [ ] Stock, price, and document datasets reuse one collection stream.
-- [ ] Existing ceramics API output remains contract-compatible.
+- [x] Stock, price, and document datasets reuse one collection stream.
+- [x] Existing ceramics API output remains contract-compatible.
 - [ ] Raw-response replay compares legacy and new extraction paths, and live
   shadow rollout compares against trusted legacy artifacts without a second
   crawl.

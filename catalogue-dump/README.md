@@ -34,6 +34,7 @@ Commands, all installed by `uv sync`:
 | `catalogue-load` | load a dump directory into PostgreSQL |
 | `catalogue-probe` | run one scraper and report what it yields |
 | `catalogue-worker` | claim jobs from the queue, crawl and load them |
+| `catalogue-shadow-compare` | compare two existing NDJSON artifacts without crawling |
 
 ## Running it as a service
 
@@ -73,6 +74,28 @@ digest in `tests/golden/` — that is the suite that proves a refactor changed n
 output, and it is how the two `config.get(key, True)` defaults that the typed
 configuration silently flipped were caught. After an intended change to
 collection, `make golden-update` rewrites those files and the diff is the review.
+
+### Shadow artifact gate
+
+`catalogue-shadow-compare legacy.ndjson connector.ndjson.gz` compares existing
+artifacts by `external_id`; it never runs collection. Exit code 0 means parity,
+1 means reviewed differences remain, and 2 means invalid input or rules. Output
+is deterministic JSON for CI. Optional `--legacy-metadata` and
+`--connector-metadata` summary files include request and record metadata in the
+gate. Volatile fields and numeric tolerances must be declared in a reviewed
+version-1 rules file, for example:
+
+```json
+{
+  "version": 1,
+  "ignore_fields": ["fetched_at"],
+  "numeric_tolerances": {"price": {"absolute": 0.01}},
+  "metadata_ignore_fields": ["finished_at"]
+}
+```
+
+Inputs must be `.ndjson` or `.ndjson.gz`. Line, record, field-path, and sample
+bounds are configurable; differences are sorted and sample values are redacted.
 
 ## Scope
 

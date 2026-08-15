@@ -242,6 +242,24 @@
             "title": "Concurrency",
             "type": "integer"
           },
+          "datasets": {
+            "default": [
+              "ceramics"
+            ],
+            "items": {
+              "enum": [
+                "ceramics",
+                "ceramics.catalogue_item.v2",
+                "ceramics.catalogue_identity.v2",
+                "commerce.price_observation.v1",
+                "commerce.stock_observation.v1",
+                "commerce.document.v1"
+              ],
+              "type": "string"
+            },
+            "title": "Datasets",
+            "type": "array"
+          },
           "delay": {
             "default": 0.0,
             "minimum": 0,
@@ -284,6 +302,15 @@
               "ERROR"
             ],
             "title": "Log Level",
+            "type": "string"
+          },
+          "pipeline": {
+            "default": "legacy",
+            "enum": [
+              "legacy",
+              "connector_canary"
+            ],
+            "title": "Pipeline",
             "type": "string"
           },
           "proxy_max_megabytes": {
@@ -737,6 +764,13 @@
             "default": null,
             "title": "Artifact Size"
           },
+          "artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/JobArtifact"
+            },
+            "title": "Artifacts",
+            "type": "array"
+          },
           "attempt": {
             "title": "Attempt",
             "type": "integer"
@@ -745,6 +779,13 @@
             "default": false,
             "title": "Cancel Requested",
             "type": "boolean"
+          },
+          "datasets": {
+            "items": {
+              "$ref": "#/components/schemas/JobDataset"
+            },
+            "title": "Datasets",
+            "type": "array"
           },
           "discovered": {
             "anyOf": [
@@ -899,6 +940,13 @@
             "title": "Requires",
             "type": "array"
           },
+          "requires_any": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Requires Any",
+            "type": "array"
+          },
           "run_id": {
             "title": "Run Id",
             "type": "string"
@@ -907,6 +955,22 @@
             "format": "date-time",
             "title": "Scheduled For",
             "type": "string"
+          },
+          "selected_browser_backend": {
+            "anyOf": [
+              {
+                "enum": [
+                  "camoufox",
+                  "cdp_extension_proxy"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Selected Browser Backend"
           },
           "source_id": {
             "title": "Source Id",
@@ -932,6 +996,7 @@
               "running",
               "paused",
               "succeeded",
+              "degraded",
               "failed",
               "cancelled",
               "skipped"
@@ -988,6 +1053,78 @@
           "scheduled_for"
         ],
         "title": "Job",
+        "type": "object"
+      },
+      "JobArtifact": {
+        "properties": {
+          "available": {
+            "default": true,
+            "title": "Available",
+            "type": "boolean"
+          },
+          "contract_version": {
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "dataset": {
+            "title": "Dataset",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "projector_version": {
+            "title": "Projector Version",
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "retained_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Retained At"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "dataset",
+          "contract_version",
+          "projector_version",
+          "kind",
+          "location",
+          "sha256",
+          "size",
+          "published_at"
+        ],
+        "title": "JobArtifact",
         "type": "object"
       },
       "JobChanges": {
@@ -1049,6 +1186,99 @@
           "previous_finished_at"
         ],
         "title": "JobChanges",
+        "type": "object"
+      },
+      "JobDataset": {
+        "properties": {
+          "complete": {
+            "default": false,
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "contract_version": {
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dataset": {
+            "title": "Dataset",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error"
+          },
+          "projector_version": {
+            "title": "Projector Version",
+            "type": "string"
+          },
+          "promoted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Promoted At"
+          },
+          "records": {
+            "default": 0,
+            "title": "Records",
+            "type": "integer"
+          },
+          "rejected": {
+            "default": 0,
+            "title": "Rejected",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "projecting",
+              "staged",
+              "publishing",
+              "published",
+              "loading",
+              "succeeded",
+              "degraded",
+              "failed",
+              "cancelled",
+              "skipped"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dataset",
+          "contract_version",
+          "projector_version",
+          "state",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "JobDataset",
         "type": "object"
       },
       "JobDetail": {
@@ -3383,6 +3613,11 @@
             "title": "Created At",
             "type": "string"
           },
+          "degraded": {
+            "default": 0,
+            "title": "Degraded",
+            "type": "integer"
+          },
           "failed": {
             "default": 0,
             "title": "Failed",
@@ -3612,6 +3847,11 @@
           "cancelled": {
             "default": 0,
             "title": "Cancelled",
+            "type": "integer"
+          },
+          "degraded": {
+            "default": 0,
+            "title": "Degraded",
             "type": "integer"
           },
           "failed": {
@@ -4292,7 +4532,7 @@
     }
   },
   "info": {
-    "description": "Operator control for the ceramics catalogue: start and watch runs, control\nworkers, enable and pause sources, and read the durable notification feed.\n\nInternal. Every `/v1` route including the stream requires a bearer token;\n`/health` and `/metrics` are the only exemptions. The service is not published\non the host, which is defence in depth rather than the authentication boundary.\n\n### The live stream\n\n`GET /v1/events` is one multiplexed `text/event-stream`, filtered by `topics`.\nOne endpoint rather than one per concern, because HTTP/1.1 caps a browser at\nroughly six connections per origin.\n\nEach message uses the SSE `event:` field, so a client writes\n`stream.addEventListener('worker.changed', …)` rather than discriminating a\nunion. **Which messages carry an `id:` is the contract**:\n\n| `event:` | Schema | Numbered | Replayed |\n|---|---|---|---|\n| `bootstrap` | `Bootstrap` | no | no |\n| `worker.roster` | `WorkerRoster` | no | no |\n| `worker.changed` | `WorkerChanged` | yes | yes |\n| `run.started` / `run.complete` / `run.degraded` / `run.failed` | `RunEvent` | yes | yes |\n| `job.leased` / `job.started` / `job.succeeded` / `job.failed` / `job.cancelled` | `JobStateChanged` | yes | yes |\n| `job.progress` | `JobProgress` | no | no |\n| `notification.raised` / `notification.resolved` | `NotificationEvent` | yes | yes |\n| `resync` | `Resync` | no | no |\n\nNumbered events are edges: discrete, ordered by one bigint sequence, and\nreplayable from `Last-Event-ID`. Unnumbered ones are levels — current values\nthat are meaningful only as the latest reading. A client that missed forty\nprogress readings does not want them, it wants the current one.\n\nOn `resync`, refetch state over the JSON endpoints; the gap was too large to\nreplay.",
+    "description": "Operator control for the ceramics catalogue: start and watch runs, control\nworkers, enable and pause sources, and read the durable notification feed.\n\nInternal. Every `/v1` route including the stream requires a bearer token;\n`/health` and `/metrics` are the only exemptions. The service is not published\non the host, which is defence in depth rather than the authentication boundary.\n\n### The live stream\n\n`GET /v1/events` is one multiplexed `text/event-stream`, filtered by `topics`.\nOne endpoint rather than one per concern, because HTTP/1.1 caps a browser at\nroughly six connections per origin.\n\nEach message uses the SSE `event:` field, so a client writes\n`stream.addEventListener('worker.changed', …)` rather than discriminating a\nunion. **Which messages carry an `id:` is the contract**:\n\n| `event:` | Schema | Numbered | Replayed |\n|---|---|---|---|\n| `bootstrap` | `Bootstrap` | no | no |\n| `worker.roster` | `WorkerRoster` | no | no |\n| `worker.changed` | `WorkerChanged` | yes | yes |\n| `run.started` / `run.complete` / `run.degraded` / `run.failed` | `RunEvent` | yes | yes |\n| `job.leased` / `job.started` / `job.succeeded` / `job.degraded` / `job.failed` / `job.cancelled` | `JobStateChanged` | yes | yes |\n| `job.progress` | `JobProgress` | no | no |\n| `notification.raised` / `notification.resolved` | `NotificationEvent` | yes | yes |\n| `resync` | `Resync` | no | no |\n\nNumbered events are edges: discrete, ordered by one bigint sequence, and\nreplayable from `Last-Event-ID`. Unnumbered ones are levels — current values\nthat are meaningful only as the latest reading. A client that missed forty\nprogress readings does not want them, it wants the current one.\n\nOn `resync`, refetch state over the JSON endpoints; the gap was too large to\nreplay.",
     "title": "Ceramics catalogue operations",
     "version": "0.2.0"
   },
@@ -4460,6 +4700,75 @@
           }
         },
         "summary": "One job",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/v1/jobs/{id}/artifact": {
+      "get": {
+        "description": "Returns only an available, complete ceramics dataset artifact. Legacy job columns are considered only when the job has no dataset rows.",
+        "operationId": "downloadJobArtifact",
+        "parameters": [
+          {
+            "description": "",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {}
+            },
+            "description": "Download a completed ceramics artifact"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "summary": "Download a completed ceramics artifact",
         "tags": [
           "jobs"
         ]
@@ -7323,6 +7632,15 @@
             "in": "path",
             "name": "id",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact dataset name; defaults to the ceramics compatibility output.",
+            "in": "query",
+            "name": "dataset",
+            "required": false,
             "schema": {
               "type": "string"
             }

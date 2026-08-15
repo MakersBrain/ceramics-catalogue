@@ -36,6 +36,7 @@ services:
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-reference-schema-v4.sql:/docker-entrypoint-initdb.d/26-catalogue-reference-schema-v4.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema.sql:/docker-entrypoint-initdb.d/30-catalogue-ops-schema.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema-v2.sql:/docker-entrypoint-initdb.d/35-catalogue-ops-schema-v2.sql:ro
+      - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema-v3.sql:/docker-entrypoint-initdb.d/36-catalogue-ops-schema-v3.sql:ro
       # Last, and it was missing entirely: it alters `canonical_products` and
       # defines `promote_canonical_products`, which a run calls when its last
       # job lands. A database without it takes every source in and never folds

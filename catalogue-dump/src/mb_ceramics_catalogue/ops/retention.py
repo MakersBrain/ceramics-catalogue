@@ -10,29 +10,49 @@ import psycopg
 from psycopg.rows import dict_row
 
 SELECT_CANDIDATES = """
-with ranked as (
+with outputs as (
+  select j.id, j.source_id, j.state, j.finished_at, a.location as artifact_path,
+         a.id as artifact_id, d.dataset, true as usable
+    from catalogue.jobs j
+    join catalogue.job_datasets d on d.job_id = j.id
+    join catalogue.job_artifacts a
+      on (a.job_id, a.dataset, a.contract_version, a.projector_version) =
+         (d.job_id, d.dataset, d.contract_version, d.projector_version)
+   where a.available
+     and d.state in ('succeeded', 'degraded') and d.complete
+  union all
   select j.id, j.source_id, j.state, j.finished_at, j.artifact_path,
-         count(*) filter (where j.state = 'succeeded') over (
-           partition by j.source_id
-           order by j.finished_at desc nulls last, j.id desc
-           rows between unbounded preceding and current row
-         ) as successful_rank
+         null::uuid, 'legacy',
+         j.state = 'succeeded' or (
+           j.state = 'degraded' and j.summary->>'write_status' = 'replaced'
+           and not coalesce((j.summary->>'truncated')::boolean, false)
+           and not coalesce((j.summary->>'interrupted')::boolean, false)
+         )
     from catalogue.jobs j
    where j.artifact_path is not null
+     and not exists (select 1 from catalogue.job_datasets d where d.job_id = j.id)
+), ranked as (
+  select o.*,
+         count(*) filter (where o.usable) over (
+           partition by o.source_id, o.dataset
+           order by o.finished_at desc nulls last, o.id desc
+           rows between unbounded preceding and current row
+         ) as successful_rank
+    from outputs o
 ), candidates as (
   select r.*
     from ranked r
    where r.finished_at is not null
      and (
-       (r.state = 'succeeded'
+       (r.usable
         and r.successful_rank > 2
         and r.finished_at < now() - interval '14 days')
        or
-       (r.state in ('failed', 'cancelled')
+       (r.state in ('degraded', 'failed', 'cancelled')
         and r.finished_at < now() - interval '30 days')
      )
 )
-select c.id, c.source_id, c.artifact_path
+select c.id, c.source_id, c.artifact_path, c.artifact_id
   from candidates c
  where not exists (
    select 1
@@ -51,6 +71,7 @@ class RetentionTarget:
     source_id: str
     path: Path
     bytes: int
+    artifact_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -84,7 +105,11 @@ def select(connection: psycopg.Connection[dict[str, Any]], root: Path) -> Retent
         if not path.exists():
             missing += 1
         targets.append(
-            RetentionTarget(str(row["id"]), row["source_id"], path, path.stat().st_size if path.exists() else 0)
+            RetentionTarget(
+                str(row["id"]), row["source_id"], path,
+                path.stat().st_size if path.exists() else 0,
+                str(row["artifact_id"]) if row["artifact_id"] else None,
+            )
         )
     return RetentionReport(tuple(targets), missing)
 
@@ -93,7 +118,15 @@ def execute(connection: psycopg.Connection[dict[str, Any]], report: RetentionRep
     """Mark references unavailable before removing the exact reviewed targets."""
     for target in report.targets:
         with connection.transaction(), connection.cursor() as cursor:
-            cursor.execute(
+            if target.artifact_id is not None:
+                cursor.execute(
+                    """update catalogue.job_artifacts
+                              set available = false, retained_at = now()
+                            where id = %s and available""",
+                    (target.artifact_id,),
+                )
+            else:
+                cursor.execute(
                 """update catalogue.jobs
                           set artifact_path = null,
                               summary = coalesce(summary, '{}'::jsonb) ||
@@ -101,7 +134,7 @@ def execute(connection: psycopg.Connection[dict[str, Any]], report: RetentionRep
                                                    'artifact_retained_sha256', artifact_sha256)
                         where id = %s and artifact_path is not null""",
                 (target.job_id,),
-            )
+                )
             if cursor.rowcount != 1:
                 raise RuntimeError(f"artifact retention target changed: {target.job_id}")
         # The committed reference change deliberately precedes unlink. A

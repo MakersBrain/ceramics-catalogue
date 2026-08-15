@@ -131,7 +131,7 @@ export interface Job {
 	run_id: string;
 	source_id: string;
 	host: string;
-	state: 'queued' | 'leased' | 'running' | 'paused' | 'succeeded' | 'failed' | 'cancelled' | 'skipped';
+	state: 'queued' | 'leased' | 'running' | 'paused' | 'succeeded' | 'degraded' | 'failed' | 'cancelled' | 'skipped';
 	attempt: number;
 	max_attempts: number;
 	priority: number;

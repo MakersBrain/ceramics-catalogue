@@ -31,7 +31,7 @@ LOGGER = obs.get_logger("catalogue.runs")
 Connection = psycopg.AsyncConnection[dict[str, Any]]
 
 #: States a job can no longer leave.
-TERMINAL = ("succeeded", "failed", "cancelled", "skipped")
+TERMINAL = ("succeeded", "degraded", "failed", "cancelled", "skipped")
 
 #: Sources that need a browser, and the capability a worker must advertise to
 #: claim them (§5.5). A browser makes the image large and the process
@@ -366,7 +366,8 @@ async def _close_run_if_done(connection: Connection, run_id: UUID) -> dict[str, 
     outstanding = await _one(
         connection,
         "select count(*) as remaining from catalogue.jobs "
-        "where run_id = %(id)s and state not in ('succeeded','failed','cancelled','skipped')",
+        "where run_id = %(id)s "
+        "and state not in ('succeeded','degraded','failed','cancelled','skipped')",
         {"id": run_id},
     )
     if outstanding is None or outstanding["remaining"]:
@@ -376,6 +377,7 @@ async def _close_run_if_done(connection: Connection, run_id: UUID) -> dict[str, 
         connection,
         """
         select count(*) filter (where state = 'succeeded')          as succeeded,
+               count(*) filter (where state = 'degraded')           as degraded,
                count(*) filter (where state = 'failed')             as failed,
                count(*) filter (where state = 'cancelled')          as cancelled,
                count(*) filter (where state = 'skipped')            as skipped,
@@ -391,9 +393,10 @@ async def _close_run_if_done(connection: Connection, run_id: UUID) -> dict[str, 
     # `degraded` rather than `failed` when some sources worked: a run that
     # collected 79 of 80 catalogues did not fail, and calling it failed is how
     # an alert stops being believed.
-    if summary["cancelled"] and not summary["succeeded"]:
+    usable = summary["succeeded"] + summary["degraded"]
+    if summary["cancelled"] and not usable and not summary["failed"]:
         status = "cancelled"
-    elif summary["succeeded"] and summary["failed"]:
+    elif usable and (summary["degraded"] or summary["failed"] or summary["cancelled"]):
         status = "degraded"
     elif summary["failed"]:
         status = "failed"
@@ -442,6 +445,29 @@ async def _promote_canonicals(connection: Connection, run_id: UUID) -> None:
     rebuilt — and a database that predates the promotion schema has no such
     function at all, which must not turn every run into a failed one.
     """
+    eligible = await _one(
+        connection,
+        """select exists (
+               select 1 from catalogue.jobs j
+                where j.run_id = %(run)s and j.state in ('succeeded', 'degraded')
+                  and (exists (
+                    select 1 from catalogue.job_datasets d
+                     where d.job_id = j.id
+                       and d.dataset in ('ceramics.catalogue_item.v2',
+                                         'ceramics.catalogue_identity.v2')
+                       and d.state in ('succeeded', 'degraded') and d.complete
+                  ) or (not exists (
+                    select 1 from catalogue.job_datasets d where d.job_id = j.id
+                  ) and (j.state = 'succeeded' or (
+                    j.summary->>'write_status' = 'replaced'
+                    and not coalesce((j.summary->>'truncated')::boolean, false)
+                    and not coalesce((j.summary->>'interrupted')::boolean, false)
+                  ))))
+             ) as eligible""",
+        {"run": run_id},
+    )
+    if eligible is None or not eligible["eligible"]:
+        return
     started = time.monotonic()
     try:
         # A savepoint, since this runs inside the transaction that finished the

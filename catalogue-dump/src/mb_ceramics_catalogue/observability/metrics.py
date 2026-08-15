@@ -261,28 +261,35 @@ def worker_heartbeat_age(worker: str, seconds: float) -> None:
 
 def proxy_reservation(state: str, amount: float = 1.0) -> None:
     REGISTRY.gauge(
-        "catalogue_proxy_reservations", "Proxy reservations by current state.",
-        amount, state=state,
+        "catalogue_proxy_reservations",
+        "Proxy reservations by current state.",
+        amount,
+        state=state,
     )
 
 
 def proxy_bytes(kind: str, value: float) -> None:
     REGISTRY.gauge(
-        "catalogue_proxy_bytes", "Proxy traffic and budget byte levels.",
-        value, kind=kind,
+        "catalogue_proxy_bytes",
+        "Proxy traffic and budget byte levels.",
+        value,
+        kind=kind,
     )
 
 
 def proxy_reconciliation(successful: bool) -> None:
     REGISTRY.counter(
-        "catalogue_proxy_reconciliations_total", "Provider reconciliation outcomes.",
+        "catalogue_proxy_reconciliations_total",
+        "Provider reconciliation outcomes.",
         outcome="success" if successful else "failure",
     )
 
 
 def proxy_probe(outcome: str) -> None:
     REGISTRY.counter(
-        "catalogue_proxy_probes_total", "Bounded paid-probe outcomes.", outcome=outcome,
+        "catalogue_proxy_probes_total",
+        "Bounded paid-probe outcomes.",
+        outcome=outcome,
     )
 
 
@@ -300,6 +307,36 @@ def offers_written(count: float) -> None:
         "catalogue_offers_written_total",
         "Offer observations written to the database.",
         count,
+    )
+
+
+def pipeline_entities(connector: str, connector_version: str, count: float) -> None:
+    REGISTRY.counter(
+        "catalogue_pipeline_entities_total",
+        "Neutral entities emitted by connector and bounded connector version.",
+        count,
+        connector=connector,
+        connector_version=connector_version,
+    )
+
+
+def pipeline_records(dataset: str, contract_version: str, outcome: str, count: float) -> None:
+    REGISTRY.counter(
+        "catalogue_pipeline_records_total",
+        "Dataset records projected per page, including stable projector outcomes.",
+        count,
+        dataset=dataset,
+        contract_version=contract_version,
+        outcome=outcome,
+    )
+
+
+def request_budget_decision(priority: str, decision: str) -> None:
+    REGISTRY.counter(
+        "catalogue_request_budget_decisions_total",
+        "Request planning decisions by bounded priority and decision.",
+        priority=priority,
+        decision=decision,
     )
 
 

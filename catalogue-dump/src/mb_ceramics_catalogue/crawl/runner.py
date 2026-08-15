@@ -206,9 +206,9 @@ async def run_source(
             result = scraper.result
             result.errors.append({"url": config.url, "error": str(error)})
 
-        if params.refresh_mode == "price" and config.scraper in {
-            "shopify", "woocommerce", "bigcommerce", "starweb", "keramik_kraft"
-        }:
+        if params.refresh_mode == "price" and scrapers.adapter_capabilities(
+            config.scraper
+        ).price_refresh:
             for record in result.records:
                 for field in (
                     "description", "firing", "firing_range", "surface", "effects", "colour",
