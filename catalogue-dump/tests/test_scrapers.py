@@ -1698,6 +1698,63 @@ class ProxyFallbackRoutingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(2, direct_calls, "research and browser user agents precede proxying")
         self.assertEqual(1, proxy_calls)
 
+    async def test_exhausted_429_uses_the_proxy_fallback(self):
+        direct_calls = proxy_calls = 0
+
+        def direct_handler(request):
+            nonlocal direct_calls
+            direct_calls += 1
+            return httpx.Response(429, text="slow down")
+
+        def proxy_handler(request):
+            nonlocal proxy_calls
+            proxy_calls += 1
+            return httpx.Response(200, text="served")
+
+        direct_client, proxy_client, fetcher = self.fetchers(direct_handler, proxy_handler)
+        with unittest.mock.patch("asyncio.sleep", unittest.mock.AsyncMock()):
+            async with direct_client, proxy_client:
+                self.assertEqual("served", await fetcher.text("https://shop.test/p"))
+        self.assertEqual(4, direct_calls)
+        self.assertEqual(1, proxy_calls)
+
+    async def test_retry_after_503_is_a_rate_limit_proxy_fallback(self):
+        direct_calls = proxy_calls = 0
+
+        def direct_handler(request):
+            nonlocal direct_calls
+            direct_calls += 1
+            return httpx.Response(503, text="edge throttle", headers={"retry-after": "1"})
+
+        def proxy_handler(request):
+            nonlocal proxy_calls
+            proxy_calls += 1
+            return httpx.Response(200, text="served")
+
+        direct_client, proxy_client, fetcher = self.fetchers(direct_handler, proxy_handler)
+        with unittest.mock.patch("asyncio.sleep", unittest.mock.AsyncMock()):
+            async with direct_client, proxy_client:
+                self.assertEqual("served", await fetcher.text("https://shop.test/p"))
+        self.assertEqual(4, direct_calls)
+        self.assertEqual(1, proxy_calls)
+
+    async def test_plain_503_does_not_spend_proxy_traffic(self):
+        proxy_calls = 0
+
+        def proxy_handler(request):
+            nonlocal proxy_calls
+            proxy_calls += 1
+            return httpx.Response(200, text="must not happen")
+
+        direct_client, proxy_client, fetcher = self.fetchers(
+            lambda request: httpx.Response(503, text="origin unavailable"), proxy_handler,
+        )
+        with unittest.mock.patch("asyncio.sleep", unittest.mock.AsyncMock()):
+            async with direct_client, proxy_client:
+                with self.assertRaises(httpx.HTTPStatusError):
+                    await fetcher.text("https://shop.test/p")
+        self.assertEqual(0, proxy_calls)
+
     async def test_exhausted_proxy_keeps_usage_in_the_source_summary(self):
         from mb_ceramics_catalogue.proxy import ProxyDenied
 

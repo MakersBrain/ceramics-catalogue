@@ -1122,6 +1122,20 @@ class Fetcher:
         ):
             self.stats.outcomes["stale_on_error"] += 1
             return self._stale_response(stale, method, url)
+        # A retry-exhausted rate limit is exactly the classified failure that a
+        # fallback proxy is meant to escape.  Shopify also reports some edge
+        # throttles as a 5xx with Retry-After, so treat that explicit pacing
+        # signal like a 429.  Ordinary 5xx responses remain direct-only: a new
+        # IP cannot repair an unhealthy origin and would only spend the paid
+        # budget needlessly.
+        rate_limited = response.status_code == 429 or (
+            response.status_code >= 500 and bool(response.headers.get("retry-after"))
+        )
+        if rate_limited and self.proxy_fallback is not None and allow_proxy_fallback:
+            return await self.proxy_fallback.response(
+                url, browser_user_agent=browser_user_agent, params=params,
+                accept=accept, method=method, json_body=json_body, headers=headers,
+            )
         if response.status_code in (401, 403, 406):
             # Three rungs, cheapest first. Several CDNs reject a declared
             # research agent but serve the same public page to an ordinary
