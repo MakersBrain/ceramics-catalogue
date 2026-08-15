@@ -1,0 +1,33 @@
+# What must not reach the build context.
+#
+# THE FIRST ENTRY IS THE LOAD-BEARING ONE. The Dockerfile installs dependencies
+# before copying the source, so that `npm ci` caches on the lockfile alone -
+# but `COPY . .` then lands on top of the result, and without this file it
+# copies the developer's own `node_modules` straight over the installed one.
+# The image then ships whatever was on that machine's disk rather than what
+# `package-lock.json` specifies, and a build from a macOS or arm64 checkout
+# ships native binaries the container cannot run.
+#
+# It is invisible in CI, which builds from a clean checkout with no
+# `node_modules` to copy - but `docker-compose.yml` builds this image with
+# `context: ./catalogue-explorer` on a developer's machine, where there always
+# is one. That is the path this protects.
+#
+# It also takes the context from ~255 MB to about 1 MB.
+node_modules
+.svelte-kit
+build
+
+# `.npmrc` is deliberately NOT here. It carries the registry mapping for
+# @makersbrain/brand and no credential, and the Dockerfile copies it by name;
+# ignoring it would break the install. The credential arrives separately, as a
+# BuildKit secret mounted only for the `npm ci` layer.
+
+# Nothing below is needed to build, and some of it should never be in an image.
+.env
+.env.*
+*.log
+.git
+.gitignore
+.DS_Store
+test
