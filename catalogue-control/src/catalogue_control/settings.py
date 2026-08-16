@@ -70,6 +70,10 @@ class Settings(BaseSettings):
     #: to it. Left unconfirmed, traffic writes refuse. See providers/iproyal.py.
     proxy_iproyal_traffic_writes: Literal["unconfirmed", "absolute"] = "unconfirmed"
 
+    #: ProxyScrape only: the sub-account UUID that scopes every residential
+    #: path. Without it the adapter refuses before making any request.
+    proxy_proxyscrape_sub_account_id: str = ""
+
     def enabled_providers(self) -> list[str]:
         names = [name.strip() for name in self.proxy_providers.split(",") if name.strip()]
         # The default must be constructible, or a request that names no provider
