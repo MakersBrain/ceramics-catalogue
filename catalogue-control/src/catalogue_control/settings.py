@@ -36,6 +36,48 @@ class Settings(BaseSettings):
     proxy_mutations_enabled: bool = False
     proxy_paid_probe_enabled: bool = False
 
+    # ---- multi-provider ----------------------------------------------------
+    #
+    # The five settings above describe one provider and are kept as the
+    # configuration for whichever provider `proxy_default_provider` names, so an
+    # existing deployment keeps working untouched. The rest add the others.
+
+    #: Comma-separated provider names to construct at startup, e.g.
+    #: "decodo,iproyal". Every name must exist in the provider registry; an
+    #: unknown one fails startup rather than being skipped, because a silently
+    #: absent provider looks identical to one whose credential failed to load.
+    proxy_providers: str = "decodo"
+
+    #: The provider used when a request does not name one. Also the provider the
+    #: single-provider settings above configure.
+    proxy_default_provider: str = "decodo"
+
+    #: Per-provider API credential files, as JSON: {"iproyal": "/run/secrets/..."}.
+    #: The default provider falls back to `proxy_api_secret_file`, so this only
+    #: has to name the additional ones.
+    proxy_provider_secret_files: dict[str, Path] = {}
+
+    #: Per-provider API base URLs, as JSON. Omitted providers use the registry's
+    #: default for that provider.
+    proxy_provider_base_urls: dict[str, str] = {}
+
+    #: Per-provider paid IP-check endpoints, as JSON. A provider with no probe
+    #: URL -- in the registry or here -- refuses to probe rather than guessing an
+    #: endpoint, because a probe spends real traffic.
+    proxy_provider_probe_urls: dict[str, str] = {}
+
+    #: IPRoyal only: whether a PUT carrying `traffic` sets the balance or adds
+    #: to it. Left unconfirmed, traffic writes refuse. See providers/iproyal.py.
+    proxy_iproyal_traffic_writes: Literal["unconfirmed", "absolute"] = "unconfirmed"
+
+    def enabled_providers(self) -> list[str]:
+        names = [name.strip() for name in self.proxy_providers.split(",") if name.strip()]
+        # The default must be constructible, or a request that names no provider
+        # has nowhere to go.
+        if self.proxy_default_provider not in names:
+            names.insert(0, self.proxy_default_provider)
+        return list(dict.fromkeys(names))
+
     #: Refuse to start without a token rather than serving an open control
     #: plane. The one thing worse than no run-cancel endpoint is an
     #: unauthenticated one.

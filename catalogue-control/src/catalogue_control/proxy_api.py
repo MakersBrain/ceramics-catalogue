@@ -14,6 +14,7 @@ import httpx
 from mb_ceramics_catalogue.observability import metrics
 from mb_ceramics_catalogue.ops import events
 from mb_ceramics_catalogue.providers.base import ProviderError
+from mb_ceramics_catalogue.providers.registry import ProviderSpec, known, spec
 from mb_ceramics_catalogue.proxy import (
     ProxyDenied,
     ProxyLease,
@@ -86,10 +87,46 @@ async def actor_for(
         return problem(403, "Forbidden", str(error))
 
 
+def provider_name(request: Request) -> str:
+    """Which provider this request is about.
+
+    A `?provider=` query names it; otherwise the configured default. Every
+    handler resolves this once and threads it into its SQL as a bound parameter,
+    which is what replaced twenty-five occurrences of the literal 'decodo'.
+    """
+    requested = request.query_params.get("provider")
+    if requested:
+        return requested
+    return request.app.state.settings.proxy_default_provider
+
+
+def provider_spec(request: Request) -> ProviderSpec | Response:
+    try:
+        return spec(provider_name(request))
+    except ProviderError:
+        return problem(
+            404, "Unknown provider",
+            f"no such proxy provider; known providers are {', '.join(known())}",
+        )
+
+
 def provider_for(request: Request) -> Any | Response:
-    provider = request.app.state.provider
+    """The constructed adapter for this request's provider.
+
+    Distinct from `provider_spec`, which is static description and always
+    available. This is the live client and may be absent because no credential
+    was configured for that provider, which is a different failure and a
+    different status code.
+    """
+    name = provider_name(request)
+    providers = getattr(request.app.state, "providers", None) or {}
+    provider = providers.get(name)
+    if provider is None and name == request.app.state.settings.proxy_default_provider:
+        provider = request.app.state.provider
     if provider is None:
-        return problem(503, "Provider unavailable", "Decodo API access is not configured")
+        return problem(
+            503, "Provider unavailable", f"{name} API access is not configured"
+        )
     return provider
 
 
@@ -126,6 +163,9 @@ async def overview(request: Request) -> Response:
     actor = await actor_for(request)
     if isinstance(actor, Response):
         return actor
+    pspec = provider_spec(request)
+    if isinstance(pspec, Response):
+        return pspec
     async with request.app.state.pool.connection() as connection:
         cursor = await connection.execute(
             """
@@ -161,10 +201,11 @@ async def overview(request: Request) -> Response:
                   from catalogue.proxy_reservations
                  where provider = c.provider and cycle_start = c.cycle_start
               ) r on true
-             where c.provider = 'decodo'
+             where c.provider = %(provider)s
              order by (c.lifecycle = 'active') desc, c.cycle_start desc
              limit 1
-            """
+            """,
+            {"provider": pspec.name},
         )
         cycle = await cursor.fetchone()
         profiles_cursor = await connection.execute(
@@ -172,10 +213,13 @@ async def overview(request: Request) -> Response:
                       count(*) as total from catalogue.proxy_profiles"""
         )
         profiles = await profiles_cursor.fetchone()
-    provider = request.app.state.provider
+    resolved = provider_for(request)
+    provider = None if isinstance(resolved, Response) else resolved
     subscription: dict[str, Any] | None = None
     provider_error: str | None = None
-    if provider is not None:
+    # A provider that cannot propose cycles has no subscription to read, and
+    # asking would report a provider error for what is a design fact.
+    if provider is not None and pspec.proposes_cycles:
         try:
             subscription = (await provider.subscription()).model_dump(mode="json")
         except ProviderError as error:
@@ -190,6 +234,14 @@ async def overview(request: Request) -> Response:
             "subscription": subscription,
             "cycle": cycle,
             "profiles": profiles or {"enabled": 0, "total": 0},
+            # What the UI needs to stop hardcoding "Decodo Residential".
+            "provider": {
+                "name": pspec.name,
+                "label": pspec.label,
+                "proposes_cycles": pspec.proposes_cycles,
+                "has_subuser_status": pspec.has_subuser_status,
+                "known": known(),
+            },
         }
     )
 
@@ -210,6 +262,9 @@ async def usage(request: Request) -> Response:
     actor = await actor_for(request)
     if isinstance(actor, Response):
         return actor
+    pspec = provider_spec(request)
+    if isinstance(pspec, Response):
+        return pspec
     group_by = request.query_params.get("group_by", "day")
     allowed = {"day", "source", "target", "profile"}
     if group_by not in allowed:
@@ -222,9 +277,9 @@ async def usage(request: Request) -> Response:
                           transmitted_bytes, received_bytes,
                           total_bytes, request_count, last_observed_at
                      from catalogue.proxy_provider_snapshots
-                    where provider = 'decodo' and grouping_dimension = %(group)s
+                    where provider = %(provider)s and grouping_dimension = %(group)s
                     order by bucket_start desc limit 180""",
-                {"group": group_by},
+                {"group": group_by, "provider": pspec.name},
             )
         elif group_by == "profile":
             cursor = await connection.execute(
@@ -425,6 +480,9 @@ async def kill_switch(request: Request) -> Response:
     actor = await actor_for(request, admin=True, recent=action in {"clear", "revoke"})
     if isinstance(actor, Response):
         return actor
+    pspec = provider_spec(request)
+    if isinstance(pspec, Response):
+        return pspec
     if action in {"clear", "revoke"}:
         body = await request.json()
         expected = (
@@ -443,13 +501,15 @@ async def kill_switch(request: Request) -> Response:
         if action == "activate":
             cursor = await connection.execute(
                 "update catalogue.proxy_budget_cycles set kill_switch = true "
-                "where provider = 'decodo' and lifecycle = 'active' returning id"
+                "where provider = %(provider)s and lifecycle = 'active' returning id",
+                {"provider": pspec.name},
             )
         elif action == "revoke":
             async with connection.transaction():
                 cursor = await connection.execute(
                     "update catalogue.proxy_budget_cycles set kill_switch = true "
-                    "where provider = 'decodo' and lifecycle = 'active' returning id"
+                    "where provider = %(provider)s and lifecycle = 'active' returning id",
+                    {"provider": pspec.name},
                 )
                 await connection.execute(
                     """update catalogue.proxy_reservations
@@ -467,12 +527,13 @@ async def kill_switch(request: Request) -> Response:
             cursor = await connection.execute(
                 """
                 update catalogue.proxy_budget_cycles c set kill_switch = false
-                 where provider = 'decodo' and lifecycle = 'active'
+                 where provider = %(provider)s and lifecycle = 'active'
                    and reconciliation_ok and reconciled_at > now() - interval '20 minutes'
                    and greatest(provider_reported_bytes, application_bytes) < operational_bytes
                    and exists(select 1 from catalogue.proxy_profiles where enabled)
                 returning id
-                """
+                """,
+                {"provider": pspec.name},
             )
         row = await cursor.fetchone()
         if row is None:
@@ -494,6 +555,9 @@ async def pilot_action(request: Request) -> Response:
     )
     if isinstance(actor, Response):
         return actor
+    pspec = provider_spec(request)
+    if isinstance(pspec, Response):
+        return pspec
     enabled = request.path_params["action"] == "start"
     if request.path_params["action"] not in {"start", "stop"}:
         return problem(404, "Not Found", "unknown pilot action")
@@ -505,14 +569,16 @@ async def pilot_action(request: Request) -> Response:
         if enabled:
             cursor = await connection.execute(
                 """update catalogue.proxy_budget_cycles set pilot_active = true
-                     where provider = 'decodo' and lifecycle = 'active'
+                     where provider = %(provider)s and lifecycle = 'active'
                        and reconciliation_ok and reconciled_at > now() - interval '20 minutes'
-                     returning id"""
+                     returning id""",
+                {"provider": pspec.name},
             )
         else:
             cursor = await connection.execute(
                 """update catalogue.proxy_budget_cycles set pilot_active = false
-                     where provider = 'decodo' and lifecycle = 'active' returning id"""
+                     where provider = %(provider)s and lifecycle = 'active' returning id""",
+                {"provider": pspec.name},
             )
         if await cursor.fetchone() is None:
             return problem(409, "Unsafe proxy state", "pilot state could not be changed")
@@ -523,9 +589,21 @@ async def propose_cycle(request: Request) -> Response:
     actor = await actor_for(request, admin=True)
     if isinstance(actor, Response):
         return actor
+    pspec = provider_spec(request)
+    if isinstance(pspec, Response):
+        return pspec
     provider = provider_for(request)
     if isinstance(provider, Response):
         return provider
+    if not pspec.proposes_cycles:
+        # The subscription's dates become cycle_start/cycle_end, and
+        # (provider, cycle_start) is the conflict key. A provider that sells a
+        # prepaid balance has no such window to offer, so the cycle has to be
+        # opened by hand with dates an operator states.
+        return problem(
+            409, "Cycle cannot be proposed",
+            f"{pspec.label} has no dated subscription; open the cycle with explicit dates",
+        )
     try:
         subscription = await provider.subscription()
     except ProviderError as error:
@@ -539,7 +617,7 @@ async def propose_cycle(request: Request) -> Response:
                    (provider, cycle_start, cycle_end, purchased_bytes, operational_bytes,
                     daily_bytes, pilot_bytes, unmanaged_allocation_bytes, lifecycle,
                     provider_resource_id, proposed_at, proposed_by, kill_switch)
-            values ('decodo', %(start)s, %(end)s, %(purchased)s,
+            values (%(provider)s, %(start)s, %(end)s, %(purchased)s,
                     least(%(purchased)s, 2400000000), 80000000, 300000000, 0,
                     'proposed', %(resource)s, now(), %(actor)s, true)
             on conflict (provider, cycle_start) do update
@@ -549,6 +627,7 @@ async def propose_cycle(request: Request) -> Response:
             returning *
             """,
             {
+                "provider": pspec.name,
                 "start": subscription.valid_from, "end": subscription.valid_until,
                 "purchased": subscription.traffic_limit_bytes,
                 "resource": subscription.provider_resource_id, "actor": actor.id,
@@ -571,8 +650,13 @@ async def open_or_close_cycle(request: Request) -> Response:
     body = await request.json()
     if not isinstance(body, dict):
         return problem(400, "Bad Request", "a JSON object is required")
+    pspec = provider_spec(request)
+    if isinstance(pspec, Response):
+        return pspec
     confirmation = body.get("confirmation")
-    expected = "OPEN DECODO CYCLE" if action == "open" else "CLOSE DECODO CYCLE"
+    # Derived from the provider, so typing "OPEN DECODO CYCLE" cannot open an
+    # IPRoyal cycle.
+    expected = pspec.confirmation(action)
     if confirmation != expected:
         return problem(422, "Confirmation required", f"confirmation must equal {expected!r}")
     provider = provider_for(request)
@@ -585,7 +669,9 @@ async def open_or_close_cycle(request: Request) -> Response:
             except (ProviderError, RuntimeError) as error:
                 return problem(502, "Final reconciliation failed", str(error))
     async with request.app.state.pool.connection() as connection, connection.transaction():
-        await connection.execute("select pg_advisory_xact_lock(hashtext('proxy:decodo'))")
+        await connection.execute(
+            "select pg_advisory_xact_lock(hashtext(%(lock)s))", {"lock": pspec.lock_key}
+        )
         if action == "open":
             proposed = await connection.execute(
                 "select * from catalogue.proxy_budget_cycles where id = %(id)s for update",
@@ -599,8 +685,8 @@ async def open_or_close_cycle(request: Request) -> Response:
             await connection.execute(
                 """update catalogue.proxy_budget_cycles
                       set lifecycle = 'closed', closed_at = now(), closed_by = %(actor)s
-                    where provider = 'decodo' and lifecycle = 'active' and cycle_end <= now()""",
-                {"actor": actor.id},
+                    where provider = %(provider)s and lifecycle = 'active' and cycle_end <= now()""",
+                {"actor": actor.id, "provider": pspec.name},
             )
             changed = await connection.execute(
                 """update catalogue.proxy_budget_cycles
@@ -758,6 +844,9 @@ async def create_profile(request: Request) -> Response:
     actor = await actor_for(request, admin=True, recent=True)
     if isinstance(actor, Response):
         return actor
+    pspec = provider_spec(request)
+    if isinstance(pspec, Response):
+        return pspec
     if denied := _writes_enabled(request):
         return denied
     provider = provider_for(request)
@@ -791,10 +880,13 @@ async def create_profile(request: Request) -> Response:
         if mutation.replay_status:
             return payload(mutation.replay_data or {}, status=mutation.replay_status)
         async with connection.transaction():
-            await connection.execute("select pg_advisory_xact_lock(hashtext('proxy:decodo'))")
+            await connection.execute(
+                "select pg_advisory_xact_lock(hashtext(%(lock)s))", {"lock": pspec.lock_key}
+            )
             cycle_cursor = await connection.execute(
-                "select * from catalogue.proxy_budget_cycles where provider = 'decodo' "
-                "and lifecycle = 'active' for update"
+                "select * from catalogue.proxy_budget_cycles where provider = %(provider)s "
+                "and lifecycle = 'active' for update",
+                {"provider": pspec.name},
             )
             cycle = await cycle_cursor.fetchone()
             if cycle is None:
@@ -807,8 +899,8 @@ async def create_profile(request: Request) -> Response:
             allocated_cursor = await connection.execute(
                 """select coalesce(sum(allocated_bytes), 0) as allocated
                      from catalogue.proxy_profile_allocations
-                    where provider = 'decodo' and cycle_start = %(start)s""",
-                {"start": cycle["cycle_start"]},
+                    where provider = %(provider)s and cycle_start = %(start)s""",
+                {"start": cycle["cycle_start"], "provider": pspec.name},
             )
             allocated_row = await allocated_cursor.fetchone()
             allocated = int(allocated_row["allocated"] if allocated_row else 0)
@@ -833,8 +925,9 @@ async def create_profile(request: Request) -> Response:
             await connection.execute(
                 """insert into catalogue.proxy_profile_allocations
                            (provider, cycle_start, profile_id, allocated_bytes, updated_by)
-                    values ('decodo', %(start)s, %(profile)s, %(bytes)s, %(actor)s)""",
+                    values (%(provider)s, %(start)s, %(profile)s, %(bytes)s, %(actor)s)""",
                 {
+                    "provider": pspec.name,
                     "start": cycle["cycle_start"], "profile": profile["id"],
                     "bytes": allocation, "actor": actor.id,
                 },
@@ -885,7 +978,8 @@ async def create_profile(request: Request) -> Response:
             )
             await connection.execute(
                 "update catalogue.proxy_budget_cycles set kill_switch = true "
-                "where provider = 'decodo' and lifecycle = 'active'"
+                "where provider = %(provider)s and lifecycle = 'active'",
+                {"provider": pspec.name},
             )
             data = {"error": "provider_changed_local_failed", "operation_id": str(mutation.operation_id)}
             await finish_mutation(
@@ -968,6 +1062,9 @@ async def profile_action(request: Request) -> Response:
         return actor
     if denied := _writes_enabled(request):
         return denied
+    pspec = provider_spec(request)
+    if isinstance(pspec, Response):
+        return pspec
     provider = provider_for(request)
     if isinstance(provider, Response):
         return provider
@@ -1056,7 +1153,7 @@ async def profile_action(request: Request) -> Response:
                         state="ambiguous" if error.ambiguous else "failed",
                     )
                 except (OSError, RuntimeError, TypeError, ValueError):
-                    await _credential_install_failure(connection, profile_id, actor.id)
+                    await _credential_install_failure(connection, profile_id, actor.id, pspec.name)
                     return await mutation_problem(
                         connection, mutation, actor, mutation_action, profile_id, status=500,
                         title="Rotation failed", detail="provider changed but local install failed",
@@ -1151,16 +1248,19 @@ async def profile_action(request: Request) -> Response:
                     code="profile_active",
                 )
             async with connection.transaction():
-                await connection.execute("select pg_advisory_xact_lock(hashtext('proxy:decodo'))")
+                await connection.execute(
+                    "select pg_advisory_xact_lock(hashtext(%(lock)s))",
+                    {"lock": pspec.lock_key},
+                )
                 capacity_cursor = await connection.execute(
                     """select c.operational_bytes, c.unmanaged_allocation_bytes,
                               coalesce(sum(a.allocated_bytes) filter (where a.profile_id <> %(id)s), 0) as other
                          from catalogue.proxy_budget_cycles c
                          left join catalogue.proxy_profile_allocations a
                            on a.provider = c.provider and a.cycle_start = c.cycle_start
-                        where c.provider = 'decodo' and c.lifecycle = 'active'
+                        where c.provider = %(provider)s and c.lifecycle = 'active'
                         group by c.operational_bytes, c.unmanaged_allocation_bytes""",
-                    {"id": profile_id},
+                    {"id": profile_id, "provider": pspec.name},
                 )
                 capacity = await capacity_cursor.fetchone()
                 if capacity is None or capacity["other"] + capacity["unmanaged_allocation_bytes"] + allocation > capacity["operational_bytes"]:
@@ -1239,7 +1339,9 @@ def _username_from_store(path: Any, logical_name: str) -> str:
     return str(profile["username"])
 
 
-async def _credential_install_failure(connection: Any, profile_id: UUID, actor: str) -> None:
+async def _credential_install_failure(
+    connection: Any, profile_id: UUID, actor: str, provider: str
+) -> None:
     await connection.execute(
         """update catalogue.proxy_profiles set lifecycle = 'provider_changed_local_failed',
                   enabled = false, updated_at = now(), updated_by = %(actor)s where id = %(id)s""",
@@ -1247,7 +1349,8 @@ async def _credential_install_failure(connection: Any, profile_id: UUID, actor: 
     )
     await connection.execute(
         "update catalogue.proxy_budget_cycles set kill_switch = true "
-        "where provider = 'decodo' and lifecycle = 'active'"
+        "where provider = %(provider)s and lifecycle = 'active'",
+        {"provider": provider},
     )
 
 
@@ -1258,8 +1361,13 @@ async def _blue_green_rotation(
     action = "profile.rotate"
     allocation = int(profile["allocated_bytes"] or 0)
     minimum = min(allocation, 25_000_000)
+    pspec = provider_spec(request)
+    if isinstance(pspec, Response):
+        return pspec
     async with connection.transaction():
-        await connection.execute("select pg_advisory_xact_lock(hashtext('proxy:decodo'))")
+        await connection.execute(
+            "select pg_advisory_xact_lock(hashtext(%(lock)s))", {"lock": pspec.lock_key}
+        )
         capacity_cursor = await connection.execute(
             """select c.operational_bytes - c.unmanaged_allocation_bytes
                     - coalesce(sum(a.allocated_bytes), 0)
@@ -1269,8 +1377,9 @@ async def _blue_green_rotation(
              from catalogue.proxy_budget_cycles c
              left join catalogue.proxy_profile_allocations a
                on a.provider = c.provider and a.cycle_start = c.cycle_start
-            where c.provider = 'decodo' and c.lifecycle = 'active'
-            group by c.operational_bytes, c.unmanaged_allocation_bytes"""
+            where c.provider = %(provider)s and c.lifecycle = 'active'
+            group by c.operational_bytes, c.unmanaged_allocation_bytes""",
+            {"provider": pspec.name},
         )
         capacity = await capacity_cursor.fetchone()
         if capacity is None or int(capacity["spare"]) < minimum:
@@ -1322,7 +1431,7 @@ async def _blue_green_rotation(
             "error_code = 'secret_install_failed' where id = %(id)s",
             {"id": pending["id"]},
         )
-        await _credential_install_failure(connection, profile["id"], actor.id)
+        await _credential_install_failure(connection, profile["id"], actor.id, pspec.name)
         return await mutation_problem(
             connection, mutation, actor, action, profile["id"], status=500,
             title="Rotation failed", detail="replacement exists but local install failed",
@@ -1512,6 +1621,19 @@ async def probe_route(request: Request) -> Response:
     body = await request.json()
     if not isinstance(body, dict) or body.get("confirmation") != "SPEND UP TO 1.1 MB":
         return problem(422, "Confirmation required", "confirmation must equal 'SPEND UP TO 1.1 MB'")
+    pspec = provider_spec(request)
+    if isinstance(pspec, Response):
+        return pspec
+    # A probe spends real traffic, so an unknown IP-check endpoint is refused
+    # rather than guessed. Configure one per provider to enable probing.
+    probe_url = request.app.state.settings.proxy_provider_probe_urls.get(
+        pspec.name, pspec.probe_url
+    )
+    if not probe_url:
+        return problem(
+            409, "Probe unavailable",
+            f"no IP-check endpoint is configured for {pspec.label}",
+        )
     app_cap = 1_000_000
     reservation_cap = 1_100_000
     async with request.app.state.pool.connection() as connection:
@@ -1584,7 +1706,7 @@ async def probe_route(request: Request) -> Response:
         try:
             async with (
                 httpx.AsyncClient(proxy=lease.url, timeout=30, follow_redirects=False) as client,
-                client.stream("GET", "https://ip.decodo.com/json") as response,
+                client.stream("GET", probe_url) as response,
             ):
                     response.raise_for_status()
                     content_length = int(response.headers.get("content-length", "0") or 0)

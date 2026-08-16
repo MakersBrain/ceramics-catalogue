@@ -691,6 +691,43 @@ def _json_response(payload: dict[str, Any]) -> Response:
     )
 
 
+def _build_providers(settings: Settings) -> dict[str, Any]:
+    """Construct every enabled provider from the registry.
+
+    A provider whose credential file is absent is skipped rather than raising:
+    paid proxying is opt-in, and the common case for a fresh deployment is that
+    none is configured at all. An *unknown* provider name is a different thing
+    and does raise -- that is a typo in the environment, and skipping it would
+    look exactly like a credential that failed to load.
+    """
+    from mb_ceramics_catalogue.observability import logging as obs
+    from mb_ceramics_catalogue.providers.registry import spec
+    from mb_ceramics_catalogue.proxy import load_api_key
+
+    built: dict[str, Any] = {}
+    for name in settings.enabled_providers():
+        provider_spec = spec(name)
+        secret_file = settings.proxy_provider_secret_files.get(name)
+        if secret_file is None and name == settings.proxy_default_provider:
+            secret_file = settings.proxy_api_secret_file
+        if secret_file is None:
+            continue
+        api_key = load_api_key(secret_file)
+        obs.register_secrets({api_key})
+        options: dict[str, Any] = {}
+        if name == "decodo":
+            options["limit_unit"] = settings.proxy_provider_limit_unit
+        if name == "iproyal":
+            options["traffic_writes"] = settings.proxy_iproyal_traffic_writes
+        base_url = settings.proxy_provider_base_urls.get(name)
+        if base_url is None and name == settings.proxy_default_provider:
+            base_url = settings.proxy_provider_base_url
+        built[name] = provider_spec.build(
+            api_key, base_url=base_url or provider_spec.default_base_url, **options
+        )
+    return built
+
+
 def create_app(settings: Settings | None = None, *, proxy_provider: Any = None) -> Starlette:
     settings = settings or Settings()
     if settings.require_token and not settings.control_token:
@@ -752,34 +789,41 @@ def create_app(settings: Settings | None = None, *, proxy_provider: Any = None) 
             app.state.settings = settings
             app.state.sources = SourcesFile.load(default_path())
             app.state.actor_keys = load_public_keys(settings.proxy_actor_public_keys_file)
-            provider = proxy_provider
-            if provider is None and settings.proxy_api_secret_file:
-                from mb_ceramics_catalogue.observability import logging as obs
-                from mb_ceramics_catalogue.providers.decodo import DecodoProvider
-                from mb_ceramics_catalogue.proxy import load_api_key
-
-                api_key = load_api_key(settings.proxy_api_secret_file)
-                obs.register_secrets({api_key})
-                provider = DecodoProvider(
-                    api_key,
-                    limit_unit=settings.proxy_provider_limit_unit,
-                    base_url=settings.proxy_provider_base_url,
-                )
-            app.state.provider = provider
+            # An injected provider is the test seam and stays single: it becomes
+            # the default provider and the only one.
+            providers: dict[str, Any] = {}
+            if proxy_provider is not None:
+                providers[settings.proxy_default_provider] = proxy_provider
+            else:
+                providers = _build_providers(settings)
+            app.state.providers = providers
+            #: The default, kept as `state.provider` because most call sites want
+            #: "the one provider this request is about" and resolve it earlier.
+            app.state.provider = providers.get(settings.proxy_default_provider)
             app.state.broker = Broker(settings)
             await app.state.broker.start()
-            app.state.proxy_scheduler = None
-            if provider is not None and settings.proxy_enabled:
-                app.state.proxy_scheduler = ReconciliationScheduler(
-                    pool, provider, settings.proxy_reconcile_interval_seconds,
-                    settings.proxy_secret_file,
-                )
-                await app.state.proxy_scheduler.start()
+            # One scheduler per provider. Reconciliation reads a provider's usage
+            # and writes that provider's cycle; two providers share no rows, so
+            # running them on one loop would only make the slower one delay the
+            # other's accounting.
+            app.state.proxy_schedulers = {}
+            if settings.proxy_enabled:
+                for name, built in providers.items():
+                    scheduler = ReconciliationScheduler(
+                        pool, built, settings.proxy_reconcile_interval_seconds,
+                        settings.proxy_secret_file,
+                    )
+                    app.state.proxy_schedulers[name] = scheduler
+                    await scheduler.start()
+            # Kept for the tests and call sites that predate multi-provider.
+            app.state.proxy_scheduler = app.state.proxy_schedulers.get(
+                settings.proxy_default_provider
+            )
             try:
                 yield
             finally:
-                if app.state.proxy_scheduler is not None:
-                    await app.state.proxy_scheduler.stop()
+                for scheduler in app.state.proxy_schedulers.values():
+                    await scheduler.stop()
                 await app.state.broker.stop()
 
     return Starlette(
