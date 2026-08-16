@@ -47,6 +47,7 @@ def test_capabilities_match_what_each_api_actually_offers():
     assert spec("iproyal").has_subuser_status is False
     # Webshare issues its own sub-user credentials.
     assert spec("webshare").can_provision_subusers is False
+    assert spec("proxyscrape").can_provision_subusers is False
     assert spec("decodo").can_provision_subusers is True
 
 
@@ -55,6 +56,7 @@ def test_a_probe_url_is_absent_rather_than_guessed():
     assert spec("decodo").probe_url == "https://ip.decodo.com/json"
     assert spec("iproyal").probe_url is None
     assert spec("webshare").probe_url is None
+    assert spec("proxyscrape").probe_url is None
 
 
 #: `ProxyProvider` is a plain Protocol, not @runtime_checkable, so isinstance

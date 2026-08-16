@@ -719,6 +719,8 @@ def _build_providers(settings: Settings) -> dict[str, Any]:
             options["limit_unit"] = settings.proxy_provider_limit_unit
         if name == "iproyal":
             options["traffic_writes"] = settings.proxy_iproyal_traffic_writes
+        if name == "proxyscrape":
+            options["sub_account_id"] = settings.proxy_proxyscrape_sub_account_id
         base_url = settings.proxy_provider_base_urls.get(name)
         if base_url is None and name == settings.proxy_default_provider:
             base_url = settings.proxy_provider_base_url

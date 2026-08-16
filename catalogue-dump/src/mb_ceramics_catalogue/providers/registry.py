@@ -100,6 +100,16 @@ def _build_webshare(api_key: str, *, base_url: str, **options: Any) -> ProxyProv
     return WebshareProvider(api_key, base_url=base_url)
 
 
+def _build_proxyscrape(api_key: str, *, base_url: str, **options: Any) -> ProxyProvider:
+    from .proxyscrape import ProxyScrapeProvider
+
+    return ProxyScrapeProvider(
+        api_key,
+        base_url=base_url,
+        sub_account_id=options.get("sub_account_id", ""),
+    )
+
+
 def _build_iproyal(api_key: str, *, base_url: str, **options: Any) -> ProxyProvider:
     from .iproyal import IPRoyalProvider
 
@@ -142,6 +152,19 @@ REGISTRY: dict[str, ProviderSpec] = {
         probe_url=None,
         has_subuser_status=False,
         # Sub-user credentials are issued by Webshare, not chosen here.
+        can_provision_subusers=False,
+    ),
+    "proxyscrape": ProviderSpec(
+        name="proxyscrape",
+        label="ProxyScrape Residential",
+        build=_build_proxyscrape,
+        default_base_url="https://api.proxyscrape.com",
+        # Plan and allowance, but no validity window.
+        proposes_cycles=False,
+        probe_url=None,
+        has_subuser_status=False,
+        # Sub-users carry no traffic ceiling, so one could spend the whole
+        # balance with only the application ledger in the way.
         can_provision_subusers=False,
     ),
 }
