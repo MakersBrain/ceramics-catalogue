@@ -54,6 +54,18 @@ def registry() -> Registry:
     api.add(
         Operation(
             method="get",
+            path="/metrics",
+            operation_id="metrics",
+            summary="Prometheus metrics",
+            media_type="text/plain",
+            errors=(500,),
+            tags=("service",),
+        )
+    )
+
+    api.add(
+        Operation(
+            method="get",
             path="/v1/canonical-products",
             operation_id="searchCanonicalProducts",
             summary="Search canonical products",

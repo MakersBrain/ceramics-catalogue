@@ -67,7 +67,7 @@ from mb_ceramics_catalogue.observability import metrics, tracing
 from mb_ceramics_catalogue.ops import events, leases, monitor, queue, runs, schedule
 from mb_ceramics_catalogue.ops import outputs as ops_outputs
 from mb_ceramics_catalogue.ops.connector_adapters import runtime_plan
-from mb_ceramics_catalogue.ops.sink import JobLogHandler, PostgresSink
+from mb_ceramics_catalogue.ops.sink import THROTTLE_SECONDS, JobLogHandler, PostgresSink
 from mb_ceramics_catalogue.pipeline.budget import RequestBudget, RequestCost
 from mb_ceramics_catalogue.pipeline.outputs import LocalArtifactStore
 from mb_ceramics_catalogue.pipeline.runner import ConnectorPipeline, DatasetPageState, PipelineResult
@@ -159,6 +159,7 @@ class Worker:
         #: One cancel flag per running job: cancelling one source must not
         #: tear down the others this process is carrying.
         self._cancels: dict[UUID, asyncio.Event] = {}
+        self._job_started: dict[UUID, float] = {}
         self._slots = asyncio.Semaphore(max(1, settings.job_slots))
         #: One camoufox for this process, shared by every job that renders and
         #: started on the first one that does. Per job it was sixteen across the
@@ -514,6 +515,7 @@ class Worker:
                     await leases.release_all(connection, job.id)
                     self._forget(job)
                     return False
+                self._job_started[job.id] = started
                 # Whichever worker gets there first moves the run out of
                 # `queued`. It is conditional on the current status, so the
                 # other seventy-nine jobs starting are no-ops rather than a
@@ -537,7 +539,7 @@ class Worker:
             finally:
                 async with self.pool.connection() as connection:
                     await leases.release_all(connection, job.id)
-                metrics.job_duration(job.source_id, time.monotonic() - started)
+                self._job_started.pop(job.id, None)
                 self._forget(job)
                 # Another slot may still be crawling. A completed job used to
                 # unconditionally publish `idle`, and the in-memory shortcut in
@@ -611,6 +613,9 @@ class Worker:
 
         log_handler = JobLogHandler(job.id)
         obs.attach(log_handler)
+        log_flusher = asyncio.create_task(
+            self._flush_job_logs(log_handler), name=f"job-log:{job.source_id}"
+        )
 
         cancelled = False
         try:
@@ -703,8 +708,29 @@ class Worker:
             )
         finally:
             obs.detach(log_handler)
-            async with self.pool.connection() as connection:
-                await log_handler.flush_to(connection)
+            log_flusher.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await log_flusher
+            try:
+                async with self.pool.connection() as connection:
+                    await log_handler.flush_to(connection)
+            except psycopg.Error:
+                # Observability is best-effort. Losing the final buffered log
+                # lines must never change a successfully loaded job into a
+                # failure merely because the database was briefly unavailable.
+                LOGGER.debug("sink.final_log_flush_failed", job_id=str(job.id), exc_info=True)
+
+    async def _flush_job_logs(self, handler: JobLogHandler) -> None:
+        """Persist a running job's buffered logs on a bounded cadence."""
+        while True:
+            await asyncio.sleep(THROTTLE_SECONDS)
+            try:
+                async with self.pool.connection() as connection:
+                    await handler.flush_to(connection)
+            except psycopg.Error:
+                # The handler still owns its bounded pending rows. A transient
+                # pool/database failure is retried on the next cadence.
+                LOGGER.debug("sink.log_flush_failed", job_id=str(handler.job_id), exc_info=True)
 
     async def _crawl_connector_canary(
         self, job: queue.ClaimedJob, params: CrawlParams, config: Any
@@ -1171,6 +1197,12 @@ class Worker:
                 # shown. An alert that never clears is one nobody reads.
                 await events.resolve(connection, f"job.failed:{job.source_id}:",
                                      source_id=job.source_id)
+        # Emit only after every terminal side effect completed. If a database
+        # write above fails, execute() records the job as failed; counting the
+        # earlier intended outcome as well would double-count one completion.
+        metrics.job_completed(job.source_id, state)
+        if started := self._job_started.get(job.id):
+            metrics.job_duration(job.source_id, time.monotonic() - started, state)
 
     # -- shutdown ---------------------------------------------------------
 

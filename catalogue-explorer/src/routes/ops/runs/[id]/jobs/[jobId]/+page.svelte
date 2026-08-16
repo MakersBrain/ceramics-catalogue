@@ -12,8 +12,10 @@
 	import { Progress } from '$lib/components/ui/progress';
 
 	let { data } = $props();
+	let copied = $state<string | null>(null);
 
 	const job = $derived(data.job);
+	const runId = $derived(page.params.id ?? '');
 	const coverage = $derived(Object.entries(job?.summary?.field_coverage ?? {}) as [string, number][]);
 	const errors = $derived((job?.summary?.errors ?? []) as { url: string; error: string }[]);
 	const changes = $derived(data.changes);
@@ -30,6 +32,11 @@
 		if (value == null) return '—';
 		if (typeof value === 'string') return value;
 		return JSON.stringify(value);
+	}
+
+	async function copy(label: string, value: string) {
+		await navigator.clipboard.writeText(value);
+		copied = label;
 	}
 </script>
 
@@ -49,6 +56,32 @@
 			attempt {job.attempt}/{job.max_attempts} · {duration(job.started_at, job.finished_at)}
 			{#if job.finished_at}· finished {relative(job.finished_at)}{/if}
 		</span>
+	</div>
+	<div class="bg-muted/40 mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border px-3 py-2 text-xs">
+		<span class="text-muted-foreground">Correlation</span>
+		<span class="flex items-center gap-1">
+			<span class="text-muted-foreground">job</span>
+			<code>{job.id}</code>
+			<Button variant="ghost" size="xs" type="button" onclick={() => copy('job', job.id)}>
+				{copied === 'job' ? 'copied' : 'copy'}
+			</Button>
+		</span>
+		<span class="flex items-center gap-1">
+			<span class="text-muted-foreground">run</span>
+			<code>{runId}</code>
+			<Button variant="ghost" size="xs" type="button" onclick={() => copy('run', runId)}>
+				{copied === 'run' ? 'copied' : 'copy'}
+			</Button>
+		</span>
+		{#if job.trace_id}
+			<span class="flex items-center gap-1">
+				<span class="text-muted-foreground">trace</span>
+				<code>{job.trace_id}</code>
+				<Button variant="ghost" size="xs" type="button" onclick={() => job.trace_id && copy('trace', job.trace_id)}>
+					{copied === 'trace' ? 'copied' : 'copy'}
+				</Button>
+			</span>
+		{/if}
 	</div>
 
 	<div class="mb-6 grid gap-4 lg:grid-cols-3">
@@ -83,9 +116,6 @@
 					</p>
 				{:else}
 					<p class="text-muted-foreground">No artifact recorded for this attempt.</p>
-				{/if}
-				{#if job.trace_id}
-					<p class="text-muted-foreground/70 mt-2 font-mono text-xs">trace {job.trace_id}</p>
 				{/if}
 			</CardContent>
 		</Card>

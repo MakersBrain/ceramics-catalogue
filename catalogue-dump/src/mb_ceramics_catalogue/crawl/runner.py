@@ -220,7 +220,6 @@ async def run_source(
         collection_seconds = time.monotonic() - started
         summary = summarise(name, config, result, method=scraper.method)
         summary["collection_seconds"] = round(collection_seconds, 6)
-        metrics.job_duration(name, collection_seconds)
         metrics.records(name, summary["records"])
 
         # Written as soon as this source is done rather than at the end of the

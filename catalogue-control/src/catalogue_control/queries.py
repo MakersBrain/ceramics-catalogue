@@ -487,5 +487,24 @@ async def queue_depth(connection: Connection) -> dict[str, int]:
     return {row["state"]: int(row["n"]) for row in rows}
 
 
+METRIC_JOB_STATES = "select state, count(*)::int as n from catalogue.jobs group by state"
+
+METRIC_QUEUE_OLDEST = """
+select coalesce(
+         greatest(extract(epoch from (now() - min(scheduled_for))), 0),
+         0
+       ) as seconds
+  from catalogue.jobs
+ where state = 'queued' and scheduled_for <= now()
+"""
+
+METRIC_WORKERS = """
+select count(*) filter (where last_heartbeat_at >= now() - interval '15 seconds')::int as healthy,
+       count(*) filter (where last_heartbeat_at < now() - interval '15 seconds')::int as lost
+  from catalogue.workers
+ where status <> 'stopped'
+"""
+
+
 def as_jsonb(value: Any) -> Jsonb:
     return Jsonb(value if value is not None else {})

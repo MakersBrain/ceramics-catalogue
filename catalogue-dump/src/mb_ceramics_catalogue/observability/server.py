@@ -4,9 +4,10 @@ Stdlib only, and here the "no framework for two endpoints" argument genuinely
 does hold: this serves two fixed strings on a thread, and a worker's image
 should not carry a web framework so that Prometheus can ask it a question.
 
-Nothing scrapes these yet. They exist so that when something does, no rework is
-needed — the numbers are already being computed, and `HostLimiter` has been
-throwing away its backoff and concurrency decisions since the beginning.
+The optional observability compose profile discovers each worker replica by
+Docker DNS and scrapes this listener directly. It deliberately does not put the
+workers behind one load-balanced target, where successive counter scrapes could
+come from different processes.
 """
 
 from __future__ import annotations

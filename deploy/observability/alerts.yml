@@ -1,0 +1,67 @@
+groups:
+  - name: catalogue-operations
+    rules:
+      - alert: SourceNeverSucceeded
+        expr: catalogue_source_success_state == 0 and on(source) catalogue_source_overdue_seconds > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Catalogue source {{ $labels.source }} has never produced a usable result"
+          runbook_url: "http://localhost:5175/ops/sources"
+          dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=2"
+
+      - alert: SourceOverdue
+        expr: catalogue_source_overdue_seconds > 900
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Catalogue source {{ $labels.source }} is overdue"
+          runbook_url: "http://localhost:5175/ops/sources"
+          dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=2"
+
+      - alert: QueueWithoutCapacity
+        expr: catalogue_jobs{state="queued"} > 0 and on() catalogue_workers{health="healthy"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Catalogue work is queued with no healthy worker"
+          runbook_url: "http://localhost:5175/ops"
+          dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=7"
+
+      - alert: QueueStuck
+        expr: catalogue_queue_oldest_age_seconds > 1800 and on() catalogue_workers{health="healthy"} > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "The oldest catalogue job has waited more than 30 minutes"
+          runbook_url: "http://localhost:5175/ops"
+          dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=6"
+
+      - alert: JobFailuresHigh
+        expr: |
+          sum(increase(catalogue_jobs_completed_total{outcome=~"failed|degraded"}[1h]))
+            /
+          sum(increase(catalogue_jobs_completed_total[1h])) > 0.25
+          and
+          sum(increase(catalogue_jobs_completed_total[1h])) >= 4
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 25% of catalogue jobs are failing or degraded"
+          runbook_url: "http://localhost:5175/ops/runs"
+          dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=5"
+
+      - alert: MetricsTargetDown
+        expr: up{job=~"catalogue-(control|service|worker|worker-browser)"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Metrics target {{ $labels.job }} {{ $labels.instance }} is down"
+          runbook_url: "http://localhost:5175/ops"
+          dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=13"

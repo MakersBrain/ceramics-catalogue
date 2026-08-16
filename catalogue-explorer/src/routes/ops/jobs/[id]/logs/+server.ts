@@ -8,6 +8,10 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		after: url.searchParams.get('after') ?? '0',
 		limit: url.searchParams.get('limit') ?? '100'
 	});
+	for (const name of ['level', 'q']) {
+		const value = url.searchParams.get(name);
+		if (value) query.set(name, value);
+	}
 	try {
 		const page = await get<LogPage>(`/v1/jobs/${params.id}/logs?${query}`);
 		return Response.json(page, { headers: { 'cache-control': 'no-store' } });

@@ -20,6 +20,7 @@ from urllib.parse import urljoin, urlparse
 
 import httpx
 
+from mb_ceramics_catalogue.observability import metrics
 from mb_ceramics_catalogue.proxy import ProxyDenied
 from mb_ceramics_catalogue.transports.browser import (
     BrowserJobContext,
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
 
 from . import domain
 from . import record as record_module
-from .activity import ACTIVITY
+from .activity import ACTIVITY, CURRENT_SOURCE
 from .cache import CachedResponse, ResponseCache
 
 LOGGER = logging.getLogger("catalogue-dump.scrapers")
@@ -295,6 +296,7 @@ class HostLimiter:
             # The host asked for a pace in robots.txt and has now shown it meant
             # it, so take that figure rather than a guessed one.
             self.set_delay(url, published)
+            metrics.host_backoff(key, published)
             LOGGER.warning(
                 "host=%s failed (%s); falling back to its published Crawl-delay of %.1fs",
                 host, reason, published,
@@ -304,6 +306,7 @@ class HostLimiter:
         self.backoff[key] = min(
             self.BACKOFF_MAX, max(self.BACKOFF_START, self.backoff.get(key, 0.0) * 2),
         )
+        metrics.host_backoff(key, self.backoff[key])
         LOGGER.warning(
             "host=%s failed (%s); slots %d -> %d, waiting %.1fs between requests%s",
             host, reason, current, self.slots[host], self.backoff[key],
@@ -922,6 +925,15 @@ class Fetcher:
             return self.proxy_fallback.proxy_bytes_remaining
         return None
 
+    @staticmethod
+    def _record_network(url: str, outcome: str, started: float, status: int | None = None) -> None:
+        host = (urlparse(url).hostname or urlparse(url).netloc).lower()
+        source = CURRENT_SOURCE.get() or None
+        metrics.request(source, host, outcome)
+        metrics.request_duration(host, time.monotonic() - started)
+        if status is not None and status >= 400:
+            metrics.http_error(host, status)
+
     async def rotate_client(self) -> None:
         """Replace this fetcher's HTTP session without losing crawl state.
 
@@ -974,7 +986,9 @@ class Fetcher:
                 if self.proxy_lease:
                     self.proxy_lease.ensure_request_allowed()
                 headers = {"user-agent": BROWSER_USER_AGENT} if browser_agent else None
+                request_started = time.monotonic()
                 response = await self.client.get(url, timeout=15, headers=headers)
+                self._record_network(url, _outcome(response.status_code), request_started, response.status_code)
                 tx = _request_size("GET", url, headers or {}, None)
                 rx = _response_size(response)
                 self.stats.http_tx_bytes_estimated += tx
@@ -986,6 +1000,11 @@ class Fetcher:
                 else:
                     self.stats.direct_requests += 1
             except (httpx.HTTPError, UnicodeError) as error:
+                self._record_network(
+                    url,
+                    "timeout" if isinstance(error, httpx.TimeoutException) else "transport_error",
+                    request_started,
+                )
                 LOGGER.warning("robots.txt unreachable at %s (%s); proceeding unrestricted", origin, error)
                 parser.allow_all = True
                 return parser, []
@@ -1147,9 +1166,13 @@ class Fetcher:
             async with self.limiter.gate(url):
                 await self.limiter.wait(url)
                 ACTIVITY.started(target)
+                request_started = time.monotonic()
                 try:
                     response = await self.client.request(
                         method, url, params=params, json=json_body, headers=request_headers or None,
+                    )
+                    self._record_network(
+                        url, _outcome(response.status_code), request_started, response.status_code
                     )
                     ACTIVITY.finished(target, str(response.status_code))
                     if self.proxy_lease is None:
@@ -1165,6 +1188,11 @@ class Fetcher:
                         self.proxy_lease.account(tx, rx)
                         self.stats.proxy_requests += 1
                 except (httpx.HTTPError, UnicodeError) as error:
+                    self._record_network(
+                        url,
+                        "timeout" if isinstance(error, httpx.TimeoutException) else "transport_error",
+                        request_started,
+                    )
                     ACTIVITY.finished(target, type(error).__name__)
                     # A refused or timed-out request is the host telling us the
                     # pace is wrong just as clearly as a 429 does. Crawling with
@@ -1374,6 +1402,7 @@ class Fetcher:
             return None
         target = str(httpx.URL(url, params=params)) if params else url
         ACTIVITY.started(target)
+        request_started = time.monotonic()
         async with self.limiter.gate(url):
             await self.limiter.wait(url)
             try:
@@ -1383,10 +1412,12 @@ class Fetcher:
                     json_body=json_body,
                 )
             except (Blocked, Exception) as error:  # noqa: BLE001 - curl_cffi raises its own
+                self._record_network(url, "transport_error", request_started)
                 ACTIVITY.finished(target, "impersonate-error")
                 LOGGER.debug("impersonation failed for %s (%s)", url, error)
                 return None
         ACTIVITY.finished(target, f"{response.status_code} (impersonated)")
+        self._record_network(url, _outcome(response.status_code), request_started, response.status_code)
         self.stats.impersonated_requests += 1
         rx = _response_size(response)
         self.stats.http_rx_bytes_estimated += rx
@@ -1419,6 +1450,7 @@ class Fetcher:
         if self.cache.mode == "replay":
             raise NotCached(f"render {url} is not in the cache")
         ACTIVITY.started(url)
+        metrics.browser_render(CURRENT_SOURCE.get() or None)
         proxy_requests_before = self.proxy_lease.requests if self.proxy_lease else 0
         # Through the limiter, exactly like an HTTP request. A rendered page is
         # a request to someone's shop and it was the only kind that skipped
