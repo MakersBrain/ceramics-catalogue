@@ -387,6 +387,44 @@ services:
       start_period: 10s
       retries: 3
 
+  # Optional, bounded operational metrics. Prometheus discovers every scaled
+  # worker by Docker DNS; scraping a load-balanced worker name as one target
+  # would mix process-local counters across replicas.
+  prometheus:
+    profiles: ["observability"]
+    image: prom/prometheus:v3.5.0
+    container_name: catalogue-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=14d
+      - --storage.tsdb.retention.size=2GB
+    volumes:
+      - ./deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:${CATALOGUE_PROMETHEUS_PORT:-9090}:9090"
+    restart: unless-stopped
+
+  grafana:
+    profiles: ["observability"]
+    image: grafana/grafana:12.1.0
+    container_name: catalogue-grafana
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: ${CATALOGUE_GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${CATALOGUE_GRAFANA_PASSWORD:-catalogue-local}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:${CATALOGUE_GRAFANA_PORT:-3001}:3000"
+    restart: unless-stopped
+
 volumes:
   pgdata:
   # The recorded response cache. Not in the backup set: it is reproducible by
@@ -401,6 +439,9 @@ volumes:
   # Explorer-only copy of the assertion signing key. The one-shot initializer
   # preserves the host key's 0600 mode while assigning it to the container UID.
   operator-secrets:
+  # Bounded by Prometheus' 14-day/2GB retention flags above.
+  prometheus-data:
+  grafana-data:
 
 secrets:
   npmrc:

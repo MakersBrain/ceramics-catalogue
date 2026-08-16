@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import { getRequestEvent } from '$app/server';
 import { actorHeaders, type Operator } from '$lib/server/operator';
 import { randomUUID } from 'node:crypto';
 
@@ -19,6 +20,14 @@ const DEFAULT_URL = 'http://127.0.0.1:8687';
 const base = () => env.CATALOGUE_CONTROL_URL || DEFAULT_URL;
 const token = () => env.CATALOGUE_CONTROL_TOKEN || '';
 
+function requestId(): string {
+	try {
+		return getRequestEvent().locals.requestId;
+	} catch {
+		return randomUUID();
+	}
+}
+
 export class ControlError extends Error {
 	constructor(
 		readonly status: number,
@@ -33,9 +42,10 @@ async function request(path: string, init: RequestInit = {}, operator?: Operator
 	const method = (init.method || 'GET').toUpperCase();
 	const response = await fetch(`${base()}${path}`, {
 		...init,
-		headers: {
+			headers: {
 			...(init.headers ?? {}),
-			authorization: `Bearer ${token()}`,
+				authorization: `Bearer ${token()}`,
+				'x-request-id': requestId(),
 			...(init.body ? { 'content-type': 'application/json' } : {}),
 			...(operator ? actorHeaders(operator, method, path.split('?')[0]) : {}),
 			...(operator && method !== 'GET' && method !== 'HEAD'
@@ -98,6 +108,7 @@ export async function stream(query: string, lastEventId: string | null): Promise
 	return fetch(`${base()}/v1/events${query}`, {
 		headers: {
 			authorization: `Bearer ${token()}`,
+			'x-request-id': requestId(),
 			accept: 'text/event-stream',
 			...(lastEventId ? { 'last-event-id': lastEventId } : {})
 		}

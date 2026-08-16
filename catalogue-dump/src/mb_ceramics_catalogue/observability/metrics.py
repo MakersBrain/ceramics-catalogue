@@ -6,13 +6,10 @@ counts which fields a scraper actually filled. All of it is discarded when the
 process exits.
 
 Defined here as a small registry rendering Prometheus text, rather than through
-a client library, for the reason §9 gives: this is a handful of instruments
-behind one endpoint, and a dependency would be more to audit than the thing it
-serves. The shape is standard, so swapping in a real client later is mechanical.
-
-Nothing scrapes these yet. They exist so that when something does, no rework is
-needed — and `/ops/metrics` reads the same quantities straight from Postgres in
-the meantime.
+a client library: this is a deliberately bounded set of instruments behind one
+endpoint, and a dependency would be more to audit than the thing it serves. The
+optional observability compose profile scrapes each worker separately, while
+control publishes the authoritative database-backed fleet snapshot.
 """
 
 from __future__ import annotations
@@ -20,7 +17,7 @@ from __future__ import annotations
 import math
 import threading
 from collections import defaultdict
-from typing import Literal
+from typing import Literal, cast
 
 Labels = tuple[tuple[str, str], ...]
 Kind = Literal["counter", "gauge", "histogram"]
@@ -29,6 +26,7 @@ Kind = Literal["counter", "gauge", "histogram"]
 #: this host slow" (the middle of the range) and "is something hanging" (the
 #: tail), so the buckets are dense around a second and reach a minute.
 DURATION_BUCKETS = (0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0)
+HTTP_METHODS = frozenset({"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"})
 
 
 def _labels(values: dict[str, str | None]) -> Labels:
@@ -121,6 +119,23 @@ class Registry:
     def gauge(self, name: str, help_text: str, value: float, **labels: str | None) -> None:
         with self._lock:
             self._metric(name, "gauge", help_text).set(value, _labels(labels))
+
+    def gauge_add(self, name: str, help_text: str, amount: float, **labels: str | None) -> None:
+        with self._lock:
+            self._metric(name, "gauge", help_text).add(amount, _labels(labels))
+
+    def replace_gauge(
+        self,
+        name: str,
+        help_text: str,
+        series: list[tuple[float, dict[str, str | None]]],
+    ) -> None:
+        """Replace a database-backed gauge family with one complete snapshot."""
+        with self._lock:
+            metric = self._metric(name, "gauge", help_text)
+            metric.values.clear()
+            for value, labels in series:
+                metric.set(value, _labels(labels))
 
     def histogram(
         self,
@@ -218,22 +233,14 @@ def http_error(host: str, status: int | str) -> None:
     )
 
 
-def parse_failure(source: str, field: str) -> None:
-    REGISTRY.counter(
-        "catalogue_parse_failures_total",
-        "Fields an extractor could not read, by source and field.",
-        source=source,
-        field=field,
-    )
-
-
-def job_duration(source: str, seconds: float) -> None:
+def job_duration(source: str, seconds: float, outcome: str) -> None:
     REGISTRY.histogram(
         "catalogue_job_duration_seconds",
         "Wall time of one source's job.",
         seconds,
         buckets=(1, 5, 15, 60, 300, 900, 1800, 3600),
         source=source,
+        outcome=outcome,
     )
 
 
@@ -250,12 +257,28 @@ def jobs(state: str, count: float) -> None:
     REGISTRY.gauge("catalogue_jobs", "Jobs in each state.", count, state=state)
 
 
-def worker_heartbeat_age(worker: str, seconds: float) -> None:
-    REGISTRY.gauge(
-        "catalogue_worker_heartbeat_age_seconds",
-        "How long since a worker last reported. Rising without bound means it died.",
-        seconds,
-        worker=worker,
+def jobs_snapshot(counts: dict[str, int]) -> None:
+    states = ("queued", "leased", "running", "paused", "succeeded", "degraded", "failed", "cancelled", "skipped")
+    REGISTRY.replace_gauge(
+        "catalogue_jobs",
+        "Jobs in each state.",
+        [(float(counts.get(state, 0)), {"state": state}) for state in states],
+    )
+
+
+def queue_oldest_age(seconds: float) -> None:
+    REGISTRY.replace_gauge(
+        "catalogue_queue_oldest_age_seconds",
+        "How long the oldest currently eligible queued job has waited.",
+        [(seconds, {})],
+    )
+
+
+def workers_snapshot(healthy: int, lost: int) -> None:
+    REGISTRY.replace_gauge(
+        "catalogue_workers",
+        "Registered non-stopped workers by heartbeat health.",
+        [(float(healthy), {"health": "healthy"}), (float(lost), {"health": "lost"})],
     )
 
 
@@ -293,12 +316,46 @@ def proxy_probe(outcome: str) -> None:
     )
 
 
-def source_staleness(source: str, seconds: float) -> None:
-    REGISTRY.gauge(
-        "catalogue_source_staleness_seconds",
-        "How long since a source last produced any records.",
-        seconds,
+def sources_snapshot(rows: list[dict[str, str | float | int | None]]) -> None:
+    REGISTRY.replace_gauge(
+        "catalogue_source_overdue_seconds",
+        "Seconds past the expected scheduled completion and grace period.",
+        [(float(row["overdue"] or 0), {"source": str(row["source"])}) for row in rows],
+    )
+    REGISTRY.replace_gauge(
+        "catalogue_source_success_state",
+        "Whether an enabled scheduled source has ever produced a usable result.",
+        [(float(row["succeeded"] or 0), {"source": str(row["source"])}) for row in rows],
+    )
+    REGISTRY.replace_gauge(
+        "catalogue_source_records",
+        "Records in the latest usable complete result.",
+        [
+            (float(cast(str | float | int, row["records"])), {"source": str(row["source"])})
+            for row in rows
+            if row.get("records") is not None
+        ],
+    )
+    REGISTRY.replace_gauge(
+        "catalogue_source_record_ratio",
+        "Latest usable record count divided by the preceding usable count.",
+        [
+            (
+                float(cast(str | float | int, row["record_ratio"])),
+                {"source": str(row["source"])},
+            )
+            for row in rows
+            if row.get("record_ratio") is not None
+        ],
+    )
+
+
+def job_completed(source: str, outcome: str) -> None:
+    REGISTRY.counter(
+        "catalogue_jobs_completed_total",
+        "Terminal jobs completed by source and bounded outcome.",
         source=source,
+        outcome=outcome,
     )
 
 
@@ -337,6 +394,41 @@ def request_budget_decision(priority: str, decision: str) -> None:
         "Request planning decisions by bounded priority and decision.",
         priority=priority,
         decision=decision,
+    )
+
+
+def http_request(
+    service: str, method: str, route: str, status: int, seconds: float | None
+) -> None:
+    bounded_method = method.upper()
+    if bounded_method not in HTTP_METHODS:
+        bounded_method = "OTHER"
+    status_class = f"{status // 100}xx" if 200 <= status < 600 else "5xx"
+    REGISTRY.counter(
+        "catalogue_http_requests_total",
+        "Inbound HTTP requests by service, method, route template and status class.",
+        service=service,
+        method=bounded_method,
+        route=route,
+        status_class=status_class,
+    )
+    if seconds is not None:
+        REGISTRY.histogram(
+            "catalogue_http_request_duration_seconds",
+            "Inbound HTTP request wall time, excluding long-lived streams.",
+            seconds,
+            service=service,
+            method=bounded_method,
+            route=route,
+        )
+
+
+def http_request_in_flight(service: str, amount: float) -> None:
+    REGISTRY.gauge_add(
+        "catalogue_http_requests_in_flight",
+        "Inbound HTTP requests currently being handled.",
+        amount,
+        service=service,
     )
 
 

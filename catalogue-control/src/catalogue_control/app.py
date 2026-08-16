@@ -18,13 +18,16 @@ import asyncio
 import contextlib
 import json
 from collections.abc import AsyncIterator
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
 import psycopg
 from mb_ceramics_catalogue.config.settings import CrawlParams
 from mb_ceramics_catalogue.config.sources import SourcesFile, default_path
+from mb_ceramics_catalogue.observability.http import RequestTelemetry
 from mb_ceramics_catalogue.ops import events, runs
+from mb_ceramics_catalogue.ops import schedule as scheduling
 from starlette.applications import Starlette
 from starlette.datastructures import Headers
 from starlette.middleware import Middleware
@@ -124,18 +127,107 @@ async def metrics_endpoint(request: Request) -> Response:
     """
     from mb_ceramics_catalogue.observability import metrics as instruments
 
-    with contextlib.suppress(psycopg.Error):
+    try:
         async with request.app.state.pool.connection() as connection:
-            for state, count in (await queries.queue_depth(connection)).items():
-                instruments.jobs(state, count)
-            for row in await queries.all_rows(connection, queries.WORKERS):
-                instruments.worker_heartbeat_age(
-                    str(row["id"]), float(row["heartbeat_age_seconds"] or 0)
-                )
-            for row in await queries.all_rows(connection, queries.SOURCES):
-                if row["staleness_seconds"] is not None:
-                    instruments.source_staleness(row["source_id"], float(row["staleness_seconds"]))
+            states = await queries.all_rows(connection, queries.METRIC_JOB_STATES)
+            oldest = await queries.one(connection, queries.METRIC_QUEUE_OLDEST)
+            workers = await queries.one(connection, queries.METRIC_WORKERS)
+            source_history = await queries.all_rows(connection, queries.SOURCES)
+            schedules = await queries.all_rows(connection, queries.SCHEDULES)
+            instruments.jobs_snapshot({str(row["state"]): int(row["n"]) for row in states})
+            instruments.queue_oldest_age(float((oldest or {}).get("seconds") or 0))
+            instruments.workers_snapshot(
+                int((workers or {}).get("healthy") or 0), int((workers or {}).get("lost") or 0)
+            )
+            instruments.sources_snapshot(
+                _source_metric_snapshot(request.app.state.sources, source_history, schedules)
+            )
+    except psycopg.Error:
+        LOGGER.warning("metrics.snapshot_failed", exc_info=True)
+        return PlainTextResponse(
+            "database metric snapshot unavailable\n", status_code=503, media_type="text/plain"
+        )
     return PlainTextResponse(render_metrics(), media_type="text/plain; version=0.0.4")
+
+
+def _source_metric_snapshot(
+    sources: SourcesFile,
+    history_rows: list[dict[str, Any]],
+    schedules: list[dict[str, Any]],
+) -> list[dict[str, str | float | int | None]]:
+    """Build schedule-aware freshness and usable-output gauges."""
+    now = datetime.now(UTC)
+    history = {str(row["source_id"]): row for row in history_rows}
+    snapshot: list[dict[str, str | float | int | None]] = []
+    for source in sources.names():
+        row = history.get(source, {})
+        if not bool(row.get("enabled", True)) or bool(row.get("paused", False)):
+            continue
+        selected = [
+            schedule
+            for schedule in schedules
+            if schedule.get("enabled") and _schedule_selects(source, schedule.get("source_filter"))
+        ]
+        if explicit := row.get("schedule_id"):
+            selected = [schedule for schedule in selected if schedule["id"] == explicit]
+        if not selected:
+            continue
+
+        config = sources.get(source)
+        if config is None:  # names() and get() share one validated mapping
+            continue
+        grace_seconds = max(900.0, float(config.timeout_seconds or 3600.0))
+        last_success = row.get("last_success_at")
+        overdue = 0.0
+        for schedule in selected:
+            expected = _expected_fire(schedule, now)
+            if expected is None or (last_success is not None and last_success >= expected):
+                continue
+            overdue = max(
+                overdue,
+                (now - (expected + timedelta(seconds=grace_seconds))).total_seconds(),
+            )
+        records = row.get("last_records")
+        previous = row.get("previous_records")
+        ratio = (
+            float(records) / float(previous)
+            if records is not None and previous is not None and int(previous) > 0
+            else None
+        )
+        snapshot.append(
+            {
+                "source": source,
+                "overdue": max(0.0, overdue),
+                "succeeded": int(last_success is not None),
+                "records": int(records) if records is not None else None,
+                "record_ratio": ratio,
+            }
+        )
+    return snapshot
+
+
+def _expected_fire(schedule: dict[str, Any], now: datetime) -> datetime | None:
+    """Schedule occurrence whose successful completion is currently owed."""
+    last_fired = schedule.get("last_fired_at")
+    expected = last_fired.astimezone(UTC) if last_fired is not None else None
+    next_fire = schedule.get("next_fire_at")
+    if next_fire is not None:
+        due = next_fire.astimezone(UTC)
+        return expected if due > now else due
+
+    # A null cursor is how a newly enabled schedule asks the leader to fire its
+    # latest occurrence immediately. Derive that occurrence from the cron,
+    # rather than treating "not materialised" as "not expected". A non-null
+    # past cursor was returned above as the earliest occurrence still owed.
+    return scheduling.previous_fire(str(schedule["cron"]), str(schedule["timezone"]), now)
+
+
+def _schedule_selects(source: str, source_filter: Any) -> bool:
+    selection = source_filter if isinstance(source_filter, dict) else {}
+    only = selection.get("only")
+    if only and source not in only:
+        return False
+    return source not in (selection.get("except") or ())
 
 
 async def create_run(request: Request) -> Response:
@@ -831,5 +923,8 @@ def create_app(settings: Settings | None = None, *, proxy_provider: Any = None) 
     return Starlette(
         routes=routes,
         lifespan=lifespan,
-        middleware=[Middleware(BearerToken, token=settings.control_token)],
+        middleware=[
+            Middleware(RequestTelemetry, service="control", routes=routes),
+            Middleware(BearerToken, token=settings.control_token),
+        ],
     )

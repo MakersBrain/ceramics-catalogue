@@ -114,4 +114,5 @@ async def require_actor(
             )
             if await cursor.fetchone() is None:
                 raise ActorRejected("operator assertion nonce was already used")
+    request.scope["operator"] = actor_id
     return Actor(actor_id, actor_role, nonce, auth_time)

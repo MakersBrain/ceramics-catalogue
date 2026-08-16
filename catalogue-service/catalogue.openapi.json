@@ -688,6 +688,33 @@
         ]
       }
     },
+    "/metrics": {
+      "get": {
+        "operationId": "metrics",
+        "responses": {
+          "200": {
+            "content": {
+              "text/plain": {}
+            },
+            "description": "Prometheus metrics"
+          },
+          "500": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Prometheus metrics",
+        "tags": [
+          "service"
+        ]
+      }
+    },
     "/v1/canonical-products": {
       "get": {
         "description": "Aggregates only: the number of shops carrying each product and its price range. Offers are not included, because a search that returned every pack of every result would be answering a question nobody asked — fetch one product, or a batch, for those.\n\nOrdered by how many shops carry a product, then brand and code: a code eleven shops sell is more likely the one somebody means.",

@@ -67,6 +67,25 @@ def _redact_event(_: Any, __: str, event: EventDict) -> EventDict:
     return {key: _scrub(value) for key, value in event.items()}
 
 
+def scrub(value: Any) -> Any:
+    """Scrub a value before it leaves the configured logging pipeline.
+
+    Database log sinks do not pass through the console renderer, so they use
+    this public boundary rather than importing the private recursive helper.
+    """
+    return _scrub(value)
+
+
+def _add_trace_context(_: Any, __: str, event: EventDict) -> EventDict:
+    # Tracing is an optional extra while logging is not. Keep this import lazy so
+    # configuring ordinary structured logs never makes OpenTelemetry mandatory.
+    from . import tracing
+
+    if identifier := tracing.trace_id():
+        event.setdefault("trace_id", identifier)
+    return event
+
+
 def configure(level: str = "INFO", *, json: bool | None = None, stream: Any = None) -> None:
     """Set up structlog and the stdlib root logger. Idempotent.
 
@@ -85,9 +104,9 @@ def configure(level: str = "INFO", *, json: bool | None = None, stream: Any = No
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
+        _add_trace_context,
         structlog.processors.StackInfoRenderer(),
         structlog.processors.UnicodeDecoder(),
-        _redact_event,
     ]
     renderer: Any = (
         structlog.processors.JSONRenderer()
@@ -99,7 +118,6 @@ def configure(level: str = "INFO", *, json: bool | None = None, stream: Any = No
         processors=[
             *shared,
             structlog.processors.format_exc_info,
-            _redact_event,
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
         logger_factory=structlog.stdlib.LoggerFactory(),
@@ -115,6 +133,7 @@ def configure(level: str = "INFO", *, json: bool | None = None, stream: Any = No
         foreign_pre_chain=shared,
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            structlog.processors.format_exc_info,
             _redact_event,
             renderer,
         ],

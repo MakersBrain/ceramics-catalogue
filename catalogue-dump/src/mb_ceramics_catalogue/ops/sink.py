@@ -28,6 +28,7 @@ from typing import Any
 from uuid import UUID
 
 import psycopg
+import structlog.contextvars
 from psycopg.types.json import Jsonb
 
 from mb_ceramics_catalogue.observability import logging as obs
@@ -40,6 +41,14 @@ Connection = psycopg.AsyncConnection[dict[str, Any]]
 
 #: Least time between two progress writes for one job.
 THROTTLE_SECONDS = 1.0
+
+# Only fields with a demonstrated operator use cross the database boundary.
+# In particular, never persist the unrestricted LogRecord dictionary: third
+# party libraries put response bodies and arbitrary objects there.
+JOB_LOG_DATA_FIELDS = frozenset({"source", "scraper", "host", "request_id", "trace_id"})
+JOB_LOG_VALUE_LIMIT = 512
+JOB_LOG_EVENT_LIMIT = 128
+JOB_LOG_MESSAGE_LIMIT = 4096
 
 #: In-flight requests carried into `job_progress.in_flight`. The browser shows
 #: what the terminal shows; forty would be a payload nobody reads.
@@ -279,7 +288,8 @@ class JobLogHandler(logging.Handler):
         if CURRENT_JOB.get() != self._key:
             return
         try:
-            message = record.getMessage()
+            raw = record.msg if isinstance(record.msg, dict) else {}
+            message = str(raw.get("event")) if raw.get("event") is not None else record.getMessage()
         except Exception:  # noqa: BLE001 - a bad log line must not stop a crawl
             return
         if len(self.pending) >= self.capacity:
@@ -288,8 +298,21 @@ class JobLogHandler(logging.Handler):
             # explain any better.
             self.dropped += 1
             return
-        event = getattr(record, "event", None) or record.name
-        self.pending.append((_level_name(record.levelno), event, message, None))
+        # This handler sees records before ProcessorFormatter performs console
+        # redaction. Apply the same scrubber at the durable boundary, and bound
+        # both free-text columns so one foreign log record cannot dominate the
+        # database despite the queue's record-count limit.
+        message = str(obs.scrub(message))[:JOB_LOG_MESSAGE_LIMIT]
+        event = str(obs.scrub(raw.get("event") or getattr(record, "event", None) or record.name))[
+            :JOB_LOG_EVENT_LIMIT
+        ]
+        context = structlog.contextvars.get_contextvars()
+        data: dict[str, Any] = {}
+        for key in JOB_LOG_DATA_FIELDS:
+            value = raw.get(key, getattr(record, key, context.get(key)))
+            if value is not None:
+                data[key] = _bounded_log_value(obs.scrub(value))
+        self.pending.append((_level_name(record.levelno), event, message, data or None))
 
     def drain(self) -> list[tuple[str, str, str, dict[str, Any] | None]]:
         queued, self.pending = self.pending, []
@@ -302,15 +325,32 @@ class JobLogHandler(logging.Handler):
 
     async def flush_to(self, connection: Connection) -> int:
         rows = self.drain()
-        for level, event, message, data in rows:
+        written = 0
+        for index, (level, event, message, data) in enumerate(rows):
             try:
                 await events.log(
                     connection, self.job_id, message, level=level, event=event, data=data
                 )
             except psycopg.Error:
+                # Put the failed row and everything after it back in front of any
+                # records emitted while this flush was awaiting the database.
+                restored = rows[index:] + self.pending
+                self.pending = restored[: self.capacity]
+                self.dropped += len(restored) - len(self.pending)
                 LOGGER.debug("sink.log_write_failed", job_id=str(self.job_id), exc_info=True)
                 break
-        return len(rows)
+            written += 1
+        return written
+
+
+def _bounded_log_value(value: Any) -> Any:
+    if isinstance(value, str):
+        return value[:JOB_LOG_VALUE_LIMIT]
+    if isinstance(value, (int, float, bool)) or value is None:
+        return value
+    # All allowlisted fields are scalar today. Stringifying an unexpected value
+    # keeps the JSON bounded without letting an arbitrary object graph through.
+    return str(value)[:JOB_LOG_VALUE_LIMIT]
 
 
 def _level_name(levelno: int) -> str:

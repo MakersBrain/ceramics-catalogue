@@ -35,6 +35,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from mb_ceramics_catalogue.observability import metrics
+
 LOGGER = logging.getLogger("catalogue-dump.cache")
 
 MODES = ("off", "auto", "replay", "refresh")
@@ -86,6 +88,7 @@ class ResponseCache:
         path = self.path(key, url)
         if not path.exists():
             self.misses += 1
+            metrics.cache("miss")
             return None
         try:
             with gzip.open(path, "rt", encoding="utf-8") as handle:
@@ -93,12 +96,15 @@ class ResponseCache:
         except (OSError, json.JSONDecodeError, EOFError) as error:
             LOGGER.warning("unreadable cache entry %s (%s); refetching", path, error)
             self.misses += 1
+            metrics.cache("miss")
             return None
         entry = CachedResponse(**stored)
         if self.max_age is not None and time.time() - entry.fetched_at > self.max_age:
             self.misses += 1
+            metrics.cache("miss")
             return None
         self.hits += 1
+        metrics.cache("hit")
         self.bytes_read += path.stat().st_size
         # mtime is the portable last-access marker used by bounded eviction;
         # filesystem atime is commonly disabled on container volumes.
@@ -134,6 +140,7 @@ class ResponseCache:
                 json.dump(entry.__dict__, handle)
             temporary.replace(path)
             self.writes += 1
+            metrics.cache("write")
         except OSError as error:  # pragma: no cover - disk-dependent
             LOGGER.warning("could not cache %s (%s)", entry.url, error)
             temporary.unlink(missing_ok=True)

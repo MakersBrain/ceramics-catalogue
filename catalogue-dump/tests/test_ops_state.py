@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from typing import Any
 from uuid import UUID, uuid4
 
 import pytest
@@ -397,7 +398,7 @@ class TestNotifications:
         assert any(row["type"] == "notification.raised" for row in logged)
 
 
-def line(message: str, level: int = logging.INFO) -> logging.LogRecord:
+def line(message: Any, level: int = logging.INFO) -> logging.LogRecord:
     return logging.LogRecord("catalogue", level, __file__, 1, message, None, None)
 
 
@@ -414,6 +415,33 @@ class TestJobLog:
         stored = await rows(db, "select level, message from catalogue.job_events")
         assert stored[0]["level"] == "warning"
         assert "429" in stored[0]["message"]
+
+    async def test_structured_context_reaches_job_events_scrubbed(self, db):
+        run_id = await runs.create_run(db)
+        jobs = await runs.create_jobs(db, run_id, SOURCES, ["ceradel"])
+        handler = JobLogHandler(jobs["ceradel"])
+
+        CURRENT_JOB.set(str(jobs["ceradel"]))
+        record = line(
+            {
+                "event": "fetch.failed",
+                "source": "ceradel",
+                "host": "ceradel.fr",
+                "request_id": "request-1",
+                "authorization": "Bearer should-not-be-stored",
+            },
+            logging.ERROR,
+        )
+        handler.emit(record)
+        assert await handler.flush_to(db) == 1
+
+        stored = await rows(db, "select event, data from catalogue.job_events")
+        assert stored[0]["event"] == "fetch.failed"
+        assert stored[0]["data"] == {
+            "host": "ceradel.fr",
+            "request_id": "request-1",
+            "source": "ceradel",
+        }
 
     async def test_a_runaway_job_cannot_fill_the_queue(self, db):
         job_id = uuid4()

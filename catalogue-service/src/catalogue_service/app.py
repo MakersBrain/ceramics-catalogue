@@ -29,15 +29,18 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import psycopg
+from mb_ceramics_catalogue.observability.http import RequestTelemetry
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 from starlette.applications import Starlette
+from starlette.middleware import Middleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse, PlainTextResponse, Response
 from starlette.routing import Route
 
 from catalogue_service import queries
 from catalogue_service.spec import registry
+from catalogue_service.telemetry import render_metrics
 
 DSN = os.environ.get("CATALOGUE_DSN", "postgresql://catalogue:catalogue@postgres:5432/ateliera")
 PORT = int(os.environ.get("CATALOGUE_PORT", "8686"))
@@ -94,6 +97,10 @@ async def health(request: Request) -> Response:
     except psycopg.Error:
         return JSONResponse({"status": "unavailable"}, status_code=503)
     return JSONResponse({"status": "ok"})
+
+
+async def metrics_endpoint(request: Request) -> Response:
+    return PlainTextResponse(render_metrics(), media_type="text/plain; version=0.0.4")
 
 
 async def search(request: Request) -> Response:
@@ -235,6 +242,7 @@ def create_app(dsn: str = "") -> Starlette:
     return Starlette(
         routes=[
             Route("/health", health),
+            Route("/metrics", metrics_endpoint),
             Route("/openapi.json", openapi),
             # Before the parameterised route, or `:batch` is read as an id.
             Route("/v1/canonical-products:batch", batch),
@@ -243,4 +251,5 @@ def create_app(dsn: str = "") -> Starlette:
             Route("/v1/manufacturers", manufacturers),
         ],
         lifespan=lifespan,
+        middleware=[Middleware(RequestTelemetry, service="service")],
     )
