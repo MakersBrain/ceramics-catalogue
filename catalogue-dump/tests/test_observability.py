@@ -8,13 +8,19 @@ from typing import Any
 from uuid import uuid4
 
 import psycopg
+import pytest
 import structlog.contextvars
 
 from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.observability import metrics, tracing
 from mb_ceramics_catalogue.observability.http import RequestTelemetry, request_id
 from mb_ceramics_catalogue.ops import sink as sink_module
-from mb_ceramics_catalogue.ops.sink import JOB_LOG_VALUE_LIMIT, JobLogHandler
+from mb_ceramics_catalogue.ops.sink import (
+    JOB_LOG_EVENT_LIMIT,
+    JOB_LOG_MESSAGE_LIMIT,
+    JOB_LOG_VALUE_LIMIT,
+    JobLogHandler,
+)
 from mb_ceramics_catalogue.scrapers.activity import CURRENT_JOB
 
 
@@ -71,13 +77,25 @@ def test_database_log_payload_uses_the_secret_scrubber() -> None:
         host="https://name:credential-value@example.test/path"
     )
     try:
-        handler.emit(
-            logging.LogRecord("catalogue.test", logging.INFO, __file__, 1, "request", None, None)
-        )
+        handler.emit(logging.LogRecord(
+            "credential-value." + "e" * JOB_LOG_EVENT_LIMIT,
+            logging.INFO,
+            __file__,
+            1,
+            "request credential-value " + "x" * JOB_LOG_MESSAGE_LIMIT,
+            None,
+            None,
+        ))
     finally:
         structlog.contextvars.reset_contextvars(**tokens)
 
-    assert handler.drain()[0][3] == {"host": "https://[REDACTED]@example.test/path"}
+    _, event, message, data = handler.drain()[0]
+    assert data == {"host": "https://[REDACTED]@example.test/path"}
+    assert "credential-value" not in message
+    assert "[REDACTED]" in message
+    assert len(message) == JOB_LOG_MESSAGE_LIMIT
+    assert "credential-value" not in event
+    assert len(event) == JOB_LOG_EVENT_LIMIT
 
 
 async def test_failed_log_flush_keeps_a_bounded_retry_buffer(monkeypatch) -> None:
@@ -148,6 +166,61 @@ async def test_request_telemetry_uses_route_templates_and_echoes_request_id() ->
     assert "one-specific-id" not in rendered
     assert 'status_class="2xx"' in rendered
     assert 'catalogue_http_requests_in_flight{service="control"} 0' in rendered
+
+
+async def test_request_telemetry_correlates_unhandled_errors() -> None:
+    metrics.REGISTRY.clear()
+
+    async def app(scope, receive, send) -> None:
+        raise RuntimeError("broken endpoint")
+
+    sent = []
+
+    async def receive():
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    async def send(message) -> None:
+        sent.append(message)
+
+    scope = {
+        "type": "http",
+        "path": "/broken",
+        "method": "GET",
+        "headers": [(b"x-request-id", b"failure-id")],
+    }
+    with pytest.raises(RuntimeError, match="broken endpoint"):
+        await RequestTelemetry(app, "service")(scope, receive, send)
+
+    assert sent[0]["status"] == 500
+    assert (b"x-request-id", b"failure-id") in sent[0]["headers"]
+    assert 'status_class="5xx"' in metrics.render()
+
+
+async def test_sse_is_counted_without_latency_and_methods_are_bounded() -> None:
+    metrics.REGISTRY.clear()
+
+    async def app(scope, receive, send) -> None:
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        await send({"type": "http.response.body", "body": b""})
+
+    async def receive():
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    async def send(message) -> None:
+        return None
+
+    scope = {
+        "type": "http",
+        "path": "/v1/events",
+        "method": "ATTACKER-CONTROLLED-METHOD",
+        "headers": [],
+    }
+    await RequestTelemetry(app, "control")(scope, receive, send)
+
+    rendered = metrics.render()
+    assert 'catalogue_http_requests_total{method="OTHER"' in rendered
+    assert "ATTACKER-CONTROLLED-METHOD" not in rendered
+    assert "catalogue_http_request_duration_seconds" not in rendered
 
 
 def test_database_snapshot_gauges_remove_old_series_and_emit_zero_states() -> None:

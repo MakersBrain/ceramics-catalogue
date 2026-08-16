@@ -27,6 +27,7 @@ from mb_ceramics_catalogue.config.settings import CrawlParams
 from mb_ceramics_catalogue.config.sources import SourcesFile, default_path
 from mb_ceramics_catalogue.observability.http import RequestTelemetry
 from mb_ceramics_catalogue.ops import events, runs
+from mb_ceramics_catalogue.ops import schedule as scheduling
 from starlette.applications import Starlette
 from starlette.datastructures import Headers
 from starlette.middleware import Middleware
@@ -179,12 +180,12 @@ def _source_metric_snapshot(
         last_success = row.get("last_success_at")
         overdue = 0.0
         for schedule in selected:
-            fired = schedule.get("last_fired_at")
-            if fired is None or (last_success is not None and last_success >= fired):
+            expected = _expected_fire(schedule, now)
+            if expected is None or (last_success is not None and last_success >= expected):
                 continue
             overdue = max(
                 overdue,
-                (now - (fired.astimezone(UTC) + timedelta(seconds=grace_seconds))).total_seconds(),
+                (now - (expected + timedelta(seconds=grace_seconds))).total_seconds(),
             )
         records = row.get("last_records")
         previous = row.get("previous_records")
@@ -203,6 +204,22 @@ def _source_metric_snapshot(
             }
         )
     return snapshot
+
+
+def _expected_fire(schedule: dict[str, Any], now: datetime) -> datetime | None:
+    """Schedule occurrence whose successful completion is currently owed."""
+    last_fired = schedule.get("last_fired_at")
+    expected = last_fired.astimezone(UTC) if last_fired is not None else None
+    next_fire = schedule.get("next_fire_at")
+    if next_fire is not None:
+        due = next_fire.astimezone(UTC)
+        return expected if due > now else due
+
+    # A null cursor is how a newly enabled schedule asks the leader to fire its
+    # latest occurrence immediately. Derive that occurrence from the cron,
+    # rather than treating "not materialised" as "not expected". A non-null
+    # past cursor was returned above as the earliest occurrence still owed.
+    return scheduling.previous_fire(str(schedule["cron"]), str(schedule["timezone"]), now)
 
 
 def _schedule_selects(source: str, source_filter: Any) -> bool:

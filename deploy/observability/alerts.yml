@@ -8,7 +8,8 @@ groups:
           severity: warning
         annotations:
           summary: "Catalogue source {{ $labels.source }} has never produced a usable result"
-          runbook_url: "http://localhost:5175/ops/sources"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/observability-runbooks.md#sourceneversucceeded"
+          operator_url: "http://localhost:5175/ops/sources"
           dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=2"
 
       - alert: SourceOverdue
@@ -18,7 +19,8 @@ groups:
           severity: warning
         annotations:
           summary: "Catalogue source {{ $labels.source }} is overdue"
-          runbook_url: "http://localhost:5175/ops/sources"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/observability-runbooks.md#sourceoverdue"
+          operator_url: "http://localhost:5175/ops/sources"
           dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=2"
 
       - alert: QueueWithoutCapacity
@@ -28,7 +30,8 @@ groups:
           severity: critical
         annotations:
           summary: "Catalogue work is queued with no healthy worker"
-          runbook_url: "http://localhost:5175/ops"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/observability-runbooks.md#queuewithoutcapacity"
+          operator_url: "http://localhost:5175/ops"
           dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=7"
 
       - alert: QueueStuck
@@ -38,7 +41,8 @@ groups:
           severity: warning
         annotations:
           summary: "The oldest catalogue job has waited more than 30 minutes"
-          runbook_url: "http://localhost:5175/ops"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/observability-runbooks.md#queuestuck"
+          operator_url: "http://localhost:5175/ops"
           dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=6"
 
       - alert: JobFailuresHigh
@@ -53,7 +57,8 @@ groups:
           severity: warning
         annotations:
           summary: "More than 25% of catalogue jobs are failing or degraded"
-          runbook_url: "http://localhost:5175/ops/runs"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/observability-runbooks.md#jobfailureshigh"
+          operator_url: "http://localhost:5175/ops/runs"
           dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=5"
 
       - alert: MetricsTargetDown
@@ -63,5 +68,6 @@ groups:
           severity: warning
         annotations:
           summary: "Metrics target {{ $labels.job }} {{ $labels.instance }} is down"
-          runbook_url: "http://localhost:5175/ops"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/observability-runbooks.md#metricstargetdown"
+          operator_url: "http://localhost:5175/ops"
           dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=13"

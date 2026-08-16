@@ -26,6 +26,7 @@ Kind = Literal["counter", "gauge", "histogram"]
 #: this host slow" (the middle of the range) and "is something hanging" (the
 #: tail), so the buckets are dense around a second and reach a minute.
 DURATION_BUCKETS = (0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0)
+HTTP_METHODS = frozenset({"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"})
 
 
 def _labels(values: dict[str, str | None]) -> Labels:
@@ -396,24 +397,30 @@ def request_budget_decision(priority: str, decision: str) -> None:
     )
 
 
-def http_request(service: str, method: str, route: str, status: int, seconds: float) -> None:
-    status_class = f"{status // 100}xx" if 200 <= status < 600 else "other"
+def http_request(
+    service: str, method: str, route: str, status: int, seconds: float | None
+) -> None:
+    bounded_method = method.upper()
+    if bounded_method not in HTTP_METHODS:
+        bounded_method = "OTHER"
+    status_class = f"{status // 100}xx" if 200 <= status < 600 else "5xx"
     REGISTRY.counter(
         "catalogue_http_requests_total",
         "Inbound HTTP requests by service, method, route template and status class.",
         service=service,
-        method=method,
+        method=bounded_method,
         route=route,
         status_class=status_class,
     )
-    REGISTRY.histogram(
-        "catalogue_http_request_duration_seconds",
-        "Inbound HTTP request wall time, excluding long-lived streams.",
-        seconds,
-        service=service,
-        method=method,
-        route=route,
-    )
+    if seconds is not None:
+        REGISTRY.histogram(
+            "catalogue_http_request_duration_seconds",
+            "Inbound HTTP request wall time, excluding long-lived streams.",
+            seconds,
+            service=service,
+            method=bounded_method,
+            route=route,
+        )
 
 
 def http_request_in_flight(service: str, amount: float) -> None:

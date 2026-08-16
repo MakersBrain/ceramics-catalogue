@@ -47,6 +47,8 @@ THROTTLE_SECONDS = 1.0
 # party libraries put response bodies and arbitrary objects there.
 JOB_LOG_DATA_FIELDS = frozenset({"source", "scraper", "host", "request_id", "trace_id"})
 JOB_LOG_VALUE_LIMIT = 512
+JOB_LOG_EVENT_LIMIT = 128
+JOB_LOG_MESSAGE_LIMIT = 4096
 
 #: In-flight requests carried into `job_progress.in_flight`. The browser shows
 #: what the terminal shows; forty would be a payload nobody reads.
@@ -296,7 +298,14 @@ class JobLogHandler(logging.Handler):
             # explain any better.
             self.dropped += 1
             return
-        event = str(raw.get("event") or getattr(record, "event", None) or record.name)
+        # This handler sees records before ProcessorFormatter performs console
+        # redaction. Apply the same scrubber at the durable boundary, and bound
+        # both free-text columns so one foreign log record cannot dominate the
+        # database despite the queue's record-count limit.
+        message = str(obs.scrub(message))[:JOB_LOG_MESSAGE_LIMIT]
+        event = str(obs.scrub(raw.get("event") or getattr(record, "event", None) or record.name))[
+            :JOB_LOG_EVENT_LIMIT
+        ]
         context = structlog.contextvars.get_contextvars()
         data: dict[str, Any] = {}
         for key in JOB_LOG_DATA_FIELDS:

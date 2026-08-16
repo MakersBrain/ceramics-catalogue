@@ -43,8 +43,11 @@ def test_source_snapshot_is_schedule_aware_and_includes_never_successful_sources
         {
             "id": "daily",
             "enabled": True,
+            "cron": "0 3 * * *",
+            "timezone": "Europe/Paris",
             "source_filter": {"all": True},
             "last_fired_at": now - timedelta(hours=2),
+            "next_fire_at": now + timedelta(hours=22),
         }
     ]
 
@@ -56,6 +59,41 @@ def test_source_snapshot_is_schedule_aware_and_includes_never_successful_sources
     assert snapshot["new"]["succeeded"] == 0
     assert snapshot["new"]["records"] is None
     assert "paused" not in snapshot
+
+
+def test_source_snapshot_detects_an_expected_fire_the_scheduler_missed() -> None:
+    sources = SourcesFile.model_validate(
+        {"late": {"label": "Late", "url": "https://late.test", "scraper": "shopify"}}
+    )
+    now = datetime.now(UTC)
+    snapshot = _source_metric_snapshot(
+        sources,
+        [
+            {
+                "source_id": "late",
+                "enabled": True,
+                "paused": False,
+                "schedule_id": None,
+                # This satisfied yesterday's occurrence, but not today's missed one.
+                "last_success_at": now - timedelta(hours=23),
+                "last_records": 10,
+                "previous_records": 10,
+            }
+        ],
+        [
+            {
+                "id": "hourly",
+                "enabled": True,
+                "cron": "0 * * * *",
+                "timezone": "UTC",
+                "source_filter": {"all": True},
+                "last_fired_at": now - timedelta(days=1),
+                "next_fire_at": now - timedelta(hours=2),
+            }
+        ],
+    )
+
+    assert float(snapshot[0]["overdue"] or 0) > 0
 
 
 async def test_request_middleware_covers_auth_failures_without_concrete_paths() -> None:

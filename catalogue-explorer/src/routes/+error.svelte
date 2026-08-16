@@ -14,10 +14,16 @@
 
 <svelte:head><title>Request failed · Ceramics catalogue</title></svelte:head>
 
-<section class="mx-auto max-w-xl py-12">
+	<section class="mx-auto max-w-xl py-12">
 	<p class="eyebrow">Error {page.status}</p>
-	<h1 class="mt-2 text-xl font-semibold">The request could not be completed</h1>
-	<p class="text-muted-foreground mt-2">{page.error?.message}</p>
+	<h1 class="mt-2 text-xl font-semibold">
+		{page.error?.title ?? 'The request could not be completed'}
+	</h1>
+	{#if page.error?.detail ?? (!page.error?.title && page.error?.message)}
+		<p class="text-muted-foreground mt-2">
+			{page.error?.detail ?? page.error?.message}
+		</p>
+	{/if}
 	{#if requestId}
 		<div class="mt-5 flex items-center gap-2">
 			<code class="bg-muted rounded px-2 py-1 text-xs">{requestId}</code>

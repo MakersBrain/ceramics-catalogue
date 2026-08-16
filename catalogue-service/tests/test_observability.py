@@ -22,3 +22,11 @@ async def test_metrics_route_and_request_correlation_work_without_database_acces
     assert 'route="/v1/canonical-products/{id}"' in scrape.text
     assert "not-a-uuid" not in scrape.text
     assert 'status_class="4xx"' in scrape.text
+
+    # Starlette's ServerErrorMiddleware sits outside user middleware. Exercise
+    # that exact stack rather than only calling RequestTelemetry in isolation.
+    crash_transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
+    async with httpx.AsyncClient(transport=crash_transport, base_url="http://service") as client:
+        crashed = await client.get("/health", headers={"x-request-id": "service-crash"})
+    assert crashed.status_code == 500
+    assert crashed.headers["x-request-id"] == "service-crash"

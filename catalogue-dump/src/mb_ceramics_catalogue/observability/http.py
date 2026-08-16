@@ -44,12 +44,14 @@ class RequestTelemetry:
         scope["request_id"] = identifier
         started = time.monotonic()
         status = 500
+        response_started = False
         streaming = scope.get("path") == "/v1/events"
         metrics.http_request_in_flight(self.service, 1)
 
         async def send_with_context(message: Message) -> None:
-            nonlocal status
+            nonlocal response_started, status
             if message["type"] == "http.response.start":
+                response_started = True
                 status = int(message["status"])
                 headers = list(message.get("headers", []))
                 headers.append((b"x-request-id", identifier.encode("ascii")))
@@ -58,13 +60,51 @@ class RequestTelemetry:
 
         try:
             with obs.bound(request_id=identifier):
-                await self.app(scope, receive, send_with_context)
+                try:
+                    await self.app(scope, receive, send_with_context)
+                except Exception:
+                    # Starlette's ServerErrorMiddleware is outside user
+                    # middleware, so its fallback response would bypass our
+                    # header wrapper and its traceback would be logged after
+                    # this request context was reset. Send the same safe 500
+                    # here, then re-raise so the server still records the fault.
+                    self.log.exception(
+                        "http.unhandled",
+                        service=self.service,
+                        method=scope["method"],
+                        route=_route_template(scope, self.routes),
+                        request_id=identifier,
+                    )
+                    if not response_started:
+                        body = b"Internal Server Error"
+                        try:
+                            await send_with_context(
+                                {
+                                    "type": "http.response.start",
+                                    "status": 500,
+                                    "headers": [
+                                        (b"content-type", b"text/plain; charset=utf-8"),
+                                        (b"content-length", str(len(body)).encode("ascii")),
+                                    ],
+                                }
+                            )
+                            await send_with_context(
+                                {"type": "http.response.body", "body": body}
+                            )
+                        except Exception:  # noqa: BLE001 - the client may already be gone
+                            pass
+                    raise
         finally:
             elapsed = time.monotonic() - started
             metrics.http_request_in_flight(self.service, -1)
             route = _route_template(scope, self.routes)
-            if not streaming:
-                metrics.http_request(self.service, str(scope["method"]), route, status, elapsed)
+            metrics.http_request(
+                self.service,
+                str(scope["method"]),
+                route,
+                status,
+                None if streaming else elapsed,
+            )
             if scope.get("path") not in QUIET_PATHS or status >= 400:
                 self.log.info(
                     "http.request",

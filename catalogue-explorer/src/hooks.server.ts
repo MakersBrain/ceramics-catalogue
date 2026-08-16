@@ -1,5 +1,6 @@
 import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { randomUUID } from 'node:crypto';
+import { ControlError } from '$lib/server/control';
 
 const validRequestId = /^[A-Za-z0-9._:-]{1,128}$/;
 
@@ -40,5 +41,12 @@ export const handleError: HandleServerError = ({ error, event, status, message }
 			error: error instanceof Error ? error.stack || error.message : String(error)
 		})
 	);
-	return { message: status >= 500 ? 'The request could not be completed.' : message, requestId };
+	const safeControlError = error instanceof ControlError && error.status < 500;
+	const title = safeControlError
+		? error.title
+		: status >= 500
+			? 'The request could not be completed'
+			: 'Request failed';
+	const detail = safeControlError ? error.detail : status >= 500 ? undefined : message;
+	return { message: detail ?? title, title, detail, requestId };
 };
