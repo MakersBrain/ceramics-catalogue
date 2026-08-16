@@ -8,6 +8,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { NativeSelect } from '$lib/components/ui/native-select';
 	import { Checkbox } from '$lib/components/ui/checkbox';
+	import { Switch } from '$lib/components/ui/switch';
 	import { Notice } from '$lib/components/ui/notice';
 
 	let { data, form } = $props();
@@ -116,16 +117,16 @@
 						<Table.Cell>
 							<form method="POST" action="?/update" use:enhance class="flex items-center gap-2">
 								<input type="hidden" name="id" value={source.source_id} />
-								<!-- Both of these were a daisyUI `toggle` and a `checkbox`
-								     respectively, which read as two different kinds of control
-								     for what are two booleans on the same form. They are the
-								     same control now. -->
 								<label
-									class="flex items-center gap-1 text-xs"
+									class="flex items-center gap-1.5 text-xs"
 									title="excluded from future runs when off"
 								>
-									<Checkbox name="enabled" checked={source.enabled} />
-									enabled
+									<Switch
+										name="enabled"
+										bind:checked={source.enabled}
+										aria-label={`${source.source_id} enabled`}
+									/>
+									<span>{source.enabled ? 'on' : 'off'}</span>
 								</label>
 								<label
 									class="flex items-center gap-1 text-xs"
