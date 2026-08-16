@@ -19,9 +19,9 @@
 	 *
 	 * `packages/ui` has no checkbox to mirror, so this is written to the same
 	 * conventions rather than copied. It stays a real `<input type="checkbox">`
-	 * because everything that would justify a custom control here - an
-	 * indeterminate state, a styled tick, an animated transition - is absent,
-	 * while everything the native one gives is wanted: the platform's own hit
+	 * because everything that would justify a custom control here - a styled
+	 * tick or an animated transition - is absent, while everything the native
+	 * one gives is wanted: the platform's own hit
 	 * target, its keyboard behaviour, and the form semantics the ops pages post
 	 * with.
 	 *
@@ -32,9 +32,14 @@
 	let {
 		ref = $bindable(null),
 		checked = $bindable(),
+		indeterminate = false,
 		class: className,
 		...restProps
-	}: WithElementRef<HTMLInputAttributes, HTMLInputElement> = $props();
+	}: WithElementRef<HTMLInputAttributes, HTMLInputElement> & { indeterminate?: boolean } = $props();
+
+	$effect(() => {
+		if (ref) ref.indeterminate = indeterminate;
+	});
 </script>
 
 <input
