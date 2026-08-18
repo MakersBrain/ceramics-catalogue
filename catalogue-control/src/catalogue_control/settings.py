@@ -9,9 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="CATALOGUE_", env_file=".env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="CATALOGUE_", env_file=".env", extra="ignore")
 
     dsn: str = ""
     #: Required on every `/v1` route including the stream. `/health` and
@@ -26,6 +24,24 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_json: bool | None = None
     artifacts_dir: Path = Path("/var/lib/catalogue/dumps")
+    #: Read-only queue inspection for the operator UI. Queue availability must
+    #: not gate the control service: when NATS is down, operators still need the
+    #: page that explains why work is not moving.
+    nats_url: str = "nats://127.0.0.1:4222"
+    nats_token: str = ""
+    nats_stream: str = "CATALOGUE_JOBS"
+    nats_stats_token_file: Path | None = None
+    queue_provider: Literal["nats", "cloudflare"] = "nats"
+    queue_snapshot_cache_seconds: float = 5.0
+    queue_snapshot_timeout_seconds: float = 3.0
+    cf_account_id: str = ""
+    cf_stats_token_file: Path | None = None
+    cf_queue_plain_id: str = ""
+    cf_queue_browser_auto_id: str = ""
+    cf_queue_browser_camoufox_id: str = ""
+    cf_queue_browser_cdp_extension_proxy_id: str = ""
+    cf_queue_recovery_dlq_id: str = ""
+    cf_api_base_url: str = "https://api.cloudflare.com/client/v4"
     proxy_enabled: bool = False
     proxy_api_secret_file: Path | None = None
     proxy_secret_file: Path | None = None

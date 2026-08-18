@@ -52,13 +52,16 @@ docker compose --profile observability up -d  # Grafana :3001, Prometheus :9090
 
 `make` on its own lists every target. `make check` is what a change has to pass.
 The six initial alerts have operator steps in [the observability runbooks](docs/observability-runbooks.md).
+NATS delivery, cutover, and broker recovery are covered by the
+[queue runbook](docs/nats-queue-runbook.md).
 
 ## The design decisions worth knowing
 
-**Postgres is the queue and the system of record.** It is already running and
-the catalogue already lives in it, and the volume is trivial — eighty jobs a
-day. `for update skip locked` gives multi-worker claiming; `listen`/`notify`
-gives the UI live push. No Redis, no broker, nothing new to back up.
+**NATS JetStream delivers work; PostgreSQL is the system of record.** Job
+creation writes a transactional outbox beside authoritative run state, a
+dispatcher publishes compact generation-fenced references, and workers reserve
+an execution token in PostgreSQL before touching a source. JetStream redelivery
+is safe while `listen`/`notify` continues to provide UI live push.
 
 **Edges go in the event log; levels do not.** A job failing is an edge:
 discrete, ordered, replayable from `Last-Event-ID`, bad to miss. A job's

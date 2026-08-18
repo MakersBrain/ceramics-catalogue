@@ -1,7 +1,7 @@
 """Connecting to the catalogue database.
 
 Thin on purpose. The interesting decisions are all in the SQL, and a layer that
-hid the SQL would make the queue's `for update skip locked` harder to read
+hid the transaction and fencing statements would make them harder to review
 rather than easier.
 
 Two things it does insist on:
@@ -131,6 +131,8 @@ SCHEMA_FILES = (
     "catalogue-ops-schema.sql",
     "catalogue-ops-schema-v2.sql",
     "catalogue-ops-schema-v3.sql",
+    "catalogue-ops-schema-v4.sql",
+    "catalogue-ops-schema-v5.sql",
     "catalogue-canonical-promotion.sql",
 )
 

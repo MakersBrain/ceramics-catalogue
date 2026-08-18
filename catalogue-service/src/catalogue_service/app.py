@@ -105,13 +105,9 @@ async def metrics_endpoint(request: Request) -> Response:
 
 async def search(request: Request) -> Response:
     params = request.query_params
-
-    # The old path answered both search and batch fetch depending on which
-    # parameter was present, returning two different shapes from one operation
-    # id. Kept working for one deprecation window, and pointed at its
-    # replacement.
-    if ids := params.get("ids"):
-        return await _batch(request, ids, deprecated=True)
+    allowed = {"q", "barcode", "limit", "cursor"}
+    if unknown := sorted(set(params) - allowed):
+        return problem(400, "Bad Request", f"unknown search parameter: {unknown[0]}")
 
     try:
         limit = min(int(params.get("limit", 25)), MAX_LIMIT)
@@ -174,7 +170,7 @@ async def batch(request: Request) -> Response:
     return await _batch(request, ids)
 
 
-async def _batch(request: Request, ids: str, *, deprecated: bool = False) -> Response:
+async def _batch(request: Request, ids: str) -> Response:
     wanted = [value.strip() for value in ids.split(",") if value.strip()]
     if not wanted:
         return problem(400, "Bad Request", "ids is empty")
@@ -191,11 +187,7 @@ async def _batch(request: Request, ids: str, *, deprecated: bool = False) -> Res
     except psycopg.Error:
         return problem(503, "Service Unavailable", "the catalogue is not reachable")
 
-    response = _json({"products": [queries.as_detail(row) for row in rows]})
-    if deprecated:
-        response.headers["Deprecation"] = "true"
-        response.headers["Link"] = '</v1/canonical-products:batch>; rel="successor-version"'
-    return response
+    return _json({"products": [queries.as_detail(row) for row in rows]})
 
 
 async def manufacturers(request: Request) -> Response:

@@ -6,6 +6,19 @@ from mb_ceramics_catalogue.observability import metrics
 from catalogue_service.app import create_app
 
 
+async def test_the_removed_combined_batch_query_is_rejected() -> None:
+    app = create_app("postgresql:///unused")
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://service") as client:
+        response = await client.get(
+            "/v1/canonical-products?ids=00000000-0000-0000-0000-000000000000"
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "unknown search parameter: ids"
+    assert "Deprecation" not in response.headers
+
+
 async def test_metrics_route_and_request_correlation_work_without_database_access() -> None:
     metrics.REGISTRY.clear()
     app = create_app("postgresql:///unused")

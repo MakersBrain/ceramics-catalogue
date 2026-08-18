@@ -26,7 +26,7 @@ import psycopg
 from mb_ceramics_catalogue.config.settings import CrawlParams
 from mb_ceramics_catalogue.config.sources import SourcesFile, default_path
 from mb_ceramics_catalogue.observability.http import RequestTelemetry
-from mb_ceramics_catalogue.ops import events, runs
+from mb_ceramics_catalogue.ops import events, outbox, runs
 from mb_ceramics_catalogue.ops import schedule as scheduling
 from starlette.applications import Starlette
 from starlette.datastructures import Headers
@@ -132,12 +132,23 @@ async def metrics_endpoint(request: Request) -> Response:
             states = await queries.all_rows(connection, queries.METRIC_JOB_STATES)
             oldest = await queries.one(connection, queries.METRIC_QUEUE_OLDEST)
             workers = await queries.one(connection, queries.METRIC_WORKERS)
+            outbox_stats = await queries.one(connection, queries.QUEUE_OUTBOX_STATS) or {}
             source_history = await queries.all_rows(connection, queries.SOURCES)
             schedules = await queries.all_rows(connection, queries.SCHEDULES)
             instruments.jobs_snapshot({str(row["state"]): int(row["n"]) for row in states})
             instruments.queue_oldest_age(float((oldest or {}).get("seconds") or 0))
             instruments.workers_snapshot(
                 int((workers or {}).get("healthy") or 0), int((workers or {}).get("lost") or 0)
+            )
+            instruments.REGISTRY.replace_gauge(
+                "catalogue_queue_outbox_pending",
+                "Committed outbox rows not yet confirmed published.",
+                [(float(outbox_stats.get("pending") or 0), {})],
+            )
+            instruments.REGISTRY.replace_gauge(
+                "catalogue_queue_outbox_oldest_age_seconds",
+                "Age of the oldest unpublished outbox row.",
+                [(float(outbox_stats.get("oldest_age_seconds") or 0), {})],
             )
             instruments.sources_snapshot(
                 _source_metric_snapshot(request.app.state.sources, source_history, schedules)
@@ -147,7 +158,112 @@ async def metrics_endpoint(request: Request) -> Response:
         return PlainTextResponse(
             "database metric snapshot unavailable\n", status_code=503, media_type="text/plain"
         )
+    try:
+        snapshot = await request.app.state.queue_stats.get()
+        _publish_queue_metrics(instruments, snapshot, request.app.state.queue_stats.age(snapshot))
+    except Exception:
+        LOGGER.warning("metrics.queue_snapshot_failed", exc_info=True)
+        instruments.REGISTRY.replace_gauge(
+            "catalogue_queue_provider_up",
+            "Whether the selected delivery provider can be observed.",
+            [(0, {"provider": request.app.state.settings.queue_provider})],
+        )
     return PlainTextResponse(render_metrics(), media_type="text/plain; version=0.0.4")
+
+
+def _publish_queue_metrics(instruments: Any, snapshot: Any, age_seconds: float) -> None:
+    provider = snapshot.provider
+    instruments.REGISTRY.replace_gauge(
+        "catalogue_queue_provider_up",
+        "Whether the selected delivery provider can be observed.",
+        [(1.0 if snapshot.available else 0.0, {"provider": provider})],
+    )
+    instruments.REGISTRY.replace_gauge(
+        "catalogue_queue_snapshot_age_seconds",
+        "Age of the most recent successful provider queue snapshot.",
+        [(age_seconds, {"provider": provider})],
+    )
+
+    def measurement(name: str, help_text: str, found: Any) -> None:
+        series = (
+            []
+            if found.value is None
+            else [
+                (
+                    float(found.value),
+                    {"provider": provider, "accuracy": found.accuracy.value},
+                )
+            ]
+        )
+        instruments.REGISTRY.replace_gauge(name, help_text, series)
+
+    measurement(
+        "catalogue_queue_backlog_messages",
+        "Unacknowledged messages in the selected delivery provider.",
+        snapshot.backlog_messages,
+    )
+    measurement(
+        "catalogue_queue_backlog_bytes",
+        "Bytes held by the selected delivery provider.",
+        snapshot.backlog_bytes,
+    )
+    measurement(
+        "catalogue_queue_consumers",
+        "Consumers reported by the selected delivery provider.",
+        snapshot.consumer_count,
+    )
+    route_fields = {
+        "ready": "Messages ready for delivery by route.",
+        "in_flight": "Messages delivered but not acknowledged by route.",
+        "redelivered": "Messages currently marked redelivered by route.",
+        "delivered": "Provider delivery sequence by route.",
+        "oldest_age_seconds": "Age of the oldest unacknowledged message by route.",
+    }
+    for field, help_text in route_fields.items():
+        series = [
+            (
+                float(value.value),
+                {
+                    "provider": provider,
+                    "route": route.route,
+                    "accuracy": value.accuracy.value,
+                },
+            )
+            for route in snapshot.routes
+            if (value := getattr(route, field)).value is not None
+        ]
+        instruments.REGISTRY.replace_gauge(f"catalogue_queue_route_{field}", help_text, series)
+    recovery = snapshot.recovery_dlq
+    instruments.REGISTRY.replace_gauge(
+        "catalogue_queue_recovery_backlog_messages",
+        "Messages awaiting authoritative redrive from the provider recovery DLQ.",
+        []
+        if recovery is None or recovery.backlog_messages.value is None
+        else [
+            (
+                float(recovery.backlog_messages.value),
+                {
+                    "provider": provider,
+                    "accuracy": recovery.backlog_messages.accuracy.value,
+                },
+            )
+        ],
+    )
+    instruments.REGISTRY.replace_gauge(
+        "catalogue_queue_recovery_oldest_age_seconds",
+        "Age of the oldest provider recovery DLQ message.",
+        []
+        if recovery is None or recovery.oldest_age_seconds.value is None
+        else [
+            (
+                float(recovery.oldest_age_seconds.value),
+                {
+                    "provider": provider,
+                    "accuracy": recovery.oldest_age_seconds.accuracy.value,
+                },
+            )
+        ],
+    )
 
 
 def _source_metric_snapshot(
@@ -251,7 +367,7 @@ async def create_run(request: Request) -> Response:
     except ValueError as error:
         return problem(422, "Unknown source", str(error))
 
-    async with request.app.state.pool.connection() as connection:
+    async with request.app.state.pool.connection() as connection, connection.transaction():
         run_id = await runs.create_run(
             connection,
             kind=body.get("kind", "manual"),
@@ -262,9 +378,7 @@ async def create_run(request: Request) -> Response:
             return problem(409, "Conflict", "this scheduled occurrence already exists")
         jobs = await runs.create_jobs(connection, run_id, sources, selected)
 
-    return JSONResponse(
-        {"run_id": str(run_id), "jobs": len(jobs), "sources": sorted(jobs)}, status_code=202
-    )
+    return JSONResponse({"run_id": str(run_id), "jobs": len(jobs), "sources": sorted(jobs)}, status_code=202)
 
 
 async def list_runs(request: Request) -> Response:
@@ -297,8 +411,12 @@ async def cancel_run(request: Request) -> Response:
         cancelled = await queries.all_rows(connection, queries.CANCEL_RUN, {"run": run_id})
         for row in cancelled:
             await events.emit(
-                connection, events.Topic.JOB, "job.cancel_requested",
-                run_id=run_id, job_id=row["id"], source_id=row["source_id"],
+                connection,
+                events.Topic.JOB,
+                "job.cancel_requested",
+                run_id=run_id,
+                job_id=row["id"],
+                source_id=row["source_id"],
             )
         await runs.close_run_if_done(connection, run_id)
     return JSONResponse({"cancelled": len(cancelled)}, status_code=202)
@@ -325,7 +443,7 @@ async def job_action(request: Request) -> Response:
     if action not in statements:
         return problem(404, "Not Found", f"unknown action {action!r}")
 
-    async with request.app.state.pool.connection() as connection:
+    async with request.app.state.pool.connection() as connection, connection.transaction():
         row = await queries.one(connection, statements[action], {"id": job_id})
         if row is None:
             # Conditional on the current state, so this is "not in a state where
@@ -333,11 +451,17 @@ async def job_action(request: Request) -> Response:
             # button twice is a no-op.
             return problem(409, "Conflict", f"this job cannot be {action}ed in its current state")
         await events.emit(
-            connection, events.Topic.JOB, f"job.{action}_requested",
-            run_id=row["run_id"], job_id=job_id, source_id=row["source_id"],
+            connection,
+            events.Topic.JOB,
+            f"job.{action}_requested",
+            run_id=row["run_id"],
+            job_id=job_id,
+            source_id=row["source_id"],
         )
         if action == "cancel":
             await runs.close_run_if_done(connection, row["run_id"])
+        elif action in ("resume", "retry") and row["state"] == "queued":
+            await outbox.enqueue_job(connection, job_id)
     return JSONResponse({"job_id": str(job_id), "action": action}, status_code=202)
 
 
@@ -386,9 +510,7 @@ async def get_job_changes(request: Request) -> Response:
         job = await queries.one(connection, queries.JOB, {"id": job_id})
         if job is None:
             return problem(404, "Not Found", "no such job")
-        artifact = await queries.one(
-            connection, queries.JOB_CERAMICS_ARTIFACT, {"id": job_id}
-        )
+        artifact = await queries.one(connection, queries.JOB_CERAMICS_ARTIFACT, {"id": job_id})
         if artifact is None:
             return problem(409, "Comparison unavailable", "this job has no completed artifact")
         previous = await queries.one(
@@ -448,17 +570,17 @@ async def download_job_artifact(request: Request) -> Response:
         return problem(400, "Bad Request", "dataset must be a non-empty dataset name")
     async with request.app.state.pool.connection() as connection:
         if dataset is None:
-            artifact = await queries.one(
-                connection, queries.JOB_CERAMICS_ARTIFACT, {"id": job_id}
-            )
+            artifact = await queries.one(connection, queries.JOB_CERAMICS_ARTIFACT, {"id": job_id})
         else:
             matches = await queries.all_rows(
-                connection, queries.JOB_DATASET_ARTIFACTS,
+                connection,
+                queries.JOB_DATASET_ARTIFACTS,
                 {"id": job_id, "dataset": dataset},
             )
             if len(matches) > 1:
                 return problem(
-                    409, "Artifact ambiguous",
+                    409,
+                    "Artifact ambiguous",
                     "multiple versions or artifact kinds match this dataset",
                 )
             artifact = matches[0] if matches else None
@@ -489,11 +611,40 @@ async def list_workers(request: Request) -> Response:
     async with request.app.state.pool.connection() as connection:
         rows = await queries.all_rows(connection, queries.WORKERS)
     return _json_response(
+        {"workers": [{**_worker(row), "heartbeat_age_seconds": row["heartbeat_age_seconds"]} for row in rows]}
+    )
+
+
+async def queue_status(request: Request) -> Response:
+    """PostgreSQL authority and provider-neutral delivery state."""
+    async with request.app.state.pool.connection() as connection:
+        states = await queries.all_rows(connection, queries.METRIC_JOB_STATES)
+        eligible = await queries.one(connection, queries.QUEUE_ELIGIBLE) or {}
+        outbox_stats = await queries.one(connection, queries.QUEUE_OUTBOX_STATS) or {}
+
+    try:
+        snapshot = await request.app.state.queue_stats.get()
+        broker = snapshot.json()
+        broker_error = snapshot.error
+    except Exception as error:  # noqa: BLE001 - broker failure is response data
+        broker = None
+        broker_error = f"{type(error).__name__}: queue statistics unavailable"
+        LOGGER.warning("queue.snapshot_broker_unavailable", error=broker_error)
+
+    integer_fields = ("pending", "ready", "delayed", "errored", "publish_attempts", "published_last_hour")
+    outbox_payload: dict[str, int | float] = {
+        field: int(outbox_stats.get(field) or 0) for field in integer_fields
+    }
+    outbox_payload["oldest_age_seconds"] = float(outbox_stats.get("oldest_age_seconds") or 0)
+    return _json_response(
         {
-            "workers": [
-                {**_worker(row), "heartbeat_age_seconds": row["heartbeat_age_seconds"]}
-                for row in rows
-            ]
+            "at": datetime.now(UTC),
+            "jobs": {str(row["state"]): int(row["n"]) for row in states},
+            "eligible": int(eligible.get("eligible") or 0),
+            "oldest_queued_age_seconds": float(eligible.get("oldest_age_seconds") or 0),
+            "outbox": outbox_payload,
+            "broker": broker,
+            "broker_error": broker_error,
         }
     )
 
@@ -520,8 +671,11 @@ async def worker_action(request: Request) -> Response:
             if row is None:
                 return problem(409, "Conflict", "only a lost worker can be hidden")
             await events.emit(
-                connection, events.Topic.WORKER, "worker.changed",
-                worker_id=worker_id, payload={"status": "stopped", "hidden": True},
+                connection,
+                events.Topic.WORKER,
+                "worker.changed",
+                worker_id=worker_id,
+                payload={"status": "stopped", "hidden": True},
             )
             return JSONResponse(
                 {"worker_id": str(worker_id), "status": "stopped", "hidden": True},
@@ -534,8 +688,11 @@ async def worker_action(request: Request) -> Response:
         if row is None:
             return problem(409, "Conflict", "no such worker, or it has already stopped")
         await events.emit(
-            connection, events.Topic.WORKER, "worker.changed",
-            worker_id=worker_id, payload={"desired_state": desired[action]},
+            connection,
+            events.Topic.WORKER,
+            "worker.changed",
+            worker_id=worker_id,
+            payload={"desired_state": desired[action]},
         )
     return JSONResponse({"worker_id": str(worker_id), "desired_state": desired[action]}, status_code=202)
 
@@ -599,9 +756,7 @@ async def update_source(request: Request) -> Response:
         current = await current_cursor.fetchone() or {}
         proxy_policy = None
         if "proxy" in body:
-            proxy_policy = await proxy_api.apply_source_policy(
-                request, connection, name, body.get("proxy")
-            )
+            proxy_policy = await proxy_api.apply_source_policy(request, connection, name, body.get("proxy"))
             if isinstance(proxy_policy, Response):
                 return proxy_policy
         row = await queries.one(
@@ -616,10 +771,30 @@ async def update_source(request: Request) -> Response:
                 "by": body.get("updated_by", current.get("updated_by")),
             },
         )
-        if body.get("paused"):
+        desired_paused = bool(body.get("paused", current.get("paused", False)))
+        desired_enabled = bool(body.get("enabled", current.get("enabled", True)))
+        if not desired_enabled:
+            disabled = await queries.all_rows(connection, queries.DISABLE_SOURCE_JOBS, {"id": name})
+            for job in disabled:
+                await events.emit(
+                    connection,
+                    events.Topic.JOB,
+                    "job.skipped" if job["state"] == "skipped" else "job.cancel_requested",
+                    run_id=job["run_id"],
+                    job_id=job["id"],
+                    source_id=name,
+                    payload={"reason": "source disabled"},
+                )
+                if job["state"] == "skipped":
+                    await runs.close_run_if_done(connection, job["run_id"])
+        if desired_enabled and desired_paused:
             # Pausing a source also pauses the jobs it already has in flight.
             # Resuming does not automatically resume individually paused jobs.
             await queries.all_rows(connection, queries.PAUSE_SOURCE_JOBS, {"id": name})
+        elif desired_enabled and current.get("paused"):
+            resumed = await queries.all_rows(connection, queries.RESUME_SOURCE_JOBS, {"id": name})
+            for job in resumed:
+                await outbox.enqueue_job(connection, job["id"])
         await events.emit(
             connection, events.Topic.SOURCE, "source.changed", source_id=name, payload=dict(body)
         )
@@ -692,9 +867,7 @@ async def update_schedule(request: Request) -> Response:
                 "params": queries.as_jsonb(body.get("params")),
             },
         )
-        await events.emit(
-            connection, events.Topic.SCHEDULE, "schedule.changed", payload={"id": name}
-        )
+        await events.emit(connection, events.Topic.SCHEDULE, "schedule.changed", payload={"id": name})
     return _json_response({"schedule": row})
 
 
@@ -795,9 +968,7 @@ def _limit(request: Request, *, default: int, maximum: int) -> int:
 
 
 def _json_response(payload: dict[str, Any]) -> Response:
-    return Response(
-        json.dumps(payload, default=str), media_type="application/json"
-    )
+    return Response(json.dumps(payload, default=str), media_type="application/json")
 
 
 def _build_providers(settings: Settings) -> dict[str, Any]:
@@ -860,6 +1031,7 @@ def create_app(settings: Settings | None = None, *, proxy_provider: Any = None) 
         Route("/v1/jobs/{id}/logs", job_logs),
         Route("/v1/jobs/{id}/{action}", job_action, methods=["POST"]),
         Route("/v1/workers", list_workers),
+        Route("/v1/queue", queue_status),
         Route("/v1/workers/{id}/{action}", worker_action, methods=["POST"]),
         Route("/v1/sources", list_sources),
         Route("/v1/sources/{id}", update_source, methods=["PUT"]),
@@ -894,13 +1066,21 @@ def create_app(settings: Settings | None = None, *, proxy_provider: Any = None) 
 
     @contextlib.asynccontextmanager
     async def lifespan(app: Starlette) -> AsyncIterator[None]:
+        from mb_ceramics_catalogue.ops.providers.factory import stats_reader
         from mb_ceramics_catalogue.storage import db
+
+        from catalogue_control.queue_stats import QueueSnapshotCache
 
         async with db.pool(settings.dsn, minimum=1, maximum=8) as pool:
             app.state.pool = pool
             app.state.settings = settings
             app.state.sources = SourcesFile.load(default_path())
             app.state.actor_keys = load_public_keys(settings.proxy_actor_public_keys_file)
+            app.state.queue_stats = QueueSnapshotCache(
+                stats_reader(settings),
+                max_age_seconds=settings.queue_snapshot_cache_seconds,
+                timeout_seconds=settings.queue_snapshot_timeout_seconds,
+            )
             # An injected provider is the test seam and stays single: it becomes
             # the default provider and the only one.
             providers: dict[str, Any] = {}
@@ -922,20 +1102,21 @@ def create_app(settings: Settings | None = None, *, proxy_provider: Any = None) 
             if settings.proxy_enabled:
                 for name, built in providers.items():
                     scheduler = ReconciliationScheduler(
-                        pool, built, settings.proxy_reconcile_interval_seconds,
+                        pool,
+                        built,
+                        settings.proxy_reconcile_interval_seconds,
                         settings.proxy_secret_file,
                     )
                     app.state.proxy_schedulers[name] = scheduler
                     await scheduler.start()
             # Kept for the tests and call sites that predate multi-provider.
-            app.state.proxy_scheduler = app.state.proxy_schedulers.get(
-                settings.proxy_default_provider
-            )
+            app.state.proxy_scheduler = app.state.proxy_schedulers.get(settings.proxy_default_provider)
             try:
                 yield
             finally:
                 for scheduler in app.state.proxy_schedulers.values():
                     await scheduler.stop()
+                await app.state.queue_stats.close()
                 await app.state.broker.stop()
 
     return Starlette(

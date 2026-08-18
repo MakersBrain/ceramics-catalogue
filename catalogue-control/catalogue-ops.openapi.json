@@ -3596,6 +3596,272 @@
         "title": "ProxyUsageList",
         "type": "object"
       },
+      "QueueBroker": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "backlog_bytes": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "backlog_messages": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "consumer_count": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Success At"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "provider": {
+            "enum": [
+              "nats",
+              "cloudflare"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "recovery_dlq": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QueueRecovery"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/QueueRoute"
+            },
+            "title": "Routes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "provider",
+          "observed_at",
+          "available",
+          "backlog_messages",
+          "backlog_bytes",
+          "consumer_count"
+        ],
+        "title": "QueueBroker",
+        "type": "object"
+      },
+      "QueueMeasurement": {
+        "properties": {
+          "accuracy": {
+            "enum": [
+              "exact",
+              "best_effort",
+              "unsupported"
+            ],
+            "title": "Accuracy",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Value"
+          }
+        },
+        "required": [
+          "accuracy"
+        ],
+        "title": "QueueMeasurement",
+        "type": "object"
+      },
+      "QueueOutbox": {
+        "properties": {
+          "delayed": {
+            "default": 0,
+            "title": "Delayed",
+            "type": "integer"
+          },
+          "errored": {
+            "default": 0,
+            "title": "Errored",
+            "type": "integer"
+          },
+          "oldest_age_seconds": {
+            "default": 0,
+            "title": "Oldest Age Seconds",
+            "type": "number"
+          },
+          "pending": {
+            "default": 0,
+            "title": "Pending",
+            "type": "integer"
+          },
+          "publish_attempts": {
+            "default": 0,
+            "title": "Publish Attempts",
+            "type": "integer"
+          },
+          "published_last_hour": {
+            "default": 0,
+            "title": "Published Last Hour",
+            "type": "integer"
+          },
+          "ready": {
+            "default": 0,
+            "title": "Ready",
+            "type": "integer"
+          }
+        },
+        "title": "QueueOutbox",
+        "type": "object"
+      },
+      "QueueRecovery": {
+        "properties": {
+          "backlog_messages": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "oldest_age_seconds": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          }
+        },
+        "required": [
+          "backlog_messages",
+          "oldest_age_seconds"
+        ],
+        "title": "QueueRecovery",
+        "type": "object"
+      },
+      "QueueRoute": {
+        "properties": {
+          "delivered": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "in_flight": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "oldest_age_seconds": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "ready": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "redelivered": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "route": {
+            "title": "Route",
+            "type": "string"
+          }
+        },
+        "required": [
+          "route",
+          "ready",
+          "in_flight",
+          "redelivered",
+          "delivered",
+          "oldest_age_seconds"
+        ],
+        "title": "QueueRoute",
+        "type": "object"
+      },
+      "QueueStatus": {
+        "description": "The authoritative job state, delivery outbox, and broker lag together.",
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "broker": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QueueBroker"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "broker_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Broker Error"
+          },
+          "eligible": {
+            "default": 0,
+            "title": "Eligible",
+            "type": "integer"
+          },
+          "jobs": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Jobs",
+            "type": "object"
+          },
+          "oldest_queued_age_seconds": {
+            "default": 0,
+            "title": "Oldest Queued Age Seconds",
+            "type": "number"
+          },
+          "outbox": {
+            "$ref": "#/components/schemas/QueueOutbox"
+          }
+        },
+        "required": [
+          "at",
+          "jobs",
+          "outbox"
+        ],
+        "title": "QueueStatus",
+        "type": "object"
+      },
       "RecordChange": {
         "properties": {
           "external_id": {
@@ -7609,6 +7875,38 @@
         "summary": "Provider and application usage",
         "tags": [
           "proxy"
+        ]
+      }
+    },
+    "/v1/queue": {
+      "get": {
+        "description": "Combines PostgreSQL job state, the transactional outbox, and the selected provider's normalized queue measurements. PostgreSQL remains available in the response when provider statistics cannot be reached.",
+        "operationId": "queueStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueStatus"
+                }
+              }
+            },
+            "description": "Queue delivery details"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "Queue delivery details",
+        "tags": [
+          "workers"
         ]
       }
     },

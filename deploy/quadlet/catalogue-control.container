@@ -12,6 +12,11 @@ ContainerName=catalogue-control
 # unauthenticated one.
 EnvironmentFile=/etc/catalogue/catalogue.env
 Environment=CATALOGUE_ARTIFACTS_DIR=/var/lib/catalogue/dumps
+Environment=CATALOGUE_NATS_URL=nats://host.containers.internal:4222
+Environment=CATALOGUE_NATS_STATS_TOKEN_FILE=/run/queue-secrets/nats-stats-token
+Environment=CATALOGUE_CF_STATS_TOKEN_FILE=/run/queue-secrets/cloudflare-stats-token
+Volume=/etc/catalogue/queue-secrets/nats-stats-token:/run/queue-secrets/nats-stats-token:ro
+Volume=/etc/catalogue/queue-secrets/cloudflare-stats-token:/run/queue-secrets/cloudflare-stats-token:ro
 Volume=catalogue-dumps.volume:/var/lib/catalogue/dumps:ro
 # Loopback only: the explorer proxies it server-side with the token attached.
 # That is defence in depth — the token is the authentication boundary.

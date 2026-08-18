@@ -577,7 +577,8 @@ docker compose up -d --build service
 ```text
 GET /health
 GET /v1/canonical-products?q=<text>&limit=<n>     search
-GET /v1/canonical-products?ids=<uuid,uuid>        fetch, with offers
+GET /v1/canonical-products/<uuid>                 fetch one, with offers
+GET /v1/canonical-products:batch?ids=<uuid,uuid>  fetch several, with offers
 GET /v1/manufacturers
 ```
 

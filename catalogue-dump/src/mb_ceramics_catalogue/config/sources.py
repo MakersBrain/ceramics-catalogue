@@ -32,7 +32,6 @@ VatStatus = Literal["inclusive", "exclusive", "unknown"]
 
 #: Whether a source is crawled for ceramic materials only, or in full.
 Scope = Literal["materials", "all"]
-ProxyPolicy = Literal["never", "fallback", "always"]
 
 
 class SourceConfig(BaseModel):
@@ -78,14 +77,6 @@ class SourceConfig(BaseModel):
     #: Residential transport is an operator-owned compatibility exception.
     #: A profile is a logical name resolved from a mounted secret, never a URL.
     proxy_eligible: bool = False
-    #: Deprecated static fields retained only to read old configuration. Paid
-    #: routing is resolved from source_proxy_policies and snapshotted on jobs.
-    proxy_policy: ProxyPolicy = "never"
-    proxy_profile: str | None = Field(default=None, pattern=r"^[a-z0-9][a-z0-9_-]{0,63}$")
-    proxy_country: str | None = Field(default=None, pattern=r"^[A-Z]{2}$")
-    proxy_session_minutes: int = Field(default=30, ge=1, le=1440)
-    proxy_max_megabytes: int = Field(default=25, ge=1, le=300)
-    proxy_pilot: bool = False
 
     # -- discovery --------------------------------------------------------
     sitemaps: list[str] | None = None
@@ -192,15 +183,6 @@ class SourceConfig(BaseModel):
             )
         return self
 
-    @model_validator(mode="after")
-    def _proxy_policy_is_safe(self) -> SourceConfig:
-        if self.proxy_policy != "never" or self.proxy_profile is not None:
-            raise ValueError(
-                "checked-in proxy policy/profile is no longer an enablement authority; "
-                "use proxy_eligible plus the operator source policy"
-            )
-        return self
-
     def as_scraper_config(self) -> dict[str, Any]:
         """The plain dict the scrapers still read.
 
@@ -226,15 +208,7 @@ class SourceConfig(BaseModel):
         """
         return self.model_dump(
             exclude_none=True,
-            exclude={
-                "proxy_policy",
-                "proxy_eligible",
-                "proxy_profile",
-                "proxy_country",
-                "proxy_session_minutes",
-                "proxy_max_megabytes",
-                "proxy_pilot",
-            },
+            exclude={"proxy_eligible"},
         )
 
 

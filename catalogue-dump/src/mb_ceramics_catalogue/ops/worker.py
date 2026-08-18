@@ -18,7 +18,8 @@ The loop, in order, and each step is in this order for a reason:
     loop:
       observe desired_state        claim only while it is running
       reap expired leases          recover work from workers that died
-      claim a job                  skip locked, honouring capabilities
+      consume a delivery           provider route matches capabilities
+      reserve its generation       PostgreSQL fences duplicates and stale work
       acquire a host slot          else release with a short backoff, no
                                    attempt burnt
       mark running                 and consume the attempt, not before
@@ -67,6 +68,8 @@ from mb_ceramics_catalogue.observability import metrics, tracing
 from mb_ceramics_catalogue.ops import events, leases, monitor, queue, runs, schedule
 from mb_ceramics_catalogue.ops import outputs as ops_outputs
 from mb_ceramics_catalogue.ops.connector_adapters import runtime_plan
+from mb_ceramics_catalogue.ops.delivery import Delivery, routes_for
+from mb_ceramics_catalogue.ops.providers.factory import consumer
 from mb_ceramics_catalogue.ops.sink import THROTTLE_SECONDS, JobLogHandler, PostgresSink
 from mb_ceramics_catalogue.pipeline.budget import RequestBudget, RequestCost
 from mb_ceramics_catalogue.pipeline.outputs import LocalArtifactStore
@@ -96,8 +99,8 @@ LOGGER = obs.get_logger("catalogue.worker")
 #: How often the worker reports that it is alive and renews its leases.
 HEARTBEAT_SECONDS = 5.0
 
-#: How long to wait after finding nothing to do. Long enough not to hammer the
-#: database, short enough that "Run now" in the UI feels immediate.
+#: How long to wait after finding no compatible broker delivery. Long enough to
+#: avoid a hot loop, short enough that "Run now" in the UI feels immediate.
 IDLE_SECONDS = 2.0
 
 #: How long a drain waits for the current source before giving up on it.
@@ -165,13 +168,13 @@ class Worker:
         #: tear down the others this process is carrying.
         self._cancels: dict[UUID, asyncio.Event] = {}
         self._job_started: dict[UUID, float] = {}
+        self._deliveries: dict[UUID, Delivery] = {}
+        self._broker = consumer(settings)
         self._slots = asyncio.Semaphore(max(1, settings.job_slots))
         #: One camoufox for this process, shared by every job that renders and
         #: started on the first one that does. Per job it was sixteen across the
         #: fleet; see `BrowserRenderer`.
-        self._browser_backends: dict[BrowserBackendName, BrowserBackend] = dict(
-            browser_backends or {}
-        )
+        self._browser_backends: dict[BrowserBackendName, BrowserBackend] = dict(browser_backends or {})
         for name, backend in self._browser_backends.items():
             if backend.backend != name.value:
                 raise ValueError(
@@ -242,9 +245,7 @@ class Worker:
             version=__version__,
         )
 
-    async def set_status(
-        self, status: str, *, job_id: UUID | None = None, force: bool = False
-    ) -> None:
+    async def set_status(self, status: str, *, job_id: UUID | None = None, force: bool = False) -> None:
         """Record a status change, and emit it as an edge.
 
         Status is an edge — `idle -> busy` is discrete and worth pushing to a
@@ -285,6 +286,14 @@ class Worker:
         """
         while not self.state.stopping:
             try:
+                for delivery in list(self._deliveries.values()):
+                    await delivery.extend(HEARTBEAT_SECONDS)
+            except Exception:
+                # Broker liveness and database liveness are independent. A
+                # failed progress ACK is retried next heartbeat and must not
+                # prevent lease/control polling.
+                LOGGER.warning("worker.delivery_heartbeat_failed", exc_info=True)
+            try:
                 async with self.pool.connection() as connection:
                     row = await _one(
                         connection,
@@ -295,9 +304,9 @@ class Worker:
                     if row is not None:
                         await self._observe_desired_state(str(row["desired_state"]))
 
-                    held = await queue.renew(connection, self.state.id)
-                    await leases.renew(connection, self.state.id)
-
+                    jobs = list(self.state.current_jobs.values())
+                    held = await queue.renew(connection, jobs, self.state.id)
+                    await leases.renew(connection, self.state.id, [job.execution_token for job in jobs])
                     for job in held:
                         if job["cancel_requested"]:
                             LOGGER.info("job.cancel_requested", job_id=str(job["id"]))
@@ -323,9 +332,7 @@ class Worker:
                         {"worker": self.state.id},
                     )
                     for reservation in await revoked.fetchall():
-                        LOGGER.warning(
-                            "proxy.lease_revoked", job_id=str(reservation["job_id"])
-                        )
+                        LOGGER.warning("proxy.lease_revoked", job_id=str(reservation["job_id"]))
                         self._cancel(reservation["job_id"])
             except psycopg.Error:
                 # A heartbeat that cannot reach the database is exactly when the
@@ -355,6 +362,7 @@ class Worker:
     # -- the loop ---------------------------------------------------------
 
     async def run(self) -> int:
+        await self._broker.connect()
         await self.register()
         self._heartbeat = asyncio.create_task(self._beat(), name="worker-heartbeat")
         await self.set_status("idle")
@@ -403,8 +411,7 @@ class Worker:
                         # restart policy brings up a fresh process with a fresh
                         # browser; nothing is requeued because nothing is in
                         # flight at this point.
-                        LOGGER.info("worker.recycling", completed=completed,
-                                    max_jobs=self.settings.max_jobs)
+                        LOGGER.info("worker.recycling", completed=completed, max_jobs=self.settings.max_jobs)
                         self.state.desired_state = "draining"
                         break
         finally:
@@ -454,12 +461,27 @@ class Worker:
         tests want.
         """
         await self.lead()
-        async with self.pool.connection() as connection:
-            await queue.reap_expired(connection)
-            job = await queue.claim(connection, self.state.id, self.state.capabilities)
-
-        if job is None:
+        delivery = await self._broker.next_delivery(routes_for(self.state.capabilities))
+        if delivery is None:
             return False
+        try:
+            async with self.pool.connection() as connection:
+                reservation = await queue.reserve(
+                    connection, delivery.envelope, self.state.id, self.state.capabilities
+                )
+        except psycopg.Error:
+            LOGGER.warning("job.reservation_database_failed", exc_info=True)
+            await delivery.retry(5.0)
+            return True
+        if reservation.disposition == "ack":
+            await delivery.acknowledge()
+            return True
+        if reservation.disposition == "retry":
+            await delivery.retry(reservation.retry_after)
+            return True
+        job = reservation.job
+        assert job is not None
+        self._deliveries[job.id] = delivery
 
         async def run_one() -> bool:
             # Set inside the task, so every line logged under this job — and
@@ -494,14 +516,15 @@ class Worker:
 
         async with self.pool.connection() as connection:
             for key in keys:
-                if await leases.acquire(connection, key, job.id, self.state.id) is None:
+                if await leases.acquire(connection, key, job.id, self.state.id, job.execution_token) is None:
                     # Another worker is crawling this shop, or another shop on
                     # the same edge. Not an attempt: being polite must not spend
                     # a source's retry budget. Anything already taken for this
                     # job goes back, or the second key's contention would leak
                     # the first key's slot until its lease expired.
-                    await leases.release_all(connection, job.id)
+                    await leases.release_all(connection, job.id, job.execution_token)
                     await queue.release(connection, job, self.state.id, reason="host busy")
+                    await self._deliveries[job.id].retry(queue.HOST_BACKOFF_SECONDS)
                     self._forget(job)
                     return False
 
@@ -517,7 +540,8 @@ class Worker:
             trace_id = tracing.trace_id()
             async with self.pool.connection() as connection:
                 if not await queue.start(connection, job, self.state.id, trace_id=trace_id):
-                    await leases.release_all(connection, job.id)
+                    await leases.release_all(connection, job.id, job.execution_token)
+                    await self._deliveries[job.id].acknowledge()
                     self._forget(job)
                     return False
                 self._job_started[job.id] = started
@@ -543,7 +567,13 @@ class Worker:
                 await self._finish(job, "failed", error=str(error)[:2000])
             finally:
                 async with self.pool.connection() as connection:
-                    await leases.release_all(connection, job.id)
+                    await leases.release_all(connection, job.id, job.execution_token)
+                delivery = self._deliveries.get(job.id)
+                if delivery is not None:
+                    # Terminal completion and capability rerouting both make
+                    # this exact generation obsolete. CAS fencing makes a late
+                    # ACK harmless if ownership was lost.
+                    await delivery.acknowledge()
                 self._job_started.pop(job.id, None)
                 self._forget(job)
                 # Another slot may still be crawling. A completed job used to
@@ -559,7 +589,10 @@ class Worker:
         return True
 
     def _browser_for_job(
-        self, job: queue.ClaimedJob, params: CrawlParams, proxy_lease: ProxyLease | None,
+        self,
+        job: queue.ClaimedJob,
+        params: CrawlParams,
+        proxy_lease: ProxyLease | None,
     ) -> tuple[BrowserBackend | None, BrowserJobContext | None]:
         """Resolve the snapshotted backend without inspecting scraper/platform names.
 
@@ -618,9 +651,7 @@ class Worker:
 
         log_handler = JobLogHandler(job.id)
         obs.attach(log_handler)
-        log_flusher = asyncio.create_task(
-            self._flush_job_logs(log_handler), name=f"job-log:{job.source_id}"
-        )
+        log_flusher = asyncio.create_task(self._flush_job_logs(log_handler), name=f"job-log:{job.source_id}")
 
         cancelled = False
         try:
@@ -635,7 +666,8 @@ class Worker:
                     try:
                         async with (
                             open_session(
-                                params, self.settings.cache_dir,
+                                params,
+                                self.settings.cache_dir,
                                 browser=None if proxy_lease else browser_backend,
                                 proxy_lease=proxy_lease,
                                 proxy_policy=str(job.proxy_snapshot.get("policy", "never")),
@@ -659,12 +691,12 @@ class Worker:
                                     await watcher
 
                             if cancelled:
-                                records = list(
-                                    getattr(progress.results.get(job.source_id), "records", [])
-                                )
+                                records = list(getattr(progress.results.get(job.source_id), "records", []))
                                 artifact = artifacts.write_partial(output, job.source_id, records)
                                 await self._finish(
-                                    job, "cancelled", artifact=artifact,
+                                    job,
+                                    "cancelled",
+                                    artifact=artifact,
                                     summary={"records": len(records), "interrupted": True},
                                 )
                                 return
@@ -673,14 +705,14 @@ class Worker:
                             await close_reservation(connection, proxy_lease)
 
                 assert outcome is not None
-                artifact = artifacts.write_source(
-                    output, job.source_id, outcome.records, params.allow_empty
-                )
+                artifact = artifacts.write_source(output, job.source_id, outcome.records, params.allow_empty)
                 outcome.summary["write_status"] = artifact.status
                 await events.log(
-                    connection, job.id,
+                    connection,
+                    job.id,
                     f"wrote {artifact.size} bytes to {artifact.path.name}",
-                    event="job.artifact", data={"sha256": artifact.sha256},
+                    event="job.artifact",
+                    data={"sha256": artifact.sha256},
                 )
                 await log_handler.flush_to(connection)
 
@@ -737,9 +769,7 @@ class Worker:
                 # pool/database failure is retried on the next cadence.
                 LOGGER.debug("sink.log_flush_failed", job_id=str(handler.job_id), exc_info=True)
 
-    async def _crawl_connector_canary(
-        self, job: queue.ClaimedJob, params: CrawlParams, config: Any
-    ) -> None:
+    async def _crawl_connector_canary(self, job: queue.ClaimedJob, params: CrawlParams, config: Any) -> None:
         """Run a registered reusable connector only when explicitly selected."""
         if params.refresh_mode != "full":
             raise ValueError("connector canary currently requires refresh_mode=full")
@@ -747,8 +777,7 @@ class Worker:
 
         registry = built_in_registry()
         current_ceramics = (
-            "ceramics.catalogue_identity.v2" if config.identity_only
-            else "ceramics.catalogue_item.v2"
+            "ceramics.catalogue_identity.v2" if config.identity_only else "ceramics.catalogue_item.v2"
         )
         selected = tuple(current_ceramics if name == "ceramics" else name for name in params.datasets)
         definitions = tuple(registry.get(name) for name in selected)
@@ -788,8 +817,7 @@ class Worker:
             "categories": list(adapter.categories),
         }
         projection_configuration = {
-            name: ceramics_projection if name.startswith("ceramics.") else {}
-            for name in selected
+            name: ceramics_projection if name.startswith("ceramics.") else {} for name in selected
         }
         dataset_selection = [
             {
@@ -816,9 +844,7 @@ class Worker:
             )
             resuming = lineage is not None
             for key in keys.values():
-                await ops_outputs.prepare_dataset_for_collection(
-                    connection, job.id, key, resuming=resuming
-                )
+                await ops_outputs.prepare_dataset_for_collection(connection, job.id, key, resuming=resuming)
             if lineage is None:
                 lineage = await ops_outputs.create_lineage(
                     connection,
@@ -827,9 +853,7 @@ class Worker:
                     source_url=config.url,
                     connector=adapter.name,
                     connector_version=adapter.connector_version,
-                    connector_configuration={
-                        "partitions": list(adapter.partitions)
-                    },
+                    connector_configuration={"partitions": list(adapter.partitions)},
                     connector_config_fingerprint=connector_fingerprint,
                     dataset_fingerprint=dataset_fingerprint,
                     dataset_selection=dataset_selection,
@@ -853,9 +877,7 @@ class Worker:
                 ) as session:
                     remaining = getattr(session.fetcher, "proxy_bytes_remaining", None)
                     budget = (
-                        RequestBudget(
-                            RequestCost(http_requests=2**31 - 1, proxy_bytes=remaining)
-                        )
+                        RequestBudget(RequestCost(http_requests=2**31 - 1, proxy_bytes=remaining))
                         if isinstance(remaining, int) and remaining >= 0
                         else None
                     )
@@ -877,8 +899,7 @@ class Worker:
                         checkpoint=checkpoint,
                         projection_configuration=projection_configuration,
                         initial_states={
-                            name: DatasetPageState(state)
-                            for name, state in restored_states.items()
+                            name: DatasetPageState(state) for name, state in restored_states.items()
                         },
                     )
                     traffic_requests = (
@@ -918,13 +939,15 @@ class Worker:
             if not result.enumeration_intact:
                 for key in keys.values():
                     await ops_outputs.finish_dataset(
-                        connection, job.id, key, state="failed", complete=False,
+                        connection,
+                        job.id,
+                        key,
+                        state="failed",
+                        complete=False,
                         error="connector enumeration incomplete",
                     )
                 summary["error_count"] = 1
-                await self._finish(
-                    job, "failed", summary=summary, error="connector enumeration incomplete"
-                )
+                await self._finish(job, "failed", summary=summary, error="connector enumeration incomplete")
                 return
 
             checksum = await ops_outputs.lineage_checksum(connection, job.id, lineage)
@@ -933,8 +956,7 @@ class Worker:
                 job.id,
                 lineage,
                 expected_partitions=(
-                    adapter.partitions
-                    or await ops_outputs.declared_partitions(connection, job.id, lineage)
+                    adapter.partitions or await ops_outputs.declared_partitions(connection, job.id, lineage)
                 ),
                 checksum=checksum,
             )
@@ -942,7 +964,11 @@ class Worker:
             failed = [name for name, state in result.datasets.items() if state == DatasetPageState.FAILED]
             for name in failed:
                 await ops_outputs.finish_dataset(
-                    connection, job.id, keys[name], state="failed", complete=False,
+                    connection,
+                    job.id,
+                    keys[name],
+                    state="failed",
+                    complete=False,
                     error=f"{name} projector failed",
                 )
             for name, key in keys.items():
@@ -969,21 +995,29 @@ class Worker:
         loaded = None
         if ceramics_name is not None and ceramics_name in published_by_dataset:
             published = published_by_dataset[ceramics_name]
-            summary.update({
-                "records": published.records,
-                "discovered": published.records,
-                "write_status": "replaced",
-                "artifact_path": published.location,
-                "artifact_sha256": published.sha256,
-                "artifact_size": published.size,
-            })
+            summary.update(
+                {
+                    "records": published.records,
+                    "discovered": published.records,
+                    "write_status": "replaced",
+                    "artifact_path": published.location,
+                    "artifact_sha256": published.sha256,
+                    "artifact_size": published.size,
+                }
+            )
             if published.records == 0 and not params.allow_empty:
                 async with self.pool.connection() as connection:
                     await ops_outputs.finish_dataset(
-                        connection, job.id, keys[ceramics_name], state="failed", complete=True,
+                        connection,
+                        job.id,
+                        keys[ceramics_name],
+                        state="failed",
+                        complete=True,
                         error="connector canary produced no ceramics records",
                     )
-                await self._finish(job, "failed", summary=summary, error="connector canary produced no ceramics records")
+                await self._finish(
+                    job, "failed", summary=summary, error="connector canary produced no ceramics records"
+                )
                 return
             try:
                 loaded = await asyncio.to_thread(
@@ -995,15 +1029,22 @@ class Worker:
             except Exception as error:
                 async with self.pool.connection() as connection:
                     await ops_outputs.finish_dataset(
-                        connection, job.id, keys[ceramics_name], state="failed", complete=True,
+                        connection,
+                        job.id,
+                        keys[ceramics_name],
+                        state="failed",
+                        complete=True,
                         error=str(error)[:2000],
                     )
                 raise
             summary.update(loaded=loaded.records, retired=loaded.retired, rejected=loaded.rejected)
             async with self.pool.connection() as connection:
                 await ops_outputs.finish_dataset(
-                    connection, job.id, keys[ceramics_name],
-                    state="degraded" if loaded.rejected else "succeeded", complete=True,
+                    connection,
+                    job.id,
+                    keys[ceramics_name],
+                    state="degraded" if loaded.rejected else "succeeded",
+                    complete=True,
                     rejected=loaded.rejected,
                     error="database rejected projected records" if loaded.rejected else None,
                 )
@@ -1012,9 +1053,18 @@ class Worker:
             )
 
         succeeded = len(published_by_dataset)
-        job_state = "failed" if not succeeded else "degraded" if failed or (loaded and loaded.rejected) else "succeeded"
+        job_state = (
+            "failed"
+            if not succeeded
+            else "degraded"
+            if failed or (loaded and loaded.rejected)
+            else "succeeded"
+        )
         await self._finish(
-            job, job_state, summary=summary, artifact=compatibility_artifact,
+            job,
+            job_state,
+            summary=summary,
+            artifact=compatibility_artifact,
             error="all selected dataset projectors failed" if job_state == "failed" else None,
         )
 
@@ -1029,13 +1079,14 @@ class Worker:
                     yield json.loads(line)
 
         with psycopg.connect(self.settings.dsn, row_factory=dict_row, autocommit=True) as connection:
-            postgres.ensure_staging(connection)
-            return postgres.load_source(
-                connection, job.source_id, records(), whole=whole, run_id=None
-            )
+            return self._load_fenced(connection, job, records(), whole=whole)
 
     async def _proxy_lease(
-        self, connection: Any, job: queue.ClaimedJob, config: Any, params: CrawlParams,
+        self,
+        connection: Any,
+        job: queue.ClaimedJob,
+        config: Any,
+        params: CrawlParams,
     ) -> ProxyLease | None:
         """Resolve operator policy without ever accepting a credential URL."""
         snapshot = job.proxy_snapshot
@@ -1058,8 +1109,7 @@ class Worker:
             raise ProxyDenied("job proxy snapshot has no valid byte maximum")
         maximum = min(
             configured_maximum,
-            (params.proxy_max_megabytes * 1_000_000)
-            if params.proxy_max_megabytes else configured_maximum,
+            (params.proxy_max_megabytes * 1_000_000) if params.proxy_max_megabytes else configured_maximum,
         )
         reservation_id = await reserve(
             connection,
@@ -1073,13 +1123,16 @@ class Worker:
         )
         country = str(snapshot["country"]) if snapshot.get("country") else None
         return ProxyLease.build(
-            reservation_id, job.id, profile, country,
-            int(snapshot.get("session_minutes", 30)), maximum,
+            reservation_id,
+            job.id,
+            profile,
+            country,
+            int(snapshot.get("session_minutes", 30)),
+            maximum,
             str(snapshot.get("protocol", "http")),
         )
-    async def _requeue_for_browser(
-        self, job: queue.ClaimedJob, error: BrowserUnavailable
-    ) -> bool:
+
+    async def _requeue_for_browser(self, job: queue.ClaimedJob, error: BrowserUnavailable) -> bool:
         """Send a job that turned out to need a browser to a worker that has one.
 
         `BROWSER_SOURCES` names the sources whose scrapers always render, but a
@@ -1118,6 +1171,7 @@ class Worker:
     def _forget(self, job: queue.ClaimedJob) -> None:
         self.state.current_jobs.pop(job.id, None)
         self._cancels.pop(job.id, None)
+        self._deliveries.pop(job.id, None)
 
     async def _load(self, job: queue.ClaimedJob, outcome: Any, *, whole: bool) -> postgres.SourceReport:
         """Load this source's records, in a thread so the loop keeps beating.
@@ -1132,16 +1186,29 @@ class Worker:
             from psycopg.rows import dict_row
 
             with psycopg.connect(dsn, row_factory=dict_row, autocommit=True) as connection:
-                postgres.ensure_staging(connection)
-                return postgres.load_source(
-                    connection,
-                    job.source_id,
-                    outcome.records,
-                    whole=whole,
-                    run_id=None,
-                )
+                return self._load_fenced(connection, job, outcome.records, whole=whole)
 
         return await asyncio.to_thread(load)
+
+    @staticmethod
+    def _load_fenced(
+        connection: Any, job: queue.ClaimedJob, records: Any, *, whole: bool
+    ) -> postgres.SourceReport:
+        """Keep token replacement out of the material catalogue transaction."""
+        with connection.transaction():
+            connection.execute(
+                "select pg_advisory_xact_lock(hashtextextended(%(id)s::text, 0))",
+                {"id": job.id},
+            )
+            owned = connection.execute(
+                "select 1 from catalogue.jobs where id=%(id)s and execution_token=%(token)s "
+                "and state='running'",
+                {"id": job.id, "token": job.execution_token},
+            ).fetchone()
+            if owned is None:
+                raise RuntimeError("job execution token was lost before catalogue load")
+            postgres.ensure_staging(connection)
+            return postgres.load_source(connection, job.source_id, records, whole=whole, run_id=None)
 
     async def _finish(
         self,
@@ -1153,8 +1220,47 @@ class Worker:
         artifact: Any = None,
     ) -> None:
         async with self.pool.connection() as connection:
+            flags = await queue.cancel_requested(connection, job.id)
+            if state == "cancelled" and flags["pause"]:
+                row = await connection.execute(
+                    """update catalogue.jobs
+                          set state = 'paused', pause_requested = false,
+                              lease_owner = null, lease_expires_at = null,
+                              execution_token = null,
+                              summary = coalesce(%(summary)s, summary),
+                              artifact_path = coalesce(%(path)s, artifact_path),
+                              artifact_sha256 = coalesce(%(sha)s, artifact_sha256),
+                              artifact_size = coalesce(%(size)s, artifact_size)
+                        where id = %(id)s and execution_token = %(token)s
+                      returning run_id, source_id""",
+                    {
+                        "id": job.id,
+                        "token": job.execution_token,
+                        "summary": Jsonb(summary) if summary is not None else None,
+                        "path": str(artifact.path) if artifact else None,
+                        "sha": getattr(artifact, "sha256", None) or None,
+                        "size": getattr(artifact, "size", None),
+                    },
+                )
+                paused = await row.fetchone()
+                if paused is not None:
+                    await events.emit(
+                        connection,
+                        events.Topic.JOB,
+                        "job.paused",
+                        run_id=paused["run_id"],
+                        job_id=job.id,
+                        source_id=paused["source_id"],
+                    )
+                return
             await runs.finish_job(
-                connection, job.id, state=state, summary=summary, error=error, artifact=artifact
+                connection,
+                job.id,
+                state=state,
+                summary=summary,
+                error=error,
+                artifact=artifact,
+                execution_token=job.execution_token,
             )
             snapshot = job.proxy_snapshot
             if snapshot.get("pilot") and snapshot.get("route_id") and snapshot.get("policy") != "never":
@@ -1166,12 +1272,16 @@ class Worker:
                           from catalogue.proxy_reservations r where r.job_id = %(job)s
                         on conflict (job_id) do nothing returning job_id""",
                     {
-                        "job": job.id, "source": job.source_id,
-                        "route": UUID(str(snapshot["route_id"])), "succeeded": state == "succeeded",
-                        "details": Jsonb({
-                            "records": int((summary or {}).get("records", 0)),
-                            "error_count": int((summary or {}).get("error_count", 0)),
-                        }),
+                        "job": job.id,
+                        "source": job.source_id,
+                        "route": UUID(str(snapshot["route_id"])),
+                        "succeeded": state == "succeeded",
+                        "details": Jsonb(
+                            {
+                                "records": int((summary or {}).get("records", 0)),
+                                "error_count": int((summary or {}).get("error_count", 0)),
+                            }
+                        ),
                     },
                 )
                 if await evidence.fetchone() is not None:
@@ -1216,8 +1326,9 @@ class Worker:
                 # shown. An alert that never clears is one nobody reads. The
                 # key has to be the one `notify` stored, and the trailing colon
                 # this used to carry matched nothing `notify` can produce.
-                await events.resolve(connection, _JOB_FAILED_KEY.format(source=job.source_id),
-                                     source_id=job.source_id)
+                await events.resolve(
+                    connection, _JOB_FAILED_KEY.format(source=job.source_id), source_id=job.source_id
+                )
         # Emit only after every terminal side effect completed. If a database
         # write above fails, execute() records the job as failed; counting the
         # earlier intended outcome as well would double-count one completion.
@@ -1240,18 +1351,22 @@ class Worker:
                 for job in list(self.state.current_jobs.values()):
                     # Requeued rather than failed: the worker is going away, and
                     # that is not the source's fault, so no attempt is spent.
-                    await leases.release_all(connection, job.id)
-                    await queue.release(
-                        connection, job, self.state.id, delay=0, reason="worker stopping"
-                    )
+                    await leases.release_all(connection, job.id, job.execution_token)
+                    await queue.release(connection, job, self.state.id, delay=0, reason="worker stopping")
+                    delivery = self._deliveries.get(job.id)
+                    if delivery is not None:
+                        await delivery.retry(0)
                 await connection.execute(
                     "update catalogue.workers set status = 'stopped', current_job_id = null, "
                     "last_heartbeat_at = now() where id = %(id)s",
                     {"id": self.state.id},
                 )
                 await events.emit(
-                    connection, events.Topic.WORKER, "worker.stopped",
-                    worker_id=self.state.id, payload={"reason": self.state.desired_state},
+                    connection,
+                    events.Topic.WORKER,
+                    "worker.stopped",
+                    worker_id=self.state.id,
+                    payload={"reason": self.state.desired_state},
                 )
         except psycopg.Error:
             # Nothing left to do about it. The lease will expire and another
@@ -1263,6 +1378,7 @@ class Worker:
         # error path: a browser this process leaves running outlives the
         # container's stop grace period as an orphan.
         await self._close_browser()
+        await self._broker.close()
 
         obs.unbind("worker_id")
         LOGGER.info("worker.stopping", reason=self.state.desired_state)

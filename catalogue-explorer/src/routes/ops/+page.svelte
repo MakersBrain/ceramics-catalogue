@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
+	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import type { OpsStream } from '$lib/ops/stream.svelte';
+	import type { QueueStatus } from '$lib/ops/types';
 	import WorkerCard from '$lib/ops/WorkerCard.svelte';
 	import Unavailable from '$lib/ops/Unavailable.svelte';
-	import { relative, duration, stateTone } from '$lib/ops/format';
+	import { compact, count, relative, duration, stateTone } from '$lib/ops/format';
 	import * as Table from '$lib/components/ui/table';
-	import { Card, CardContent } from '$lib/components/ui/card';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Metric } from '$lib/components/ui/metric';
 	import { StatusBadge } from '$lib/components/ui/status-badge';
 	import { Button } from '$lib/components/ui/button';
@@ -18,18 +20,82 @@
 
 	let picking = $state(false);
 	let chosen = $state<string[]>([]);
+	let polledQueueStats = $state<QueueStatus | undefined>();
+	let queueRefreshError = $state<string | undefined>();
+	const queueStats = $derived(polledQueueStats ?? data.queueStats);
 
 	// The stream's roster is authoritative once it arrives; the loaded list is
 	// only there so the first paint is not empty.
 	const workers = $derived(stream.workers.length ? stream.workers : (data.workers ?? []));
 	const queued = $derived(stream.queue.queued ?? 0);
 	const running = $derived(stream.queue.running ?? 0);
+	const brokerReady = $derived(
+		totalSupported((queueStats?.broker?.routes ?? []).map((route) => route.ready.value))
+	);
+	const brokerInFlight = $derived(
+		totalSupported((queueStats?.broker?.routes ?? []).map((route) => route.in_flight.value))
+	);
+	const providerLabels = {
+		nats: 'NATS JetStream',
+		cloudflare: 'Cloudflare Queues'
+	} as const;
+	const providerLabel = $derived(
+		queueStats?.broker?.provider
+			? providerLabels[queueStats.broker.provider]
+			: 'delivery provider'
+	);
 	const lastRun = $derived((data.runs ?? [])[0]);
 	const nextFire = $derived(
 		(data.schedules ?? []).filter((s: any) => s.enabled && s.next_fire_at).sort((a: any, b: any) =>
 			a.next_fire_at.localeCompare(b.next_fire_at)
 		)[0]
 	);
+
+	function bytes(value: number | null | undefined): string {
+		if (value == null) return '—';
+		if (value < 1024) return `${value} B`;
+		if (value < 1024 ** 2) return `${(value / 1024).toFixed(1)} KiB`;
+		return `${(value / 1024 ** 2).toFixed(1)} MiB`;
+	}
+
+	function measured(value: { value?: number | null }): number | null | undefined {
+		return value.value;
+	}
+
+	function totalSupported(values: (number | null | undefined)[]): number | undefined {
+		const supported = values.filter((value): value is number => value != null);
+		return supported.length ? supported.reduce((total, value) => total + value, 0) : undefined;
+	}
+
+	function quality(value: { accuracy: string }): string {
+		return value.accuracy === 'best_effort' ? '≈' : '';
+	}
+
+	function age(value: { value?: number | null }): string {
+		return value.value == null ? '—' : compact(value.value);
+	}
+
+	onMount(() => {
+		let live = true;
+		const refresh = async () => {
+			try {
+				const response = await fetch('/ops/queue');
+				if (!response.ok) throw new Error(`queue status returned ${response.status}`);
+				const next = (await response.json()) as QueueStatus;
+				if (live) {
+					polledQueueStats = next;
+					queueRefreshError = undefined;
+				}
+			} catch (error) {
+				if (live) queueRefreshError = error instanceof Error ? error.message : String(error);
+			}
+		};
+		const timer = window.setInterval(refresh, 5000);
+		return () => {
+			live = false;
+			window.clearInterval(timer);
+		};
+	});
 </script>
 
 <svelte:head><title>Operations · catalogue</title></svelte:head>
@@ -39,7 +105,13 @@
 {:else}
 	<div class="grid gap-6">
 		<section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-			<Metric label="Queue" value={queued} detail="{running} running" />
+			<Metric
+				label="Queue"
+				value={queued}
+				detail={queueStats
+					? `${count(brokerReady)} broker ready · ${queueStats.outbox.pending} outbox`
+					: `${running} running`}
+			/>
 
 			<Metric
 				label="Last run"
@@ -77,6 +149,103 @@
 				{/snippet}
 			</Metric>
 		</section>
+
+		<Card>
+			<CardHeader class="border-b">
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<div>
+						<CardTitle>Queue delivery</CardTitle>
+						<p class="text-muted-foreground mt-1 text-xs">
+							PostgreSQL authority → transactional outbox → {providerLabel}
+						</p>
+					</div>
+					<StatusBadge tone={queueStats?.broker?.available ? 'good' : 'bad'}>
+						{queueStats?.broker?.available ? providerLabel : 'provider unavailable'}
+					</StatusBadge>
+				</div>
+			</CardHeader>
+			<CardContent>
+				{#if queueStats}
+					<div class="grid gap-5 lg:grid-cols-3">
+						<div>
+							<h3 class="eyebrow mb-2">Jobs</h3>
+							<dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+								<dt class="text-muted-foreground">Eligible</dt><dd class="text-right tabular-nums">{count(queueStats.eligible)}</dd>
+								<dt class="text-muted-foreground">Leased</dt><dd class="text-right tabular-nums">{count(queueStats.jobs.leased ?? 0)}</dd>
+								<dt class="text-muted-foreground">Running</dt><dd class="text-right tabular-nums">{count(queueStats.jobs.running ?? 0)}</dd>
+								<dt class="text-muted-foreground">Oldest wait</dt><dd class="text-right tabular-nums">{compact(queueStats.oldest_queued_age_seconds ?? 0)}</dd>
+							</dl>
+						</div>
+
+						<div>
+							<h3 class="eyebrow mb-2">Outbox</h3>
+							<dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+								<dt class="text-muted-foreground">Ready</dt><dd class="text-right tabular-nums">{count(queueStats.outbox.ready)}</dd>
+								<dt class="text-muted-foreground">Delayed</dt><dd class="text-right tabular-nums">{count(queueStats.outbox.delayed)}</dd>
+								<dt class="text-muted-foreground">With errors</dt><dd class="text-right tabular-nums">{count(queueStats.outbox.errored)}</dd>
+								<dt class="text-muted-foreground">Published 1h</dt><dd class="text-right tabular-nums">{count(queueStats.outbox.published_last_hour)}</dd>
+							</dl>
+						</div>
+
+						<div>
+							<h3 class="eyebrow mb-2">{providerLabel}</h3>
+							{#if queueStats.broker}
+								<dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+									<dt class="text-muted-foreground">Backlog</dt><dd class="text-right tabular-nums">{quality(queueStats.broker.backlog_messages)}{count(measured(queueStats.broker.backlog_messages))}</dd>
+									<dt class="text-muted-foreground">In flight</dt><dd class="text-right tabular-nums">{count(brokerInFlight)}</dd>
+									<dt class="text-muted-foreground">Consumers</dt><dd class="text-right tabular-nums">{count(measured(queueStats.broker.consumer_count))}</dd>
+									<dt class="text-muted-foreground">Storage</dt><dd class="text-right tabular-nums">{quality(queueStats.broker.backlog_bytes)}{bytes(measured(queueStats.broker.backlog_bytes))}</dd>
+									{#if queueStats.broker.recovery_dlq}
+										<dt class="text-muted-foreground">Recovery DLQ</dt><dd class="text-right tabular-nums">{quality(queueStats.broker.recovery_dlq.backlog_messages)}{count(measured(queueStats.broker.recovery_dlq.backlog_messages))}</dd>
+									{/if}
+								</dl>
+								{#if queueStats.broker.error}
+									<p class="text-destructive mt-2 text-xs">{queueStats.broker.error}</p>
+								{/if}
+							{:else}
+								<p class="text-destructive text-sm">{queueStats.broker_error ?? 'No broker snapshot.'}</p>
+							{/if}
+						</div>
+					</div>
+
+					{#if queueStats.broker}
+						<div class="mt-5 overflow-hidden rounded-lg border">
+							<Table.Root>
+								<Table.Header>
+									<Table.Row>
+										<Table.Head>Route</Table.Head>
+										<Table.Head class="text-right">Ready</Table.Head>
+										<Table.Head class="text-right">In flight</Table.Head>
+										<Table.Head class="text-right">Redelivered</Table.Head>
+										<Table.Head class="text-right">Delivered</Table.Head>
+										<Table.Head class="text-right">Oldest</Table.Head>
+									</Table.Row>
+								</Table.Header>
+								<Table.Body>
+									{#each queueStats.broker.routes as route (route.route)}
+										<Table.Row>
+											<Table.Cell><code>{route.route}</code></Table.Cell>
+											<Table.Cell class="text-right tabular-nums" title={route.ready.accuracy}>{quality(route.ready)}{count(measured(route.ready))}</Table.Cell>
+											<Table.Cell class="text-right tabular-nums" title={route.in_flight.accuracy}>{quality(route.in_flight)}{count(measured(route.in_flight))}</Table.Cell>
+											<Table.Cell class="text-right tabular-nums" title={route.redelivered.accuracy}>{quality(route.redelivered)}{count(measured(route.redelivered))}</Table.Cell>
+											<Table.Cell class="text-right tabular-nums" title={route.delivered.accuracy}>{quality(route.delivered)}{count(measured(route.delivered))}</Table.Cell>
+											<Table.Cell class="text-right tabular-nums" title={route.oldest_age_seconds.accuracy}>{quality(route.oldest_age_seconds)}{age(route.oldest_age_seconds)}</Table.Cell>
+										</Table.Row>
+									{/each}
+								</Table.Body>
+							</Table.Root>
+						</div>
+					{/if}
+					<p class="text-muted-foreground mt-3 text-xs">
+						Updated {relative(queueStats.at)} · refreshes every 5s
+						{#if queueStats.broker?.last_success_at} · provider snapshot {relative(queueStats.broker.last_success_at)}{/if}
+						{#if queueRefreshError} · refresh failed: {queueRefreshError}{/if}
+					</p>
+				{:else}
+					<p class="text-muted-foreground text-sm">Queue details are loading.</p>
+				{/if}
+			</CardContent>
+		</Card>
 
 		<Card>
 			<CardContent>

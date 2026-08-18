@@ -49,6 +49,7 @@ with free as (
 update catalogue.host_leases l
    set job_id = %(job)s,
        leased_by = %(worker)s,
+       execution_token = %(token)s,
        leased_until = now() + make_interval(secs => %(seconds)s)
   from free
  where l.host = free.host and l.slot = free.slot
@@ -57,22 +58,22 @@ returning l.slot
 
 RELEASE = """
 update catalogue.host_leases
-   set job_id = null, leased_by = null, leased_until = null
- where host = %(host)s and job_id = %(job)s
+   set job_id = null, leased_by = null, leased_until = null, execution_token = null
+ where host = %(host)s and job_id = %(job)s and execution_token = %(token)s
 returning slot
 """
 
 RELEASE_ALL = """
 update catalogue.host_leases
-   set job_id = null, leased_by = null, leased_until = null
- where job_id = %(job)s
+   set job_id = null, leased_by = null, leased_until = null, execution_token = null
+ where job_id = %(job)s and execution_token = %(token)s
 returning host, slot
 """
 
 RENEW = """
 update catalogue.host_leases
    set leased_until = now() + make_interval(secs => %(seconds)s)
- where leased_by = %(worker)s and job_id is not null
+ where leased_by = %(worker)s and job_id is not null and execution_token = any(%(tokens)s::uuid[])
 returning host, slot
 """
 
@@ -82,6 +83,7 @@ async def acquire(
     host: str,
     job_id: UUID,
     worker_id: UUID,
+    execution_token: UUID,
     *,
     seconds: int = SLOT_SECONDS,
 ) -> int | None:
@@ -97,7 +99,8 @@ async def acquire(
         )
         await cursor.execute(
             ACQUIRE,
-            {"host": host, "job": job_id, "worker": worker_id, "seconds": seconds},
+            {"host": host, "job": job_id, "worker": worker_id, "token": execution_token,
+             "seconds": seconds},
         )
         row = await cursor.fetchone()
 
@@ -114,17 +117,17 @@ async def acquire(
     return int(row["slot"])
 
 
-async def release(connection: Connection, host: str, job_id: UUID) -> bool:
+async def release(connection: Connection, host: str, job_id: UUID, execution_token: UUID) -> bool:
     """Give a host slot back. Safe to call when none is held."""
     async with connection.cursor() as cursor:
-        await cursor.execute(RELEASE, {"host": host, "job": job_id})
+        await cursor.execute(RELEASE, {"host": host, "job": job_id, "token": execution_token})
         row = await cursor.fetchone()
     if row is not None:
         LOGGER.debug("host.lease.released", host=host, slot=row["slot"])
     return row is not None
 
 
-async def release_all(connection: Connection, job_id: UUID) -> list[str]:
+async def release_all(connection: Connection, job_id: UUID, execution_token: UUID) -> list[str]:
     """Give back every slot this job holds, whichever key it holds them under.
 
     A job takes one slot per politeness key — its shop, and the shared edge that
@@ -133,17 +136,24 @@ async def release_all(connection: Connection, job_id: UUID) -> list[str]:
     so asking by it needs no caller to remember what was taken.
     """
     async with connection.cursor() as cursor:
-        await cursor.execute(RELEASE_ALL, {"job": job_id})
+        await cursor.execute(RELEASE_ALL, {"job": job_id, "token": execution_token})
         rows = await cursor.fetchall()
     for row in rows:
         LOGGER.debug("host.lease.released", host=row["host"], slot=row["slot"])
     return [str(row["host"]) for row in rows]
 
 
-async def renew(connection: Connection, worker_id: UUID, *, seconds: int = SLOT_SECONDS) -> int:
+async def renew(
+    connection: Connection, worker_id: UUID, execution_tokens: list[UUID], *,
+    seconds: int = SLOT_SECONDS,
+) -> int:
     """Extend every slot this worker holds. Called with the job heartbeat."""
     async with connection.cursor() as cursor:
-        await cursor.execute(RENEW, {"worker": worker_id, "seconds": seconds})
+        if not execution_tokens:
+            return 0
+        await cursor.execute(
+            RENEW, {"worker": worker_id, "tokens": execution_tokens, "seconds": seconds}
+        )
         return len(await cursor.fetchall())
 
 

@@ -1,0 +1,24 @@
+[Unit]
+Description=Ceramics catalogue NATS JetStream
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=docker.io/library/nats:2.11-alpine
+ContainerName=catalogue-nats
+EnvironmentFile=/etc/catalogue/catalogue.env
+Volume=catalogue-nats.volume:/data
+PublishPort=127.0.0.1:4222:4222
+PublishPort=127.0.0.1:8222:8222
+Entrypoint=/bin/sh
+Exec=-ec 'exec nats-server --jetstream --store_dir=/data --http_port=8222 --auth "$CATALOGUE_NATS_TOKEN"'
+HealthCmd=wget -q -O - http://127.0.0.1:8222/healthz | grep -q ok
+HealthInterval=10s
+HealthRetries=6
+
+[Service]
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

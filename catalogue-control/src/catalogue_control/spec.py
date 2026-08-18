@@ -68,9 +68,7 @@ replay.
 
 
 class CreateRunRequest(BaseModel):
-    sources: str = Field(
-        default="all", description="A source id, a comma-separated list, or 'all'."
-    )
+    sources: str = Field(default="all", description="A source id, a comma-separated list, or 'all'.")
     kind: Literal["manual", "scheduled", "retry", "backfill"] = "manual"
     requested_by: str | None = None
     params: CrawlParams = Field(
@@ -162,8 +160,17 @@ class JobDataset(BaseModel):
     contract_version: str
     projector_version: str
     state: Literal[
-        "pending", "projecting", "staged", "publishing", "published", "loading",
-        "succeeded", "degraded", "failed", "cancelled", "skipped"
+        "pending",
+        "projecting",
+        "staged",
+        "publishing",
+        "published",
+        "loading",
+        "succeeded",
+        "degraded",
+        "failed",
+        "cancelled",
+        "skipped",
     ]
     complete: bool = False
     records: int = 0
@@ -194,8 +201,7 @@ class Job(BaseModel):
     source_id: str
     host: str
     state: Literal[
-        "queued", "leased", "running", "paused", "succeeded", "degraded", "failed",
-        "cancelled", "skipped"
+        "queued", "leased", "running", "paused", "succeeded", "degraded", "failed", "cancelled", "skipped"
     ]
     attempt: int
     max_attempts: int
@@ -324,6 +330,60 @@ class Worker(BaseModel):
 
 class WorkerList(BaseModel):
     workers: list[Worker]
+
+
+class QueueOutbox(BaseModel):
+    pending: int = 0
+    ready: int = 0
+    delayed: int = 0
+    errored: int = 0
+    publish_attempts: int = 0
+    oldest_age_seconds: float = 0
+    published_last_hour: int = 0
+
+
+class QueueMeasurement(BaseModel):
+    value: int | float | None = None
+    accuracy: Literal["exact", "best_effort", "unsupported"]
+
+
+class QueueRoute(BaseModel):
+    route: str
+    ready: QueueMeasurement
+    in_flight: QueueMeasurement
+    redelivered: QueueMeasurement
+    delivered: QueueMeasurement
+    oldest_age_seconds: QueueMeasurement
+
+
+class QueueRecovery(BaseModel):
+    backlog_messages: QueueMeasurement
+    oldest_age_seconds: QueueMeasurement
+
+
+class QueueBroker(BaseModel):
+    provider: Literal["nats", "cloudflare"]
+    observed_at: datetime
+    last_success_at: datetime | None = None
+    available: bool
+    backlog_messages: QueueMeasurement
+    backlog_bytes: QueueMeasurement
+    consumer_count: QueueMeasurement
+    routes: list[QueueRoute] = Field(default_factory=list)
+    recovery_dlq: QueueRecovery | None = None
+    error: str | None = None
+
+
+class QueueStatus(BaseModel):
+    """The authoritative job state, delivery outbox, and broker lag together."""
+
+    at: datetime
+    jobs: dict[str, int]
+    eligible: int = 0
+    oldest_queued_age_seconds: float = 0
+    outbox: QueueOutbox
+    broker: QueueBroker | None = None
+    broker_error: str | None = None
 
 
 class Source(BaseModel):
@@ -809,35 +869,56 @@ def registry() -> Registry:
         security=True,
     )
 
-    api.add(Operation("get", "/health", "health", "Liveness", response=Health, errors=(503,), tags=("service",)))
+    api.add(
+        Operation("get", "/health", "health", "Liveness", response=Health, errors=(503,), tags=("service",))
+    )
     api.add(
         Operation(
-            "get", "/metrics", "metrics", "Prometheus metrics",
-            media_type="text/plain", errors=(), tags=("service",),
+            "get",
+            "/metrics",
+            "metrics",
+            "Prometheus metrics",
+            media_type="text/plain",
+            errors=(),
+            tags=("service",),
         )
     )
 
     api.add(
         Operation(
-            "post", "/v1/runs", "createRun", "Start a run",
+            "post",
+            "/v1/runs",
+            "createRun",
+            "Start a run",
             description="Creates the run and one job per selected source. 202: the workers pick them up.",
-            request=CreateRunRequest, response=CreateRunResponse, status=202,
-            errors=(401, 409, 422), tags=("runs",),
+            request=CreateRunRequest,
+            response=CreateRunResponse,
+            status=202,
+            errors=(401, 409, 422),
+            tags=("runs",),
         )
     )
     api.add(
         Operation(
-            "get", "/v1/runs", "listRuns", "Run history",
+            "get",
+            "/v1/runs",
+            "listRuns",
+            "Run history",
             parameters=(
                 Parameter("limit", schema={"type": "integer", "maximum": 200, "default": 25}),
                 Parameter("cursor", description="A previous page's `next_cursor`."),
             ),
-            response=RunList, errors=(401,), tags=("runs",),
+            response=RunList,
+            errors=(401,),
+            tags=("runs",),
         )
     )
     api.add(
         Operation(
-            "get", "/v1/runs/{id}", "getRun", "One run with its jobs and their progress",
+            "get",
+            "/v1/runs/{id}",
+            "getRun",
+            "One run with its jobs and their progress",
             parameters=(
                 Parameter("id", location="path"),
                 Parameter(
@@ -845,27 +926,42 @@ def registry() -> Registry:
                     description="Exact dataset name; defaults to the ceramics compatibility output.",
                 ),
             ),
-            response=RunDetail, errors=(400, 401, 404), tags=("runs",),
+            response=RunDetail,
+            errors=(400, 401, 404),
+            tags=("runs",),
         )
     )
     api.add(
         Operation(
-            "post", "/v1/runs/{id}/cancel", "cancelRun", "Cancel every unfinished job in a run",
+            "post",
+            "/v1/runs/{id}/cancel",
+            "cancelRun",
+            "Cancel every unfinished job in a run",
             parameters=(Parameter("id", location="path"),),
-            response=Accepted, status=202, errors=(400, 401), tags=("runs",),
+            response=Accepted,
+            status=202,
+            errors=(400, 401),
+            tags=("runs",),
         )
     )
 
     api.add(
         Operation(
-            "get", "/v1/jobs/{id}", "getJob", "One job",
+            "get",
+            "/v1/jobs/{id}",
+            "getJob",
+            "One job",
             parameters=(Parameter("id", location="path"),),
-            response=JobDetail, errors=(400, 401, 404), tags=("jobs",),
+            response=JobDetail,
+            errors=(400, 401, 404),
+            tags=("jobs",),
         )
     )
     api.add(
         Operation(
-            "get", "/v1/jobs/{id}/changes", "getJobChanges",
+            "get",
+            "/v1/jobs/{id}/changes",
+            "getJobChanges",
             "Changes from this source's previous successful scrape",
             description=(
                 "Compares the job's immutable NDJSON artifact with the immediately "
@@ -878,39 +974,55 @@ def registry() -> Registry:
                 Parameter("q", description="Substring match on product name or external id."),
                 Parameter("limit", schema={"type": "integer", "maximum": 1000, "default": 200}),
             ),
-            response=JobChanges, errors=(400, 401, 404, 409), tags=("jobs",),
+            response=JobChanges,
+            errors=(400, 401, 404, 409),
+            tags=("jobs",),
         )
     )
     api.add(
         Operation(
-            "get", "/v1/jobs/{id}/artifact", "downloadJobArtifact",
+            "get",
+            "/v1/jobs/{id}/artifact",
+            "downloadJobArtifact",
             "Download a completed ceramics artifact",
             description=(
                 "Returns only an available, complete ceramics dataset artifact. "
                 "Legacy job columns are considered only when the job has no dataset rows."
             ),
             parameters=(Parameter("id", location="path"),),
-            response=None, media_type="application/octet-stream",
-            errors=(400, 401, 404, 409), tags=("jobs",),
+            response=None,
+            media_type="application/octet-stream",
+            errors=(400, 401, 404, 409),
+            tags=("jobs",),
         )
     )
     api.add(
         Operation(
-            "get", "/v1/jobs/{id}/logs", "getJobLogs", "A job's log, cursor-paged",
+            "get",
+            "/v1/jobs/{id}/logs",
+            "getJobLogs",
+            "A job's log, cursor-paged",
             parameters=(
                 Parameter("id", location="path"),
-                Parameter("after", description="Return lines after this id.",
-                          schema={"type": "integer", "default": 0}),
+                Parameter(
+                    "after",
+                    description="Return lines after this id.",
+                    schema={"type": "integer", "default": 0},
+                ),
                 Parameter("level", description="debug, info, warning or error."),
                 Parameter("q", description="Substring match on the message."),
                 Parameter("limit", schema={"type": "integer", "maximum": 2000, "default": 500}),
             ),
-            response=LogPage, errors=(400, 401), tags=("jobs",),
+            response=LogPage,
+            errors=(400, 401),
+            tags=("jobs",),
         )
     )
     api.add(
         Operation(
-            "post", "/v1/jobs/{id}/{action}", "controlJob",
+            "post",
+            "/v1/jobs/{id}/{action}",
+            "controlJob",
             "pause, resume, cancel or retry one source",
             description=(
                 "Four controls rather than one, because they have different safety "
@@ -923,22 +1035,51 @@ def registry() -> Registry:
             ),
             parameters=(
                 Parameter("id", location="path"),
-                Parameter("action", location="path",
-                          schema={"type": "string", "enum": ["pause", "resume", "cancel", "retry"]}),
+                Parameter(
+                    "action",
+                    location="path",
+                    schema={"type": "string", "enum": ["pause", "resume", "cancel", "retry"]},
+                ),
             ),
-            response=Accepted, status=202, errors=(400, 401, 404, 409), tags=("jobs",),
+            response=Accepted,
+            status=202,
+            errors=(400, 401, 404, 409),
+            tags=("jobs",),
         )
     )
 
     api.add(
         Operation(
-            "get", "/v1/workers", "listWorkers", "The worker roster with heartbeat ages",
-            response=WorkerList, errors=(401,), tags=("workers",),
+            "get",
+            "/v1/workers",
+            "listWorkers",
+            "The worker roster with heartbeat ages",
+            response=WorkerList,
+            errors=(401,),
+            tags=("workers",),
         )
     )
     api.add(
         Operation(
-            "post", "/v1/workers/{id}/{action}", "controlWorker",
+            "get",
+            "/v1/queue",
+            "queueStatus",
+            "Queue delivery details",
+            description=(
+                "Combines PostgreSQL job state, the transactional outbox, and the "
+                "selected provider's normalized queue measurements. PostgreSQL remains "
+                "available in the response when provider statistics cannot be reached."
+            ),
+            response=QueueStatus,
+            errors=(401,),
+            tags=("workers",),
+        )
+    )
+    api.add(
+        Operation(
+            "post",
+            "/v1/workers/{id}/{action}",
+            "controlWorker",
             "pause, resume, drain or stop a worker, or hide a lost registration",
             description=(
                 "Controls the registered process, not the deployment's replica count: a "
@@ -949,96 +1090,291 @@ def registry() -> Registry:
             ),
             parameters=(
                 Parameter("id", location="path"),
-                Parameter("action", location="path",
-                          schema={"type": "string", "enum": ["pause", "resume", "drain", "stop", "hide"]}),
+                Parameter(
+                    "action",
+                    location="path",
+                    schema={"type": "string", "enum": ["pause", "resume", "drain", "stop", "hide"]},
+                ),
             ),
-            response=Accepted, status=202, errors=(400, 401, 404, 409), tags=("workers",),
+            response=Accepted,
+            status=202,
+            errors=(400, 401, 404, 409),
+            tags=("workers",),
         )
     )
 
     api.add(
         Operation(
-            "get", "/v1/sources", "listSources",
+            "get",
+            "/v1/sources",
+            "listSources",
             "Every configured source, joined to what actually happened to it",
-            response=SourceList, errors=(401,), tags=("sources",),
+            response=SourceList,
+            errors=(401,),
+            tags=("sources",),
         )
     )
     api.add(
         Operation(
-            "put", "/v1/sources/{id}", "updateSource",
+            "put",
+            "/v1/sources/{id}",
+            "updateSource",
             "Enable, pause, or override a source's schedule and parameters",
             parameters=(Parameter("id", location="path"),),
-            request=SourceSettings, response=SourceUpdated,
-            errors=(401, 404, 422), tags=("sources",),
+            request=SourceSettings,
+            response=SourceUpdated,
+            errors=(401, 404, 422),
+            tags=("sources",),
         )
     )
 
     api.add(
         Operation(
-            "get", "/v1/schedules", "listSchedules", "Schedules",
-            response=ScheduleList, errors=(401,), tags=("schedules",),
+            "get",
+            "/v1/schedules",
+            "listSchedules",
+            "Schedules",
+            response=ScheduleList,
+            errors=(401,),
+            tags=("schedules",),
         )
     )
     api.add(
         Operation(
-            "put", "/v1/schedules/{id}", "updateSchedule", "Create or edit a schedule",
+            "put",
+            "/v1/schedules/{id}",
+            "updateSchedule",
+            "Create or edit a schedule",
             parameters=(Parameter("id", location="path"),),
-            request=Schedule, response=ScheduleUpdated, errors=(401, 422), tags=("schedules",),
+            request=Schedule,
+            response=ScheduleUpdated,
+            errors=(401, 422),
+            tags=("schedules",),
         )
     )
 
     api.add(
         Operation(
-            "get", "/v1/notifications", "listNotifications", "The durable notification feed",
+            "get",
+            "/v1/notifications",
+            "listNotifications",
+            "The durable notification feed",
             parameters=(
-                Parameter("unacknowledged", schema={"type": "boolean"},
-                          description="Only conditions that are still open."),
+                Parameter(
+                    "unacknowledged",
+                    schema={"type": "boolean"},
+                    description="Only conditions that are still open.",
+                ),
                 Parameter("severity", schema={"type": "string", "enum": ["info", "warning", "critical"]}),
                 Parameter("limit", schema={"type": "integer", "maximum": 500, "default": 100}),
             ),
-            response=NotificationList, errors=(401,), tags=("notifications",),
+            response=NotificationList,
+            errors=(401,),
+            tags=("notifications",),
         )
     )
     api.add(
         Operation(
-            "post", "/v1/notifications/ack", "acknowledgeNotifications", "Acknowledge selected notifications",
-            request=BulkAcknowledgeRequest, response=BulkAcknowledgement,
-            errors=(400, 401), tags=("notifications",),
+            "post",
+            "/v1/notifications/ack",
+            "acknowledgeNotifications",
+            "Acknowledge selected notifications",
+            request=BulkAcknowledgeRequest,
+            response=BulkAcknowledgement,
+            errors=(400, 401),
+            tags=("notifications",),
         )
     )
     api.add(
         Operation(
-            "post", "/v1/notifications/{id}/ack", "acknowledgeNotification", "Acknowledge one",
+            "post",
+            "/v1/notifications/{id}/ack",
+            "acknowledgeNotification",
+            "Acknowledge one",
             parameters=(Parameter("id", location="path", schema={"type": "integer"}),),
-            request=AcknowledgeRequest, response=Acknowledgement,
-            errors=(400, 401, 409), tags=("notifications",),
+            request=AcknowledgeRequest,
+            response=Acknowledgement,
+            errors=(400, 401, 409),
+            tags=("notifications",),
         )
     )
 
     for method, path, operation_id, summary, response, request_model, status in (
-        ("get", "/v1/proxy/overview", "proxyOverview", "Proxy safety and subscription overview", ProxyOverview, None, 200),
+        (
+            "get",
+            "/v1/proxy/overview",
+            "proxyOverview",
+            "Proxy safety and subscription overview",
+            ProxyOverview,
+            None,
+            200,
+        ),
         ("get", "/v1/proxy/cycles", "proxyCycles", "Proxy billing cycles", ProxyCycleList, None, 200),
         ("get", "/v1/proxy/usage", "proxyUsage", "Provider and application usage", ProxyUsageList, None, 200),
-        ("get", "/v1/proxy/reservations", "proxyReservations", "Proxy reservations", ProxyReservationList, None, 200),
-        ("get", "/v1/proxy/profiles", "proxyProfiles", "Safe proxy profile metadata", ProxyProfileList, None, 200),
-        ("post", "/v1/proxy/profiles", "createProxyProfile", "Create a bounded Decodo sub-user", ProxyMutationResult, CreateProxyProfileRequest, 201),
-        ("post", "/v1/proxy/profiles/refresh", "refreshProxyProfiles", "Refresh safe provider profile metadata", ProxyMutationResult, None, 202),
-        ("post", "/v1/proxy/profiles/{id}/{action}", "mutateProxyProfile", "Rotate or disable a proxy profile", ProxyMutationResult, ProxyProfileActionRequest, 202),
-        ("put", "/v1/proxy/profiles/{id}/{action}", "updateProxyProfile", "Change profile limit or allocation", ProxyMutationResult, ProxyProfileActionRequest, 202),
-        ("delete", "/v1/proxy/profiles/{id}", "retireProxyProfile", "Drain and retire a proxy profile", ProxyMutationResult, ConfirmationRequest, 202),
+        (
+            "get",
+            "/v1/proxy/reservations",
+            "proxyReservations",
+            "Proxy reservations",
+            ProxyReservationList,
+            None,
+            200,
+        ),
+        (
+            "get",
+            "/v1/proxy/profiles",
+            "proxyProfiles",
+            "Safe proxy profile metadata",
+            ProxyProfileList,
+            None,
+            200,
+        ),
+        (
+            "post",
+            "/v1/proxy/profiles",
+            "createProxyProfile",
+            "Create a bounded Decodo sub-user",
+            ProxyMutationResult,
+            CreateProxyProfileRequest,
+            201,
+        ),
+        (
+            "post",
+            "/v1/proxy/profiles/refresh",
+            "refreshProxyProfiles",
+            "Refresh safe provider profile metadata",
+            ProxyMutationResult,
+            None,
+            202,
+        ),
+        (
+            "post",
+            "/v1/proxy/profiles/{id}/{action}",
+            "mutateProxyProfile",
+            "Rotate or disable a proxy profile",
+            ProxyMutationResult,
+            ProxyProfileActionRequest,
+            202,
+        ),
+        (
+            "put",
+            "/v1/proxy/profiles/{id}/{action}",
+            "updateProxyProfile",
+            "Change profile limit or allocation",
+            ProxyMutationResult,
+            ProxyProfileActionRequest,
+            202,
+        ),
+        (
+            "delete",
+            "/v1/proxy/profiles/{id}",
+            "retireProxyProfile",
+            "Drain and retire a proxy profile",
+            ProxyMutationResult,
+            ConfirmationRequest,
+            202,
+        ),
         ("get", "/v1/proxy/routes", "proxyRoutes", "Non-secret managed routes", ProxyRouteList, None, 200),
-        ("post", "/v1/proxy/routes", "createProxyRoute", "Create a non-secret route", ProxyMutationResult, CreateProxyRouteRequest, 201),
-        ("put", "/v1/proxy/routes/{id}", "updateProxyRoute", "Update a route", ProxyMutationResult, CreateProxyRouteRequest, 202),
-        ("delete", "/v1/proxy/routes/{id}", "deleteProxyRoute", "Retire an unused route", ProxyMutationResult, None, 202),
-        ("post", "/v1/proxy/routes/{id}/probe", "probeProxyRoute", "Run the fixed-target paid probe", ProxyMutationResult, ConfirmationRequest, 200),
+        (
+            "post",
+            "/v1/proxy/routes",
+            "createProxyRoute",
+            "Create a non-secret route",
+            ProxyMutationResult,
+            CreateProxyRouteRequest,
+            201,
+        ),
+        (
+            "put",
+            "/v1/proxy/routes/{id}",
+            "updateProxyRoute",
+            "Update a route",
+            ProxyMutationResult,
+            CreateProxyRouteRequest,
+            202,
+        ),
+        (
+            "delete",
+            "/v1/proxy/routes/{id}",
+            "deleteProxyRoute",
+            "Retire an unused route",
+            ProxyMutationResult,
+            None,
+            202,
+        ),
+        (
+            "post",
+            "/v1/proxy/routes/{id}/probe",
+            "probeProxyRoute",
+            "Run the fixed-target paid probe",
+            ProxyMutationResult,
+            ConfirmationRequest,
+            200,
+        ),
         ("get", "/v1/proxy/probes", "proxyProbes", "Bounded paid-probe history", ProxyProbeList, None, 200),
-        ("get", "/v1/proxy/audit", "proxyAudit", "Append-only proxy administration audit", ProxyAuditList, None, 200),
-        ("get", "/v1/proxy/candidates", "proxyCandidates", "Proxy pilot candidates", ProxyCandidateList, None, 200),
-        ("post", "/v1/proxy/reconcile", "reconcileProxy", "Reconcile provider usage now", ProxyMutationResult, None, 202),
-        ("post", "/v1/proxy/kill-switch/{action}", "proxyKillSwitch", "Activate, clear, or revoke paid leases", ProxyMutationResult, OptionalConfirmationRequest, 202),
-        ("post", "/v1/proxy/pilot/{action}", "proxyPilot", "Start or stop the bounded pilot", ProxyMutationResult, OptionalConfirmationRequest, 202),
-        ("post", "/v1/proxy/cycles/propose", "proposeProxyCycle", "Propose a cycle from Decodo", ProxyMutationResult, None, 201),
-        ("post", "/v1/proxy/cycles/{id}/{action}", "mutateProxyCycle", "Open or close a confirmed cycle", ProxyMutationResult, CycleConfirmation, 202),
+        (
+            "get",
+            "/v1/proxy/audit",
+            "proxyAudit",
+            "Append-only proxy administration audit",
+            ProxyAuditList,
+            None,
+            200,
+        ),
+        (
+            "get",
+            "/v1/proxy/candidates",
+            "proxyCandidates",
+            "Proxy pilot candidates",
+            ProxyCandidateList,
+            None,
+            200,
+        ),
+        (
+            "post",
+            "/v1/proxy/reconcile",
+            "reconcileProxy",
+            "Reconcile provider usage now",
+            ProxyMutationResult,
+            None,
+            202,
+        ),
+        (
+            "post",
+            "/v1/proxy/kill-switch/{action}",
+            "proxyKillSwitch",
+            "Activate, clear, or revoke paid leases",
+            ProxyMutationResult,
+            OptionalConfirmationRequest,
+            202,
+        ),
+        (
+            "post",
+            "/v1/proxy/pilot/{action}",
+            "proxyPilot",
+            "Start or stop the bounded pilot",
+            ProxyMutationResult,
+            OptionalConfirmationRequest,
+            202,
+        ),
+        (
+            "post",
+            "/v1/proxy/cycles/propose",
+            "proposeProxyCycle",
+            "Propose a cycle from Decodo",
+            ProxyMutationResult,
+            None,
+            201,
+        ),
+        (
+            "post",
+            "/v1/proxy/cycles/{id}/{action}",
+            "mutateProxyCycle",
+            "Open or close a confirmed cycle",
+            ProxyMutationResult,
+            CycleConfirmation,
+            202,
+        ),
     ):
         parameters: tuple[Parameter, ...] = ()
         if "{id}" in path:
@@ -1047,15 +1383,25 @@ def registry() -> Registry:
             parameters += (Parameter("action", location="path"),)
         api.add(
             Operation(
-                method, path, operation_id, summary,
-                parameters=parameters, request=request_model, response=response,
-                status=status, errors=(400, 401, 403, 409, 422, 502, 503), tags=("proxy",),
+                method,
+                path,
+                operation_id,
+                summary,
+                parameters=parameters,
+                request=request_model,
+                response=response,
+                status=status,
+                errors=(400, 401, 403, 409, 422, 502, 503),
+                tags=("proxy",),
             )
         )
 
     api.add(
         Operation(
-            "get", "/v1/events", "stream", "The live stream",
+            "get",
+            "/v1/events",
+            "stream",
+            "The live stream",
             description=(
                 "Server-sent events. See the table in the document description for which "
                 "`event:` names carry which schema, and which are numbered.\n\n"
@@ -1073,10 +1419,11 @@ def registry() -> Registry:
                     ),
                 ),
                 Parameter("run_id", description="Narrow `jobs` and `progress` to one run."),
-                Parameter("Last-Event-ID", location="header",
-                          description="Resume after this event id."),
+                Parameter("Last-Event-ID", location="header", description="Resume after this event id."),
             ),
-            media_type="text/event-stream", errors=(401,), tags=("stream",),
+            media_type="text/event-stream",
+            errors=(401,),
+            tags=("stream",),
         )
     )
 
@@ -1085,8 +1432,14 @@ def registry() -> Registry:
     # them, and inventing an endpoint per payload would put routes in the
     # document that do not exist.
     api.declare(
-        Bootstrap, WorkerRoster, WorkerChanged, RunEvent, JobStateChanged,
-        JobProgress, NotificationEvent, Resync,
+        Bootstrap,
+        WorkerRoster,
+        WorkerChanged,
+        RunEvent,
+        JobStateChanged,
+        JobProgress,
+        NotificationEvent,
+        Resync,
     )
 
     return api

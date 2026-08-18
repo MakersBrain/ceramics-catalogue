@@ -50,7 +50,7 @@ def test_typed_projection_golden_covers_every_checked_in_source(parsed: SourcesF
         separators=(",", ":"),
     ).encode()
     assert hashlib.sha256(encoded).hexdigest() == (
-        "8871ea3a807f164a0cae4c9c046704d85ef8d23a90bbc544349bfbcef86a850e"
+        "52f4b822618bd72159174da0fae8de47ce94e76db9a15bab023b3708e82da865"
     )
 
 
@@ -82,12 +82,6 @@ def test_typed_projection_preserves_source_semantics_for_every_entry(parsed: Sou
             "obey_robots": legacy.obey_robots,
             "render": legacy.render,
             "proxy_eligible": legacy.proxy_eligible,
-            "proxy_policy": legacy.proxy_policy,
-            "proxy_profile": legacy.proxy_profile,
-            "proxy_country": legacy.proxy_country,
-            "proxy_session_minutes": legacy.proxy_session_minutes,
-            "proxy_max_megabytes": legacy.proxy_max_megabytes,
-            "proxy_pilot": legacy.proxy_pilot,
         }
         ceramics = typed.datasets[0]
         assert ceramics.kind == "ceramics"
@@ -155,15 +149,7 @@ def test_the_projection_is_the_raw_entry_plus_nothing_surprising(raw: dict, pars
     added as the same falsy value a missing key already reads as.
     """
     allowed_additions = {"scope": "materials", "ignore_robots": False, "is_manufacturer": False}
-    operator_only = {
-        "proxy_policy",
-        "proxy_eligible",
-        "proxy_profile",
-        "proxy_country",
-        "proxy_session_minutes",
-        "proxy_max_megabytes",
-        "proxy_pilot",
-    }
+    operator_only = {"proxy_eligible"}
 
     for name, config in parsed.items():
         projected = config.as_scraper_config()

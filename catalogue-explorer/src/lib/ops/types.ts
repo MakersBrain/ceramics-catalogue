@@ -559,6 +559,59 @@ export interface ProxyUsageList {
 	usage: ProxyUsageItem[];
 }
 
+export interface QueueBroker {
+	provider: 'nats' | 'cloudflare';
+	observed_at: string;
+	last_success_at?: string | null;
+	available: boolean;
+	backlog_messages: QueueMeasurement;
+	backlog_bytes: QueueMeasurement;
+	consumer_count: QueueMeasurement;
+	routes?: QueueRoute[] | null;
+	recovery_dlq?: QueueRecovery | null;
+	error?: string | null;
+}
+
+export interface QueueMeasurement {
+	value?: number | null;
+	accuracy: 'exact' | 'best_effort' | 'unsupported';
+}
+
+export interface QueueOutbox {
+	pending?: number | null;
+	ready?: number | null;
+	delayed?: number | null;
+	errored?: number | null;
+	publish_attempts?: number | null;
+	oldest_age_seconds?: number | null;
+	published_last_hour?: number | null;
+}
+
+export interface QueueRecovery {
+	backlog_messages: QueueMeasurement;
+	oldest_age_seconds: QueueMeasurement;
+}
+
+export interface QueueRoute {
+	route: string;
+	ready: QueueMeasurement;
+	in_flight: QueueMeasurement;
+	redelivered: QueueMeasurement;
+	delivered: QueueMeasurement;
+	oldest_age_seconds: QueueMeasurement;
+}
+
+/** The authoritative job state, delivery outbox, and broker lag together. */
+export interface QueueStatus {
+	at: string;
+	jobs: Record<string, number>;
+	eligible?: number | null;
+	oldest_queued_age_seconds?: number | null;
+	outbox: QueueOutbox;
+	broker?: QueueBroker | null;
+	broker_error?: string | null;
+}
+
 export interface RecordChange {
 	kind: 'added' | 'removed' | 'changed';
 	external_id: string;

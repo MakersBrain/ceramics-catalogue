@@ -73,6 +73,9 @@ golden-update:  ## Rewrite the frozen dumps. Review the diff; it is the change.
 # not something to point at anything that matters.
 PGTEST_PORT ?= 55432
 PGTEST_DSN  ?= postgresql://postgres:postgres@127.0.0.1:$(PGTEST_PORT)/postgres
+NATSTEST_PORT ?= 54222
+NATSTEST_TOKEN ?= catalogue-test
+NATSTEST_URL ?= nats://127.0.0.1:$(NATSTEST_PORT)
 
 .PHONY: pg-up
 pg-up:  ## Start the throwaway PostgreSQL the database tests need
@@ -90,6 +93,23 @@ pg-down:  ## Stop it
 test-postgres:  ## Database-backed tests: the queue, edges, run closure, the API
 	CATALOGUE_TEST_DSN=$(PGTEST_DSN) $(RUN) pytest -m postgres
 	CATALOGUE_TEST_DSN=$(PGTEST_DSN) $(RUNC) pytest -m postgres
+
+.PHONY: nats-up
+nats-up:  ## Start the throwaway JetStream server the delivery tests need
+	@docker run -d --rm --name catalogue-natstest \
+	  -p 127.0.0.1:$(NATSTEST_PORT):4222 nats:2.11-alpine \
+	  --jetstream --store_dir=/tmp/nats --auth $(NATSTEST_TOKEN) >/dev/null
+	@until docker logs catalogue-natstest 2>&1 | grep -q "Server is ready"; do sleep 1; done
+	@echo "catalogue-natstest listening on $(NATSTEST_PORT)"
+
+.PHONY: nats-down
+nats-down:  ## Stop the throwaway JetStream server
+	@docker stop catalogue-natstest >/dev/null 2>&1 || true
+
+.PHONY: test-nats
+test-nats:  ## Broker-backed publish, pull, acknowledgement and outbox tests
+	CATALOGUE_TEST_NATS_URL=$(NATSTEST_URL) CATALOGUE_TEST_NATS_TOKEN=$(NATSTEST_TOKEN) \
+	  $(RUN) pytest -m nats
 
 # -- generated contracts -----------------------------------------------------
 #
@@ -115,4 +135,6 @@ check: lint typecheck test openapi-check  ## What every change has to pass
 .PHONY: check-all
 check-all: check test-golden  ## check, the replay suite, and the database suite
 	@$(MAKE) pg-up
-	@$(MAKE) test-postgres; status=$$?; $(MAKE) pg-down; exit $$status
+	@$(MAKE) nats-up
+	@CATALOGUE_TEST_NATS_URL=$(NATSTEST_URL) CATALOGUE_TEST_NATS_TOKEN=$(NATSTEST_TOKEN) \
+	  $(MAKE) test-postgres test-nats; status=$$?; $(MAKE) pg-down; $(MAKE) nats-down; exit $$status

@@ -110,14 +110,18 @@ class ProxyConfigurationTests(unittest.TestCase):
         self.assertEqual("never", narrowed.proxy_policy)
         self.assertEqual(10, narrowed.proxy_max_megabytes)
 
-    def test_source_policy_requires_a_logical_profile_not_a_url(self):
+    def test_removed_static_source_proxy_fields_are_rejected(self):
         common = {"label": "Shop", "url": "https://shop.test", "scraper": "pagecrawl"}
-        with self.assertRaises(ValidationError):
-            SourceConfig.model_validate({**common, "proxy_policy": "always"})
-        with self.assertRaises(ValidationError):
-            SourceConfig.model_validate({
-                **common, "proxy_policy": "always", "proxy_profile": "http://user:pw@host",
-            })
+        for field, value in (
+            ("proxy_policy", "always"),
+            ("proxy_profile", "decodo"),
+            ("proxy_country", "FR"),
+            ("proxy_session_minutes", 30),
+            ("proxy_max_megabytes", 25),
+            ("proxy_pilot", True),
+        ):
+            with self.subTest(field=field), self.assertRaises(ValidationError):
+                SourceConfig.model_validate({**common, field: value})
 
 
 class ProxyLeaseTests(unittest.TestCase):

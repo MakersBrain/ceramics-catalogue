@@ -89,12 +89,6 @@ class TestShapeCorrections:
         consumer could not tell this morning's price from March's."""
         assert "observed_at" in document["components"]["schemas"]["Offer"]["properties"]
 
-    def test_the_old_combined_path_is_still_described(self, document):
-        """Kept working for one deprecation window; the split is a breaking
-        change for anything already reading it."""
-        assert "/v1/canonical-products" in document["paths"]
-
-
 class TestGeneration:
     def test_generating_twice_produces_the_same_bytes(self, tmp_path: Path):
         """Otherwise regenerating makes a diff every time and people stop
