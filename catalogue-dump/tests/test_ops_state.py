@@ -27,7 +27,7 @@ from mb_ceramics_catalogue.connectors.prestashop import (
     declared_partition_keys,
 )
 from mb_ceramics_catalogue.connectors.shopify import ShopifyConnector, ShopifyOptions
-from mb_ceramics_catalogue.ops import events, leases, outputs, runs
+from mb_ceramics_catalogue.ops import events, leases, outputs, runs, worker
 from mb_ceramics_catalogue.ops.sink import JobLogHandler, PostgresSink
 from mb_ceramics_catalogue.pipeline.outputs import BatchIdentity, LocalArtifactStore, StoredBatch
 from mb_ceramics_catalogue.pipeline.runner import DatasetPageOutcome, DatasetPageState
@@ -385,11 +385,42 @@ class TestNotifications:
         again = await events.notify(db, "source.stale", "ceradel is stale", source_id="ceradel")
         assert again is not None
 
+    async def test_a_failed_job_alert_is_cleared_by_the_next_success(self, db):
+        """Raise and clear have to agree on the key, and they did not.
+
+        The worker raised on the default key and cleared `job.failed:<source>:`,
+        a string `notify` cannot produce, so the alert — when it fired at all —
+        stayed on the operator's screen for ever.
+        """
+        key = worker._JOB_FAILED_KEY.format(source="ceradel")
+        raised = await events.notify(
+            db, "job.failed", "ceradel failed on attempt 1 of 3",
+            dedup_key=key, source_id="ceradel",
+        )
+        assert raised is not None
+        assert await events.resolve(db, key, source_id="ceradel")
+
     async def test_acknowledging_is_idempotent(self, db):
         notification_id = await events.notify(db, "worker.lost", "worker gone",
                                               severity=events.Severity.CRITICAL)
         assert await events.acknowledge(db, notification_id, "rick")
         assert not await events.acknowledge(db, notification_id, "rick")
+
+    async def test_selected_notifications_are_acknowledged_with_edges(self, db):
+        first = await events.notify(db, "source.stale", "one", source_id="one")
+        second = await events.notify(db, "source.stale", "two", source_id="two")
+        assert first is not None and second is not None
+
+        acknowledged = await events.acknowledge_many(db, [second, first, second], "rick")
+
+        assert acknowledged == sorted([first, second])
+        logged = await rows(
+            db,
+            "select source_id, payload from catalogue.event_log "
+            "where type = 'notification.acknowledged' order by source_id",
+        )
+        assert [row["source_id"] for row in logged] == ["one", "two"]
+        assert {row["payload"]["id"] for row in logged} == {first, second}
 
     async def test_raising_one_emits_an_edge(self, db):
         await events.notify(db, "host.blocking", "ceradel.fr is refusing us",

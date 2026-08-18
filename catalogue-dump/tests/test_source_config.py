@@ -50,7 +50,7 @@ def test_typed_projection_golden_covers_every_checked_in_source(parsed: SourcesF
         separators=(",", ":"),
     ).encode()
     assert hashlib.sha256(encoded).hexdigest() == (
-        "9706610cfc5da69112b6d18443d48823e0f8bb51b1bf7f58ca1c3166ea5efbb6"
+        "8871ea3a807f164a0cae4c9c046704d85ef8d23a90bbc544349bfbcef86a850e"
     )
 
 

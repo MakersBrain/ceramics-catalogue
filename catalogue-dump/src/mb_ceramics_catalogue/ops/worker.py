@@ -112,6 +112,11 @@ LEADER_SECONDS = 30.0
 #: of rows is not something to do every half minute.
 PRUNE_SECONDS = 3600.0
 
+#: One open `job.failed` row per source, raised on the failure and cleared by
+#: the next success. Keyed on the source alone: a key carrying the job id makes
+#: a new unresolved row every night for a source that fails every night.
+_JOB_FAILED_KEY = "job.failed:{source}"
+
 
 @dataclass
 class WorkerState:
@@ -1171,10 +1176,17 @@ class Worker:
                 )
                 if await evidence.fetchone() is not None:
                     await connection.execute(
+                        # Promotion also ends the source's pilot enrolment. It
+                        # did not before, so a promoted source went on
+                        # reserving against the pilot ledger; when the pilot
+                        # was later stopped, the-ceramic-shop's `always` policy
+                        # had no fallback and the job died in nine
+                        # milliseconds, every night, for five nights.
                         """update catalogue.source_proxy_policies p
                               set evidence_count = e.successes,
                                   evidence_state = case when e.successes >= 3 then 'promoted'
                                                         else 'eligible' end,
+                                  pilot = p.pilot and e.successes < 3,
                                   updated_at = now()
                               from (select count(*) filter (where succeeded) as successes
                                       from catalogue.proxy_pilot_evidence
@@ -1182,20 +1194,29 @@ class Worker:
                              where p.source_id = %(source)s""",
                         {"source": job.source_id},
                     )
-            if state == "failed" and job.attempt >= job.max_attempts:
+            if state == "failed":
+                # `failed` is terminal on the first attempt — the retry budget
+                # is spent by the browser requeue and lease-contention paths,
+                # not by a source that simply failed. Gating this on
+                # `attempt >= max_attempts` therefore meant the alert could
+                # never fire: five sources failed nightly from 2026-08-13 and
+                # not one raised a notification.
                 await events.notify(
                     connection,
                     "job.failed",
-                    f"{job.source_id} failed {job.attempt} times",
+                    f"{job.source_id} failed on attempt {job.attempt} of {job.max_attempts}",
                     body=error,
+                    dedup_key=_JOB_FAILED_KEY.format(source=job.source_id),
                     run_id=job.run_id,
                     job_id=job.id,
                     source_id=job.source_id,
                 )
             elif state == "succeeded":
                 # The condition has ended, so the warning should stop being
-                # shown. An alert that never clears is one nobody reads.
-                await events.resolve(connection, f"job.failed:{job.source_id}:",
+                # shown. An alert that never clears is one nobody reads. The
+                # key has to be the one `notify` stored, and the trailing colon
+                # this used to carry matched nothing `notify` can produce.
+                await events.resolve(connection, _JOB_FAILED_KEY.format(source=job.source_id),
                                      source_id=job.source_id)
         # Emit only after every terminal side effect completed. If a database
         # write above fails, execute() records the job as failed; counting the

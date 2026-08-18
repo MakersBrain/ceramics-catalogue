@@ -5,6 +5,7 @@
 	import ProductDetail from '$lib/grid/ProductDetail.svelte';
 	import SupplierDetail from '$lib/grid/SupplierDetail.svelte';
 	import type { ProductSeed } from '$lib/catalogue';
+	import { trim } from '$lib/format';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -43,8 +44,7 @@
 
 	function pack(quantity: number | null, unit: string | null) {
 		if (quantity == null || !unit) return '-';
-		const rounded = quantity >= 10 ? Math.round(quantity) : Math.round(quantity * 100) / 100;
-		return `${rounded} ${unit}`;
+		return `${trim(quantity)} ${unit}`;
 	}
 
 	/**

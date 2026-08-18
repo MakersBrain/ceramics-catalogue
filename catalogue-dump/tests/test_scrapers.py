@@ -21,6 +21,7 @@ from mb_ceramics_catalogue.scrapers import (
     domain,
     enrichment,
     jsonld,
+    microdata,
     prestashop,
     shopify,
     shopware,
@@ -1670,6 +1671,147 @@ class JsonLdTests(unittest.TestCase):
         item = jsonld.products(self.DOCUMENT)[0]
         self.assertEqual("14.26", jsonld.offer(item)["price"])
         self.assertEqual("1234567890123", jsonld.gtin(item))
+
+
+class CategoryWalkTests(unittest.IsolatedAsyncioTestCase):
+    """What a category page is read for: the products, and the next page.
+
+    Both of the shops this was written for publish bare-slug product URLs, so
+    the pattern that matches a product matches the category's own path — and
+    the pagination link, which is that path plus a query.
+    """
+
+    def _scraper(self, handler, **config):
+        from mb_ceramics_catalogue.scrapers.pagecrawl import PageScraper
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        fetcher = base.Fetcher(
+            client, base.HostLimiter(0.0, 4), base.BrowserRenderer(False), "never",
+            impersonate_policy="never",
+        )
+        return client, PageScraper("shop", {
+            "url": "https://shop.test/", "scope": "all",
+            "category_urls": ["https://shop.test/glazes"],
+            "product_pattern": "^/[^/]+$", **config,
+        }, fetcher)
+
+    PAGE_ONE = (
+        '<a href="/blue-glaze">Blue</a><a href="/green-glaze">Green</a>'
+        '<a href="/glazes?pp=2">2</a>'
+    )
+    PAGE_TWO = '<a href="/red-glaze">Red</a>'
+
+    async def test_pagination_is_walked_rather_than_read_as_a_product(self):
+        def handler(request):
+            path = request.url.path + ("?" + str(request.url.query.decode()) if request.url.query else "")
+            return httpx.Response(200, text=self.PAGE_TWO if "pp=2" in path else self.PAGE_ONE)
+
+        client, scraper = self._scraper(handler, pagination_patterns=["[?&]pp=\\d+"])
+        async with client:
+            found = await scraper.discover_from_categories()
+        self.assertEqual(
+            ["https://shop.test/blue-glaze", "https://shop.test/green-glaze",
+             "https://shop.test/red-glaze"],
+            found,
+            "the second page's products are missing, or its link was scraped as one",
+        )
+
+    async def test_card_links_only_reads_a_nested_card_to_its_end(self):
+        """The lazy match used to stop at the first `</div>`, before the link."""
+        document = (
+            '<a href="/basket">Basket</a>'
+            '<div class="card product-box"><div class="thumb"><img/></div>'
+            '<a href="/blue-glaze">Blue</a></div>'
+        )
+        client, scraper = self._scraper(
+            lambda request: httpx.Response(200, text=document), card_links_only=True
+        )
+        async with client:
+            found = await scraper.discover_from_categories()
+        self.assertEqual(["https://shop.test/blue-glaze"], found)
+
+    async def test_invalid_rows_are_not_counted_as_scope_filtered(self):
+        client, scraper = self._scraper(lambda request: httpx.Response(200))
+        scraper.config["scope"] = "materials"
+
+        scraper.add({"name": "Clay without a price", "price": None})
+        scraper.add({"name": "Electric kiln", "price": 1000.0})
+
+        self.assertEqual(1, scraper.result.invalid)
+        self.assertEqual(1, scraper.result.filtered)
+        await client.aclose()
+
+
+class JsonLdLeniencyTests(unittest.TestCase):
+    """Storefronts publish JSON-LD that is not valid JSON, and it still counts.
+
+    ceramiq-pl wrote a five-line description straight into the string, which is
+    a control character where JSON allows none. A strict parse dropped the whole
+    block, so the shop published a complete Product on every page and was read
+    as having none for months.
+    """
+
+    DOCUMENT = (
+        '<script type="application/ld+json">'
+        '{"@type":"Product","name":"Masa ceramiczna","sku":"5335",'
+        '"description":"Masa z szamotem.\n Kurczliwosc 3,8%\n",'
+        '"offers":{"@type":"Offer","price":"25.70","priceCurrency":"PLN"}}'
+        "</script>"
+    )
+
+    def test_a_raw_newline_inside_a_string_does_not_lose_the_product(self):
+        found = jsonld.products(self.DOCUMENT)
+        self.assertEqual(["Masa ceramiczna"], [item["name"] for item in found])
+        self.assertEqual("25.70", jsonld.offer(found[0])["price"])
+
+    def test_markup_that_is_not_json_at_all_is_still_skipped(self):
+        self.assertEqual([], jsonld.products(
+            '<script type="application/ld+json">not json</script>'
+        ))
+
+
+class MicrodataPriceTests(unittest.TestCase):
+    """A price rendered inside the product scope but never marked up.
+
+    KQS.store publishes sku, name, brand and image as microdata and leaves the
+    price in plain markup by the add-to-cart button. Every artequipment row came
+    back priced `None` and was rejected as invalid.
+    """
+
+    def _product(self, inner: str) -> str:
+        return (
+            '<div itemscope itemtype="https://schema.org/Product">'
+            '<h1 itemprop="name">AMACO Celadon C-26 Lagoon</h1>'
+            f"{inner}</div>"
+        )
+
+    def test_the_unmarked_price_beside_the_product_is_read(self):
+        document = self._product('<div class="m-price">Cena: <strong>79,00 zl z VAT</strong></div>')
+        offer = microdata.products(document)[0]["offers"]
+        self.assertEqual({"price": "79,00", "priceCurrency": "PLN"}, offer)
+
+    def test_a_price_outside_the_product_scope_is_not_this_product_s(self):
+        document = self._product("") + '<div class="m-price"><strong>12,00 zl</strong></div>'
+        self.assertNotIn("offers", microdata.products(document)[0])
+
+    def test_a_number_with_no_currency_is_not_a_price(self):
+        document = self._product('<div class="price-and-stock">6</div>')
+        self.assertNotIn("offers", microdata.products(document)[0])
+
+    def test_an_unrelated_number_before_the_price_is_skipped(self):
+        document = self._product(
+            '<div class="m-price">Pack 2, price <strong>79,00 zl</strong></div>'
+        )
+        offer = microdata.products(document)[0]["offers"]
+        self.assertEqual({"price": "79,00", "priceCurrency": "PLN"}, offer)
+
+    def test_a_marked_up_offer_is_never_second_guessed(self):
+        document = self._product(
+            '<div itemprop="offers" itemscope itemtype="https://schema.org/Offer">'
+            '<meta itemprop="price" content="8.50"/></div>'
+            '<div class="m-price"><strong>79,00 zl</strong></div>'
+        )
+        self.assertEqual("8.50", microdata.products(document)[0]["offers"]["price"])
 
 
 class ImpersonationLadderTests(unittest.IsolatedAsyncioTestCase):

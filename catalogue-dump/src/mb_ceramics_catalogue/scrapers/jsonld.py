@@ -63,7 +63,12 @@ def blocks(document: str) -> list[dict[str, Any]]:
         r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', document, re.I | re.S,
     ):
         try:
-            flatten(json.loads(html.unescape(raw.strip())))
+            # `strict=False` allows the raw newlines and tabs that storefronts
+            # leave inside a description string. That is invalid JSON, and a
+            # strict parse dropped the whole block for it — ceramiq-pl
+            # published a complete Product on every page for months and was
+            # read as having none, because its description spans five lines.
+            flatten(json.loads(html.unescape(raw.strip()), strict=False))
         except (json.JSONDecodeError, TypeError):
             continue
     return found

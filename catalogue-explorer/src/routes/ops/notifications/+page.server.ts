@@ -27,5 +27,25 @@ export const actions: Actions = {
 		} catch (error) {
 			return fail(400, { error: error instanceof ControlError ? error.message : String(error) });
 		}
+	},
+	bulkAck: async ({ request }) => {
+		const form = await request.formData();
+		const ids = [
+			...new Set(
+				form
+					.getAll('ids')
+					.map(Number)
+					.filter((value) => Number.isInteger(value) && value > 0)
+			)
+		];
+		if (!ids.length) return fail(400, { error: 'Select at least one notification' });
+		try {
+			return await post<{ ids: number[]; acknowledged: number }>('/v1/notifications/ack', {
+				ids,
+				by: 'explorer:bulk'
+			});
+		} catch (error) {
+			return fail(400, { error: error instanceof ControlError ? error.message : String(error) });
+		}
 	}
 };

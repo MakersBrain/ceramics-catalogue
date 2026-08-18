@@ -679,6 +679,16 @@ class AcknowledgeRequest(BaseModel):
     by: str | None = None
 
 
+class BulkAcknowledgeRequest(BaseModel):
+    ids: list[int] = Field(min_length=1, max_length=500)
+    by: str | None = None
+
+
+class BulkAcknowledgement(BaseModel):
+    ids: list[int]
+    acknowledged: int
+
+
 class Schedule(BaseModel):
     id: str
     enabled: bool = True
@@ -987,6 +997,13 @@ def registry() -> Registry:
                 Parameter("limit", schema={"type": "integer", "maximum": 500, "default": 100}),
             ),
             response=NotificationList, errors=(401,), tags=("notifications",),
+        )
+    )
+    api.add(
+        Operation(
+            "post", "/v1/notifications/ack", "acknowledgeNotifications", "Acknowledge selected notifications",
+            request=BulkAcknowledgeRequest, response=BulkAcknowledgement,
+            errors=(400, 401), tags=("notifications",),
         )
     )
     api.add(

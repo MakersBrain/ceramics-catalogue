@@ -245,8 +245,15 @@ async def reserve(
         )
         if usage["daily"] + active + requested_bytes > dynamic_daily:
             raise ProxyDenied("Decodo daily allocation would be exceeded")
-        if pilot and (not row["pilot_active"] or usage["pilot_used"] + active + requested_bytes > row["pilot_bytes"]):
-            raise ProxyDenied("Decodo pilot allocation would be exceeded")
+        if pilot:
+            # Two different denials, and one message for both sent an operator
+            # looking at a budget that was 18% used: the-ceramic-shop failed
+            # five nights running because the pilot had been *stopped*, not
+            # because it had spent anything.
+            if not row["pilot_active"]:
+                raise ProxyDenied("Decodo pilot is not active on this billing cycle")
+            if usage["pilot_used"] + active + requested_bytes > row["pilot_bytes"]:
+                raise ProxyDenied("Decodo pilot allocation would be exceeded")
         cursor = await connection.execute(
             """
             insert into catalogue.proxy_reservations

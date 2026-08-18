@@ -1554,6 +1554,12 @@ class ScrapeResult:
     proxy_bytes_estimated: int = 0
     browser_gain: int = 0
     browser_zero_gain: int = 0
+    #: Rows the extractor read and the scope filter then dropped. Counted so a
+    #: source that produced nothing can say *why* it produced nothing.
+    filtered: int = 0
+    #: Rows the extractor produced that lacked a usable identity or price.
+    #: These are parser/data-quality failures, not materials-scope decisions.
+    invalid: int = 0
     outcome_counts: dict[str, int] = field(default_factory=dict)
 
 
@@ -1697,8 +1703,15 @@ class Scraper(ABC):
         return record_module.in_scope(row, strict=True)
 
     def add(self, row: dict[str, Any] | None, category_match: bool | None = None) -> None:
-        if row and self.keep(row, category_match):
+        if not row:
+            return
+        if not record_module.is_valid(row):
+            self.result.invalid += 1
+            return
+        if self.keep(row, category_match):
             self.result.records.append(row)
+        else:
+            self.result.filtered += 1
 
     async def sitemap_urls(self, sitemap_urls: list[str], pattern: str | None = None) -> list[str]:
         """Walk sitemap indexes and return matching product URLs."""
