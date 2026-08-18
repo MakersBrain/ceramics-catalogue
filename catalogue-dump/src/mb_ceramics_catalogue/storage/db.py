@@ -132,6 +132,7 @@ SCHEMA_FILES = (
     "catalogue-ops-schema-v2.sql",
     "catalogue-ops-schema-v3.sql",
     "catalogue-ops-schema-v4.sql",
+    "catalogue-ops-schema-v5.sql",
     "catalogue-canonical-promotion.sql",
 )
 

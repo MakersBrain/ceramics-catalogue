@@ -8,12 +8,18 @@ import pytest
 
 from mb_ceramics_catalogue.ops.job_queue import JobEnvelope, NatsJobQueue, durable_for, routes_for
 from mb_ceramics_catalogue.ops.outbox import route_for
+from mb_ceramics_catalogue.ops.providers.nats import NatsProvisioner
 
 
 def test_envelope_round_trip() -> None:
     envelope = JobEnvelope(
-        job_id=uuid4(), run_id=uuid4(), source_id="shop", generation=4,
-        route="plain.normal", priority=20, enqueued_at=datetime.now(UTC),
+        job_id=uuid4(),
+        run_id=uuid4(),
+        source_id="shop",
+        generation=4,
+        route="plain.normal",
+        priority=20,
+        enqueued_at=datetime.now(UTC),
     )
     assert JobEnvelope.decode(envelope.encode()) == envelope
 
@@ -23,8 +29,7 @@ def test_envelope_round_trip() -> None:
     [
         ([], [], None, "plain.normal"),
         (["browser"], [], None, "browser.camoufox.normal"),
-        (["browser"], ["browser:camoufox", "browser:cdp_extension_proxy"], None,
-         "browser.auto.normal"),
+        (["browser"], ["browser:camoufox", "browser:cdp_extension_proxy"], None, "browser.auto.normal"),
         (["browser"], ["browser:camoufox"], "camoufox", "browser.camoufox.normal"),
     ],
 )
@@ -35,7 +40,9 @@ def test_route_is_single_and_deterministic(requires, requires_any, selected, exp
 def test_worker_routes_are_disjoint_capabilities() -> None:
     assert routes_for([]) == ["plain.normal"]
     assert routes_for(["browser", "browser:camoufox"]) == [
-        "browser.camoufox.normal", "browser.auto.normal", "plain.normal"
+        "browser.camoufox.normal",
+        "browser.auto.normal",
+        "plain.normal",
     ]
     assert durable_for("browser.camoufox.normal") == "catalogue-browser-camoufox-normal"
 
@@ -58,8 +65,13 @@ async def test_publish_pull_and_ack_against_jetstream() -> None:
         token=os.environ.get("CATALOGUE_TEST_NATS_TOKEN", ""),
     )
     envelope = JobEnvelope(
-        job_id=uuid4(), run_id=uuid4(), source_id="e2e", generation=1,
-        route="plain.normal", priority=100, enqueued_at=datetime.now(UTC),
+        job_id=uuid4(),
+        run_id=uuid4(),
+        source_id="e2e",
+        generation=1,
+        route="plain.normal",
+        priority=100,
+        enqueued_at=datetime.now(UTC),
     )
     try:
         await queue.connect()
@@ -70,3 +82,26 @@ async def test_publish_pull_and_ack_against_jetstream() -> None:
         await delivery.ack()
     finally:
         await queue.close()
+
+
+@pytest.mark.nats
+@pytest.mark.skipif(
+    not os.environ.get("CATALOGUE_TEST_NATS_URL"),
+    reason="set CATALOGUE_TEST_NATS_URL to a disposable JetStream server",
+)
+async def test_nats_provisioner_validates_applies_and_purges() -> None:
+    suffix = uuid4().hex
+    provisioner = NatsProvisioner(
+        os.environ["CATALOGUE_TEST_NATS_URL"],
+        token=os.environ.get("CATALOGUE_TEST_NATS_TOKEN", ""),
+        stream=f"TEST_{suffix}",
+        subject_prefix=f"test.{suffix}",
+    )
+    try:
+        assert (await provisioner.validate())[0].startswith("missing stream TEST_")
+        await provisioner.apply()
+        assert await provisioner.validate() == []
+        await provisioner.purge()
+        assert all(route["ready"] == 0 for route in (await provisioner.queue.stats()).values())
+    finally:
+        await provisioner.close()

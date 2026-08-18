@@ -1,4 +1,4 @@
-"""Publish the PostgreSQL transactional outbox to NATS JetStream."""
+"""Publish the PostgreSQL transactional outbox to the selected provider."""
 
 from __future__ import annotations
 
@@ -9,16 +9,22 @@ import psycopg
 from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.observability import metrics
 from mb_ceramics_catalogue.ops import outbox, queue
-from mb_ceramics_catalogue.ops.job_queue import NatsJobQueue
+from mb_ceramics_catalogue.ops.delivery import ROUTES, QueueConsumer, QueuePublisher
 from mb_ceramics_catalogue.storage.db import DictPool
 
 LOGGER = obs.get_logger("catalogue.dispatcher")
 
 
 class Dispatcher:
-    def __init__(self, pool: DictPool, broker: NatsJobQueue) -> None:
+    def __init__(
+        self,
+        pool: DictPool,
+        broker: QueuePublisher,
+        recovery: QueueConsumer | None = None,
+    ) -> None:
         self.pool = pool
         self.broker = broker
+        self.recovery = recovery
         self.stopping = False
         self.ready = False
 
@@ -27,6 +33,7 @@ class Dispatcher:
         self.ready = True
         while not self.stopping:
             published = await self.tick()
+            await self.recover_once()
             if once:
                 return
             if not published:
@@ -55,13 +62,15 @@ class Dispatcher:
                             metrics.REGISTRY.counter(
                                 "catalogue_outbox_publish_failures_total",
                                 "Transactional outbox publications that failed.",
+                                provider=self.broker.provider,
                             )
                         else:
                             await outbox.mark_published(connection, row["id"])
                             published += 1
                             metrics.REGISTRY.counter(
                                 "catalogue_outbox_published_total",
-                                "Transactional outbox rows confirmed by JetStream.",
+                                "Transactional outbox rows confirmed by the delivery provider.",
+                                provider=self.broker.provider,
                             )
             except psycopg.Error:
                 LOGGER.warning("outbox.database_failed", exc_info=True)
@@ -71,8 +80,31 @@ class Dispatcher:
             LOGGER.warning("outbox.metrics_failed", exc_info=True)
         return published
 
+    async def recover_once(self) -> bool:
+        if self.recovery is None:
+            return False
+        await self.recovery.connect()
+        delivery = await self.recovery.next_delivery(ROUTES)
+        if delivery is None:
+            return False
+        try:
+            async with self.pool.connection() as connection, connection.transaction():
+                redriven = await outbox.redrive_exhausted(connection, delivery.envelope)
+        except psycopg.Error:
+            LOGGER.warning("queue.recovery_database_failed", exc_info=True)
+            await delivery.retry(30)
+            return False
+        await delivery.acknowledge()
+        metrics.REGISTRY.counter(
+            "catalogue_queue_recovery_total",
+            "Recovery DLQ messages reconciled against PostgreSQL authority.",
+            provider=self.broker.provider,
+            outcome="redriven" if redriven else "stale",
+        )
+        return redriven
+
     async def reconstruct(self) -> int:
-        """Explicit disaster recovery after JetStream storage is replaced."""
+        """Explicit disaster recovery after provider storage is replaced."""
         async with self.pool.connection() as connection, connection.transaction():
             count = await outbox.republish_current(connection)
             metrics.REGISTRY.counter(
@@ -102,15 +134,6 @@ class Dispatcher:
             "Age of the oldest unpublished outbox row.",
             float(row["oldest"]),
         )
-        for route, values in (await self.broker.stats()).items():
-            for state, value in values.items():
-                metrics.REGISTRY.gauge(
-                    "catalogue_queue_messages",
-                    "JetStream messages by route and delivery state.",
-                    value,
-                    route=route,
-                    state=state,
-                )
 
     def describe(self) -> dict[str, str]:
         if self.stopping:
@@ -119,4 +142,6 @@ class Dispatcher:
 
     async def close(self) -> None:
         self.stopping = True
+        if self.recovery is not None:
+            await self.recovery.close()
         await self.broker.close()

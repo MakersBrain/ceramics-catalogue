@@ -64,6 +64,7 @@ catalogue-proxy-roles = "mb_ceramics_catalogue.ops.proxy_roles:main"
 catalogue-compact = "mb_ceramics_catalogue.cli.compact:main"
 catalogue-source-config = "mb_ceramics_catalogue.cli.source_config:main"
 catalogue-shadow-compare = "mb_ceramics_catalogue.cli.shadow_compare:main"
+catalogue-queue-admin = "mb_ceramics_catalogue.cli.queue_admin:main"
 
 [dependency-groups]
 dev = [

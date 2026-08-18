@@ -39,19 +39,19 @@
         { "expr": "catalogue_jobs", "legendFormat": "{{state}} current", "refId": "A" },
         { "expr": "sum by (outcome) (rate(catalogue_jobs_completed_total[5m]))", "legendFormat": "{{outcome}} completions/s", "refId": "B" }
       ],
-      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 10 }
+      "gridPos": { "h": 8, "w": 4, "x": 0, "y": 10 }
     },
     {
       "type": "timeseries", "title": "Oldest queued job", "id": 6,
       "links": [{ "title": "Operations", "url": "http://localhost:5175/ops", "targetBlank": true }],
       "targets": [{ "expr": "catalogue_queue_oldest_age_seconds", "legendFormat": "seconds", "refId": "A" }],
-      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 10 }
+      "gridPos": { "h": 8, "w": 4, "x": 4, "y": 10 }
     },
     {
       "type": "timeseries", "title": "Worker capacity", "id": 7,
       "links": [{ "title": "Workers", "url": "http://localhost:5175/ops", "targetBlank": true }],
       "targets": [{ "expr": "catalogue_workers", "legendFormat": "{{health}}", "refId": "A" }],
-      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 10 }
+      "gridPos": { "h": 8, "w": 4, "x": 8, "y": 10 }
     },
     {
       "type": "timeseries", "title": "Job duration", "id": 14,
@@ -61,7 +61,28 @@
         { "expr": "histogram_quantile(0.50, sum by (le, outcome) (rate(catalogue_job_duration_seconds_bucket[1h])))", "legendFormat": "{{outcome}} p50", "refId": "A" },
         { "expr": "histogram_quantile(0.95, sum by (le, outcome) (rate(catalogue_job_duration_seconds_bucket[1h])))", "legendFormat": "{{outcome}} p95", "refId": "B" }
       ],
-      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 10 }
+      "gridPos": { "h": 8, "w": 4, "x": 12, "y": 10 }
+    },
+    {
+      "type": "timeseries", "title": "Queue provider health", "id": 15,
+      "description": "Provider reachability and age of the last successful cached snapshot.",
+      "links": [{ "title": "Queue delivery", "url": "http://localhost:5175/ops", "targetBlank": true }],
+      "targets": [
+        { "expr": "catalogue_queue_provider_up", "legendFormat": "{{provider}} up", "refId": "A" },
+        { "expr": "catalogue_queue_snapshot_age_seconds", "legendFormat": "{{provider}} snapshot age", "refId": "B" }
+      ],
+      "gridPos": { "h": 8, "w": 4, "x": 16, "y": 10 }
+    },
+    {
+      "type": "timeseries", "title": "Queue and outbox backlog", "id": 16,
+      "description": "Provider estimates retain their accuracy label; the outbox remains PostgreSQL-authoritative.",
+      "links": [{ "title": "Queue delivery", "url": "http://localhost:5175/ops", "targetBlank": true }],
+      "targets": [
+        { "expr": "catalogue_queue_backlog_messages", "legendFormat": "{{provider}} {{accuracy}} backlog", "refId": "A" },
+        { "expr": "catalogue_queue_outbox_pending", "legendFormat": "outbox pending", "refId": "B" },
+        { "expr": "catalogue_queue_recovery_backlog_messages", "legendFormat": "{{provider}} recovery", "refId": "C" }
+      ],
+      "gridPos": { "h": 8, "w": 4, "x": 20, "y": 10 }
     },
     {
       "type": "row", "title": "Upstreams", "id": 8, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }, "collapsed": false
@@ -124,5 +145,5 @@
   "timezone": "browser",
   "title": "Catalogue operations",
   "uid": "catalogue-operations",
-  "version": 1
+  "version": 2
 }

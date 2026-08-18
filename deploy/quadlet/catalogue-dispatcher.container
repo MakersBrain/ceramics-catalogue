@@ -1,13 +1,19 @@
 [Unit]
-Description=Ceramics catalogue NATS outbox dispatcher
-After=network-online.target catalogue-nats.service
-Requires=catalogue-nats.service
+Description=Ceramics catalogue queue outbox dispatcher
+After=network-online.target
+Wants=network-online.target
 
 [Container]
 Image=localhost/catalogue-worker:${CATALOGUE_VERSION}
 ContainerName=catalogue-dispatcher
 EnvironmentFile=/etc/catalogue/catalogue.env
 Environment=CATALOGUE_NATS_URL=nats://host.containers.internal:4222
+Environment=CATALOGUE_NATS_PUBLISH_TOKEN_FILE=/run/queue-secrets/nats-publish-token
+Environment=CATALOGUE_CF_PUBLISH_TOKEN_FILE=/run/queue-secrets/cloudflare-publish-token
+Environment=CATALOGUE_CF_RECOVERY_TOKEN_FILE=/run/queue-secrets/cloudflare-recovery-token
+Volume=/etc/catalogue/queue-secrets/nats-publish-token:/run/queue-secrets/nats-publish-token:ro
+Volume=/etc/catalogue/queue-secrets/cloudflare-publish-token:/run/queue-secrets/cloudflare-publish-token:ro
+Volume=/etc/catalogue/queue-secrets/cloudflare-recovery-token:/run/queue-secrets/cloudflare-recovery-token:ro
 Environment=CATALOGUE_LOG_JSON=true
 Entrypoint=catalogue-dispatcher
 PublishPort=127.0.0.1:9110:9110

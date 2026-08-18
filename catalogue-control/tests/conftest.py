@@ -13,7 +13,11 @@ import pytest
 
 SCHEMA = (
     Path(__file__).resolve().parents[2]
-    / "catalogue-dump" / "src" / "mb_ceramics_catalogue" / "storage" / "schema"
+    / "catalogue-dump"
+    / "src"
+    / "mb_ceramics_catalogue"
+    / "storage"
+    / "schema"
 )
 EXTENSIONS = Path(__file__).resolve().parents[2] / "docker" / "initdb" / "00-extensions.sql"
 
@@ -74,15 +78,19 @@ async def client(db, tmp_path: Path) -> AsyncIterator:
     from catalogue_control.app import create_app
     from catalogue_control.settings import Settings
 
-    settings = Settings(
-        dsn=postgres_dsn() or "", control_token=TOKEN, artifacts_dir=tmp_path
-    )
+    settings = Settings(dsn=postgres_dsn() or "", control_token=TOKEN, artifacts_dir=tmp_path)
     app = create_app(settings)
 
     transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(
-        transport=transport,
-        base_url="http://control",
-        headers={"authorization": f"Bearer {TOKEN}"},
-    ) as http, app.router.lifespan_context(app):
+    async with (
+        httpx.AsyncClient(
+            transport=transport,
+            base_url="http://control",
+            headers={"authorization": f"Bearer {TOKEN}"},
+        ) as http,
+        app.router.lifespan_context(app),
+    ):
+        # Queue-status tests replace the cache fetch without bypassing the real
+        # application lifespan, database pool, or HTTP boundary.
+        http.app = app  # type: ignore[attr-defined]
         yield http

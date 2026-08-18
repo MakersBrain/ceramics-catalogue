@@ -3598,30 +3598,67 @@
       },
       "QueueBroker": {
         "properties": {
-          "bytes": {
-            "default": 0,
-            "title": "Bytes",
-            "type": "integer"
+          "available": {
+            "title": "Available",
+            "type": "boolean"
           },
-          "consumers": {
-            "default": 0,
-            "title": "Consumers",
-            "type": "integer"
+          "backlog_bytes": {
+            "$ref": "#/components/schemas/QueueMeasurement"
           },
-          "first_sequence": {
-            "default": 0,
-            "title": "First Sequence",
-            "type": "integer"
+          "backlog_messages": {
+            "$ref": "#/components/schemas/QueueMeasurement"
           },
-          "last_sequence": {
-            "default": 0,
-            "title": "Last Sequence",
-            "type": "integer"
+          "consumer_count": {
+            "$ref": "#/components/schemas/QueueMeasurement"
           },
-          "messages": {
-            "default": 0,
-            "title": "Messages",
-            "type": "integer"
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Success At"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "provider": {
+            "enum": [
+              "nats",
+              "cloudflare"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "recovery_dlq": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QueueRecovery"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           },
           "routes": {
             "items": {
@@ -3629,16 +3666,50 @@
             },
             "title": "Routes",
             "type": "array"
-          },
-          "stream": {
-            "title": "Stream",
-            "type": "string"
           }
         },
         "required": [
-          "stream"
+          "provider",
+          "observed_at",
+          "available",
+          "backlog_messages",
+          "backlog_bytes",
+          "consumer_count"
         ],
         "title": "QueueBroker",
+        "type": "object"
+      },
+      "QueueMeasurement": {
+        "properties": {
+          "accuracy": {
+            "enum": [
+              "exact",
+              "best_effort",
+              "unsupported"
+            ],
+            "title": "Accuracy",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Value"
+          }
+        },
+        "required": [
+          "accuracy"
+        ],
+        "title": "QueueMeasurement",
         "type": "object"
       },
       "QueueOutbox": {
@@ -3682,31 +3753,38 @@
         "title": "QueueOutbox",
         "type": "object"
       },
+      "QueueRecovery": {
+        "properties": {
+          "backlog_messages": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "oldest_age_seconds": {
+            "$ref": "#/components/schemas/QueueMeasurement"
+          }
+        },
+        "required": [
+          "backlog_messages",
+          "oldest_age_seconds"
+        ],
+        "title": "QueueRecovery",
+        "type": "object"
+      },
       "QueueRoute": {
         "properties": {
           "delivered": {
-            "default": 0,
-            "title": "Delivered",
-            "type": "integer"
-          },
-          "durable": {
-            "title": "Durable",
-            "type": "string"
+            "$ref": "#/components/schemas/QueueMeasurement"
           },
           "in_flight": {
-            "default": 0,
-            "title": "In Flight",
-            "type": "integer"
+            "$ref": "#/components/schemas/QueueMeasurement"
+          },
+          "oldest_age_seconds": {
+            "$ref": "#/components/schemas/QueueMeasurement"
           },
           "ready": {
-            "default": 0,
-            "title": "Ready",
-            "type": "integer"
+            "$ref": "#/components/schemas/QueueMeasurement"
           },
           "redelivered": {
-            "default": 0,
-            "title": "Redelivered",
-            "type": "integer"
+            "$ref": "#/components/schemas/QueueMeasurement"
           },
           "route": {
             "title": "Route",
@@ -3715,7 +3793,11 @@
         },
         "required": [
           "route",
-          "durable"
+          "ready",
+          "in_flight",
+          "redelivered",
+          "delivered",
+          "oldest_age_seconds"
         ],
         "title": "QueueRoute",
         "type": "object"
@@ -7798,7 +7880,7 @@
     },
     "/v1/queue": {
       "get": {
-        "description": "Combines PostgreSQL job state, the transactional outbox, and NATS JetStream consumer lag. PostgreSQL remains available in the response when the broker cannot be reached.",
+        "description": "Combines PostgreSQL job state, the transactional outbox, and the selected provider's normalized queue measurements. PostgreSQL remains available in the response when provider statistics cannot be reached.",
         "operationId": "queueStatus",
         "responses": {
           "200": {

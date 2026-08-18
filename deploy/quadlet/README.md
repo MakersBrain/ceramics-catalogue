@@ -40,6 +40,20 @@ start without a token.
 infisical-populate.sh --path /catalogue --out /etc/catalogue/catalogue.env
 ```
 
+Set `CATALOGUE_QUEUE_PROVIDER` and the provider mapping in that environment
+file. Put role-scoped queue credentials in `/etc/catalogue/queue-secrets` with
+mode `0400`: `nats-{publish,consume,stats,admin}-token` or
+`cloudflare-{publish,consume,recovery,stats,admin}-token`. Each unit mounts only
+the credential files its process is allowed to open. The NATS unit is required
+only for `CATALOGUE_QUEUE_PROVIDER=nats`; a
+Cloudflare deployment does not enable it. Provisioning and provider switching
+follow [the queue runbook](../../docs/queue-provider-runbook.md).
+
+Because Quadlet mounts are static, create empty mode-`0400` placeholders for
+the inactive provider's same-role files; adapters never open credentials for
+the unselected provider. Never copy an admin credential into this directory:
+use a separate administrative shell for `catalogue-queue-admin`.
+
 ## No timer
 
 There is deliberately no `.timer`. The schedule is in-process behind a

@@ -16,12 +16,8 @@ pytestmark = [pytest.mark.postgres, requires_postgres]
 SOURCES = SourcesFile.model_validate(
     {
         "plain": {"label": "Plain", "url": "https://plain.test/", "scraper": "shopify"},
-        "ceramicolours": {
-            "label": "Browser", "url": "https://browser.test/", "scraper": "ceramicolours"
-        },
-        "same-host": {
-            "label": "Same", "url": "https://plain.test/other", "scraper": "shopify"
-        },
+        "ceramicolours": {"label": "Browser", "url": "https://browser.test/", "scraper": "ceramicolours"},
+        "same-host": {"label": "Same", "url": "https://plain.test/other", "scraper": "shopify"},
     }
 )
 
@@ -64,6 +60,25 @@ async def test_job_creation_and_outbox_are_atomic(db):
     assert envelope.route == "plain.normal"
 
 
+async def test_provider_retry_exhaustion_redrives_only_the_current_generation(db):
+    job_id, exhausted = await planned(db)
+    assert await outbox.redrive_exhausted(db, exhausted)
+    row = await one(
+        db,
+        "select j.delivery_generation, o.route, o.deduplication_key "
+        "from catalogue.jobs j join catalogue.queue_outbox o "
+        "on o.job_id=j.id and o.generation=j.delivery_generation "
+        "where j.id=%(id)s",
+        {"id": job_id},
+    )
+    assert row == {
+        "delivery_generation": 2,
+        "route": "plain.normal",
+        "deduplication_key": f"{job_id}:2",
+    }
+    assert not await outbox.redrive_exhausted(db, exhausted)
+
+
 async def test_reservation_does_not_consume_attempt_and_start_does(db):
     _, envelope = await planned(db)
     worker = await registered(db)
@@ -72,8 +87,9 @@ async def test_reservation_does_not_consume_attempt_and_start_does(db):
     assert result.job is not None
     assert result.job.attempt == 0
     assert await queue.start(db, result.job, worker)
-    row = await one(db, "select state, attempt from catalogue.jobs where id = %(id)s",
-                    {"id": envelope.job_id})
+    row = await one(
+        db, "select state, attempt from catalogue.jobs where id = %(id)s", {"id": envelope.job_id}
+    )
     assert row == {"state": "running", "attempt": 1}
 
 
@@ -125,25 +141,21 @@ async def test_dynamic_browser_escalation_creates_new_generation(db):
     result = await queue.reserve(db, envelope, owner, [])
     assert result.job is not None
     assert await queue.start(db, result.job, owner)
-    assert await queue.require_capability(
-        db, result.job, owner, "browser", reason="render required"
-    )
+    assert await queue.require_capability(db, result.job, owner, "browser", reason="render required")
     row = await one(
         db,
-        "select j.delivery_generation, o.subject from catalogue.jobs j "
+        "select j.delivery_generation, o.route from catalogue.jobs j "
         "join catalogue.queue_outbox o on o.job_id=j.id and o.generation=j.delivery_generation "
         "where j.id=%(id)s",
         {"id": job_id},
     )
     assert row["delivery_generation"] == 2
-    assert row["subject"].endswith("browser.auto.normal")
+    assert row["route"] == "browser.auto.normal"
 
 
 async def test_static_browser_route_persists_exact_lineage_before_host_slots(db):
     _, envelope = await planned(db, "ceramicolours")
-    result = await queue.reserve(
-        db, envelope, await registered(db), ["browser", "browser:camoufox"]
-    )
+    result = await queue.reserve(db, envelope, await registered(db), ["browser", "browser:camoufox"])
     assert result.job is not None
     assert result.job.selected_browser_backend == "camoufox"
 
@@ -156,7 +168,8 @@ async def test_auto_route_selects_and_republishes_exact_backend(db):
     assert await queue.start(db, reserved.job, owner)
     assert await queue.require_capability(db, reserved.job, owner, "browser", reason="render")
     auto_row = await one(
-        db, "select * from catalogue.queue_outbox where job_id=%(id)s and generation=2",
+        db,
+        "select * from catalogue.queue_outbox where job_id=%(id)s and generation=2",
         {"id": job_id},
     )
     selected = await queue.reserve(
@@ -164,10 +177,11 @@ async def test_auto_route_selects_and_republishes_exact_backend(db):
     )
     assert selected.disposition == "ack"
     exact = await one(
-        db, "select subject from catalogue.queue_outbox where job_id=%(id)s and generation=3",
+        db,
+        "select route from catalogue.queue_outbox where job_id=%(id)s and generation=3",
         {"id": job_id},
     )
-    assert exact["subject"].endswith("browser.camoufox.normal")
+    assert exact["route"] == "browser.camoufox.normal"
 
 
 async def test_reconciler_requeues_expired_execution_without_discovery_scan(db):
@@ -179,8 +193,7 @@ async def test_reconciler_requeues_expired_execution_without_discovery_scan(db):
         {"id": job_id},
     )
     assert await queue.reconcile(db) == 1
-    row = await one(db, "select state, execution_token from catalogue.jobs where id=%(id)s",
-                    {"id": job_id})
+    row = await one(db, "select state, execution_token from catalogue.jobs where id=%(id)s", {"id": job_id})
     assert row == {"state": "queued", "execution_token": None}
 
 

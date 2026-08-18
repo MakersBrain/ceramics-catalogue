@@ -6,9 +6,8 @@
 # workers tripling the load on every shop.
 [Unit]
 Description=Ceramics catalogue worker %i
-After=network-online.target catalogue-nats.service
+After=network-online.target
 Wants=network-online.target
-Requires=catalogue-nats.service
 
 [Container]
 Image=localhost/catalogue-worker:${CATALOGUE_VERSION}
@@ -20,6 +19,10 @@ Volume=catalogue-dumps.volume:/var/lib/catalogue/dumps
 PublishPort=127.0.0.1:910%i:9109
 Environment=CATALOGUE_LOG_JSON=true
 Environment=CATALOGUE_NATS_URL=nats://host.containers.internal:4222
+Environment=CATALOGUE_NATS_CONSUME_TOKEN_FILE=/run/queue-secrets/nats-consume-token
+Environment=CATALOGUE_CF_CONSUME_TOKEN_FILE=/run/queue-secrets/cloudflare-consume-token
+Volume=/etc/catalogue/queue-secrets/nats-consume-token:/run/queue-secrets/nats-consume-token:ro
+Volume=/etc/catalogue/queue-secrets/cloudflare-consume-token:/run/queue-secrets/cloudflare-consume-token:ro
 HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:9109/health')"
 HealthInterval=30s
 HealthStartPeriod=15s

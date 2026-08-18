@@ -1,4 +1,4 @@
-"""Publish committed catalogue jobs to NATS JetStream."""
+"""Publish committed catalogue jobs to the configured delivery provider."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from mb_ceramics_catalogue.config.settings import Settings
 from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.observability import server
 from mb_ceramics_catalogue.ops.dispatcher import Dispatcher
-from mb_ceramics_catalogue.ops.job_queue import NatsJobQueue
+from mb_ceramics_catalogue.ops.providers.factory import publisher, recovery_consumer
 from mb_ceramics_catalogue.storage import db
 
 
@@ -19,7 +19,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--once", action="store_true")
     result.add_argument(
         "--reconstruct", action="store_true",
-        help="republish every current eligible generation after JetStream state loss",
+        help="republish every current eligible generation after provider state loss",
     )
     result.add_argument("--metrics-port", type=int, default=9110)
     result.add_argument("--log-level", default="INFO", choices=("DEBUG", "INFO", "WARNING", "ERROR"))
@@ -30,13 +30,9 @@ async def run(options: argparse.Namespace) -> int:
     settings = Settings()
     obs.configure(options.log_level, json=settings.log_json)
     dsn = db.dsn_from_environment(settings.dsn)
-    broker = NatsJobQueue(
-        settings.nats_url,
-        token=settings.nats_token,
-        stream=settings.nats_stream,
-    )
+    broker = publisher(settings)
     async with db.pool(dsn, minimum=1, maximum=2) as pool:
-        dispatcher = Dispatcher(pool, broker)
+        dispatcher = Dispatcher(pool, broker, recovery_consumer(settings))
         listener = server.serve(options.metrics_port, dispatcher.describe)
         loop = asyncio.get_running_loop()
         for signum in (signal.SIGINT, signal.SIGTERM):

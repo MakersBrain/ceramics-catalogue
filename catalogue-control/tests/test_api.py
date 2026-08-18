@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import UTC, datetime
 
 import pytest
 
@@ -41,9 +42,7 @@ class TestAuthentication:
 
     async def test_a_query_string_token_is_not_accepted(self, client):
         """It would land in access logs and in `Referer` headers."""
-        response = await client.get(
-            f"/v1/events?token={TOKEN}", headers={"authorization": ""}
-        )
+        response = await client.get(f"/v1/events?token={TOKEN}", headers={"authorization": ""})
         assert response.status_code == 401
 
     async def test_health_and_metrics_are_open(self, client):
@@ -62,27 +61,36 @@ class TestQueueStatus:
     async def test_combines_jobs_outbox_and_broker_lag(self, client, monkeypatch):
         await make_run(client)
 
-        async def broker(_settings):
-            return {
-                "stream": "CATALOGUE_JOBS",
-                "messages": 2,
-                "bytes": 512,
-                "consumers": 4,
-                "first_sequence": 1,
-                "last_sequence": 2,
-                "routes": [
-                    {
-                        "route": "plain.normal",
-                        "durable": "catalogue-plain-normal",
-                        "ready": 2,
-                        "in_flight": 0,
-                        "redelivered": 0,
-                        "delivered": 0,
-                    }
-                ],
-            }
+        from mb_ceramics_catalogue.ops.delivery import (
+            Measurement,
+            QueueRouteSnapshot,
+            QueueSnapshot,
+        )
 
-        monkeypatch.setattr("catalogue_control.app._broker_queue_snapshot", broker)
+        now = datetime.now(UTC)
+
+        async def broker():
+            return QueueSnapshot(
+                provider="nats",
+                observed_at=now,
+                last_success_at=now,
+                available=True,
+                backlog_messages=Measurement.exact(2),
+                backlog_bytes=Measurement.exact(512),
+                consumer_count=Measurement.exact(4),
+                routes=(
+                    QueueRouteSnapshot(
+                        route="plain.normal",
+                        ready=Measurement.exact(2),
+                        in_flight=Measurement.exact(0),
+                        redelivered=Measurement.exact(0),
+                        delivered=Measurement.exact(0),
+                        oldest_age_seconds=Measurement.unsupported(),
+                    ),
+                ),
+            )
+
+        monkeypatch.setattr(client.app.state.queue_stats, "get", broker)
         response = await client.get("/v1/queue")
         assert response.status_code == 200
         detail = response.json()
@@ -90,20 +98,24 @@ class TestQueueStatus:
         assert detail["eligible"] == 2
         assert detail["outbox"]["pending"] == 2
         assert detail["outbox"]["ready"] == 2
-        assert detail["broker"]["messages"] == 2
-        assert detail["broker"]["routes"][0]["ready"] == 2
+        assert detail["broker"]["provider"] == "nats"
+        assert detail["broker"]["backlog_messages"] == {"value": 2, "accuracy": "exact"}
+        assert detail["broker"]["routes"][0]["ready"] == {
+            "value": 2,
+            "accuracy": "exact",
+        }
         assert detail["broker_error"] is None
 
     async def test_keeps_database_stats_when_nats_is_down(self, client, monkeypatch):
-        async def unavailable(_settings):
+        async def unavailable():
             raise ConnectionError("broker refused the connection")
 
-        monkeypatch.setattr("catalogue_control.app._broker_queue_snapshot", unavailable)
+        monkeypatch.setattr(client.app.state.queue_stats, "get", unavailable)
         response = await client.get("/v1/queue")
         assert response.status_code == 200
         detail = response.json()
         assert detail["broker"] is None
-        assert detail["broker_error"] == "ConnectionError: broker refused the connection"
+        assert detail["broker_error"] == "ConnectionError: queue statistics unavailable"
         assert detail["outbox"]["pending"] == 0
 
 
@@ -174,9 +186,7 @@ class TestJobControls:
         job = await self.job_id(client)
         assert (await client.post(f"/v1/jobs/{job}/pause")).status_code == 202
         assert (await client.post(f"/v1/jobs/{job}/resume")).status_code == 202
-        cursor = await db.execute(
-            "select state, delivery_generation from catalogue.jobs where id=%s", (job,)
-        )
+        cursor = await db.execute("select state, delivery_generation from catalogue.jobs where id=%s", (job,))
         assert await cursor.fetchone() == {"state": "queued", "delivery_generation": 3}
 
     async def test_retrying_a_cancelled_job_requeues_it(self, client):
@@ -223,8 +233,7 @@ class TestJobControls:
     async def test_a_degraded_job_can_be_explicitly_retried(self, client, db):
         job = await self.job_id(client)
         await db.execute(
-            "update catalogue.jobs set state = 'degraded', finished_at = now(), attempt = 2 "
-            "where id = %s",
+            "update catalogue.jobs set state = 'degraded', finished_at = now(), attempt = 2 where id = %s",
             (job,),
         )
         response = await client.post(f"/v1/jobs/{job}/retry")
@@ -240,9 +249,7 @@ class TestJobControls:
 
 
 class TestJobChanges:
-    async def test_degraded_job_download_uses_its_successful_ceramics_dataset(
-        self, client, db, tmp_path
-    ):
+    async def test_degraded_job_download_uses_its_successful_ceramics_dataset(self, client, db, tmp_path):
         run = await make_run(client, "ceradel")
         job = (await client.get(f"/v1/runs/{run['run_id']}")).json()["jobs"][0]["id"]
         body = b'{"external_id":"ceradel:a","name":"A"}\n'
@@ -291,9 +298,7 @@ class TestJobChanges:
                           'ndjson', %s, %s, %s)""",
             (job, str(stock_path), hashlib.sha256(stock).hexdigest(), len(stock)),
         )
-        selected = await client.get(
-            f"/v1/jobs/{job}/artifact", params={"dataset": "commerce.stock.v1"}
-        )
+        selected = await client.get(f"/v1/jobs/{job}/artifact", params={"dataset": "commerce.stock.v1"})
         assert selected.status_code == 200 and selected.content == stock
         await db.execute(
             """insert into catalogue.job_datasets
@@ -311,17 +316,13 @@ class TestJobChanges:
                           'stock-v2.ndjson', %s, 0)""",
             (job, hashlib.sha256(b"").hexdigest()),
         )
-        ambiguous = await client.get(
-            f"/v1/jobs/{job}/artifact", params={"dataset": "commerce.stock.v1"}
-        )
+        ambiguous = await client.get(f"/v1/jobs/{job}/artifact", params={"dataset": "commerce.stock.v1"})
         assert ambiguous.status_code == 409
-        assert (await client.get(
-            f"/v1/jobs/{job}/artifact", headers={"authorization": ""}
-        )).status_code == 401
+        assert (
+            await client.get(f"/v1/jobs/{job}/artifact", headers={"authorization": ""})
+        ).status_code == 401
 
-    async def test_download_refuses_a_recorded_path_outside_the_artifact_root(
-        self, client, db, tmp_path
-    ):
+    async def test_download_refuses_a_recorded_path_outside_the_artifact_root(self, client, db, tmp_path):
         run = await make_run(client, "ceradel")
         job = (await client.get(f"/v1/runs/{run['run_id']}")).json()["jobs"][0]["id"]
         outside = tmp_path.parent / "outside.ndjson"
@@ -349,17 +350,11 @@ class TestJobChanges:
         response = await client.get(f"/v1/jobs/{job}/artifact")
         assert response.status_code == 409
 
-    async def test_a_completed_job_is_compared_with_the_previous_artifact(
-        self, client, db, tmp_path
-    ):
+    async def test_a_completed_job_is_compared_with_the_previous_artifact(self, client, db, tmp_path):
         previous_run = await make_run(client, "ceradel")
         current_run = await make_run(client, "ceradel")
-        previous_job = (
-            await client.get(f"/v1/runs/{previous_run['run_id']}")
-        ).json()["jobs"][0]["id"]
-        current_job = (
-            await client.get(f"/v1/runs/{current_run['run_id']}")
-        ).json()["jobs"][0]["id"]
+        previous_job = (await client.get(f"/v1/runs/{previous_run['run_id']}")).json()["jobs"][0]["id"]
+        current_job = (await client.get(f"/v1/runs/{current_run['run_id']}")).json()["jobs"][0]["id"]
 
         old = b'{"external_id":"ceradel:a","name":"A","price":10}\n'
         new = b'{"external_id":"ceradel:a","name":"A","price":12}\n'
@@ -396,9 +391,7 @@ class TestJobChanges:
         body = response.json()
         assert body["previous_job_id"] == previous_job
         assert body["changed"] == 1
-        assert body["items"][0]["fields"] == [
-            {"field": "price", "before": 10, "after": 12}
-        ]
+        assert body["items"][0]["fields"] == [{"field": "price", "before": 10, "after": 12}]
 
     async def test_an_incomplete_scrape_is_not_presented_as_a_real_diff(self, client, db):
         run = await make_run(client, "ceradel")
@@ -406,7 +399,7 @@ class TestJobChanges:
         await db.execute(
             "update catalogue.jobs set state = 'succeeded', finished_at = now(), "
             "artifact_path = '/tmp/partial.ndjson', "
-            "summary = '{\"write_status\":\"replaced\",\"truncated\":true}'::jsonb "
+            'summary = \'{"write_status":"replaced","truncated":true}\'::jsonb '
             "where id = %(id)s",
             {"id": job},
         )
@@ -444,8 +437,7 @@ class TestWorkers:
         worker_id = await self.register(db, status="busy")
         run = await make_run(client)
         await db.execute(
-            "update catalogue.jobs set state = 'running', lease_owner = %(worker)s "
-            "where run_id = %(run)s",
+            "update catalogue.jobs set state = 'running', lease_owner = %(worker)s where run_id = %(run)s",
             {"worker": worker_id, "run": run["run_id"]},
         )
         worker = (await client.get("/v1/workers")).json()["workers"][0]
@@ -504,17 +496,13 @@ class TestSources:
             "where j.run_id=%(run)s and j.source_id='ceradel'",
             {"run": run["run_id"]},
         )
-        assert await cursor.fetchone() == {
-            "state": "queued", "delivery_generation": 3, "generation": 3
-        }
+        assert await cursor.fetchone() == {"state": "queued", "delivery_generation": 3, "generation": 3}
 
     async def test_an_unknown_source_is_a_404(self, client):
         assert (await client.put("/v1/sources/nope", json={})).status_code == 404
 
     async def test_invalid_overrides_are_rejected(self, client):
-        response = await client.put(
-            "/v1/sources/ceradel", json={"params": {"concurrency": -4}}
-        )
+        response = await client.put("/v1/sources/ceradel", json={"params": {"concurrency": -4}})
         assert response.status_code == 422
 
 
@@ -552,17 +540,13 @@ class TestNotifications:
 
         open_ids = {
             row["id"]
-            for row in (await client.get("/v1/notifications?unacknowledged=true")).json()[
-                "notifications"
-            ]
+            for row in (await client.get("/v1/notifications?unacknowledged=true")).json()["notifications"]
         }
         assert open_ids == {untouched}
 
     async def test_bulk_acknowledgement_validates_the_selection(self, client):
         assert (await client.post("/v1/notifications/ack", json={"ids": []})).status_code == 400
-        assert (
-            await client.post("/v1/notifications/ack", json={"ids": [True, -1, "2"]})
-        ).status_code == 400
+        assert (await client.post("/v1/notifications/ack", json={"ids": [True, -1, "2"]})).status_code == 400
 
 
 class TestSchedules:

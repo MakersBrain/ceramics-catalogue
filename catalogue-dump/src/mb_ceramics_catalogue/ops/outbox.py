@@ -1,4 +1,4 @@
-"""Transactional job publication and recovery for JetStream."""
+"""Provider-neutral transactional job publication and recovery."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from uuid import UUID
 
 import psycopg
 
-from mb_ceramics_catalogue.ops.job_queue import SUBJECT_PREFIX, JobEnvelope
+from mb_ceramics_catalogue.ops.delivery import SCHEMA, JobEnvelope
 
 Connection = psycopg.AsyncConnection[dict[str, Any]]
 
@@ -18,7 +18,7 @@ def route_for(
     requires_any: list[str],
     selected_browser_backend: str | None,
 ) -> str:
-    """Return the single disjoint JetStream route for a job snapshot."""
+    """Return the single disjoint delivery route for a job snapshot."""
     if selected_browser_backend:
         return f"browser.{selected_browser_backend}.normal"
     if requires_any:
@@ -33,15 +33,18 @@ async def enqueue_job(connection: Connection, job_id: UUID, *, available_at: Any
     row = await _one(
         connection,
         """
-        insert into catalogue.queue_outbox (job_id, generation, subject, payload, available_at)
-        select j.id, j.delivery_generation, %(prefix)s || '.' || %(route)s,
+        insert into catalogue.queue_outbox
+                    (job_id, generation, route, envelope_schema,
+                     deduplication_key, payload, available_at)
+        select j.id, j.delivery_generation, %(route)s::text, %(schema)s::text,
+               j.id::text || ':' || j.delivery_generation::text,
                jsonb_build_object(
-                 'schema', 'catalogue.job.v1',
+                 'schema', %(schema)s::text,
                  'job_id', j.id::text,
                  'run_id', j.run_id::text,
                  'source_id', j.source_id,
                  'generation', j.delivery_generation,
-                 'route', %(route)s,
+                 'route', %(route)s::text,
                  'priority', j.priority,
                  'enqueued_at', to_char(now() at time zone 'UTC',
                                         'YYYY-MM-DD"T"HH24:MI:SS.US"+00:00"')
@@ -55,7 +58,7 @@ async def enqueue_job(connection: Connection, job_id: UUID, *, available_at: Any
         """,
         {
             "job": job_id,
-            "prefix": SUBJECT_PREFIX,
+            "schema": SCHEMA,
             "route": await job_route(connection, job_id),
             "available_at": available_at,
         },
@@ -66,8 +69,7 @@ async def enqueue_job(connection: Connection, job_id: UUID, *, available_at: Any
 async def job_route(connection: Connection, job_id: UUID) -> str:
     row = await _one(
         connection,
-        "select requires, requires_any, selected_browser_backend "
-        "from catalogue.jobs where id = %(id)s",
+        "select requires, requires_any, selected_browser_backend from catalogue.jobs where id = %(id)s",
         {"id": job_id},
     )
     if row is None:
@@ -84,7 +86,8 @@ async def pending(connection: Connection, *, limit: int = 100) -> list[dict[str,
     async with connection.cursor() as cursor:
         await cursor.execute(
             """
-            select id, job_id, generation, subject, payload
+            select id, job_id, generation, route, envelope_schema,
+                   deduplication_key, payload
               from catalogue.queue_outbox
              where published_at is null and cancelled_at is null and available_at <= now()
              order by available_at, id
@@ -166,9 +169,38 @@ async def republish_current(connection: Connection) -> int:
     return len(await cursor.fetchall())
 
 
-async def _one(
-    connection: Connection, statement: str, params: dict[str, Any]
-) -> dict[str, Any] | None:
+async def redrive_exhausted(connection: Connection, exhausted: JobEnvelope) -> bool:
+    """Create a new generation when the provider exhausted the current one."""
+    row = await _one(
+        connection,
+        """
+        select j.id, j.delivery_generation, j.state, j.cancel_requested, j.pause_requested,
+               coalesce(s.enabled, true) enabled, coalesce(s.paused, false) source_paused
+          from catalogue.jobs j
+          left join catalogue.source_settings s on s.source_id = j.source_id
+         where j.id = %(id)s
+         for update of j
+        """,
+        {"id": exhausted.job_id},
+    )
+    if (
+        row is None
+        or int(row["delivery_generation"]) != exhausted.generation
+        or row["state"] not in ("queued", "leased", "running")
+        or row["cancel_requested"]
+        or row["pause_requested"]
+        or not row["enabled"]
+        or row["source_paused"]
+    ):
+        return False
+    await connection.execute(
+        "update catalogue.jobs set delivery_generation = delivery_generation + 1 where id = %(id)s",
+        {"id": exhausted.job_id},
+    )
+    return await enqueue_job(connection, exhausted.job_id)
+
+
+async def _one(connection: Connection, statement: str, params: dict[str, Any]) -> dict[str, Any] | None:
     async with connection.cursor() as cursor:
         await cursor.execute(statement, params)
         return await cursor.fetchone()

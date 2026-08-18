@@ -11,9 +11,8 @@ from __future__ import annotations
 import json
 from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any
-from uuid import UUID
 
 import nats
 from nats.aio.client import Client as NATS
@@ -32,68 +31,18 @@ from nats.js.errors import NotFoundError
 
 from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.observability import metrics
+from mb_ceramics_catalogue.ops.delivery import (
+    ROUTES,
+    JobEnvelope,
+    PublishReceipt,
+)
+from mb_ceramics_catalogue.ops.delivery import routes_for as routes_for
 
 LOGGER = obs.get_logger("catalogue.nats")
 
 STREAM = "CATALOGUE_JOBS"
 SUBJECT_PREFIX = "catalogue.jobs.v1"
-SCHEMA = "catalogue.job.v1"
 ACK_WAIT_SECONDS = 30.0
-
-ROUTES = (
-    "plain.normal",
-    "browser.auto.normal",
-    "browser.camoufox.normal",
-    "browser.cdp_extension_proxy.normal",
-)
-
-
-@dataclass(frozen=True)
-class JobEnvelope:
-    job_id: UUID
-    run_id: UUID
-    source_id: str
-    generation: int
-    route: str
-    priority: int
-    enqueued_at: datetime
-
-    def encode(self) -> bytes:
-        return json.dumps(
-            {
-                "schema": SCHEMA,
-                "job_id": str(self.job_id),
-                "run_id": str(self.run_id),
-                "source_id": self.source_id,
-                "generation": self.generation,
-                "route": self.route,
-                "priority": self.priority,
-                "enqueued_at": self.enqueued_at.astimezone(UTC).isoformat(),
-            },
-            separators=(",", ":"),
-            sort_keys=True,
-        ).encode()
-
-    @classmethod
-    def decode(cls, payload: bytes) -> JobEnvelope:
-        raw = json.loads(payload)
-        if not isinstance(raw, dict) or raw.get("schema") != SCHEMA:
-            raise ValueError("unsupported job envelope schema")
-        route = str(raw["route"])
-        if route not in ROUTES:
-            raise ValueError(f"unsupported job route {route!r}")
-        generation = int(raw["generation"])
-        if generation < 1:
-            raise ValueError("job generation must be positive")
-        return cls(
-            job_id=UUID(str(raw["job_id"])),
-            run_id=UUID(str(raw["run_id"])),
-            source_id=str(raw["source_id"]),
-            generation=generation,
-            route=route,
-            priority=int(raw["priority"]),
-            enqueued_at=datetime.fromisoformat(str(raw["enqueued_at"])),
-        )
 
 
 @dataclass
@@ -101,10 +50,36 @@ class Delivery:
     envelope: JobEnvelope
     message: Msg
 
+    @property
+    def provider_message_id(self) -> str | None:
+        metadata = self.message.metadata
+        return str(metadata.sequence.stream) if metadata is not None else None
+
+    @property
+    def delivery_attempt(self) -> int | None:
+        metadata = self.message.metadata
+        return int(metadata.num_delivered) if metadata is not None else None
+
+    @property
+    def remaining_delivery_attempts(self) -> int | None:
+        return None
+
+    @property
+    def lease_deadline(self) -> datetime | None:
+        return None
+
     async def in_progress(self) -> None:
+        await self.extend(ACK_WAIT_SECONDS)
+
+    async def extend(self, seconds: float) -> bool:
+        del seconds  # JetStream renews by its configured ack wait.
         await self.message.in_progress()
+        return True
 
     async def ack(self) -> None:
+        await self.acknowledge()
+
+    async def acknowledge(self) -> None:
         try:
             await self.message.ack_sync(timeout=5.0)
         except Exception:
@@ -118,12 +93,15 @@ class Delivery:
     async def retry(self, delay: float) -> None:
         await self.message.nak(delay=max(delay, 0.0))
 
-    async def reject(self) -> None:
+    async def reject(self, reason: str = "invalid envelope") -> None:
+        del reason
         await self.message.term()
 
 
 class NatsJobQueue:
     """One connection shared by a worker or dispatcher process."""
+
+    provider = "nats"
 
     def __init__(
         self,
@@ -132,11 +110,13 @@ class NatsJobQueue:
         token: str = "",
         stream: str = STREAM,
         subject_prefix: str = SUBJECT_PREFIX,
+        provision_on_connect: bool = True,
     ) -> None:
         self.url = url
         self.token = token
         self.stream = stream
         self.subject_prefix = subject_prefix
+        self.provision_on_connect = provision_on_connect
         self._nc: NATS | None = None
         self._js: JetStreamContext | None = None
         self._subscriptions: dict[str, JetStreamContext.PullSubscription] = {}
@@ -155,7 +135,8 @@ class NatsJobQueue:
             options["token"] = self.token
         self._nc = await nats.connect(**options)
         self._js = self._nc.jetstream()
-        await self.provision()
+        if self.provision_on_connect:
+            await self.provision()
 
     async def provision(self) -> None:
         js = self._require_js()
@@ -189,14 +170,15 @@ class NatsJobQueue:
             # operation for a named durable.
             await js.add_consumer(self.stream, config=config)
 
-    async def publish(self, envelope: JobEnvelope) -> None:
+    async def publish(self, envelope: JobEnvelope) -> PublishReceipt:
         js = self._require_js()
-        await js.publish(
+        ack = await js.publish(
             self.subject(envelope.route),
             envelope.encode(),
-            headers={"Nats-Msg-Id": f"{envelope.job_id}:{envelope.generation}"},
+            headers={"Nats-Msg-Id": envelope.deduplication_key},
             timeout=5.0,
         )
+        return PublishReceipt(provider_message_id=str(ack.seq), duplicate=bool(ack.duplicate))
 
     async def deliveries(self, routes: Sequence[str]) -> AsyncIterator[Delivery]:
         if not routes:
@@ -285,9 +267,7 @@ class NatsJobQueue:
         if found is not None:
             return found
         js = self._require_js()
-        found = await js.pull_subscribe(
-            self.subject(route), durable=durable_for(route), stream=self.stream
-        )
+        found = await js.pull_subscribe(self.subject(route), durable=durable_for(route), stream=self.stream)
         self._subscriptions[route] = found
         return found
 
@@ -301,18 +281,3 @@ def durable_for(route: str) -> str:
     if route not in ROUTES:
         raise ValueError(f"unsupported job route {route!r}")
     return f"catalogue-{route.replace('.', '-').replace('_', '-')}"
-
-
-def routes_for(capabilities: Sequence[str]) -> list[str]:
-    available = set(capabilities)
-    routes = ["plain.normal"]
-    exact = {
-        value.removeprefix("browser:") for value in available if value.startswith("browser:")
-    }
-    if exact:
-        routes.insert(0, "browser.auto.normal")
-    if "camoufox" in exact:
-        routes.insert(0, "browser.camoufox.normal")
-    if "cdp_extension_proxy" in exact:
-        routes.insert(0, "browser.cdp_extension_proxy.normal")
-    return routes

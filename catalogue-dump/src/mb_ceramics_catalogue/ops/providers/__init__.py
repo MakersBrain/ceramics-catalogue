@@ -1,0 +1,1 @@
+"""Delivery-provider adapters."""

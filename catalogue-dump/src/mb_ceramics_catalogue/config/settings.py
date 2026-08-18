@@ -206,9 +206,32 @@ class Settings(BaseSettings):
     dsn: str = ""
     #: NATS JetStream is the sole work-delivery backend. PostgreSQL remains the
     #: state and fencing authority.
+    queue_provider: Literal["nats", "cloudflare"] = "nats"
+    queue_poll_empty_seconds: float = Field(default=2.0, gt=0)
+    queue_visibility_seconds: int = Field(default=4200, gt=0, le=43_200)
+    queue_pre_execution_wait_seconds: int = Field(default=60, ge=0)
+    queue_finalization_seconds: int = Field(default=180, ge=0)
+    queue_shutdown_ack_margin_seconds: int = Field(default=60, ge=0)
     nats_url: str = "nats://127.0.0.1:4222"
     nats_token: str = ""
+    nats_publish_token_file: Path | None = None
+    nats_consume_token_file: Path | None = None
+    nats_stats_token_file: Path | None = None
+    nats_admin_token_file: Path | None = None
     nats_stream: str = "CATALOGUE_JOBS"
+    cf_account_id: str = ""
+    cf_publish_token_file: Path | None = None
+    cf_consume_token_file: Path | None = None
+    cf_recovery_token_file: Path | None = None
+    cf_stats_token_file: Path | None = None
+    cf_admin_token_file: Path | None = None
+    cf_queue_plain_id: str = ""
+    cf_queue_browser_auto_id: str = ""
+    cf_queue_browser_camoufox_id: str = ""
+    cf_queue_browser_cdp_extension_proxy_id: str = ""
+    cf_queue_recovery_dlq_id: str = ""
+    cf_max_retries: int = Field(default=100, ge=1, le=100)
+    cf_api_base_url: str = "https://api.cloudflare.com/client/v4"
     #: Where recorded responses live. Shared between workers as a named volume,
     #: sharded per host so two of them never write one entry (§8).
     cache_dir: Path = Path(".cache")
@@ -258,6 +281,36 @@ class Settings(BaseSettings):
     cdp_pool_token_secret_ref: str = "cdp/pool_token"
     cdp_default_profile: str | None = None
     cdp_worker_pool: str = "browser-cdp"
+
+    @model_validator(mode="after")
+    def _queue_delivery_lifetime_fits_visibility(self) -> Settings:
+        required = (
+            DEFAULT_SOURCE_TIMEOUT
+            + self.queue_pre_execution_wait_seconds
+            + self.queue_finalization_seconds
+            + self.queue_shutdown_ack_margin_seconds
+        )
+        if self.queue_visibility_seconds <= required:
+            raise ValueError(
+                "queue_visibility_seconds must exceed the complete delivery-lifetime "
+                f"bound ({required:g}s)"
+            )
+        if self.queue_provider == "cloudflare":
+            required_values = {
+                "CATALOGUE_CF_ACCOUNT_ID": self.cf_account_id,
+                "CATALOGUE_CF_QUEUE_PLAIN_ID": self.cf_queue_plain_id,
+                "CATALOGUE_CF_QUEUE_BROWSER_AUTO_ID": self.cf_queue_browser_auto_id,
+                "CATALOGUE_CF_QUEUE_BROWSER_CAMOUFOX_ID": self.cf_queue_browser_camoufox_id,
+                "CATALOGUE_CF_QUEUE_BROWSER_CDP_EXTENSION_PROXY_ID": (
+                    self.cf_queue_browser_cdp_extension_proxy_id
+                ),
+                "CATALOGUE_CF_QUEUE_RECOVERY_DLQ_ID": self.cf_queue_recovery_dlq_id,
+            }
+            missing = [name for name, value in required_values.items() if not value]
+            if missing:
+                raise ValueError(f"Cloudflare queue configuration missing: {', '.join(missing)}")
+        return self
+
     cdp_production: bool = True
     #: Bearer token `catalogue-control` requires on every /v1 route.
     control_token: str = ""

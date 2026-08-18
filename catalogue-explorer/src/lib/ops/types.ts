@@ -560,13 +560,21 @@ export interface ProxyUsageList {
 }
 
 export interface QueueBroker {
-	stream: string;
-	messages?: number | null;
-	bytes?: number | null;
-	consumers?: number | null;
-	first_sequence?: number | null;
-	last_sequence?: number | null;
+	provider: 'nats' | 'cloudflare';
+	observed_at: string;
+	last_success_at?: string | null;
+	available: boolean;
+	backlog_messages: QueueMeasurement;
+	backlog_bytes: QueueMeasurement;
+	consumer_count: QueueMeasurement;
 	routes?: QueueRoute[] | null;
+	recovery_dlq?: QueueRecovery | null;
+	error?: string | null;
+}
+
+export interface QueueMeasurement {
+	value?: number | null;
+	accuracy: 'exact' | 'best_effort' | 'unsupported';
 }
 
 export interface QueueOutbox {
@@ -579,13 +587,18 @@ export interface QueueOutbox {
 	published_last_hour?: number | null;
 }
 
+export interface QueueRecovery {
+	backlog_messages: QueueMeasurement;
+	oldest_age_seconds: QueueMeasurement;
+}
+
 export interface QueueRoute {
 	route: string;
-	durable: string;
-	ready?: number | null;
-	in_flight?: number | null;
-	redelivered?: number | null;
-	delivered?: number | null;
+	ready: QueueMeasurement;
+	in_flight: QueueMeasurement;
+	redelivered: QueueMeasurement;
+	delivered: QueueMeasurement;
+	oldest_age_seconds: QueueMeasurement;
 }
 
 /** The authoritative job state, delivery outbox, and broker lag together. */

@@ -54,6 +54,7 @@ services:
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema-v2.sql:/docker-entrypoint-initdb.d/35-catalogue-ops-schema-v2.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema-v3.sql:/docker-entrypoint-initdb.d/36-catalogue-ops-schema-v3.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema-v4.sql:/docker-entrypoint-initdb.d/37-catalogue-ops-schema-v4.sql:ro
+      - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema-v5.sql:/docker-entrypoint-initdb.d/38-catalogue-ops-schema-v5.sql:ro
       # Last, and it was missing entirely: it alters `canonical_products` and
       # defines `promote_canonical_products`, which a run calls when its last
       # job lands. A database without it takes every source in and never folds
@@ -194,8 +195,16 @@ services:
         condition: service_completed_successfully
     environment:
       CATALOGUE_DSN: postgresql://catalogue_control:${CATALOGUE_CONTROL_DB_PASSWORD:-catalogue-control}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_QUEUE_PROVIDER: ${CATALOGUE_QUEUE_PROVIDER:-nats}
       CATALOGUE_NATS_URL: nats://nats:4222
       CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
+      CATALOGUE_CF_ACCOUNT_ID: ${CATALOGUE_CF_ACCOUNT_ID:-}
+      CATALOGUE_CF_STATS_TOKEN_FILE: /run/queue-secrets/cloudflare-stats-token
+      CATALOGUE_CF_QUEUE_PLAIN_ID: ${CATALOGUE_CF_QUEUE_PLAIN_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_AUTO_ID: ${CATALOGUE_CF_QUEUE_BROWSER_AUTO_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_CAMOUFOX_ID: ${CATALOGUE_CF_QUEUE_BROWSER_CAMOUFOX_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_CDP_EXTENSION_PROXY_ID: ${CATALOGUE_CF_QUEUE_BROWSER_CDP_EXTENSION_PROXY_ID:-}
+      CATALOGUE_CF_QUEUE_RECOVERY_DLQ_ID: ${CATALOGUE_CF_QUEUE_RECOVERY_DLQ_ID:-}
       # No default. The service refuses to start without it, because the one
       # thing worse than having no cancel-run endpoint is an unauthenticated one.
       CATALOGUE_CONTROL_TOKEN: ${CATALOGUE_CONTROL_TOKEN:?set a control token in .env}
@@ -218,6 +227,10 @@ services:
         source: ${CATALOGUE_OPERATOR_PUBLIC_KEYS_FILE:-/dev/null}
         target: /run/secrets/operator-public-keys.json
         read_only: true
+      - type: bind
+        source: ${CATALOGUE_CF_STATS_TOKEN_FILE:-/dev/null}
+        target: /run/queue-secrets/cloudflare-stats-token
+        read_only: true
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8687/health')\""]
@@ -235,17 +248,34 @@ services:
       dockerfile: docker/worker/Dockerfile
       target: worker
     depends_on:
-      nats:
-        condition: service_healthy
       migrate:
         condition: service_completed_successfully
       proxy-db-roles:
         condition: service_completed_successfully
     environment:
       CATALOGUE_DSN: postgresql://catalogue_worker:${CATALOGUE_WORKER_DB_PASSWORD:-catalogue-worker}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_QUEUE_PROVIDER: ${CATALOGUE_QUEUE_PROVIDER:-nats}
+      CATALOGUE_QUEUE_VISIBILITY_SECONDS: ${CATALOGUE_QUEUE_VISIBILITY_SECONDS:-4200}
       CATALOGUE_NATS_URL: nats://nats:4222
       CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
+      CATALOGUE_CF_ACCOUNT_ID: ${CATALOGUE_CF_ACCOUNT_ID:-}
+      CATALOGUE_CF_PUBLISH_TOKEN_FILE: /run/queue-secrets/cloudflare-publish-token
+      CATALOGUE_CF_RECOVERY_TOKEN_FILE: /run/queue-secrets/cloudflare-recovery-token
+      CATALOGUE_CF_QUEUE_PLAIN_ID: ${CATALOGUE_CF_QUEUE_PLAIN_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_AUTO_ID: ${CATALOGUE_CF_QUEUE_BROWSER_AUTO_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_CAMOUFOX_ID: ${CATALOGUE_CF_QUEUE_BROWSER_CAMOUFOX_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_CDP_EXTENSION_PROXY_ID: ${CATALOGUE_CF_QUEUE_BROWSER_CDP_EXTENSION_PROXY_ID:-}
+      CATALOGUE_CF_QUEUE_RECOVERY_DLQ_ID: ${CATALOGUE_CF_QUEUE_RECOVERY_DLQ_ID:-}
       CATALOGUE_LOG_JSON: "true"
+    volumes:
+      - type: bind
+        source: ${CATALOGUE_CF_PUBLISH_TOKEN_FILE:-/dev/null}
+        target: /run/queue-secrets/cloudflare-publish-token
+        read_only: true
+      - type: bind
+        source: ${CATALOGUE_CF_RECOVERY_TOKEN_FILE:-/dev/null}
+        target: /run/queue-secrets/cloudflare-recovery-token
+        read_only: true
     entrypoint: ["catalogue-dispatcher"]
     restart: unless-stopped
     healthcheck:
@@ -264,8 +294,6 @@ services:
       dockerfile: docker/worker/Dockerfile
       target: worker
     depends_on:
-      nats:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       proxy-secrets-init:
@@ -274,8 +302,18 @@ services:
         condition: service_completed_successfully
     environment:
       CATALOGUE_DSN: postgresql://catalogue_worker:${CATALOGUE_WORKER_DB_PASSWORD:-catalogue-worker}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_QUEUE_PROVIDER: ${CATALOGUE_QUEUE_PROVIDER:-nats}
+      CATALOGUE_QUEUE_POLL_EMPTY_SECONDS: ${CATALOGUE_QUEUE_POLL_EMPTY_SECONDS:-2}
+      CATALOGUE_QUEUE_VISIBILITY_SECONDS: ${CATALOGUE_QUEUE_VISIBILITY_SECONDS:-4200}
       CATALOGUE_NATS_URL: nats://nats:4222
       CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
+      CATALOGUE_CF_ACCOUNT_ID: ${CATALOGUE_CF_ACCOUNT_ID:-}
+      CATALOGUE_CF_CONSUME_TOKEN_FILE: /run/queue-secrets/cloudflare-consume-token
+      CATALOGUE_CF_QUEUE_PLAIN_ID: ${CATALOGUE_CF_QUEUE_PLAIN_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_AUTO_ID: ${CATALOGUE_CF_QUEUE_BROWSER_AUTO_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_CAMOUFOX_ID: ${CATALOGUE_CF_QUEUE_BROWSER_CAMOUFOX_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_CDP_EXTENSION_PROXY_ID: ${CATALOGUE_CF_QUEUE_BROWSER_CDP_EXTENSION_PROXY_ID:-}
+      CATALOGUE_CF_QUEUE_RECOVERY_DLQ_ID: ${CATALOGUE_CF_QUEUE_RECOVERY_DLQ_ID:-}
       # Sources are independent and mostly waiting on someone else's network, so
       # one at a time leaves the process idle for most of a run. Two jobs on one
       # shop are still prevented by catalogue.host_leases, which is per host and
@@ -290,6 +328,10 @@ services:
       - cache:/var/lib/catalogue/cache
       - dumps:/var/lib/catalogue/dumps
       - proxy-secrets:/run/proxy-secrets:ro
+      - type: bind
+        source: ${CATALOGUE_CF_CONSUME_TOKEN_FILE:-/dev/null}
+        target: /run/queue-secrets/cloudflare-consume-token
+        read_only: true
     restart: unless-stopped
     # SIGTERM drains: finish the current source, requeue anything unfinished,
     # mark the worker stopped. The default ten seconds is not enough to write a
@@ -312,8 +354,6 @@ services:
       dockerfile: docker/worker/Dockerfile
       target: worker-browser
     depends_on:
-      nats:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       proxy-secrets-init:
@@ -322,8 +362,18 @@ services:
         condition: service_completed_successfully
     environment:
       CATALOGUE_DSN: postgresql://catalogue_worker:${CATALOGUE_WORKER_DB_PASSWORD:-catalogue-worker}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_QUEUE_PROVIDER: ${CATALOGUE_QUEUE_PROVIDER:-nats}
+      CATALOGUE_QUEUE_POLL_EMPTY_SECONDS: ${CATALOGUE_QUEUE_POLL_EMPTY_SECONDS:-2}
+      CATALOGUE_QUEUE_VISIBILITY_SECONDS: ${CATALOGUE_QUEUE_VISIBILITY_SECONDS:-4200}
       CATALOGUE_NATS_URL: nats://nats:4222
       CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
+      CATALOGUE_CF_ACCOUNT_ID: ${CATALOGUE_CF_ACCOUNT_ID:-}
+      CATALOGUE_CF_CONSUME_TOKEN_FILE: /run/queue-secrets/cloudflare-consume-token
+      CATALOGUE_CF_QUEUE_PLAIN_ID: ${CATALOGUE_CF_QUEUE_PLAIN_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_AUTO_ID: ${CATALOGUE_CF_QUEUE_BROWSER_AUTO_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_CAMOUFOX_ID: ${CATALOGUE_CF_QUEUE_BROWSER_CAMOUFOX_ID:-}
+      CATALOGUE_CF_QUEUE_BROWSER_CDP_EXTENSION_PROXY_ID: ${CATALOGUE_CF_QUEUE_BROWSER_CDP_EXTENSION_PROXY_ID:-}
+      CATALOGUE_CF_QUEUE_RECOVERY_DLQ_ID: ${CATALOGUE_CF_QUEUE_RECOVERY_DLQ_ID:-}
       # camoufox leaks across jobs. A process that has rendered a few hundred
       # pages is one that gets killed by the OOM reaper mid-write, so it is
       # recycled between jobs instead — `restart: unless-stopped` restarts it.
@@ -340,6 +390,10 @@ services:
       - cache:/var/lib/catalogue/cache
       - dumps:/var/lib/catalogue/dumps
       - proxy-secrets:/run/proxy-secrets:ro
+      - type: bind
+        source: ${CATALOGUE_CF_CONSUME_TOKEN_FILE:-/dev/null}
+        target: /run/queue-secrets/cloudflare-consume-token
+        read_only: true
     # Docker's default is 64 MB, and camoufox needs rather more: below this it
     # renders, slowly and then not at all, rather than failing outright.
     shm_size: 512m

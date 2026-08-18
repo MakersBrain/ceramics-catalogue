@@ -73,13 +73,13 @@ groups:
           dashboard_url: "http://localhost:3001/d/catalogue-operations/catalogue-operations?viewPanel=13"
 
       - alert: QueueOutboxStuck
-        expr: catalogue_outbox_oldest_seconds > 300
+        expr: catalogue_queue_outbox_oldest_age_seconds > 300
         for: 5m
         labels:
           severity: critical
         annotations:
-          summary: "The NATS transactional outbox has not drained for ten minutes"
-          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/nats-queue-runbook.md"
+          summary: "The queue transactional outbox has not drained for five minutes"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/queue-provider-runbook.md"
           operator_url: "http://localhost:5175/ops"
 
       - alert: QueueInvalidMessage
@@ -88,6 +88,85 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "JetStream received an invalid catalogue job envelope"
-          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/nats-queue-runbook.md"
+          summary: "The delivery provider received an invalid catalogue job envelope"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/queue-provider-runbook.md"
+          operator_url: "http://localhost:5175/ops"
+
+      - alert: QueueProviderDown
+        expr: |
+          catalogue_queue_provider_up == 0
+          and on() (
+            sum(catalogue_jobs{state=~"queued|leased|running"})
+            + sum(catalogue_queue_outbox_pending) > 0
+          )
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Queue provider {{ $labels.provider }} cannot be observed"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/queue-provider-runbook.md"
+          operator_url: "http://localhost:5175/ops"
+
+      - alert: QueueSnapshotStale
+        expr: catalogue_queue_snapshot_age_seconds > 60
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue provider {{ $labels.provider }} statistics are stale"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/queue-provider-runbook.md"
+          operator_url: "http://localhost:5175/ops"
+
+      - alert: QueueRecoveryBacklog
+        expr: catalogue_queue_recovery_backlog_messages > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Messages remain in {{ $labels.provider }} recovery DLQ"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/queue-provider-runbook.md"
+          operator_url: "http://localhost:5175/ops"
+
+      - alert: QueueBacklogGrowing
+        expr: |
+          deriv(catalogue_queue_backlog_messages[15m]) > 0
+          and on() sum(catalogue_workers{health="healthy"}) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue provider {{ $labels.provider }} backlog is growing with healthy workers"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/queue-provider-runbook.md"
+          operator_url: "http://localhost:5175/ops"
+
+      - alert: QueueRedelivering
+        expr: max_over_time(catalogue_queue_route_redelivered[10m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue route {{ $labels.route }} has repeated deliveries"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/queue-provider-runbook.md"
+          operator_url: "http://localhost:5175/ops"
+
+      - alert: QueueRetryBudgetLow
+        expr: sum by (provider, route) (increase(catalogue_queue_retry_budget_low_total[15m])) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Queue route {{ $labels.route }} is approaching its provider retry limit"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/queue-provider-runbook.md"
+          operator_url: "http://localhost:5175/ops"
+
+      - alert: QueueRetentionRisk
+        expr: |
+          catalogue_queue_route_oldest_age_seconds > 604800
+          or catalogue_queue_recovery_oldest_age_seconds > 604800
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Queue messages are older than seven days and approaching retention"
+          runbook_url: "https://github.com/MakersBrain/ceramics-catalogue/blob/main/docs/queue-provider-runbook.md"
           operator_url: "http://localhost:5175/ops"
