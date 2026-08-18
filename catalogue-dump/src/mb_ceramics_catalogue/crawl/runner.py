@@ -68,12 +68,18 @@ class SourceOutcome:
 def barren(summary: dict[str, Any]) -> str | None:
     """Why this source's work produced nothing, if that is what happened.
 
-    A source that listed products and then read none of them has not succeeded
+    A source that listed products and then kept none of them has not succeeded
     at anything, but it raises nothing either: discovery worked, every page
-    fetched, and the extractor simply recognised none of them. Ten sources were
-    in that state on 2026-08-12 and every one of their jobs was green —
-    countrylove spent eighty-four minutes finding 18,883 product URLs, read
-    zero, and reported success.
+    fetched, and no row survived. Ten sources were in that state on 2026-08-12
+    and every one of their jobs was green — countrylove spent eighty-four
+    minutes finding 18,883 product URLs, read zero, and reported success.
+
+    The two ways to get here are not the same failure, and saying so matters:
+    an extractor that recognised nothing is a parser to fix, while rows that
+    were read and then dropped by the materials scope are a *discovery* problem
+    — the crawl is walking the wrong part of the shop. artequipment and
+    mayco-glasuren spent five nights reported as broken parsers when both
+    parsers were reading every page correctly.
 
     Read by the worker to decide the job's outcome, and returned as a sentence
     because it goes straight into `catalogue.jobs.error` for an operator.
@@ -83,6 +89,13 @@ def barren(summary: dict[str, Any]) -> str | None:
     discovered = int(summary.get("discovered") or 0)
     if not discovered:
         return None
+    filtered = int(summary.get("filtered") or 0)
+    if filtered:
+        return (
+            f"listed {discovered} products, extracted {filtered}, and kept none: "
+            "every row fell outside this source's materials scope, so the crawl "
+            "is listing the wrong pages"
+        )
     return (
         f"listed {discovered} products and extracted none: "
         f"the {summary.get('scraper')} scraper recognised nothing on any of them"
@@ -124,6 +137,7 @@ def summarise(
         "proxy_bytes_reserved": getattr(result, "proxy_bytes_reserved", 0),
         "proxy_bytes_estimated": getattr(result, "proxy_bytes_estimated", 0),
         "browser_gain": getattr(result, "browser_gain", 0),
+        "filtered": getattr(result, "filtered", 0),
         "browser_zero_gain": getattr(result, "browser_zero_gain", 0),
         "outcome_counts": dict(getattr(result, "outcome_counts", {})),
         "truncated": getattr(result, "truncated", False),

@@ -27,7 +27,7 @@ from mb_ceramics_catalogue.connectors.prestashop import (
     declared_partition_keys,
 )
 from mb_ceramics_catalogue.connectors.shopify import ShopifyConnector, ShopifyOptions
-from mb_ceramics_catalogue.ops import events, leases, outputs, runs
+from mb_ceramics_catalogue.ops import events, leases, outputs, runs, worker
 from mb_ceramics_catalogue.ops.sink import JobLogHandler, PostgresSink
 from mb_ceramics_catalogue.pipeline.outputs import BatchIdentity, LocalArtifactStore, StoredBatch
 from mb_ceramics_catalogue.pipeline.runner import DatasetPageOutcome, DatasetPageState
@@ -384,6 +384,21 @@ class TestNotifications:
         assert await events.resolve(db, "source.stale:ceradel", source_id="ceradel")
         again = await events.notify(db, "source.stale", "ceradel is stale", source_id="ceradel")
         assert again is not None
+
+    async def test_a_failed_job_alert_is_cleared_by_the_next_success(self, db):
+        """Raise and clear have to agree on the key, and they did not.
+
+        The worker raised on the default key and cleared `job.failed:<source>:`,
+        a string `notify` cannot produce, so the alert — when it fired at all —
+        stayed on the operator's screen for ever.
+        """
+        key = worker._JOB_FAILED_KEY.format(source="ceradel")
+        raised = await events.notify(
+            db, "job.failed", "ceradel failed on attempt 1 of 3",
+            dedup_key=key, source_id="ceradel",
+        )
+        assert raised is not None
+        assert await events.resolve(db, key, source_id="ceradel")
 
     async def test_acknowledging_is_idempotent(self, db):
         notification_id = await events.notify(db, "worker.lost", "worker gone",

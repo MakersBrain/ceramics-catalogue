@@ -40,6 +40,35 @@ def probable_javascript_shell(document: str) -> bool:
     return explicit and scripts > 0 and len(visible) < 1000
 
 
+#: A product card's opening tag. The classes are the ones storefront themes
+#: actually use; Shopware writes `card product-box`, PrestaShop
+#: `product-miniature`.
+CARD = re.compile(
+    r'<(article|li|div)\b[^>]*class=["\'][^"\']*'
+    r'(?:product-miniature|product-item|product-card|product-box|productbox)[^"\']*["\']',
+    re.I,
+)
+
+
+def _element(document: str, start: int, tag: str) -> str:
+    """The whole element at `start`, children included.
+
+    Counting the tag in and out rather than stopping at the first `</div>`:
+    a themed product card nests three or four divs around its link, and the
+    lazy match ended before the `<a href>` it was opened to find — which read
+    as a category page with no products on it at all.
+    """
+    depth = 0
+    for match in re.finditer(rf"<\s*(/?)\s*{re.escape(tag)}\b[^>]*>", document[start:], re.I):
+        if match.group(1):
+            depth -= 1
+            if depth <= 0:
+                return document[start: start + match.end()]
+        else:
+            depth += 1
+    return document[start:]
+
+
 def canonical(url: str) -> str:
     """Drop fragments and the sorting/paging noise that duplicates a page."""
     parsed = urlparse(url)
@@ -125,21 +154,26 @@ class PageScraper(Scraper):
             if document is None:
                 continue
             for link in self.links(document, url):
-                if self.is_product_url(link):
-                    if link not in products:
-                        products.append(link)
-                elif self.is_pagination(link) and link not in seen and link not in queue:
-                    queue.append(link)
+                # Pagination first. A shop whose product URLs are bare slugs
+                # gives its next page the *category's* path plus a query, so a
+                # product pattern loose enough to match the slugs matches the
+                # pagination link too — and reading it as a product both wasted
+                # the fetch and stopped the walk at page one.
+                if self.is_pagination(link):
+                    if link not in seen and link not in queue:
+                        queue.append(link)
+                elif self.is_product_url(link) and link not in products:
+                    products.append(link)
         return products
 
     def links(self, document: str, page_url: str) -> list[str]:
         origin = urlparse(page_url).netloc
         scope = document
         if self.config.get("card_links_only"):
-            cards = re.findall(
-                r'<(?:article|li|div)[^>]*class=["\'][^"\']*(?:product-miniature|product-item|product-card|productbox)[^"\']*["\'][\s\S]*?</(?:article|li|div)>',
-                document, re.I,
-            )
+            cards = [
+                _element(document, match.start(), match.group(1))
+                for match in CARD.finditer(document)
+            ]
             pagination = re.findall(r'<a[^>]+(?:rel=["\']next["\']|class=["\'][^"\']*(?:next|pagination)[^"\']*["\'])[^>]*>', document, re.I)
             scope = "".join([*cards, *pagination]) or document
         found = []

@@ -332,6 +332,53 @@ async def test_atomic_reservations_cannot_oversubscribe_a_cycle(db):
 
 @pytest.mark.postgres
 @requires_postgres
+async def test_a_stopped_pilot_says_so_rather_than_blaming_the_budget(db):
+    """One message for two denials sent an operator to a budget that was 18% used.
+
+    the-ceramic-shop failed nightly for five nights reading "allocation would be
+    exceeded" while the pilot had spent nothing: it had been stopped.
+    """
+    start = datetime.now(UTC) - timedelta(days=1)
+    end = datetime.now(UTC) + timedelta(days=29)
+    await db.execute(
+        """insert into catalogue.proxy_budget_cycles
+           (provider, cycle_start, cycle_end, purchased_bytes, operational_bytes,
+            daily_bytes, pilot_bytes, pilot_active, reconciled_at, reconciliation_ok,
+            kill_switch)
+           values ('decodo', %s, %s, 3000000000, 2400000000, 80000000, 300000000,
+                   false, now(), true, false)""",
+        (start, end),
+    )
+    run_id, job_id = uuid4(), uuid4()
+    await db.execute(
+        "insert into catalogue.runs(id, kind, status) values (%s, 'manual', 'running')",
+        (run_id,),
+    )
+    await db.execute(
+        """insert into catalogue.jobs(id, run_id, source_id, host, state)
+           values (%s, %s, 'the-ceramic-shop', 'shop.test', 'running')""",
+        (job_id, run_id),
+    )
+    with pytest.raises(ProxyDenied) as denied:
+        await reserve(
+            db, job_id=job_id, profile="default", cycle_start=start, cycle_end=end,
+            requested_bytes=25_000_000, pilot=True,
+        )
+    assert "not active" in str(denied.value)
+
+    await db.execute(
+        "update catalogue.proxy_budget_cycles set pilot_active = true, pilot_bytes = 1000"
+    )
+    with pytest.raises(ProxyDenied) as exceeded:
+        await reserve(
+            db, job_id=job_id, profile="default", cycle_start=start, cycle_end=end,
+            requested_bytes=25_000_000, pilot=True,
+        )
+    assert "allocation would be exceeded" in str(exceeded.value)
+
+
+@pytest.mark.postgres
+@requires_postgres
 async def test_reconciliation_never_lowers_provider_accounting(db):
     start = datetime.now(UTC) - timedelta(days=1)
     end = datetime.now(UTC) + timedelta(days=29)

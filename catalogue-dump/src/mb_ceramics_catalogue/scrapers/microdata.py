@@ -45,8 +45,57 @@ def products(document: str) -> list[dict[str, Any]]:
         item = _read(scope[opening.end() - start:])
         if item:
             item.setdefault("@type", "Product")
+            if not item.get("offers"):
+                if offer := _unlabelled_price(scope):
+                    item["offers"] = offer
             found.append(item)
     return found
+
+
+#: A price container inside the product scope: `class="m-price"`, `id="price"`,
+#: `class="product-price"`. Deliberately anchored on the element rather than on
+#: a bare number, and read only within the Product scope, so a "most popular
+#: products" rail elsewhere on the page cannot be mistaken for this product's.
+PRICE_ELEMENT = re.compile(
+    r'<(?P<tag>[A-Za-z][\w-]*)\b[^>]*(?:class|id)\s*=\s*["\'][^"\']*\bprice\b[^"\']*["\'][^>]*>'
+    r'(?P<body>[\s\S]{0,600}?)</(?P=tag)\s*>',
+    re.I,
+)
+
+#: `79,00 zł`, `€ 12.50`, `12.50 EUR`. The currency has to be there: a bare
+#: number next to the word "price" is as likely to be a quantity or an id.
+AMOUNT = re.compile(
+    r"(?P<symbol>[€£$])?\s*(?P<amount>\d{1,3}(?:[  .,]\d{3})*(?:[.,]\d{1,2})?)\s*"
+    r"(?P<code>z[łl]|€|£|\$|EUR|GBP|USD|PLN|SEK|DKK|NOK|CHF|CZK)?",
+    re.I,
+)
+
+#: What the symbol or suffix on the page means in ISO terms.
+CURRENCIES = {
+    "zł": "PLN", "zl": "PLN", "€": "EUR", "£": "GBP", "$": "USD",
+}
+
+
+def _unlabelled_price(scope: str) -> dict[str, str] | None:
+    """The price this shop renders inside the product but never marks up.
+
+    KQS.store is the case that forced this: it publishes a complete microdata
+    Product with sku, name, brand and image, and puts the price in plain markup
+    next to the add-to-cart form. Every row came back priced `None`, was
+    rejected as invalid, and artequipment reported 33 products and no records a
+    night for a week.
+    """
+    for element in PRICE_ELEMENT.finditer(scope):
+        text = domain.clean(re.sub(r"<[^>]+>", " ", element.group("body")))
+        if not text:
+            continue
+        match = AMOUNT.search(text)
+        if match is None or not (match.group("symbol") or match.group("code")):
+            continue
+        raw = match.group("code") or match.group("symbol") or ""
+        currency = CURRENCIES.get(raw.casefold(), raw.upper())
+        return {"price": match.group("amount"), "priceCurrency": currency}
+    return None
 
 
 def _scope(document: str, start: int, tag: str) -> str:

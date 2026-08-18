@@ -370,6 +370,26 @@ class TestBarren:
     def test_a_source_that_extracted_something_is_fine(self):
         assert barren({"records": 1, "discovered": 2054, "scraper": "pagecrawl"}) is None
 
+    def test_rows_dropped_by_the_scope_are_reported_as_a_discovery_problem(self):
+        """Blaming the parser sent an operator to read two working parsers.
+
+        artequipment and mayco-glasuren extracted every page they listed. The
+        rows were art supplies and giftware, dropped by the materials scope, so
+        what is broken is which pages the crawl lists.
+        """
+        message = barren(
+            {"records": 0, "discovered": 33, "filtered": 33, "scraper": "pagecrawl"}
+        )
+        assert message is not None
+        assert "extracted 33" in message
+        assert "materials scope" in message
+        assert "recognised nothing" not in message
+
+    def test_an_extractor_that_read_nothing_still_says_so(self):
+        message = barren({"records": 0, "discovered": 33, "filtered": 0, "scraper": "pagecrawl"})
+        assert message is not None
+        assert "recognised nothing" in message
+
     def test_an_interrupted_source_is_judged_on_nothing(self):
         """It was stopped, so what it did not reach says nothing about it."""
         summary = {"records": 0, "discovered": 900, "scraper": "shopify", "interrupted": True}
