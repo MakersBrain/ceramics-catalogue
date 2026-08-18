@@ -38,6 +38,16 @@ export interface Bootstrap {
 	jobs?: Job[] | null;
 }
 
+export interface BulkAcknowledgeRequest {
+	ids: number[];
+	by?: string | null;
+}
+
+export interface BulkAcknowledgement {
+	ids: number[];
+	acknowledged: number;
+}
+
 export interface ChangedField {
 	field: string;
 	before?: unknown | null;

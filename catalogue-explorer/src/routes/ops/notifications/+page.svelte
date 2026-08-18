@@ -8,8 +8,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import { NativeSelect } from '$lib/components/ui/native-select';
 	import { Notice } from '$lib/components/ui/notice';
+	import { Checkbox, checkboxClass } from '$lib/components/ui/checkbox';
 
 	let { data, form } = $props();
+	let selected = $state<number[]>([]);
 
 	// Unacknowledged first: this is a work list, and everything already dealt
 	// with is history.
@@ -19,6 +21,19 @@
 	const closed = $derived(
 		(data.notifications ?? []).filter((n: any) => n.acknowledged_at || n.resolved_at)
 	);
+	const allSelected = $derived(
+		open.length > 0 && open.every((entry: any) => selected.includes(entry.id))
+	);
+
+	$effect(() => {
+		const visible = new Set(open.map((entry: any) => entry.id));
+		const remaining = selected.filter((id) => visible.has(id));
+		if (remaining.length !== selected.length) selected = remaining;
+	});
+
+	function selectAll(checked: boolean): void {
+		selected = checked ? open.map((entry: any) => entry.id) : [];
+	}
 
 	function link(entry: any): string | null {
 		if (entry.run_id) return `/ops/runs/${entry.run_id}`;
@@ -56,11 +71,35 @@
 		{#if open.length === 0}
 			<p class="text-muted-foreground text-sm">Nothing outstanding.</p>
 		{:else}
+			<div class="mb-2 flex flex-wrap items-center gap-3">
+				<label class="flex cursor-pointer items-center gap-2 text-sm">
+					<Checkbox
+						checked={allSelected}
+						indeterminate={selected.length > 0 && !allSelected}
+						onchange={(event) => selectAll(event.currentTarget.checked)}
+					/>
+					<span>Select all visible</span>
+				</label>
+				<form id="bulk-ack" method="POST" action="?/bulkAck" use:enhance>
+					<Button variant="secondary" size="sm" type="submit" disabled={selected.length === 0}>
+						Acknowledge selected{selected.length ? ` (${selected.length})` : ''}
+					</Button>
+				</form>
+			</div>
 			<ul class="grid gap-2">
 				{#each open as entry (entry.id)}
 					<li>
 						<Card class="gap-0 [--card-spacing:--spacing(4)]">
 							<CardContent class="flex flex-row items-start gap-3">
+								<input
+									type="checkbox"
+									class={checkboxClass}
+									name="ids"
+									value={entry.id}
+									form="bulk-ack"
+									aria-label={`Select ${entry.title}`}
+									bind:group={selected}
+								/>
 								<StatusBadge tone={severityTone(entry.severity)}>{entry.severity}</StatusBadge>
 								<div class="min-w-0 flex-1">
 									<div class="font-medium">{entry.title}</div>

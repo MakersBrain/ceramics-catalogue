@@ -155,6 +155,14 @@ update catalogue.notifications
 returning id
 """
 
+ACKNOWLEDGE_NOTIFICATIONS = """
+update catalogue.notifications
+   set acknowledged_at = now(), acknowledged_by = %(by)s
+ where id = any(%(ids)s)
+   and acknowledged_at is null
+returning id, source_id
+"""
+
 
 async def notify(
     connection: Connection,
@@ -251,6 +259,32 @@ async def acknowledge(connection: Connection, notification_id: int, by: str) -> 
         payload={"id": notification_id, "by": by},
     )
     return True
+
+
+async def acknowledge_many(connection: Connection, notification_ids: list[int], by: str) -> list[int]:
+    """Acknowledge the selected open notifications and emit one edge per row.
+
+    Already-acknowledged or missing ids are harmless in a batch: the response
+    tells the caller exactly which rows changed, so a selection that raced a
+    second operator does not make the whole action fail.
+    """
+    if not notification_ids:
+        return []
+    async with connection.cursor() as cursor:
+        await cursor.execute(
+            ACKNOWLEDGE_NOTIFICATIONS,
+            {"ids": notification_ids, "by": by},
+        )
+        rows = await cursor.fetchall()
+    for row in rows:
+        await emit(
+            connection,
+            Topic.NOTIFICATION,
+            "notification.acknowledged",
+            source_id=row["source_id"],
+            payload={"id": int(row["id"]), "by": by},
+        )
+    return sorted(int(row["id"]) for row in rows)
 
 
 async def _fetch_one(

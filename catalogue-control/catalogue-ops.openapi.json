@@ -166,6 +166,57 @@
         "title": "Bootstrap",
         "type": "object"
       },
+      "BulkAcknowledgeRequest": {
+        "properties": {
+          "by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "By"
+          },
+          "ids": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ids"
+        ],
+        "title": "BulkAcknowledgeRequest",
+        "type": "object"
+      },
+      "BulkAcknowledgement": {
+        "properties": {
+          "acknowledged": {
+            "title": "Acknowledged",
+            "type": "integer"
+          },
+          "ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ids",
+          "acknowledged"
+        ],
+        "title": "BulkAcknowledgement",
+        "type": "object"
+      },
       "ChangedField": {
         "properties": {
           "after": {
@@ -5122,6 +5173,57 @@
           }
         },
         "summary": "The durable notification feed",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/v1/notifications/ack": {
+      "post": {
+        "operationId": "acknowledgeNotifications",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkAcknowledgeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkAcknowledgement"
+                }
+              }
+            },
+            "description": "Acknowledge selected notifications"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "Acknowledge selected notifications",
         "tags": [
           "notifications"
         ]

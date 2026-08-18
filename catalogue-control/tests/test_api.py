@@ -455,6 +455,34 @@ class TestNotifications:
         assert (await client.post(f"/v1/notifications/{identifier}/ack", json={})).status_code == 200
         assert (await client.post(f"/v1/notifications/{identifier}/ack", json={})).status_code == 409
 
+    async def test_selected_notifications_can_be_acknowledged_together(self, client, db):
+        from mb_ceramics_catalogue.ops import events
+
+        first = await events.notify(db, "source.stale", "one", source_id="one")
+        second = await events.notify(db, "source.stale", "two", source_id="two")
+        untouched = await events.notify(db, "source.stale", "three", source_id="three")
+        assert first is not None and second is not None and untouched is not None
+
+        response = await client.post(
+            "/v1/notifications/ack", json={"ids": [second, first, second], "by": "test"}
+        )
+        assert response.status_code == 200
+        assert response.json() == {"ids": sorted([first, second]), "acknowledged": 2}
+
+        open_ids = {
+            row["id"]
+            for row in (await client.get("/v1/notifications?unacknowledged=true")).json()[
+                "notifications"
+            ]
+        }
+        assert open_ids == {untouched}
+
+    async def test_bulk_acknowledgement_validates_the_selection(self, client):
+        assert (await client.post("/v1/notifications/ack", json={"ids": []})).status_code == 400
+        assert (
+            await client.post("/v1/notifications/ack", json={"ids": [True, -1, "2"]})
+        ).status_code == 400
+
 
 class TestSchedules:
     async def test_the_default_daily_run_is_present(self, client):

@@ -126,10 +126,12 @@ export class OpsStream {
 			this.notifications = [data, ...this.notifications];
 		});
 
-		this.source.addEventListener('notification.resolved', (event) => {
-			const data = JSON.parse((event as MessageEvent).data);
-			this.notifications = this.notifications.filter((entry) => entry.id !== data.id);
-		});
+		for (const type of ['notification.resolved', 'notification.acknowledged']) {
+			this.source.addEventListener(type, (event) => {
+				const data = JSON.parse((event as MessageEvent).data);
+				this.notifications = this.notifications.filter((entry) => entry.id !== data.id);
+			});
+		}
 
 		// Job state changes are edges. The run page re-loads on these rather than
 		// trying to patch a row from a partial payload — a table that is subtly

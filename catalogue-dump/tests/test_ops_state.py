@@ -406,6 +406,22 @@ class TestNotifications:
         assert await events.acknowledge(db, notification_id, "rick")
         assert not await events.acknowledge(db, notification_id, "rick")
 
+    async def test_selected_notifications_are_acknowledged_with_edges(self, db):
+        first = await events.notify(db, "source.stale", "one", source_id="one")
+        second = await events.notify(db, "source.stale", "two", source_id="two")
+        assert first is not None and second is not None
+
+        acknowledged = await events.acknowledge_many(db, [second, first, second], "rick")
+
+        assert acknowledged == sorted([first, second])
+        logged = await rows(
+            db,
+            "select source_id, payload from catalogue.event_log "
+            "where type = 'notification.acknowledged' order by source_id",
+        )
+        assert [row["source_id"] for row in logged] == ["one", "two"]
+        assert {row["payload"]["id"] for row in logged} == {first, second}
+
     async def test_raising_one_emits_an_edge(self, db):
         await events.notify(db, "host.blocking", "ceradel.fr is refusing us",
                             severity=events.Severity.CRITICAL)

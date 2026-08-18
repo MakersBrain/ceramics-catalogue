@@ -653,6 +653,23 @@ async def acknowledge_notification(request: Request) -> Response:
     return JSONResponse({"id": notification_id, "acknowledged": True})
 
 
+async def acknowledge_notifications(request: Request) -> Response:
+    body = await _json(request) or {}
+    raw_ids = body.get("ids")
+    if not isinstance(raw_ids, list) or not raw_ids:
+        return problem(400, "Bad Request", "ids must be a non-empty list")
+    if len(raw_ids) > 500:
+        return problem(400, "Bad Request", "at most 500 notifications may be acknowledged at once")
+    if any(isinstance(value, bool) or not isinstance(value, int) or value < 1 for value in raw_ids):
+        return problem(400, "Bad Request", "every notification id must be a positive integer")
+    notification_ids = list(dict.fromkeys(raw_ids))
+    async with request.app.state.pool.connection() as connection:
+        acknowledged = await events.acknowledge_many(
+            connection, notification_ids, body.get("by") or "operator"
+        )
+    return JSONResponse({"ids": acknowledged, "acknowledged": len(acknowledged)})
+
+
 async def list_schedules(request: Request) -> Response:
     async with request.app.state.pool.connection() as connection:
         rows = await queries.all_rows(connection, queries.SCHEDULES)
@@ -849,6 +866,7 @@ def create_app(settings: Settings | None = None, *, proxy_provider: Any = None) 
         Route("/v1/schedules", list_schedules),
         Route("/v1/schedules/{id}", update_schedule, methods=["PUT"]),
         Route("/v1/notifications", list_notifications),
+        Route("/v1/notifications/ack", acknowledge_notifications, methods=["POST"]),
         Route("/v1/notifications/{id}/ack", acknowledge_notification, methods=["POST"]),
         Route("/v1/proxy/overview", proxy_api.overview),
         Route("/v1/proxy/cycles", proxy_api.cycles),
