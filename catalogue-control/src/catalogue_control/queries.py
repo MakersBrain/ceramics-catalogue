@@ -549,6 +549,41 @@ select count(*) filter (where last_heartbeat_at >= now() - interval '15 seconds'
  where status <> 'stopped'
 """
 
+QUEUE_OUTBOX_STATS = """
+select count(*) filter (
+         where published_at is null and cancelled_at is null
+       )::int as pending,
+       count(*) filter (
+         where published_at is null and cancelled_at is null and available_at <= now()
+       )::int as ready,
+       count(*) filter (
+         where published_at is null and cancelled_at is null and available_at > now()
+       )::int as delayed,
+       count(*) filter (
+         where published_at is null and cancelled_at is null and last_error is not null
+       )::int as errored,
+       coalesce(sum(publish_attempts) filter (
+         where published_at is null and cancelled_at is null
+       ), 0)::int as publish_attempts,
+       coalesce(greatest(extract(epoch from (
+         now() - min(created_at) filter (
+           where published_at is null and cancelled_at is null
+         )
+       )), 0), 0) as oldest_age_seconds,
+       count(*) filter (
+         where published_at >= now() - interval '1 hour'
+       )::int as published_last_hour
+  from catalogue.queue_outbox
+"""
+
+QUEUE_ELIGIBLE = """
+select count(*)::int as eligible,
+       coalesce(greatest(extract(epoch from (now() - min(scheduled_for))), 0), 0)
+         as oldest_age_seconds
+  from catalogue.jobs
+ where state = 'queued' and scheduled_for <= now()
+"""
+
 
 def as_jsonb(value: Any) -> Jsonb:
     return Jsonb(value if value is not None else {})

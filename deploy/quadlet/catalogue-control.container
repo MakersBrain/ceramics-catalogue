@@ -12,6 +12,7 @@ ContainerName=catalogue-control
 # unauthenticated one.
 EnvironmentFile=/etc/catalogue/catalogue.env
 Environment=CATALOGUE_ARTIFACTS_DIR=/var/lib/catalogue/dumps
+Environment=CATALOGUE_NATS_URL=nats://host.containers.internal:4222
 Volume=catalogue-dumps.volume:/var/lib/catalogue/dumps:ro
 # Loopback only: the explorer proxies it server-side with the token attached.
 # That is defence in depth — the token is the authentication boundary.

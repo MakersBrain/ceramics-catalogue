@@ -58,6 +58,55 @@ class TestAuthentication:
             create_app(Settings(dsn="postgresql:///x", control_token=""))
 
 
+class TestQueueStatus:
+    async def test_combines_jobs_outbox_and_broker_lag(self, client, monkeypatch):
+        await make_run(client)
+
+        async def broker(_settings):
+            return {
+                "stream": "CATALOGUE_JOBS",
+                "messages": 2,
+                "bytes": 512,
+                "consumers": 4,
+                "first_sequence": 1,
+                "last_sequence": 2,
+                "routes": [
+                    {
+                        "route": "plain.normal",
+                        "durable": "catalogue-plain-normal",
+                        "ready": 2,
+                        "in_flight": 0,
+                        "redelivered": 0,
+                        "delivered": 0,
+                    }
+                ],
+            }
+
+        monkeypatch.setattr("catalogue_control.app._broker_queue_snapshot", broker)
+        response = await client.get("/v1/queue")
+        assert response.status_code == 200
+        detail = response.json()
+        assert detail["jobs"]["queued"] == 2
+        assert detail["eligible"] == 2
+        assert detail["outbox"]["pending"] == 2
+        assert detail["outbox"]["ready"] == 2
+        assert detail["broker"]["messages"] == 2
+        assert detail["broker"]["routes"][0]["ready"] == 2
+        assert detail["broker_error"] is None
+
+    async def test_keeps_database_stats_when_nats_is_down(self, client, monkeypatch):
+        async def unavailable(_settings):
+            raise ConnectionError("broker refused the connection")
+
+        monkeypatch.setattr("catalogue_control.app._broker_queue_snapshot", unavailable)
+        response = await client.get("/v1/queue")
+        assert response.status_code == 200
+        detail = response.json()
+        assert detail["broker"] is None
+        assert detail["broker_error"] == "ConnectionError: broker refused the connection"
+        assert detail["outbox"]["pending"] == 0
+
+
 class TestRuns:
     async def test_creating_a_run_fans_it_out_into_jobs(self, client):
         body = await make_run(client)

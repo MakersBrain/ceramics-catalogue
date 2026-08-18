@@ -559,6 +559,46 @@ export interface ProxyUsageList {
 	usage: ProxyUsageItem[];
 }
 
+export interface QueueBroker {
+	stream: string;
+	messages?: number | null;
+	bytes?: number | null;
+	consumers?: number | null;
+	first_sequence?: number | null;
+	last_sequence?: number | null;
+	routes?: QueueRoute[] | null;
+}
+
+export interface QueueOutbox {
+	pending?: number | null;
+	ready?: number | null;
+	delayed?: number | null;
+	errored?: number | null;
+	publish_attempts?: number | null;
+	oldest_age_seconds?: number | null;
+	published_last_hour?: number | null;
+}
+
+export interface QueueRoute {
+	route: string;
+	durable: string;
+	ready?: number | null;
+	in_flight?: number | null;
+	redelivered?: number | null;
+	delivered?: number | null;
+}
+
+/** The authoritative job state, delivery outbox, and broker lag together. */
+export interface QueueStatus {
+	at: string;
+	jobs: Record<string, number>;
+	eligible?: number | null;
+	oldest_queued_age_seconds?: number | null;
+	outbox: QueueOutbox;
+	broker?: QueueBroker | null;
+	broker_error?: string | null;
+}
+
 export interface RecordChange {
 	kind: 'added' | 'removed' | 'changed';
 	external_id: string;

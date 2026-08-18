@@ -1,7 +1,7 @@
 """Connecting to the catalogue database.
 
 Thin on purpose. The interesting decisions are all in the SQL, and a layer that
-hid the SQL would make the queue's `for update skip locked` harder to read
+hid the transaction and fencing statements would make them harder to review
 rather than easier.
 
 Two things it does insist on:

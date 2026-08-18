@@ -18,7 +18,8 @@ The loop, in order, and each step is in this order for a reason:
     loop:
       observe desired_state        claim only while it is running
       reap expired leases          recover work from workers that died
-      claim a job                  skip locked, honouring capabilities
+      consume a delivery           JetStream route matches capabilities
+      reserve its generation       PostgreSQL fences duplicates and stale work
       acquire a host slot          else release with a short backoff, no
                                    attempt burnt
       mark running                 and consume the attempt, not before
@@ -97,8 +98,8 @@ LOGGER = obs.get_logger("catalogue.worker")
 #: How often the worker reports that it is alive and renews its leases.
 HEARTBEAT_SECONDS = 5.0
 
-#: How long to wait after finding nothing to do. Long enough not to hammer the
-#: database, short enough that "Run now" in the UI feels immediate.
+#: How long to wait after finding no compatible broker delivery. Long enough to
+#: avoid a hot loop, short enough that "Run now" in the UI feels immediate.
 IDLE_SECONDS = 2.0
 
 #: How long a drain waits for the current source before giving up on it.

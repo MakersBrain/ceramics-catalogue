@@ -500,6 +500,98 @@ async def list_workers(request: Request) -> Response:
     )
 
 
+async def queue_status(request: Request) -> Response:
+    """PostgreSQL authority and JetStream delivery state in one snapshot.
+
+    NATS is deliberately best-effort here. Its failure is the most useful time
+    for this endpoint to remain reachable, with the durable database/outbox
+    state explaining how much work is waiting to be delivered.
+    """
+    async with request.app.state.pool.connection() as connection:
+        states = await queries.all_rows(connection, queries.METRIC_JOB_STATES)
+        eligible = await queries.one(connection, queries.QUEUE_ELIGIBLE) or {}
+        outbox_stats = await queries.one(connection, queries.QUEUE_OUTBOX_STATS) or {}
+
+    broker: dict[str, Any] | None = None
+    broker_error: str | None = None
+    try:
+        broker = await asyncio.wait_for(
+            _broker_queue_snapshot(request.app.state.settings), timeout=3.0
+        )
+    except Exception as error:  # noqa: BLE001 - broker failure is response data
+        detail = str(error)
+        token = request.app.state.settings.nats_token
+        if token:
+            detail = detail.replace(token, "[redacted]")
+        broker_error = f"{type(error).__name__}: {detail}"[:240]
+        LOGGER.warning("queue.snapshot_broker_unavailable", error=broker_error)
+
+    integer_fields = (
+        "pending", "ready", "delayed", "errored", "publish_attempts", "published_last_hour"
+    )
+    outbox_payload: dict[str, int | float] = {
+        field: int(outbox_stats.get(field) or 0) for field in integer_fields
+    }
+    outbox_payload["oldest_age_seconds"] = float(
+        outbox_stats.get("oldest_age_seconds") or 0
+    )
+    return _json_response(
+        {
+            "at": datetime.now(UTC),
+            "jobs": {str(row["state"]): int(row["n"]) for row in states},
+            "eligible": int(eligible.get("eligible") or 0),
+            "oldest_queued_age_seconds": float(eligible.get("oldest_age_seconds") or 0),
+            "outbox": outbox_payload,
+            "broker": broker,
+            "broker_error": broker_error,
+        }
+    )
+
+
+async def _broker_queue_snapshot(settings: Settings) -> dict[str, Any]:
+    import nats
+    from mb_ceramics_catalogue.ops.job_queue import ROUTES, STREAM, durable_for
+
+    options: dict[str, Any] = {
+        "servers": [settings.nats_url],
+        "name": "catalogue-control-queue-status",
+        "connect_timeout": 1,
+        "allow_reconnect": False,
+    }
+    if settings.nats_token:
+        options["token"] = settings.nats_token
+    client = await nats.connect(**options)
+    try:
+        jetstream = client.jetstream()
+        stream = await jetstream.stream_info(STREAM)
+        routes: list[dict[str, Any]] = []
+        for route in ROUTES:
+            durable = durable_for(route)
+            info = await jetstream.consumer_info(STREAM, durable)
+            routes.append(
+                {
+                    "route": route,
+                    "durable": durable,
+                    "ready": int(info.num_pending or 0),
+                    "in_flight": int(info.num_ack_pending or 0),
+                    "redelivered": int(info.num_redelivered or 0),
+                    "delivered": int(info.delivered.consumer_seq or 0),
+                }
+            )
+        state = stream.state
+        return {
+            "stream": STREAM,
+            "messages": int(state.messages or 0),
+            "bytes": int(state.bytes or 0),
+            "consumers": int(state.consumer_count or 0),
+            "first_sequence": int(state.first_seq or 0),
+            "last_sequence": int(state.last_seq or 0),
+            "routes": routes,
+        }
+    finally:
+        await client.close()
+
+
 async def worker_action(request: Request) -> Response:
     """Pause, resume, drain or stop a worker, or hide a lost registration.
 
@@ -881,6 +973,7 @@ def create_app(settings: Settings | None = None, *, proxy_provider: Any = None) 
         Route("/v1/jobs/{id}/logs", job_logs),
         Route("/v1/jobs/{id}/{action}", job_action, methods=["POST"]),
         Route("/v1/workers", list_workers),
+        Route("/v1/queue", queue_status),
         Route("/v1/workers/{id}/{action}", worker_action, methods=["POST"]),
         Route("/v1/sources", list_sources),
         Route("/v1/sources/{id}", update_source, methods=["PUT"]),

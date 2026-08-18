@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_json: bool | None = None
     artifacts_dir: Path = Path("/var/lib/catalogue/dumps")
+    #: Read-only queue inspection for the operator UI. Queue availability must
+    #: not gate the control service: when NATS is down, operators still need the
+    #: page that explains why work is not moving.
+    nats_url: str = "nats://127.0.0.1:4222"
+    nats_token: str = ""
     proxy_enabled: bool = False
     proxy_api_secret_file: Path | None = None
     proxy_secret_file: Path | None = None

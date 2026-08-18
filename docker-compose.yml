@@ -194,6 +194,8 @@ services:
         condition: service_completed_successfully
     environment:
       CATALOGUE_DSN: postgresql://catalogue_control:${CATALOGUE_CONTROL_DB_PASSWORD:-catalogue-control}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_NATS_URL: nats://nats:4222
+      CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
       # No default. The service refuses to start without it, because the one
       # thing worse than having no cancel-run endpoint is an unauthenticated one.
       CATALOGUE_CONTROL_TOKEN: ${CATALOGUE_CONTROL_TOKEN:?set a control token in .env}

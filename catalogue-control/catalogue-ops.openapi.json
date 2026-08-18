@@ -3596,6 +3596,190 @@
         "title": "ProxyUsageList",
         "type": "object"
       },
+      "QueueBroker": {
+        "properties": {
+          "bytes": {
+            "default": 0,
+            "title": "Bytes",
+            "type": "integer"
+          },
+          "consumers": {
+            "default": 0,
+            "title": "Consumers",
+            "type": "integer"
+          },
+          "first_sequence": {
+            "default": 0,
+            "title": "First Sequence",
+            "type": "integer"
+          },
+          "last_sequence": {
+            "default": 0,
+            "title": "Last Sequence",
+            "type": "integer"
+          },
+          "messages": {
+            "default": 0,
+            "title": "Messages",
+            "type": "integer"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/QueueRoute"
+            },
+            "title": "Routes",
+            "type": "array"
+          },
+          "stream": {
+            "title": "Stream",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stream"
+        ],
+        "title": "QueueBroker",
+        "type": "object"
+      },
+      "QueueOutbox": {
+        "properties": {
+          "delayed": {
+            "default": 0,
+            "title": "Delayed",
+            "type": "integer"
+          },
+          "errored": {
+            "default": 0,
+            "title": "Errored",
+            "type": "integer"
+          },
+          "oldest_age_seconds": {
+            "default": 0,
+            "title": "Oldest Age Seconds",
+            "type": "number"
+          },
+          "pending": {
+            "default": 0,
+            "title": "Pending",
+            "type": "integer"
+          },
+          "publish_attempts": {
+            "default": 0,
+            "title": "Publish Attempts",
+            "type": "integer"
+          },
+          "published_last_hour": {
+            "default": 0,
+            "title": "Published Last Hour",
+            "type": "integer"
+          },
+          "ready": {
+            "default": 0,
+            "title": "Ready",
+            "type": "integer"
+          }
+        },
+        "title": "QueueOutbox",
+        "type": "object"
+      },
+      "QueueRoute": {
+        "properties": {
+          "delivered": {
+            "default": 0,
+            "title": "Delivered",
+            "type": "integer"
+          },
+          "durable": {
+            "title": "Durable",
+            "type": "string"
+          },
+          "in_flight": {
+            "default": 0,
+            "title": "In Flight",
+            "type": "integer"
+          },
+          "ready": {
+            "default": 0,
+            "title": "Ready",
+            "type": "integer"
+          },
+          "redelivered": {
+            "default": 0,
+            "title": "Redelivered",
+            "type": "integer"
+          },
+          "route": {
+            "title": "Route",
+            "type": "string"
+          }
+        },
+        "required": [
+          "route",
+          "durable"
+        ],
+        "title": "QueueRoute",
+        "type": "object"
+      },
+      "QueueStatus": {
+        "description": "The authoritative job state, delivery outbox, and broker lag together.",
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "broker": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QueueBroker"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "broker_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Broker Error"
+          },
+          "eligible": {
+            "default": 0,
+            "title": "Eligible",
+            "type": "integer"
+          },
+          "jobs": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Jobs",
+            "type": "object"
+          },
+          "oldest_queued_age_seconds": {
+            "default": 0,
+            "title": "Oldest Queued Age Seconds",
+            "type": "number"
+          },
+          "outbox": {
+            "$ref": "#/components/schemas/QueueOutbox"
+          }
+        },
+        "required": [
+          "at",
+          "jobs",
+          "outbox"
+        ],
+        "title": "QueueStatus",
+        "type": "object"
+      },
       "RecordChange": {
         "properties": {
           "external_id": {
@@ -7609,6 +7793,38 @@
         "summary": "Provider and application usage",
         "tags": [
           "proxy"
+        ]
+      }
+    },
+    "/v1/queue": {
+      "get": {
+        "description": "Combines PostgreSQL job state, the transactional outbox, and NATS JetStream consumer lag. PostgreSQL remains available in the response when the broker cannot be reached.",
+        "operationId": "queueStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueStatus"
+                }
+              }
+            },
+            "description": "Queue delivery details"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "summary": "Queue delivery details",
+        "tags": [
+          "workers"
         ]
       }
     },

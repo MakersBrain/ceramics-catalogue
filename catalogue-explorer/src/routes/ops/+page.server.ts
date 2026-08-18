@@ -1,7 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 import { ControlError, get, post, configured } from '$lib/server/control';
-import type { RunRow, Schedule, SourceRow, WorkerRow } from '$lib/ops/types';
+import type { QueueStatus, RunRow, Schedule, SourceRow, WorkerRow } from '$lib/ops/types';
 
 export const load: PageServerLoad = async () => {
 	if (!configured()) {
@@ -11,17 +11,19 @@ export const load: PageServerLoad = async () => {
 		return { unavailable: 'CATALOGUE_CONTROL_TOKEN is not set for the explorer' };
 	}
 	try {
-		const [workers, runs, sources, schedules] = await Promise.all([
+		const [workers, runs, sources, schedules, queue] = await Promise.all([
 			get<{ workers: WorkerRow[] }>('/v1/workers'),
 			get<{ runs: RunRow[] }>('/v1/runs?limit=5'),
 			get<{ sources: SourceRow[] }>('/v1/sources'),
-			get<{ schedules: Schedule[] }>('/v1/schedules')
+			get<{ schedules: Schedule[] }>('/v1/schedules'),
+			get<QueueStatus>('/v1/queue')
 		]);
 		return {
 			workers: workers.workers,
 			runs: runs.runs,
 			sources: sources.sources,
-			schedules: schedules.schedules
+			schedules: schedules.schedules,
+			queueStats: queue
 		};
 	} catch (error) {
 		return { unavailable: error instanceof ControlError ? error.message : String(error) };

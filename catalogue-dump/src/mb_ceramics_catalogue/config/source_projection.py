@@ -181,12 +181,6 @@ class CrawlOptions(BaseModel):
     obey_robots: bool | None = None
     render: bool | None = None
     proxy_eligible: bool = False
-    proxy_policy: Literal["never", "fallback", "always"] = "never"
-    proxy_profile: str | None = None
-    proxy_country: str | None = None
-    proxy_session_minutes: int = 30
-    proxy_max_megabytes: int = 25
-    proxy_pilot: bool = False
 
 
 class CeramicsDatasetOptions(BaseModel):
@@ -243,8 +237,7 @@ class ProjectionInspection(BaseModel):
 _IDENTITY_FIELDS = {"label", "url", "scraper", "country", "note"}
 _POLICY_FIELDS = {
     "delay", "ignore_robots", "obey_robots", "render", "product_concurrency",
-    "timeout_seconds", "proxy_eligible", "proxy_policy", "proxy_profile",
-    "proxy_country", "proxy_session_minutes", "proxy_max_megabytes", "proxy_pilot",
+    "timeout_seconds", "proxy_eligible",
 }
 _DATASET_FIELDS = {
     "scope", "brand", "is_manufacturer", "enrichments", "material_categories",
@@ -414,12 +407,6 @@ def project_legacy_source(source_id: str, source: SourceConfig) -> ProjectionIns
         obey_robots=source.obey_robots,
         render=source.render,
         proxy_eligible=source.proxy_eligible,
-        proxy_policy=source.proxy_policy,
-        proxy_profile=source.proxy_profile,
-        proxy_country=source.proxy_country,
-        proxy_session_minutes=source.proxy_session_minutes,
-        proxy_max_megabytes=source.proxy_max_megabytes,
-        proxy_pilot=source.proxy_pilot,
     )
     ceramics_name: Literal[
         "ceramics.catalogue_item.v2", "ceramics.catalogue_identity.v2"

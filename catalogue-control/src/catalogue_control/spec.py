@@ -326,6 +326,47 @@ class WorkerList(BaseModel):
     workers: list[Worker]
 
 
+class QueueOutbox(BaseModel):
+    pending: int = 0
+    ready: int = 0
+    delayed: int = 0
+    errored: int = 0
+    publish_attempts: int = 0
+    oldest_age_seconds: float = 0
+    published_last_hour: int = 0
+
+
+class QueueRoute(BaseModel):
+    route: str
+    durable: str
+    ready: int = 0
+    in_flight: int = 0
+    redelivered: int = 0
+    delivered: int = 0
+
+
+class QueueBroker(BaseModel):
+    stream: str
+    messages: int = 0
+    bytes: int = 0
+    consumers: int = 0
+    first_sequence: int = 0
+    last_sequence: int = 0
+    routes: list[QueueRoute] = Field(default_factory=list)
+
+
+class QueueStatus(BaseModel):
+    """The authoritative job state, delivery outbox, and broker lag together."""
+
+    at: datetime
+    jobs: dict[str, int]
+    eligible: int = 0
+    oldest_queued_age_seconds: float = 0
+    outbox: QueueOutbox
+    broker: QueueBroker | None = None
+    broker_error: str | None = None
+
+
 class Source(BaseModel):
     source_id: str
     label: str
@@ -934,6 +975,17 @@ def registry() -> Registry:
         Operation(
             "get", "/v1/workers", "listWorkers", "The worker roster with heartbeat ages",
             response=WorkerList, errors=(401,), tags=("workers",),
+        )
+    )
+    api.add(
+        Operation(
+            "get", "/v1/queue", "queueStatus", "Queue delivery details",
+            description=(
+                "Combines PostgreSQL job state, the transactional outbox, and NATS "
+                "JetStream consumer lag. PostgreSQL remains available in the response "
+                "when the broker cannot be reached."
+            ),
+            response=QueueStatus, errors=(401,), tags=("workers",),
         )
     )
     api.add(
