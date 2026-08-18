@@ -8,6 +8,7 @@ dependencies = [
   # lines and gets DST wrong in ways nobody notices until the clocks change.
   "croniter>=6.0",
   "httpx[socks]>=0.27,<1",
+  "nats-py>=2.11,<3",
   "pydantic>=2.9,<3",
   "pydantic-settings>=2.6,<3",
   "structlog>=24.4",
@@ -54,6 +55,7 @@ catalogue-dump = "mb_ceramics_catalogue.cli.dump:main"
 catalogue-load = "mb_ceramics_catalogue.cli.load:main"
 catalogue-probe = "mb_ceramics_catalogue.cli.probe:main"
 catalogue-worker = "mb_ceramics_catalogue.cli.worker:main"
+catalogue-dispatcher = "mb_ceramics_catalogue.cli.dispatcher:main"
 catalogue-maintain = "mb_ceramics_catalogue.cli.maintain:main"
 catalogue-benchmark = "mb_ceramics_catalogue.cli.benchmark:main"
 catalogue-proxy-budget = "mb_ceramics_catalogue.cli.proxy_budget:main"
@@ -102,6 +104,7 @@ filterwarnings = ["error::DeprecationWarning:mb_ceramics_catalogue.*"]
 markers = [
   "golden: replays recorded responses and compares against a frozen dump",
   "postgres: needs a live PostgreSQL; skipped when CATALOGUE_TEST_DSN is unset",
+  "nats: needs a live disposable NATS JetStream; skipped when CATALOGUE_TEST_NATS_URL is unset",
 ]
 
 [tool.ruff]

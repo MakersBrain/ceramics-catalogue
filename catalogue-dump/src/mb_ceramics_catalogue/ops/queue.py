@@ -1,182 +1,34 @@
-"""Claiming work, and recovering it when a worker dies.
+"""PostgreSQL job state and fencing for NATS-delivered work.
 
-Postgres is the queue. `for update skip locked` gives multi-worker claiming, the
-volume is eighty jobs a day, and the catalogue already lives here — so there is
-no Redis, no broker, and nothing new to operate or back up.
-
-Two rules run through all of this, and both exist because the alternative is
-silently wrong:
-
-**Claiming does not consume an attempt.** An attempt begins only once a host slot
-has been acquired and the job has actually started. Host contention and a crash
-between claim and start are not scraper attempts, and counting them would burn a
-source's retry budget on things the source never did.
-
-**A dead worker's job is recovered by its lease expiring**, not by the worker
-telling anyone. Nothing fires when a process stops existing, so the only thing
-that can be relied upon is the absence of a renewal.
+Workers never scan this table for work. They reserve the exact generation named
+by a JetStream message, and every execution-owned mutation compares a random
+token so stale or duplicate deliveries are harmless.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import Any
-from uuid import UUID
+from typing import Any, Literal
+from uuid import UUID, uuid4
 
 import psycopg
 
 from mb_ceramics_catalogue.connectors import BrowserBackendName
 from mb_ceramics_catalogue.observability import logging as obs
-from mb_ceramics_catalogue.ops import events
+from mb_ceramics_catalogue.observability import metrics
+from mb_ceramics_catalogue.ops import events, outbox, runs
+from mb_ceramics_catalogue.ops.job_queue import JobEnvelope
 
 LOGGER = obs.get_logger("catalogue.queue")
-
 Connection = psycopg.AsyncConnection[dict[str, Any]]
-
-#: How long a claim is good for without a renewal. Renewed on every heartbeat
-#: while the job runs, so this only matters once the worker has stopped
-#: heartbeating — that is, once it is gone.
 LEASE_SECONDS = 300
-
-#: How long a job waits when its host is busy. No attempt is consumed, so this
-#: is pure politeness rather than a retry.
 HOST_BACKOFF_SECONDS = 30
-
-
-CLAIM = """
-with candidate as (
-  select j.id
-    from catalogue.jobs j
-    left join catalogue.source_settings s on s.source_id = j.source_id
-   where (j.attempt < j.max_attempts or j.resume_without_attempt)
-     -- The worker must advertise every capability the job asks for. `<@` is
-     -- containment: a plain worker cannot take a job needing a browser, and a
-     -- browser worker can still take plain jobs.
-     and j.requires <@ %(capabilities)s::text[]
-     -- `requires_any` is one optional OR group. A previously selected browser
-     -- backend is stricter still: retries stay on that backend unless an
-     -- explicit lineage reset clears the snapshot.
-     and (cardinality(j.requires_any) = 0
-          or j.requires_any && %(capabilities)s::text[])
-     and (j.selected_browser_backend is null
-          or ('browser:' || j.selected_browser_backend) = any(%(capabilities)s::text[]))
-     and coalesce(s.enabled, true)
-     and not coalesce(s.paused, false)
-     and not j.cancel_requested
-     and (
-       (j.state = 'queued' and j.scheduled_for <= now())
-       -- A lease that expired belongs to a worker that stopped heartbeating.
-       or (j.state in ('leased', 'running') and j.lease_expires_at < now())
-     )
-   order by j.priority, j.scheduled_for
-   for update of j skip locked
-   limit 1
-)
-update catalogue.jobs j
-   set state = 'leased',
-       lease_owner = %(worker)s,
-       lease_expires_at = now() + make_interval(secs => %(lease)s)
-  from candidate
- where j.id = candidate.id
-returning j.*
-"""
-
-# Conditional on this worker still owning an unexpired lease. If the lease
-# expired between claiming and acquiring a host slot, another worker may already
-# have taken the job, and this must not quietly start a second copy of it.
-START = """
-update catalogue.jobs
-   set state = 'running',
-       attempt = attempt + case when resume_without_attempt then 0 else 1 end,
-       resume_without_attempt = false,
-       started_at = coalesce(started_at, now()),
-       trace_id = coalesce(%(trace)s, trace_id),
-       selected_browser_backend = coalesce(selected_browser_backend, %(backend)s),
-       lease_expires_at = now() + make_interval(secs => %(lease)s)
- where id = %(id)s
-   and lease_owner = %(worker)s
-   and state = 'leased'
-   and lease_expires_at > now()
-   and (selected_browser_backend is null or selected_browser_backend = %(backend)s)
-   and (
-     cardinality(requires_any) = 0
-     or %(backend_capability)s = any(requires_any)
-   )
-returning attempt, max_attempts, selected_browser_backend
-"""
-
-RENEW = """
-update catalogue.jobs
-   set lease_expires_at = now() + make_interval(secs => %(lease)s)
- where lease_owner = %(worker)s
-   and state in ('leased', 'running')
-returning id, cancel_requested, pause_requested
-"""
-
-RELEASE = """
-update catalogue.jobs
-   set state = 'queued',
-       lease_owner = null,
-       lease_expires_at = null,
-       scheduled_for = now() + make_interval(secs => %(delay)s)
- where id = %(id)s
-   and lease_owner = %(worker)s
-   and state in ('leased', 'running')
-returning id
-"""
-
-# A job that turned out to need a capability its worker does not have. It goes
-# back on the queue carrying the requirement, so the containment test in CLAIM
-# now routes it to a worker that can serve it.
-#
-# `resume_without_attempt` is what keeps this from spending the source's retry
-# budget: the attempt was already consumed by START, and the source did nothing
-# wrong. Without it, three plain workers picking a browser job up in turn would
-# exhaust a source that was never actually crawled.
-#
-# `scheduled_for` is left alone rather than delayed: the capable worker may be
-# free right now, and there is nothing to back off from.
-ESCALATE = """
-update catalogue.jobs
-   set state = 'queued',
-       requires = (
-         select array(
-           select distinct unnest(requires || array[%(capability)s]::text[]) order by 1
-         )
-       ),
-       resume_without_attempt = true,
-       lease_owner = null,
-       lease_expires_at = null
- where id = %(id)s
-   and lease_owner = %(worker)s
-   and state in ('leased', 'running')
-   and not (%(capability)s = any(requires))
-returning id, requires, attempt
-"""
-
-# Expired, out of attempts, and not flagged for an operator resume: nothing will
-# ever pick this up again, so it must be made terminal rather than left as a
-# `running` row that no process is running.
-REAP = """
-update catalogue.jobs
-   set state = 'failed',
-       finished_at = now(),
-       error = coalesce(error, 'lease expired with no attempts remaining'),
-       lease_owner = null,
-       lease_expires_at = null
- where state in ('leased', 'running')
-   and lease_expires_at < now()
-   and attempt >= max_attempts
-   and not resume_without_attempt
-returning id, run_id, source_id, attempt
-"""
+TERMINAL = ("succeeded", "degraded", "failed", "cancelled", "skipped")
 
 
 @dataclass
 class ClaimedJob:
-    """A job this worker holds a lease on."""
-
     id: UUID
     run_id: UUID
     source_id: str
@@ -187,322 +39,355 @@ class ClaimedJob:
     requires_any: list[str]
     params: dict[str, Any]
     proxy_snapshot: dict[str, Any]
+    delivery_generation: int
+    execution_token: UUID
     selected_browser_backend: BrowserBackendName | None = None
     trace_id: str | None = None
 
     @classmethod
-    def from_row(cls, row: dict[str, Any], params: dict[str, Any] | None = None) -> ClaimedJob:
+    def from_row(cls, row: dict[str, Any]) -> ClaimedJob:
         return cls(
-            id=row["id"],
-            run_id=row["run_id"],
-            source_id=row["source_id"],
-            host=row["host"],
-            attempt=row["attempt"],
-            max_attempts=row["max_attempts"],
-            requires=list(row["requires"] or []),
-            requires_any=list(row.get("requires_any") or []),
-            params=params or {},
-            proxy_snapshot=dict(row.get("proxy_snapshot") or {}),
-            selected_browser_backend=(
-                BrowserBackendName(row["selected_browser_backend"])
-                if row.get("selected_browser_backend")
-                else None
-            ),
-            trace_id=row.get("trace_id"),
+            id=row["id"], run_id=row["run_id"], source_id=row["source_id"], host=row["host"],
+            attempt=row["attempt"], max_attempts=row["max_attempts"],
+            requires=list(row["requires"] or []), requires_any=list(row["requires_any"] or []),
+            params=dict(row["params"] or {}), proxy_snapshot=dict(row["proxy_snapshot"] or {}),
+            delivery_generation=int(row["delivery_generation"]),
+            execution_token=row["execution_token"], trace_id=row.get("trace_id"),
+            selected_browser_backend=(BrowserBackendName(row["selected_browser_backend"])
+                                      if row.get("selected_browser_backend") else None),
         )
 
 
-async def claim(
-    connection: Connection, worker_id: UUID, capabilities: list[str], *, lease: int = LEASE_SECONDS
-) -> ClaimedJob | None:
-    """Take one job, or return None when there is nothing to take.
+@dataclass(frozen=True)
+class Reservation:
+    job: ClaimedJob | None
+    disposition: Literal["run", "ack", "retry"]
+    retry_after: float = 0.0
 
-    One statement. `skip locked` is what makes this safe for several workers at
-    once: each skips rows another is already deciding about rather than blocking
-    behind it, so N workers claim N different jobs rather than serialising.
-    """
-    row = await _one(
-        connection, CLAIM, {"worker": worker_id, "capabilities": capabilities, "lease": lease}
-    )
-    if row is None:
-        return None
 
-    job = ClaimedJob.from_row(row, await _run_params(connection, row["run_id"], row["source_id"]))
-    if job.requires_any and job.selected_browser_backend is None:
-        matches = sorted(set(job.requires_any).intersection(capabilities))
-        browser_matches = [value for value in matches if value.startswith("browser:")]
-        if not browser_matches:
-            # The schema currently gives `requires_any` one purpose: browser
-            # backend selection. Refuse an unknown OR-group shape before START
-            # can consume an attempt without recording its choice.
-            await release(connection, job, worker_id, delay=0, reason="unsupported any capability")
-            return None
-        job.selected_browser_backend = BrowserBackendName(
-            browser_matches[0].removeprefix("browser:")
+async def reserve(
+    connection: Connection,
+    envelope: JobEnvelope,
+    worker_id: UUID,
+    capabilities: list[str],
+    *,
+    lease: int = LEASE_SECONDS,
+) -> Reservation:
+    """Reserve precisely the broker-delivered job generation."""
+    async with connection.transaction():
+        await _execution_lock(connection, envelope.job_id)
+        row = await _one(
+            connection,
+            """
+            select j.*, coalesce(r.params, '{}'::jsonb) || coalesce(s.params, '{}'::jsonb) params,
+                   coalesce(s.enabled, true) source_enabled,
+                   coalesce(s.paused, false) source_paused
+              from catalogue.jobs j
+              join catalogue.runs r on r.id = j.run_id
+              left join catalogue.source_settings s on s.source_id = j.source_id
+             where j.id = %(id)s
+             for update of j
+            """,
+            {"id": envelope.job_id},
         )
-    await events.emit(
-        connection,
-        events.Topic.JOB,
-        "job.leased",
-        run_id=job.run_id,
-        job_id=job.id,
-        worker_id=worker_id,
-        source_id=job.source_id,
-        payload={"attempt": job.attempt, "host": job.host},
-    )
-    return job
+        if row is None or int(row["delivery_generation"]) != envelope.generation:
+            metrics.REGISTRY.counter(
+                "catalogue_queue_stale_deliveries_total",
+                "Deliveries ACKed because their job generation was stale or absent.",
+                route=envelope.route,
+            )
+            return Reservation(None, "ack")
+        if row["state"] in TERMINAL:
+            metrics.REGISTRY.counter(
+                "catalogue_queue_terminal_redeliveries_total",
+                "Deliveries ACKed because the authoritative job was terminal.",
+                state=row["state"],
+            )
+            return Reservation(None, "ack")
+        if not row["source_enabled"] or row["cancel_requested"]:
+            state = "skipped" if not row["source_enabled"] else "cancelled"
+            await connection.execute(
+                "update catalogue.jobs set state = %(state)s, finished_at = now(), "
+                "lease_owner = null, lease_expires_at = null, execution_token = null "
+                "where id = %(id)s",
+                {"id": envelope.job_id, "state": state},
+            )
+            await _emit_terminal(connection, row, state, "source disabled" if state == "skipped" else "cancelled")
+            await runs.close_run_if_done(connection, row["run_id"])
+            return Reservation(None, "ack")
+        if row["source_paused"] or row["pause_requested"] or row["state"] == "paused":
+            return Reservation(None, "ack")
+        scheduled_for = row["scheduled_for"]
+        now = await _database_now(connection)
+        if scheduled_for > now:
+            return Reservation(None, "retry", (scheduled_for - now).total_seconds())
+        if row["state"] in ("leased", "running") and row["lease_expires_at"] > now:
+            metrics.REGISTRY.counter(
+                "catalogue_queue_execution_conflicts_total",
+                "Duplicate deliveries delayed behind a live execution token.",
+                route=envelope.route,
+            )
+            return Reservation(None, "retry", min((row["lease_expires_at"] - now).total_seconds(), 30.0))
+        if row["attempt"] >= row["max_attempts"] and not row["resume_without_attempt"]:
+            await connection.execute(
+                "update catalogue.jobs set state = 'failed', finished_at = now(), "
+                "error = coalesce(error, 'lease expired with no attempts remaining'), "
+                "lease_owner = null, lease_expires_at = null, execution_token = null where id = %(id)s",
+                {"id": envelope.job_id},
+            )
+            await _emit_terminal(connection, row, "failed", "attempts exhausted")
+            return Reservation(None, "ack")
 
+        available = set(capabilities)
+        if not set(row["requires"] or []).issubset(available):
+            return Reservation(None, "retry", 30.0)
 
-async def _run_params(connection: Connection, run_id: UUID, source_id: str) -> dict[str, Any]:
-    """The run's parameters, with this source's overrides merged over them.
+        selected = row["selected_browser_backend"]
+        if envelope.route == "browser.auto.normal" and not selected:
+            matches = sorted(
+                value.removeprefix("browser:") for value in capabilities
+                if value.startswith("browser:") and value in set(row["requires_any"] or [])
+            )
+            if not matches:
+                return Reservation(None, "ack")
+            selected = matches[0]
+        elif envelope.route.startswith("browser.") and envelope.route != "browser.auto.normal":
+            routed_backend = envelope.route.removeprefix("browser.").removesuffix(".normal")
+            if selected and selected != routed_backend:
+                return Reservation(None, "ack")
+            selected = selected or routed_backend
+        expected_route = outbox.route_for(
+            list(row["requires"] or []), list(row["requires_any"] or []), selected
+        )
+        if selected and f"browser:{selected}" not in available:
+            return Reservation(None, "retry", 30.0)
+        if expected_route != envelope.route:
+            await connection.execute(
+                "update catalogue.jobs set selected_browser_backend = %(backend)s, "
+                "delivery_generation = delivery_generation + 1 where id = %(id)s",
+                {"id": envelope.job_id, "backend": selected},
+            )
+            await outbox.enqueue_job(connection, envelope.job_id)
+            metrics.REGISTRY.counter(
+                "catalogue_queue_browser_reroutes_total",
+                "Auto-browser deliveries republished to an exact backend.",
+                backend=str(selected),
+            )
+            return Reservation(None, "ack")
 
-    A source override is the operational layer: "crawl this one slowly" or
-    "never use the browser for this one" should not require editing the run that
-    happens to contain it.
-    """
-    row = await _one(
-        connection,
-        """
-        select coalesce(r.params, '{}'::jsonb) || coalesce(s.params, '{}'::jsonb) as params
-          from catalogue.runs r
-          left join catalogue.source_settings s on s.source_id = %(source)s
-         where r.id = %(run)s
-        """,
-        {"run": run_id, "source": source_id},
-    )
-    return dict(row["params"]) if row and row["params"] else {}
+        token = uuid4()
+        claimed = await _one(
+            connection,
+            """
+            update catalogue.jobs
+               set state = 'leased', lease_owner = %(worker)s, execution_token = %(token)s,
+                   selected_browser_backend = coalesce(selected_browser_backend, %(backend)s),
+                   lease_expires_at = now() + make_interval(secs => %(lease)s)
+             where id = %(id)s and delivery_generation = %(generation)s
+            returning *
+            """,
+            {"id": envelope.job_id, "generation": envelope.generation, "worker": worker_id,
+             "token": token, "backend": selected, "lease": lease},
+        )
+        assert claimed is not None
+        claimed["params"] = row["params"]
+        job = ClaimedJob.from_row(claimed)
+        await events.emit(
+            connection, events.Topic.JOB, "job.leased", run_id=job.run_id, job_id=job.id,
+            worker_id=worker_id, source_id=job.source_id,
+            payload={"attempt": job.attempt, "host": job.host, "generation": envelope.generation},
+        )
+        return Reservation(job, "run")
 
 
 async def start(
-    connection: Connection,
-    job: ClaimedJob,
-    worker_id: UUID,
-    *,
-    trace_id: str | None = None,
-    lease: int = LEASE_SECONDS,
+    connection: Connection, job: ClaimedJob, worker_id: UUID, *,
+    trace_id: str | None = None, lease: int = LEASE_SECONDS,
 ) -> bool:
-    """Move a claimed job to running and consume its attempt.
-
-    Returns False when the lease was lost in between — which means another
-    worker has legitimately taken this job, and this one must not run it too.
-    """
-    backend = _browser_backend_for_start(job)
     row = await _one(
         connection,
-        START,
-        {
-            "id": job.id,
-            "worker": worker_id,
-            "trace": trace_id,
-            "lease": lease,
-            "backend": backend,
-            "backend_capability": f"browser:{backend}" if backend else None,
-        },
+        """
+        update catalogue.jobs
+           set state = 'running', attempt = attempt + case when resume_without_attempt then 0 else 1 end,
+               resume_without_attempt = false, started_at = coalesce(started_at, now()),
+               trace_id = coalesce(%(trace)s, trace_id),
+               lease_expires_at = now() + make_interval(secs => %(lease)s)
+         where id = %(id)s and delivery_generation = %(generation)s
+           and lease_owner = %(worker)s and execution_token = %(token)s
+           and state = 'leased' and lease_expires_at > now()
+           and not cancel_requested and not pause_requested
+        returning attempt, max_attempts, selected_browser_backend
+        """,
+        {"id": job.id, "generation": job.delivery_generation, "worker": worker_id,
+         "token": job.execution_token, "trace": trace_id, "lease": lease},
     )
     if row is None:
         LOGGER.warning("job.lease_lost", job_id=str(job.id), source=job.source_id)
         return False
-
     job.attempt = row["attempt"]
-    job.selected_browser_backend = (
-        BrowserBackendName(row["selected_browser_backend"])
-        if row["selected_browser_backend"]
-        else None
-    )
     await events.emit(
-        connection,
-        events.Topic.JOB,
-        "job.started",
-        run_id=job.run_id,
-        job_id=job.id,
-        worker_id=worker_id,
-        source_id=job.source_id,
-        payload={
-            "attempt": job.attempt,
-            "max_attempts": job.max_attempts,
-            "selected_browser_backend": job.selected_browser_backend,
-        },
+        connection, events.Topic.JOB, "job.started", run_id=job.run_id, job_id=job.id,
+        worker_id=worker_id, source_id=job.source_id,
+        payload={"attempt": job.attempt, "max_attempts": job.max_attempts,
+                 "selected_browser_backend": job.selected_browser_backend},
     )
     return True
 
 
-def _browser_backend_for_start(job: ClaimedJob) -> BrowserBackendName | None:
-    """Choose the deterministic backend represented by an any-of capability.
-
-    Claiming already proved that the worker has one matching capability. The
-    claimed row intentionally carries the intersection result indirectly: the
-    worker capability chosen by the claim is recorded by callers on the job's
-    selected field. For a new auto job, `claim` fills it from that intersection;
-    an existing snapshot is preserved across retries.
-    """
-    return job.selected_browser_backend
-
-
 async def renew(
-    connection: Connection, worker_id: UUID, *, lease: int = LEASE_SECONDS
+    connection: Connection, jobs: list[ClaimedJob], worker_id: UUID, *, lease: int = LEASE_SECONDS
 ) -> list[dict[str, Any]]:
-    """Extend every lease this worker holds, and report control flags.
-
-    Renewal and control-flag polling are one statement because they happen at
-    the same cadence and for the same reason: the heartbeat is the worker's only
-    regular conversation with the database, and doing them separately would
-    double the traffic to learn the same thing.
-    """
-    async with connection.cursor() as cursor:
-        await cursor.execute(RENEW, {"worker": worker_id, "lease": lease})
-        return await cursor.fetchall()
+    held: list[dict[str, Any]] = []
+    for job in jobs:
+        row = await _one(
+            connection,
+            "update catalogue.jobs set lease_expires_at = now() + make_interval(secs => %(lease)s) "
+            "where id = %(id)s and lease_owner = %(worker)s and execution_token = %(token)s "
+            "and state in ('leased','running') returning id, cancel_requested, pause_requested",
+            {"id": job.id, "worker": worker_id, "token": job.execution_token, "lease": lease},
+        )
+        if row:
+            held.append(row)
+    return held
 
 
 async def release(
-    connection: Connection,
-    job: ClaimedJob,
-    worker_id: UUID,
-    *,
-    delay: int = HOST_BACKOFF_SECONDS,
-    reason: str = "host busy",
+    connection: Connection, job: ClaimedJob, worker_id: UUID, *,
+    delay: int = HOST_BACKOFF_SECONDS, reason: str = "host busy",
 ) -> bool:
-    """Put a job back on the queue without consuming an attempt.
-
-    Used when a host slot could not be acquired, and when a worker draining on
-    SIGTERM has to give back work it has not started. Neither is a failed
-    attempt at the source, so neither may count as one.
-    """
-    row = await _one(connection, RELEASE, {"id": job.id, "worker": worker_id, "delay": delay})
+    row = await _one(
+        connection,
+        "update catalogue.jobs set state = 'queued', lease_owner = null, lease_expires_at = null, "
+        "execution_token = null, scheduled_for = now() + make_interval(secs => %(delay)s) "
+        "where id = %(id)s and lease_owner = %(worker)s and execution_token = %(token)s "
+        "returning id",
+        {"id": job.id, "worker": worker_id, "token": job.execution_token, "delay": delay},
+    )
     if row is None:
         return False
     await events.emit(
-        connection,
-        events.Topic.JOB,
-        "job.released",
-        run_id=job.run_id,
-        job_id=job.id,
-        worker_id=worker_id,
-        source_id=job.source_id,
+        connection, events.Topic.JOB, "job.released", run_id=job.run_id, job_id=job.id,
+        worker_id=worker_id, source_id=job.source_id,
         payload={"reason": reason, "retry_in_seconds": delay},
     )
-    LOGGER.info("job.released", source=job.source_id, reason=reason, retry_in=delay)
     return True
 
 
 async def require_capability(
-    connection: Connection,
-    job: ClaimedJob,
-    worker_id: UUID,
-    capability: str,
-    *,
-    reason: str,
+    connection: Connection, job: ClaimedJob, worker_id: UUID, capability: str, *, reason: str
 ) -> bool:
-    """Requeue a job with `capability` added to what a worker must advertise.
-
-    For the case a static list cannot cover: whether a source needs a browser is
-    decided by what its pages turn out to contain, not by which scraper it uses,
-    so it can only be known once a page has been read. Discovering it mid-job is
-    therefore normal rather than exceptional, and the job is rerouted rather
-    than failed.
-
-    Returns False when the job already carries the capability — meaning a worker
-    that advertises it still could not serve it, and the caller must fail the
-    job instead. This is what stops two workers bouncing an impossible job back
-    and forth for ever, neither of them ever spending an attempt on it.
-    """
-    row = await _one(
-        connection,
-        ESCALATE,
-        {"id": job.id, "worker": worker_id, "capability": capability},
-    )
-    if row is None:
-        return False
-
-    job.requires = list(row["requires"] or [])
-    await events.emit(
-        connection,
-        events.Topic.JOB,
-        "job.requeued",
-        run_id=job.run_id,
-        job_id=job.id,
-        worker_id=worker_id,
-        source_id=job.source_id,
-        payload={"reason": reason, "requires": job.requires, "attempt": row["attempt"]},
-    )
-    LOGGER.info(
-        "job.requeued", source=job.source_id, requires=job.requires, reason=reason
-    )
-    return True
-
-
-async def reap_expired(connection: Connection) -> list[dict[str, Any]]:
-    """Fail every expired job that has no attempts left.
-
-    Jobs still below their limit need nothing done to them: the claim query
-    selects expired leases directly, so they are picked up on the next tick
-    without a separate transition through `queued`. Only the ones nothing will
-    ever claim again have to be made terminal here, or they stay `running`
-    forever with no process running them.
-    """
-    async with connection.cursor() as cursor:
-        await cursor.execute(REAP)
-        dead = await cursor.fetchall()
-
-    for row in dead:
+    async with connection.transaction():
+        row = await _one(
+            connection,
+            """
+            update catalogue.jobs
+               set state = 'queued', requires = (select array(select distinct unnest(
+                     requires || array[%(capability)s]::text[]) order by 1)),
+                   requires_any = case when %(capability)s = 'browser'
+                     then array['browser:camoufox','browser:cdp_extension_proxy'] else requires_any end,
+                   selected_browser_backend = null, resume_without_attempt = true,
+                   lease_owner = null, lease_expires_at = null, execution_token = null,
+                   delivery_generation = delivery_generation + 1
+             where id = %(id)s and lease_owner = %(worker)s and execution_token = %(token)s
+               and not (%(capability)s = any(requires))
+            returning delivery_generation, requires, attempt
+            """,
+            {"id": job.id, "worker": worker_id, "token": job.execution_token,
+             "capability": capability},
+        )
+        if row is None:
+            return False
+        await outbox.enqueue_job(connection, job.id)
         await events.emit(
-            connection,
-            events.Topic.JOB,
-            "job.failed",
-            run_id=row["run_id"],
-            job_id=row["id"],
-            source_id=row["source_id"],
-            payload={"reason": "lease expired", "attempt": row["attempt"]},
+            connection, events.Topic.JOB, "job.requeued", run_id=job.run_id, job_id=job.id,
+            worker_id=worker_id, source_id=job.source_id,
+            payload={"reason": reason, "requires": row["requires"], "attempt": row["attempt"]},
         )
-        await events.notify(
-            connection,
-            "job.failed",
-            f"{row['source_id']} exhausted its attempts",
-            body="The worker holding it stopped reporting and no attempts remain.",
-            run_id=row["run_id"],
-            job_id=row["id"],
-            source_id=row["source_id"],
-        )
-        LOGGER.warning("job.reaped", source=row["source_id"], job_id=str(row["id"]))
+        return True
 
-    # Slots held by a job that is now terminal, and slots whose own lease has
-    # expired. Either way the shop is not being crawled and the slot is a lie.
-    async with connection.cursor() as cursor:
-        await cursor.execute(
-            """
-            update catalogue.host_leases
-               set job_id = null, leased_by = null, leased_until = null
-             where leased_until is not null and leased_until < now()
-            """
-        )
 
-    return dead
+async def reconcile(connection: Connection) -> int:
+    """Repair expired executions; discovery remains exclusively broker-driven."""
+    cursor = await connection.execute(
+        "select id from catalogue.jobs where state in ('leased','running') "
+        "and lease_expires_at < now() order by lease_expires_at"
+    )
+    candidates = [row["id"] for row in await cursor.fetchall()]
+    rows: list[dict[str, Any]] = []
+    for job_id in candidates:
+        await _execution_lock(connection, job_id)
+        row = await _one(
+            connection,
+        """
+        update catalogue.jobs
+           set state = case when attempt >= max_attempts and not resume_without_attempt
+                            then 'failed' else 'queued' end,
+               finished_at = case when attempt >= max_attempts and not resume_without_attempt
+                                  then now() else finished_at end,
+               error = case when attempt >= max_attempts and not resume_without_attempt
+                            then coalesce(error, 'lease expired with no attempts remaining') else error end,
+               lease_owner = null, lease_expires_at = null, execution_token = null
+         where id = %(id)s and state in ('leased','running') and lease_expires_at < now()
+        returning id, run_id, source_id, state, attempt
+        """,
+            {"id": job_id},
+        )
+        if row is not None:
+            rows.append(row)
+    await connection.execute(
+        "update catalogue.host_leases set job_id = null, leased_by = null, leased_until = null, "
+        "execution_token = null where leased_until < now()"
+    )
+    for row in rows:
+        metrics.REGISTRY.counter(
+            "catalogue_queue_expired_executions_total",
+            "Expired PostgreSQL executions reconciled.",
+            outcome=row["state"],
+        )
+        if row["state"] == "failed":
+            await _emit_terminal(connection, row, "failed", "lease expired")
+            await runs.close_run_if_done(connection, row["run_id"])
+    return len(rows)
 
 
 async def cancel_requested(connection: Connection, job_id: UUID) -> dict[str, bool]:
-    """The control flags for one job, read on the heartbeat."""
-    row = await _one(
-        connection,
-        "select cancel_requested, pause_requested from catalogue.jobs where id = %(id)s",
-        {"id": job_id},
-    )
-    if row is None:
-        return {"cancel": False, "pause": False}
-    return {"cancel": bool(row["cancel_requested"]), "pause": bool(row["pause_requested"])}
+    row = await _one(connection, "select cancel_requested, pause_requested from catalogue.jobs "
+                     "where id = %(id)s", {"id": job_id})
+    return {"cancel": bool(row and row["cancel_requested"]),
+            "pause": bool(row and row["pause_requested"])}
 
 
 async def queue_depth(connection: Connection) -> dict[str, int]:
-    """Jobs by state, for `/metrics` and the operations dashboard."""
-    async with connection.cursor() as cursor:
-        await cursor.execute(
-            "select state, count(*) as n from catalogue.jobs "
-            "where state not in ('succeeded','degraded','failed','cancelled','skipped') "
-            "group by state"
-        )
-        return {row["state"]: int(row["n"]) for row in await cursor.fetchall()}
+    cursor = await connection.execute(
+        "select state, count(*) n from catalogue.jobs where state not in "
+        "('succeeded','degraded','failed','cancelled','skipped') group by state"
+    )
+    return {row["state"]: int(row["n"]) for row in await cursor.fetchall()}
 
 
 def lease_interval(seconds: int = LEASE_SECONDS) -> timedelta:
     return timedelta(seconds=seconds)
+
+
+async def _database_now(connection: Connection) -> Any:
+    row = await _one(connection, "select now() value")
+    assert row is not None
+    return row["value"]
+
+
+async def _execution_lock(connection: Connection, job_id: UUID) -> None:
+    """Serialize token replacement with material job-owned writes."""
+    await connection.execute(
+        "select pg_advisory_xact_lock(hashtextextended(%(id)s::text, 0))", {"id": job_id}
+    )
+
+
+async def _emit_terminal(
+    connection: Connection, row: dict[str, Any], state: str, reason: str
+) -> None:
+    await events.emit(connection, events.Topic.JOB, f"job.{state}", run_id=row["run_id"],
+                      job_id=row["id"], source_id=row["source_id"],
+                      payload={"reason": reason, "attempt": row["attempt"]})
 
 
 async def _one(connection: Connection, sql: str, params: Any = None) -> dict[str, Any] | None:

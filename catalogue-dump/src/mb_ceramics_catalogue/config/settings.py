@@ -204,6 +204,11 @@ class Settings(BaseSettings):
 
     #: libpq connection string for the catalogue database.
     dsn: str = ""
+    #: NATS JetStream is the sole work-delivery backend. PostgreSQL remains the
+    #: state and fencing authority.
+    nats_url: str = "nats://127.0.0.1:4222"
+    nats_token: str = ""
+    nats_stream: str = "CATALOGUE_JOBS"
     #: Where recorded responses live. Shared between workers as a named volume,
     #: sharded per host so two of them never write one entry (§8).
     cache_dir: Path = Path(".cache")

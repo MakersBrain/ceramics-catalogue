@@ -121,12 +121,14 @@ class TestJobControls:
         detail = (await client.get(f"/v1/jobs/{job}")).json()["job"]
         assert detail["state"] == "cancelled"
 
-    async def test_pausing_a_job_that_is_not_running_is_a_conflict(self, client):
-        """Conditional on the state, so this is "that means nothing right now"
-        rather than a silent no-op that looks like it worked."""
+    async def test_pausing_and_resuming_a_queued_job_changes_generation(self, client, db):
         job = await self.job_id(client)
-        response = await client.post(f"/v1/jobs/{job}/pause")
-        assert response.status_code == 409
+        assert (await client.post(f"/v1/jobs/{job}/pause")).status_code == 202
+        assert (await client.post(f"/v1/jobs/{job}/resume")).status_code == 202
+        cursor = await db.execute(
+            "select state, delivery_generation from catalogue.jobs where id=%s", (job,)
+        )
+        assert await cursor.fetchone() == {"state": "queued", "delivery_generation": 3}
 
     async def test_retrying_a_cancelled_job_requeues_it(self, client):
         job = await self.job_id(client)
@@ -181,6 +183,11 @@ class TestJobControls:
         detail = (await client.get(f"/v1/jobs/{job}")).json()["job"]
         assert detail["state"] == "queued"
         assert detail["attempt"] == 0
+        cursor = await db.execute(
+            "select generation from catalogue.queue_outbox where job_id=%s order by generation",
+            (job,),
+        )
+        assert [row["generation"] for row in await cursor.fetchall()] == [1, 2]
 
 
 class TestJobChanges:
@@ -426,6 +433,31 @@ class TestSources:
         assert response.status_code == 200
         listed = (await client.get("/v1/sources")).json()["sources"]
         assert next(s for s in listed if s["source_id"] == "ceradel")["enabled"] is False
+
+    async def test_disabling_terminalizes_queued_jobs_and_stales_delivery(self, client, db):
+        run = await make_run(client)
+        response = await client.put("/v1/sources/ceradel", json={"enabled": False})
+        assert response.status_code == 200
+        cursor = await db.execute(
+            "select state, delivery_generation from catalogue.jobs "
+            "where run_id=%(run)s and source_id='ceradel'",
+            {"run": run["run_id"]},
+        )
+        assert await cursor.fetchone() == {"state": "skipped", "delivery_generation": 2}
+
+    async def test_source_pause_and_resume_publish_a_fresh_generation(self, client, db):
+        run = await make_run(client)
+        assert (await client.put("/v1/sources/ceradel", json={"paused": True})).status_code == 200
+        assert (await client.put("/v1/sources/ceradel", json={"paused": False})).status_code == 200
+        cursor = await db.execute(
+            "select j.state, j.delivery_generation, o.generation from catalogue.jobs j "
+            "join catalogue.queue_outbox o on o.job_id=j.id and o.generation=j.delivery_generation "
+            "where j.run_id=%(run)s and j.source_id='ceradel'",
+            {"run": run["run_id"]},
+        )
+        assert await cursor.fetchone() == {
+            "state": "queued", "delivery_generation": 3, "generation": 3
+        }
 
     async def test_an_unknown_source_is_a_404(self, client):
         assert (await client.put("/v1/sources/nope", json={})).status_code == 404

@@ -24,7 +24,7 @@ from psycopg.types.json import Jsonb
 
 from mb_ceramics_catalogue.config.sources import SourcesFile
 from mb_ceramics_catalogue.observability import logging as obs
-from mb_ceramics_catalogue.ops import events
+from mb_ceramics_catalogue.ops import events, outbox
 
 LOGGER = obs.get_logger("catalogue.runs")
 
@@ -200,6 +200,7 @@ async def create_jobs(
         )
         if row is not None:
             created[name] = row["id"]
+            await outbox.enqueue_job(connection, row["id"])
 
     await events.emit(
         connection, events.Topic.RUN, "run.planned", run_id=run_id,
@@ -252,6 +253,7 @@ async def finish_job(
     summary: dict[str, Any] | None = None,
     error: str | None = None,
     artifact: Any = None,
+    execution_token: UUID | None = None,
 ) -> dict[str, Any] | None:
     """Put a job into a terminal state and close its run if it was the last.
 
@@ -264,6 +266,9 @@ async def finish_job(
         raise ValueError(f"{state!r} is not a terminal job state")
 
     async with connection.transaction():
+        await connection.execute(
+            "select pg_advisory_xact_lock(hashtextextended(%(id)s::text, 0))", {"id": job_id}
+        )
         row = await _one(
             connection,
             """
@@ -277,13 +282,16 @@ async def finish_job(
                    artifact_size = coalesce(%(size)s, artifact_size),
                    lease_owner = null,
                    lease_expires_at = null,
+                   execution_token = null,
                    pause_requested = false,
                    resume_without_attempt = false
              where id = %(id)s
+               and (%(token)s::uuid is null or execution_token = %(token)s)
             returning run_id, source_id, attempt, max_attempts
             """,
             {
                 "id": job_id,
+                "token": execution_token,
                 "state": state,
                 "error": error,
                 "summary": Jsonb(summary) if summary is not None else None,
@@ -337,9 +345,10 @@ async def finish_job(
         # considered: a finished job must never keep a shop's slot occupied.
         await _execute(
             connection,
-            "update catalogue.host_leases set job_id = null, leased_by = null, leased_until = null "
-            "where job_id = %(id)s",
-            {"id": job_id},
+            "update catalogue.host_leases set job_id = null, leased_by = null, leased_until = null, "
+            "execution_token = null where job_id = %(id)s "
+            "and (%(token)s::uuid is null or execution_token = %(token)s)",
+            {"id": job_id, "token": execution_token},
         )
 
         await events.emit(

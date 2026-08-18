@@ -103,10 +103,12 @@ select j.id, j.source_id, j.host, j.state, j.attempt, j.max_attempts, j.priority
 CANCEL_RUN = """
 update catalogue.jobs
    set cancel_requested = true,
-       state = case when state in ('queued', 'paused') then 'cancelled' else state end,
-       finished_at = case when state in ('queued', 'paused') then now() else finished_at end,
-       lease_owner = case when state in ('queued', 'paused') then null else lease_owner end,
-       lease_expires_at = case when state in ('queued', 'paused') then null else lease_expires_at end
+       state = case when state in ('queued', 'leased', 'paused') then 'cancelled' else state end,
+       finished_at = case when state in ('queued', 'leased', 'paused') then now() else finished_at end,
+       lease_owner = case when state in ('queued', 'leased', 'paused') then null else lease_owner end,
+       lease_expires_at = case when state in ('queued', 'leased', 'paused') then null else lease_expires_at end,
+       execution_token = case when state in ('queued', 'leased', 'paused') then null else execution_token end,
+       delivery_generation = delivery_generation + case when state in ('queued', 'leased', 'paused') then 1 else 0 end
  where run_id = %(run)s
    and state in ('queued', 'leased', 'running', 'paused')
 returning id, source_id, state
@@ -222,8 +224,14 @@ select j.id, j.run_id, j.source_id, j.finished_at, a.location as artifact_path,
 # an error, and so a job that finished a second ago is not "paused".
 PAUSE_JOB = """
 update catalogue.jobs
-   set pause_requested = true
- where id = %(id)s and state in ('leased', 'running')
+   set pause_requested = state = 'running',
+       state = case when state in ('queued', 'leased') then 'paused' else state end,
+       paused_by_source = false,
+       lease_owner = case when state = 'leased' then null else lease_owner end,
+       lease_expires_at = case when state = 'leased' then null else lease_expires_at end,
+       execution_token = case when state = 'leased' then null else execution_token end,
+       delivery_generation = delivery_generation + case when state in ('queued', 'leased') then 1 else 0 end
+ where id = %(id)s and state in ('queued', 'leased', 'running')
 returning id, run_id, source_id, state
 """
 
@@ -235,7 +243,10 @@ update catalogue.jobs
        -- human decision about timing, not a failed attempt at the source.
        resume_without_attempt = (state = 'paused'),
        scheduled_for = now(),
-       lease_owner = case when state = 'paused' then null else lease_owner end
+       lease_owner = case when state = 'paused' then null else lease_owner end,
+       execution_token = case when state = 'paused' then null else execution_token end,
+       delivery_generation = delivery_generation + case when state = 'paused' then 1 else 0 end,
+       paused_by_source = false
  where id = %(id)s and (state = 'paused' or pause_requested)
 returning id, run_id, source_id, state
 """
@@ -243,10 +254,12 @@ returning id, run_id, source_id, state
 CANCEL_JOB = """
 update catalogue.jobs
    set cancel_requested = true,
-       state = case when state in ('queued', 'paused') then 'cancelled' else state end,
-       finished_at = case when state in ('queued', 'paused') then now() else finished_at end,
-       lease_owner = case when state in ('queued', 'paused') then null else lease_owner end,
-       lease_expires_at = case when state in ('queued', 'paused') then null else lease_expires_at end
+       state = case when state in ('queued', 'leased', 'paused') then 'cancelled' else state end,
+       finished_at = case when state in ('queued', 'leased', 'paused') then now() else finished_at end,
+       lease_owner = case when state in ('queued', 'leased', 'paused') then null else lease_owner end,
+       lease_expires_at = case when state in ('queued', 'leased', 'paused') then null else lease_expires_at end,
+       execution_token = case when state in ('queued', 'leased', 'paused') then null else execution_token end,
+       delivery_generation = delivery_generation + case when state in ('queued', 'leased', 'paused') then 1 else 0 end
  where id = %(id)s and state in ('queued', 'leased', 'running', 'paused')
 returning id, run_id, source_id, state
 """
@@ -263,10 +276,12 @@ update catalogue.jobs
        error = null,
        lease_owner = null,
        lease_expires_at = null,
+       execution_token = null,
+       delivery_generation = delivery_generation + 1,
        finished_at = null,
        scheduled_for = now()
  where id = %(id)s and state in ('failed', 'degraded', 'cancelled', 'succeeded', 'skipped')
-returning id, run_id, source_id
+returning id, run_id, source_id, state
 """
 
 
@@ -409,9 +424,38 @@ returning *
 #: toggle must not silently restart work somebody stopped on purpose.
 PAUSE_SOURCE_JOBS = """
 update catalogue.jobs
-   set pause_requested = true
- where source_id = %(id)s and state in ('leased', 'running')
+   set pause_requested = state = 'running',
+       state = case when state in ('queued', 'leased') then 'paused' else state end,
+       paused_by_source = true,
+       lease_owner = case when state = 'leased' then null else lease_owner end,
+       lease_expires_at = case when state = 'leased' then null else lease_expires_at end,
+       execution_token = case when state = 'leased' then null else execution_token end,
+       delivery_generation = delivery_generation + case when state in ('queued', 'leased') then 1 else 0 end
+ where source_id = %(id)s and state in ('queued', 'leased', 'running')
+returning id, state
+"""
+
+RESUME_SOURCE_JOBS = """
+update catalogue.jobs
+   set state = 'queued', pause_requested = false, paused_by_source = false,
+       resume_without_attempt = true, scheduled_for = now(),
+       lease_owner = null, lease_expires_at = null, execution_token = null,
+       delivery_generation = delivery_generation + 1
+ where source_id = %(id)s and state = 'paused' and paused_by_source
 returning id
+"""
+
+DISABLE_SOURCE_JOBS = """
+update catalogue.jobs
+   set cancel_requested = true,
+       state = case when state in ('queued', 'leased', 'paused') then 'skipped' else state end,
+       finished_at = case when state in ('queued', 'leased', 'paused') then now() else finished_at end,
+       lease_owner = case when state in ('queued', 'leased', 'paused') then null else lease_owner end,
+       lease_expires_at = case when state in ('queued', 'leased', 'paused') then null else lease_expires_at end,
+       execution_token = case when state in ('queued', 'leased', 'paused') then null else execution_token end,
+       delivery_generation = delivery_generation + case when state in ('queued', 'leased', 'paused') then 1 else 0 end
+ where source_id = %(id)s and state in ('queued', 'leased', 'running', 'paused')
+returning id, run_id, source_id, state
 """
 
 

@@ -42,6 +42,8 @@ def claimed(selected: BrowserBackendName | None) -> ClaimedJob:
         requires_any=["browser:camoufox", "browser:cdp_extension_proxy"],
         params={},
         proxy_snapshot={},
+        delivery_generation=1,
+        execution_token=uuid4(),
         selected_browser_backend=selected,
     )
 

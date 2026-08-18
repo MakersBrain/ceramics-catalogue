@@ -26,7 +26,7 @@ import psycopg
 from mb_ceramics_catalogue.config.settings import CrawlParams
 from mb_ceramics_catalogue.config.sources import SourcesFile, default_path
 from mb_ceramics_catalogue.observability.http import RequestTelemetry
-from mb_ceramics_catalogue.ops import events, runs
+from mb_ceramics_catalogue.ops import events, outbox, runs
 from mb_ceramics_catalogue.ops import schedule as scheduling
 from starlette.applications import Starlette
 from starlette.datastructures import Headers
@@ -251,7 +251,7 @@ async def create_run(request: Request) -> Response:
     except ValueError as error:
         return problem(422, "Unknown source", str(error))
 
-    async with request.app.state.pool.connection() as connection:
+    async with request.app.state.pool.connection() as connection, connection.transaction():
         run_id = await runs.create_run(
             connection,
             kind=body.get("kind", "manual"),
@@ -325,7 +325,7 @@ async def job_action(request: Request) -> Response:
     if action not in statements:
         return problem(404, "Not Found", f"unknown action {action!r}")
 
-    async with request.app.state.pool.connection() as connection:
+    async with request.app.state.pool.connection() as connection, connection.transaction():
         row = await queries.one(connection, statements[action], {"id": job_id})
         if row is None:
             # Conditional on the current state, so this is "not in a state where
@@ -338,6 +338,8 @@ async def job_action(request: Request) -> Response:
         )
         if action == "cancel":
             await runs.close_run_if_done(connection, row["run_id"])
+        elif action in ("resume", "retry") and row["state"] == "queued":
+            await outbox.enqueue_job(connection, job_id)
     return JSONResponse({"job_id": str(job_id), "action": action}, status_code=202)
 
 
@@ -616,10 +618,29 @@ async def update_source(request: Request) -> Response:
                 "by": body.get("updated_by", current.get("updated_by")),
             },
         )
-        if body.get("paused"):
+        desired_paused = bool(body.get("paused", current.get("paused", False)))
+        desired_enabled = bool(body.get("enabled", current.get("enabled", True)))
+        if not desired_enabled:
+            disabled = await queries.all_rows(
+                connection, queries.DISABLE_SOURCE_JOBS, {"id": name}
+            )
+            for job in disabled:
+                await events.emit(
+                    connection, events.Topic.JOB,
+                    "job.skipped" if job["state"] == "skipped" else "job.cancel_requested",
+                    run_id=job["run_id"], job_id=job["id"], source_id=name,
+                    payload={"reason": "source disabled"},
+                )
+                if job["state"] == "skipped":
+                    await runs.close_run_if_done(connection, job["run_id"])
+        if desired_enabled and desired_paused:
             # Pausing a source also pauses the jobs it already has in flight.
             # Resuming does not automatically resume individually paused jobs.
             await queries.all_rows(connection, queries.PAUSE_SOURCE_JOBS, {"id": name})
+        elif desired_enabled and current.get("paused"):
+            resumed = await queries.all_rows(connection, queries.RESUME_SOURCE_JOBS, {"id": name})
+            for job in resumed:
+                await outbox.enqueue_job(connection, job["id"])
         await events.emit(
             connection, events.Topic.SOURCE, "source.changed", source_id=name, payload=dict(body)
         )

@@ -19,6 +19,7 @@ install -m 0644 deploy/quadlet/*.volume    /etc/containers/systemd/
 systemctl daemon-reload
 
 systemctl enable --now catalogue-service catalogue-control
+systemctl enable --now catalogue-nats catalogue-dispatcher
 systemctl enable --now catalogue-worker@{1,2,3}
 systemctl enable --now catalogue-worker-browser
 ```

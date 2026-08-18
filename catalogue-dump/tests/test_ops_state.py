@@ -557,16 +557,25 @@ class TestHostSlots:
         assert edge is not None
 
         first, second = await register_worker(db), await register_worker(db)
-        assert await leases.acquire(db, "ceradel.fr", jobs["ceradel"], first) is not None
-        assert await leases.acquire(db, edge, jobs["ceradel"], first) is not None
+        first_token, second_token = uuid4(), uuid4()
+        assert await leases.acquire(
+            db, "ceradel.fr", jobs["ceradel"], first, first_token
+        ) is not None
+        assert await leases.acquire(db, edge, jobs["ceradel"], first, first_token) is not None
 
         # A different shop, its own host free, but the edge is taken.
-        assert await leases.acquire(db, "lescousins.fr", jobs["les-cousins"], second) is not None
-        assert await leases.acquire(db, edge, jobs["les-cousins"], second) is None
+        assert await leases.acquire(
+            db, "lescousins.fr", jobs["les-cousins"], second, second_token
+        ) is not None
+        assert await leases.acquire(db, edge, jobs["les-cousins"], second, second_token) is None
 
         # The first job going away frees both of its keys, whichever it holds.
-        assert set(await leases.release_all(db, jobs["ceradel"])) == {"ceradel.fr", edge}
-        assert await leases.acquire(db, edge, jobs["les-cousins"], second) is not None
+        assert set(await leases.release_all(db, jobs["ceradel"], first_token)) == {
+            "ceradel.fr", edge
+        }
+        assert await leases.acquire(
+            db, edge, jobs["les-cousins"], second, second_token
+        ) is not None
 
     async def test_an_operator_can_widen_the_edge_without_a_deploy(self):
         """It is an ordinary row in `catalogue.hosts`, so it tunes like one."""

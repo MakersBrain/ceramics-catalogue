@@ -36,13 +36,9 @@ async def build_schema(connection) -> None:
     await connection.execute("drop schema if exists catalogue cascade")
     if EXTENSIONS.exists():
         await connection.execute(EXTENSIONS.read_text(encoding="utf-8"))
-    for name in (
-        "catalogue-reference-schema.sql",
-        "catalogue-reference-schema-v2.sql",
-        "catalogue-ops-schema.sql",
-        "catalogue-ops-schema-v2.sql",
-        "catalogue-ops-schema-v3.sql",
-    ):
+    from mb_ceramics_catalogue.storage.db import SCHEMA_FILES
+
+    for name in SCHEMA_FILES:
         await connection.execute((SCHEMA / name).read_text(encoding="utf-8"))
 
 

@@ -67,6 +67,7 @@ from mb_ceramics_catalogue.observability import metrics, tracing
 from mb_ceramics_catalogue.ops import events, leases, monitor, queue, runs, schedule
 from mb_ceramics_catalogue.ops import outputs as ops_outputs
 from mb_ceramics_catalogue.ops.connector_adapters import runtime_plan
+from mb_ceramics_catalogue.ops.job_queue import Delivery, NatsJobQueue, routes_for
 from mb_ceramics_catalogue.ops.sink import THROTTLE_SECONDS, JobLogHandler, PostgresSink
 from mb_ceramics_catalogue.pipeline.budget import RequestBudget, RequestCost
 from mb_ceramics_catalogue.pipeline.outputs import LocalArtifactStore
@@ -165,6 +166,10 @@ class Worker:
         #: tear down the others this process is carrying.
         self._cancels: dict[UUID, asyncio.Event] = {}
         self._job_started: dict[UUID, float] = {}
+        self._deliveries: dict[UUID, Delivery] = {}
+        self._broker = NatsJobQueue(
+            settings.nats_url, token=settings.nats_token, stream=settings.nats_stream,
+        )
         self._slots = asyncio.Semaphore(max(1, settings.job_slots))
         #: One camoufox for this process, shared by every job that renders and
         #: started on the first one that does. Per job it was sixteen across the
@@ -285,6 +290,14 @@ class Worker:
         """
         while not self.state.stopping:
             try:
+                for delivery in list(self._deliveries.values()):
+                    await delivery.in_progress()
+            except Exception:
+                # Broker liveness and database liveness are independent. A
+                # failed progress ACK is retried next heartbeat and must not
+                # prevent lease/control polling.
+                LOGGER.warning("worker.delivery_heartbeat_failed", exc_info=True)
+            try:
                 async with self.pool.connection() as connection:
                     row = await _one(
                         connection,
@@ -295,9 +308,11 @@ class Worker:
                     if row is not None:
                         await self._observe_desired_state(str(row["desired_state"]))
 
-                    held = await queue.renew(connection, self.state.id)
-                    await leases.renew(connection, self.state.id)
-
+                    jobs = list(self.state.current_jobs.values())
+                    held = await queue.renew(connection, jobs, self.state.id)
+                    await leases.renew(
+                        connection, self.state.id, [job.execution_token for job in jobs]
+                    )
                     for job in held:
                         if job["cancel_requested"]:
                             LOGGER.info("job.cancel_requested", job_id=str(job["id"]))
@@ -355,6 +370,7 @@ class Worker:
     # -- the loop ---------------------------------------------------------
 
     async def run(self) -> int:
+        await self._broker.connect()
         await self.register()
         self._heartbeat = asyncio.create_task(self._beat(), name="worker-heartbeat")
         await self.set_status("idle")
@@ -454,12 +470,27 @@ class Worker:
         tests want.
         """
         await self.lead()
-        async with self.pool.connection() as connection:
-            await queue.reap_expired(connection)
-            job = await queue.claim(connection, self.state.id, self.state.capabilities)
-
-        if job is None:
+        delivery = await self._broker.next_delivery(routes_for(self.state.capabilities))
+        if delivery is None:
             return False
+        try:
+            async with self.pool.connection() as connection:
+                reservation = await queue.reserve(
+                    connection, delivery.envelope, self.state.id, self.state.capabilities
+                )
+        except psycopg.Error:
+            LOGGER.warning("job.reservation_database_failed", exc_info=True)
+            await delivery.retry(5.0)
+            return True
+        if reservation.disposition == "ack":
+            await delivery.ack()
+            return True
+        if reservation.disposition == "retry":
+            await delivery.retry(reservation.retry_after)
+            return True
+        job = reservation.job
+        assert job is not None
+        self._deliveries[job.id] = delivery
 
         async def run_one() -> bool:
             # Set inside the task, so every line logged under this job — and
@@ -494,14 +525,17 @@ class Worker:
 
         async with self.pool.connection() as connection:
             for key in keys:
-                if await leases.acquire(connection, key, job.id, self.state.id) is None:
+                if await leases.acquire(
+                    connection, key, job.id, self.state.id, job.execution_token
+                ) is None:
                     # Another worker is crawling this shop, or another shop on
                     # the same edge. Not an attempt: being polite must not spend
                     # a source's retry budget. Anything already taken for this
                     # job goes back, or the second key's contention would leak
                     # the first key's slot until its lease expired.
-                    await leases.release_all(connection, job.id)
+                    await leases.release_all(connection, job.id, job.execution_token)
                     await queue.release(connection, job, self.state.id, reason="host busy")
+                    await self._deliveries[job.id].retry(queue.HOST_BACKOFF_SECONDS)
                     self._forget(job)
                     return False
 
@@ -517,7 +551,8 @@ class Worker:
             trace_id = tracing.trace_id()
             async with self.pool.connection() as connection:
                 if not await queue.start(connection, job, self.state.id, trace_id=trace_id):
-                    await leases.release_all(connection, job.id)
+                    await leases.release_all(connection, job.id, job.execution_token)
+                    await self._deliveries[job.id].ack()
                     self._forget(job)
                     return False
                 self._job_started[job.id] = started
@@ -543,7 +578,13 @@ class Worker:
                 await self._finish(job, "failed", error=str(error)[:2000])
             finally:
                 async with self.pool.connection() as connection:
-                    await leases.release_all(connection, job.id)
+                    await leases.release_all(connection, job.id, job.execution_token)
+                delivery = self._deliveries.get(job.id)
+                if delivery is not None:
+                    # Terminal completion and capability rerouting both make
+                    # this exact generation obsolete. CAS fencing makes a late
+                    # ACK harmless if ownership was lost.
+                    await delivery.ack()
                 self._job_started.pop(job.id, None)
                 self._forget(job)
                 # Another slot may still be crawling. A completed job used to
@@ -1029,10 +1070,7 @@ class Worker:
                     yield json.loads(line)
 
         with psycopg.connect(self.settings.dsn, row_factory=dict_row, autocommit=True) as connection:
-            postgres.ensure_staging(connection)
-            return postgres.load_source(
-                connection, job.source_id, records(), whole=whole, run_id=None
-            )
+            return self._load_fenced(connection, job, records(), whole=whole)
 
     async def _proxy_lease(
         self, connection: Any, job: queue.ClaimedJob, config: Any, params: CrawlParams,
@@ -1118,6 +1156,7 @@ class Worker:
     def _forget(self, job: queue.ClaimedJob) -> None:
         self.state.current_jobs.pop(job.id, None)
         self._cancels.pop(job.id, None)
+        self._deliveries.pop(job.id, None)
 
     async def _load(self, job: queue.ClaimedJob, outcome: Any, *, whole: bool) -> postgres.SourceReport:
         """Load this source's records, in a thread so the loop keeps beating.
@@ -1132,16 +1171,31 @@ class Worker:
             from psycopg.rows import dict_row
 
             with psycopg.connect(dsn, row_factory=dict_row, autocommit=True) as connection:
-                postgres.ensure_staging(connection)
-                return postgres.load_source(
-                    connection,
-                    job.source_id,
-                    outcome.records,
-                    whole=whole,
-                    run_id=None,
-                )
+                return self._load_fenced(connection, job, outcome.records, whole=whole)
 
         return await asyncio.to_thread(load)
+
+    @staticmethod
+    def _load_fenced(
+        connection: Any, job: queue.ClaimedJob, records: Any, *, whole: bool
+    ) -> postgres.SourceReport:
+        """Keep token replacement out of the material catalogue transaction."""
+        with connection.transaction():
+            connection.execute(
+                "select pg_advisory_xact_lock(hashtextextended(%(id)s::text, 0))",
+                {"id": job.id},
+            )
+            owned = connection.execute(
+                "select 1 from catalogue.jobs where id=%(id)s and execution_token=%(token)s "
+                "and state='running'",
+                {"id": job.id, "token": job.execution_token},
+            ).fetchone()
+            if owned is None:
+                raise RuntimeError("job execution token was lost before catalogue load")
+            postgres.ensure_staging(connection)
+            return postgres.load_source(
+                connection, job.source_id, records, whole=whole, run_id=None
+            )
 
     async def _finish(
         self,
@@ -1153,8 +1207,38 @@ class Worker:
         artifact: Any = None,
     ) -> None:
         async with self.pool.connection() as connection:
+            flags = await queue.cancel_requested(connection, job.id)
+            if state == "cancelled" and flags["pause"]:
+                row = await connection.execute(
+                    """update catalogue.jobs
+                          set state = 'paused', pause_requested = false,
+                              lease_owner = null, lease_expires_at = null,
+                              execution_token = null,
+                              summary = coalesce(%(summary)s, summary),
+                              artifact_path = coalesce(%(path)s, artifact_path),
+                              artifact_sha256 = coalesce(%(sha)s, artifact_sha256),
+                              artifact_size = coalesce(%(size)s, artifact_size)
+                        where id = %(id)s and execution_token = %(token)s
+                      returning run_id, source_id""",
+                    {
+                        "id": job.id,
+                        "token": job.execution_token,
+                        "summary": Jsonb(summary) if summary is not None else None,
+                        "path": str(artifact.path) if artifact else None,
+                        "sha": getattr(artifact, "sha256", None) or None,
+                        "size": getattr(artifact, "size", None),
+                    },
+                )
+                paused = await row.fetchone()
+                if paused is not None:
+                    await events.emit(
+                        connection, events.Topic.JOB, "job.paused", run_id=paused["run_id"],
+                        job_id=job.id, source_id=paused["source_id"],
+                    )
+                return
             await runs.finish_job(
-                connection, job.id, state=state, summary=summary, error=error, artifact=artifact
+                connection, job.id, state=state, summary=summary, error=error, artifact=artifact,
+                execution_token=job.execution_token,
             )
             snapshot = job.proxy_snapshot
             if snapshot.get("pilot") and snapshot.get("route_id") and snapshot.get("policy") != "never":
@@ -1240,10 +1324,13 @@ class Worker:
                 for job in list(self.state.current_jobs.values()):
                     # Requeued rather than failed: the worker is going away, and
                     # that is not the source's fault, so no attempt is spent.
-                    await leases.release_all(connection, job.id)
+                    await leases.release_all(connection, job.id, job.execution_token)
                     await queue.release(
                         connection, job, self.state.id, delay=0, reason="worker stopping"
                     )
+                    delivery = self._deliveries.get(job.id)
+                    if delivery is not None:
+                        await delivery.retry(0)
                 await connection.execute(
                     "update catalogue.workers set status = 'stopped', current_job_id = null, "
                     "last_heartbeat_at = now() where id = %(id)s",
@@ -1263,6 +1350,7 @@ class Worker:
         # error path: a browser this process leaves running outlives the
         # container's stop grace period as an orphan.
         await self._close_browser()
+        await self._broker.close()
 
         obs.unbind("worker_id")
         LOGGER.info("worker.stopping", reason=self.state.desired_state)

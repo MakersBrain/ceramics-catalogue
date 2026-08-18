@@ -1,13 +1,12 @@
-"""`catalogue-worker`: claim jobs from the queue and run them.
+"""`catalogue-worker`: consume NATS JetStream jobs and run them.
 
     catalogue-worker                            a plain worker
     catalogue-worker --capabilities browser     one that can take browser jobs
     catalogue-worker --once                     take one job and exit, for tests
 
-Scaled by running more of them. `docker compose up --scale worker=3` and
-`systemctl enable catalogue-worker@{1,2,3}` are the same operation; the queue
-does not care how many there are, and `catalogue.hosts` is what stops three
-workers tripling the load on every shop.
+Scaled by running more of them. JetStream shares each durable route across the
+eligible consumers, PostgreSQL execution tokens fence redelivery, and
+`catalogue.hosts` stops three workers tripling the load on every shop.
 """
 
 from __future__ import annotations
@@ -76,6 +75,10 @@ async def run(options: argparse.Namespace) -> int:
         settings.dumps_dir = options.dumps
 
     capabilities = [item.strip() for item in options.capabilities.split(",") if item.strip()]
+    if "browser" in capabilities and not any(
+        item.startswith("browser:") for item in capabilities
+    ):
+        capabilities.append(f"browser:{BrowserBackendName.CAMOUFOX.value}")
     capabilities, browser_backends = await configure_browser_backends(settings, capabilities)
     sources = SourcesFile.load(options.sources_file or default_path())
 

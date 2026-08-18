@@ -1,13 +1,14 @@
 # One collection worker. A template unit, so the instance count is
 # `systemctl enable catalogue-worker@{1,2,3}` and nothing else changes.
 #
-# The queue does not care how many there are: `for update skip locked` gives
-# each of them a different job, and `catalogue.hosts` is what stops three
+# JetStream gives each message to one consumer and PostgreSQL execution tokens
+# fence redelivery; `catalogue.hosts` is what stops three
 # workers tripling the load on every shop.
 [Unit]
 Description=Ceramics catalogue worker %i
-After=network-online.target
+After=network-online.target catalogue-nats.service
 Wants=network-online.target
+Requires=catalogue-nats.service
 
 [Container]
 Image=localhost/catalogue-worker:${CATALOGUE_VERSION}
@@ -18,6 +19,7 @@ Volume=catalogue-dumps.volume:/var/lib/catalogue/dumps
 # One port per instance, so several workers on one host can each be scraped.
 PublishPort=127.0.0.1:910%i:9109
 Environment=CATALOGUE_LOG_JSON=true
+Environment=CATALOGUE_NATS_URL=nats://host.containers.internal:4222
 HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:9109/health')"
 HealthInterval=30s
 HealthStartPeriod=15s

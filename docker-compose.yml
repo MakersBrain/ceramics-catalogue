@@ -7,6 +7,22 @@
 name: catalogue-ceramics
 
 services:
+  nats:
+    image: nats:2.11-alpine
+    container_name: catalogue-nats
+    command: ["--jetstream", "--store_dir=/data", "--http_port=8222", "--auth", "${CATALOGUE_NATS_TOKEN:-catalogue-local}"]
+    ports:
+      - "127.0.0.1:${CATALOGUE_NATS_PORT:-4222}:4222"
+      - "127.0.0.1:${CATALOGUE_NATS_MONITOR_PORT:-8222}:8222"
+    volumes:
+      - natsdata:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8222/healthz | grep -q ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
   postgres:
     image: postgres:17-alpine
     container_name: catalogue-postgres
@@ -37,6 +53,7 @@ services:
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema.sql:/docker-entrypoint-initdb.d/30-catalogue-ops-schema.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema-v2.sql:/docker-entrypoint-initdb.d/35-catalogue-ops-schema-v2.sql:ro
       - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema-v3.sql:/docker-entrypoint-initdb.d/36-catalogue-ops-schema-v3.sql:ro
+      - ./catalogue-dump/src/mb_ceramics_catalogue/storage/schema/catalogue-ops-schema-v4.sql:/docker-entrypoint-initdb.d/37-catalogue-ops-schema-v4.sql:ro
       # Last, and it was missing entirely: it alters `canonical_products` and
       # defines `promote_canonical_products`, which a run calls when its last
       # job lands. A database without it takes every source in and never folds
@@ -207,8 +224,37 @@ services:
       start_period: 10s
       retries: 5
 
+  # Transactional outbox publisher and expired-execution reconciler. It may be
+  # scaled: SKIP LOCKED divides batches and Nats-Msg-Id deduplicates a commit
+  # whose publish acknowledgement was lost.
+  dispatcher:
+    build:
+      context: .
+      dockerfile: docker/worker/Dockerfile
+      target: worker
+    depends_on:
+      nats:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      proxy-db-roles:
+        condition: service_completed_successfully
+    environment:
+      CATALOGUE_DSN: postgresql://catalogue_worker:${CATALOGUE_WORKER_DB_PASSWORD:-catalogue-worker}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_NATS_URL: nats://nats:4222
+      CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
+      CATALOGUE_LOG_JSON: "true"
+    entrypoint: ["catalogue-dispatcher"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:9110/health')\""]
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
   # The collection worker. Scale it with `docker compose up --scale worker=3`;
-  # the queue does not care how many there are, and catalogue.hosts is what
+  # JetStream shares the route across them, and catalogue.hosts is what
   # stops three of them tripling the load on every shop.
   worker:
     build:
@@ -216,6 +262,8 @@ services:
       dockerfile: docker/worker/Dockerfile
       target: worker
     depends_on:
+      nats:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       proxy-secrets-init:
@@ -224,6 +272,8 @@ services:
         condition: service_completed_successfully
     environment:
       CATALOGUE_DSN: postgresql://catalogue_worker:${CATALOGUE_WORKER_DB_PASSWORD:-catalogue-worker}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_NATS_URL: nats://nats:4222
+      CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
       # Sources are independent and mostly waiting on someone else's network, so
       # one at a time leaves the process idle for most of a run. Two jobs on one
       # shop are still prevented by catalogue.host_leases, which is per host and
@@ -260,6 +310,8 @@ services:
       dockerfile: docker/worker/Dockerfile
       target: worker-browser
     depends_on:
+      nats:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       proxy-secrets-init:
@@ -268,6 +320,8 @@ services:
         condition: service_completed_successfully
     environment:
       CATALOGUE_DSN: postgresql://catalogue_worker:${CATALOGUE_WORKER_DB_PASSWORD:-catalogue-worker}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
+      CATALOGUE_NATS_URL: nats://nats:4222
+      CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
       # camoufox leaks across jobs. A process that has rendered a few hundred
       # pages is one that gets killed by the OOM reaper mid-write, so it is
       # recycled between jobs instead — `restart: unless-stopped` restarts it.
@@ -427,6 +481,10 @@ services:
 
 volumes:
   pgdata:
+  # JetStream is durable work delivery, not authoritative job state. It still
+  # uses a named volume so an ordinary broker restart does not redeliver the
+  # entire outbox reconstruction set.
+  natsdata:
   # The recorded response cache. Not in the backup set: it is reproducible by
   # fetching, and it is hundreds of megabytes.
   cache:

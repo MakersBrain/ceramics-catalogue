@@ -36,6 +36,8 @@ def job(pipeline: str) -> ClaimedJob:
         requires_any=[],
         params={"pipeline": pipeline},
         proxy_snapshot={},
+        delivery_generation=1,
+        execution_token=uuid4(),
     )
 
 
