@@ -390,6 +390,23 @@ class TestBarren:
         assert message is not None
         assert "recognised nothing" in message
 
+    def test_invalid_rows_are_reported_as_extraction_not_discovery_failures(self):
+        message = barren(
+            {"records": 0, "discovered": 33, "invalid": 33, "scraper": "pagecrawl"}
+        )
+        assert message is not None
+        assert "lacked a usable identity or price" in message
+        assert "listing the wrong pages" not in message
+
+    def test_mixed_rejections_report_both_causes(self):
+        message = barren({
+            "records": 0, "discovered": 33, "filtered": 20, "invalid": 13,
+            "scraper": "pagecrawl",
+        })
+        assert message is not None
+        assert "20 fell outside" in message
+        assert "13 lacked" in message
+
     def test_an_interrupted_source_is_judged_on_nothing(self):
         """It was stopped, so what it did not reach says nothing about it."""
         summary = {"records": 0, "discovered": 900, "scraper": "shopify", "interrupted": True}

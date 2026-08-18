@@ -1730,6 +1730,17 @@ class CategoryWalkTests(unittest.IsolatedAsyncioTestCase):
             found = await scraper.discover_from_categories()
         self.assertEqual(["https://shop.test/blue-glaze"], found)
 
+    async def test_invalid_rows_are_not_counted_as_scope_filtered(self):
+        client, scraper = self._scraper(lambda request: httpx.Response(200))
+        scraper.config["scope"] = "materials"
+
+        scraper.add({"name": "Clay without a price", "price": None})
+        scraper.add({"name": "Electric kiln", "price": 1000.0})
+
+        self.assertEqual(1, scraper.result.invalid)
+        self.assertEqual(1, scraper.result.filtered)
+        await client.aclose()
+
 
 class JsonLdLeniencyTests(unittest.TestCase):
     """Storefronts publish JSON-LD that is not valid JSON, and it still counts.
@@ -1786,6 +1797,13 @@ class MicrodataPriceTests(unittest.TestCase):
     def test_a_number_with_no_currency_is_not_a_price(self):
         document = self._product('<div class="price-and-stock">6</div>')
         self.assertNotIn("offers", microdata.products(document)[0])
+
+    def test_an_unrelated_number_before_the_price_is_skipped(self):
+        document = self._product(
+            '<div class="m-price">Pack 2, price <strong>79,00 zl</strong></div>'
+        )
+        offer = microdata.products(document)[0]["offers"]
+        self.assertEqual({"price": "79,00", "priceCurrency": "PLN"}, offer)
 
     def test_a_marked_up_offer_is_never_second_guessed(self):
         document = self._product(

@@ -89,12 +89,12 @@ def _unlabelled_price(scope: str) -> dict[str, str] | None:
         text = domain.clean(re.sub(r"<[^>]+>", " ", element.group("body")))
         if not text:
             continue
-        match = AMOUNT.search(text)
-        if match is None or not (match.group("symbol") or match.group("code")):
-            continue
-        raw = match.group("code") or match.group("symbol") or ""
-        currency = CURRENCIES.get(raw.casefold(), raw.upper())
-        return {"price": match.group("amount"), "priceCurrency": currency}
+        for match in AMOUNT.finditer(text):
+            if not (match.group("symbol") or match.group("code")):
+                continue
+            raw = match.group("code") or match.group("symbol") or ""
+            currency = CURRENCIES.get(raw.casefold(), raw.upper())
+            return {"price": match.group("amount"), "priceCurrency": currency}
     return None
 
 

@@ -90,11 +90,23 @@ def barren(summary: dict[str, Any]) -> str | None:
     if not discovered:
         return None
     filtered = int(summary.get("filtered") or 0)
-    if filtered:
+    invalid = int(summary.get("invalid") or 0)
+    if filtered and not invalid:
         return (
             f"listed {discovered} products, extracted {filtered}, and kept none: "
             "every row fell outside this source's materials scope, so the crawl "
             "is listing the wrong pages"
+        )
+    if invalid and not filtered:
+        return (
+            f"listed {discovered} products, extracted {invalid}, and kept none: "
+            "every extracted row lacked a usable identity or price"
+        )
+    if filtered and invalid:
+        return (
+            f"listed {discovered} products, extracted {filtered + invalid}, and kept none: "
+            f"{filtered} fell outside this source's materials scope and {invalid} "
+            "lacked a usable identity or price"
         )
     return (
         f"listed {discovered} products and extracted none: "
@@ -138,6 +150,7 @@ def summarise(
         "proxy_bytes_estimated": getattr(result, "proxy_bytes_estimated", 0),
         "browser_gain": getattr(result, "browser_gain", 0),
         "filtered": getattr(result, "filtered", 0),
+        "invalid": getattr(result, "invalid", 0),
         "browser_zero_gain": getattr(result, "browser_zero_gain", 0),
         "outcome_counts": dict(getattr(result, "outcome_counts", {})),
         "truncated": getattr(result, "truncated", False),
