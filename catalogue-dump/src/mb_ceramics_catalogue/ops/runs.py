@@ -206,6 +206,12 @@ async def create_jobs(
         connection, events.Topic.RUN, "run.planned", run_id=run_id,
         payload={"jobs": len(created), "sources": sorted(created)},
     )
+    if not created:
+        # Every selected source was disabled, so there is no job whose finish
+        # would ever close this run. Without this it sits in `queued` for ever
+        # — the same hang that makes `paused` the wrong lever for taking a
+        # source out of runs, arriving through an empty selection instead.
+        await close_run_if_done(connection, run_id)
     return created
 
 

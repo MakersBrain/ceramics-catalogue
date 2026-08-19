@@ -19,7 +19,7 @@ import pytest
 from mb_ceramics_catalogue.config.settings import CrawlParams
 from mb_ceramics_catalogue.config.sources import SourcesFile
 from mb_ceramics_catalogue.crawl.progress import Progress, ProgressSink
-from mb_ceramics_catalogue.crawl.runner import CrawlRunner, barren
+from mb_ceramics_catalogue.crawl.runner import CrawlRunner, barren, transient
 from mb_ceramics_catalogue.scrapers.base import ScrapeResult
 
 
@@ -200,6 +200,26 @@ class TestDeadline:
             sources, ["slow"], CrawlParams(source_timeout_seconds=0.05)
         )
         assert outcomes[0].summary["truncated"] is True
+
+    async def test_a_source_stopped_by_the_clock_says_so_in_the_summary(self):
+        """`transient` reads this to refuse the source another attempt.
+
+        The clock is not a condition that clears, so retrying a source that
+        spent its whole deadline spends the next one too.
+        """
+        BEHAVIOUR["slow"] = ("hang", 30)
+        sources = make_sources("slow")
+        outcomes, _ = await run_with(
+            sources, ["slow"], CrawlParams(source_timeout_seconds=0.05)
+        )
+        assert outcomes[0].summary["deadline_exceeded"] is True
+        assert not transient(outcomes[0].summary)
+
+    async def test_a_source_that_finished_carries_no_deadline_flag(self):
+        BEHAVIOUR["quick"] = ("records", 3)
+        sources = make_sources("quick")
+        outcomes, _ = await run_with(sources, ["quick"], CrawlParams())
+        assert "deadline_exceeded" not in outcomes[0].summary
 
     async def test_one_source_timing_out_does_not_affect_the_others(self):
         BEHAVIOUR["slow"] = ("hang", 30)
@@ -411,3 +431,68 @@ class TestBarren:
         """It was stopped, so what it did not reach says nothing about it."""
         summary = {"records": 0, "discovered": 900, "scraper": "shopify", "interrupted": True}
         assert barren(summary) is None
+
+
+class TestTransient:
+    """Which empty-handed sources deserve another of their three attempts.
+
+    Every failure in the 2026-08-19 run was a host refusing the crawl — two
+    Shopify stores answering 429 to the first request, one WooCommerce site
+    reporting its database was down — and each was recorded terminally on
+    attempt 1 with two attempts unspent.
+    """
+
+    def test_a_rate_limited_source_is_worth_another_attempt(self):
+        assert transient({
+            "records": 0, "discovered": 0, "error_count": 1,
+            "outcome_counts": {"429": 9},
+        })
+
+    def test_a_source_whose_host_is_erroring_is_worth_another_attempt(self):
+        assert transient({
+            "records": 0, "discovered": 0, "error_count": 2,
+            "outcome_counts": {"2xx": 1, "5xx": 8},
+        })
+
+    def test_timeouts_and_dropped_connections_count_the_same_way(self):
+        assert transient({
+            "records": 0, "error_count": 1, "outcome_counts": {"timeout": 3},
+        })
+        assert transient({
+            "records": 0, "error_count": 1, "outcome_counts": {"transport_error": 3},
+        })
+
+    def test_a_scraper_that_recognised_nothing_is_not(self):
+        """The parser will recognise nothing again in five minutes.
+
+        artequipment listed 33 products over clean 2xx responses and kept none.
+        Retrying that three times triples the crawl and changes no outcome.
+        """
+        assert not transient({
+            "records": 0, "discovered": 33, "error_count": 0,
+            "outcome_counts": {"2xx": 34, "4xx": 1},
+        })
+
+    def test_a_source_that_ran_out_of_clock_is_not(self):
+        """It would not fail faster, it would fail an hour later, three times."""
+        assert not transient({
+            "records": 0, "error_count": 1, "deadline_exceeded": True,
+            "outcome_counts": {"2xx": 40, "timeout": 1},
+        })
+
+    def test_a_source_that_collected_records_is_not(self):
+        assert not transient({
+            "records": 12, "error_count": 1, "outcome_counts": {"429": 4},
+        })
+
+    def test_an_interrupted_source_is_judged_on_nothing(self):
+        assert not transient({
+            "records": 0, "error_count": 1, "interrupted": True,
+            "outcome_counts": {"429": 4},
+        })
+
+    def test_a_forbidden_source_is_not_retried_as_throttling(self):
+        """403 is a decision about who we are, not about our pace."""
+        assert not transient({
+            "records": 0, "error_count": 1, "outcome_counts": {"403": 6},
+        })

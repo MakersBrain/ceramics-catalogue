@@ -93,6 +93,54 @@ async def test_reservation_does_not_consume_attempt_and_start_does(db):
     assert row == {"state": "running", "attempt": 1}
 
 
+async def test_a_released_job_spends_an_attempt_when_it_starts_again(db):
+    """What the worker's transient retry relies on to stay bounded.
+
+    A source whose host answered 429 is released back to the queue rather than
+    failed, so the budget has to be spent by the restart. If it were not, a
+    permanently throttled host would circle the queue forever.
+    """
+    _, envelope = await planned(db)
+    worker = await registered(db)
+    first = await queue.reserve(db, envelope, worker, [])
+    assert first.job is not None
+    assert await queue.start(db, first.job, worker)
+    assert await queue.release(db, first.job, worker, delay=0, reason="429 Too Many Requests")
+
+    row = await one(
+        db, "select state, attempt from catalogue.jobs where id = %(id)s", {"id": envelope.job_id}
+    )
+    assert row == {"state": "queued", "attempt": 1}
+
+    second = await queue.reserve(db, envelope, worker, [])
+    assert second.job is not None
+    # Carried out of the row, so the worker can see the budget it is spending.
+    assert second.job.attempt == 1
+    assert second.job.max_attempts == 3
+    assert await queue.start(db, second.job, worker)
+    row = await one(
+        db, "select state, attempt from catalogue.jobs where id = %(id)s", {"id": envelope.job_id}
+    )
+    assert row == {"state": "running", "attempt": 2}
+
+
+async def test_a_released_job_is_not_offered_before_its_backoff_elapses(db):
+    """The delay is the whole point: coming straight back re-asks a busy host."""
+    _, envelope = await planned(db)
+    worker = await registered(db)
+    reserved = await queue.reserve(db, envelope, worker, [])
+    assert reserved.job is not None
+    assert await queue.start(db, reserved.job, worker)
+    assert await queue.release(
+        db, reserved.job, worker, delay=queue.TRANSIENT_BACKOFF_SECONDS, reason="429"
+    )
+
+    again = await queue.reserve(db, envelope, worker, [])
+    assert again.disposition == "retry"
+    assert again.job is None
+    assert again.retry_after > 0
+
+
 async def test_live_duplicate_is_delayed_not_run(db):
     _, envelope = await planned(db)
     first = await registered(db)
