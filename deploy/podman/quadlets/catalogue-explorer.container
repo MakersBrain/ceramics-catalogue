@@ -1,0 +1,29 @@
+[Unit]
+Description=Ceramics catalogue explorer and operations UI
+Requires=catalogue-control.container catalogue-service.container
+After=catalogue-control.container catalogue-service.container
+
+[Container]
+Image=@@EXPLORER_IMAGE@@
+Pull=never
+ContainerName=catalogue-explorer
+Network=catalogue.network
+UserNS=keep-id:uid=10001,gid=10001
+EnvironmentFile=/etc/makersbrain/catalogue/explorer.env
+Environment=CATALOGUE_CONTROL_URL=http://catalogue-control:8687
+Environment=CATALOGUE_SERVICE_URL=http://catalogue-service:8686
+HealthCmd=node -e "fetch('http://127.0.0.1:3000/').then(r=>{if(!r.ok)process.exit(1)})"
+HealthInterval=15s
+HealthStartPeriod=20s
+HealthRetries=5
+NoNewPrivileges=true
+DropCapability=all
+ReadOnly=true
+Tmpfs=/tmp
+
+[Service]
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

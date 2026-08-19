@@ -1,0 +1,29 @@
+[Unit]
+Description=Ceramics catalogue queue outbox dispatcher
+Requires=catalogue-nats.container
+After=catalogue-nats.container
+
+[Container]
+Image=@@WORKER_IMAGE@@
+Pull=never
+ContainerName=catalogue-dispatcher
+Network=catalogue.network
+EnvironmentFile=/etc/makersbrain/catalogue/dispatcher.env
+Environment=CATALOGUE_NATS_URL=nats://catalogue-nats:4222
+Environment=CATALOGUE_NATS_PUBLISH_CREDENTIALS_FILE=/run/queue/nats-publish-credentials.json
+Volume=/etc/makersbrain/catalogue-secrets/nats-publish-credentials.json:/run/queue/nats-publish-credentials.json:ro
+Volume=/etc/makersbrain/tenant-runtime-secrets/postgres-ca.crt:/run/database/postgres-ca.crt:ro
+Entrypoint=catalogue-dispatcher
+HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9110/health')"
+HealthInterval=30s
+HealthStartPeriod=10s
+HealthRetries=3
+NoNewPrivileges=true
+DropCapability=all
+
+[Service]
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

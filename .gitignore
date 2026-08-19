@@ -26,6 +26,7 @@ catalogue-dumps*/
 catalogue-dump/catalogue-dumps*/
 dumps/
 backups/*.dump
+backups/*.dump.*
 *.ndjson
 
 # The golden files are the exception: they are small, they are checked in on

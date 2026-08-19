@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -36,14 +37,14 @@ class QueueProviderName(StrEnum):
 def publisher(settings: Any) -> QueuePublisher:
     selected = QueueProviderName(settings.queue_provider)
     if selected is QueueProviderName.NATS:
-        token = _secret(settings.nats_publish_token_file, fallback=settings.nats_token)
+        auth = _nats_auth(settings, "publish")
         return NatsPublisher(
             settings.nats_url,
-            token=token,
+            **auth,
             stream=settings.nats_stream,
             # A role credential is deliberately unable to administer JetStream.
             # Keep implicit provisioning only for the legacy shared-token setup.
-            provision=settings.nats_publish_token_file is None,
+            provision=_nats_is_legacy(settings, "publish"),
         )
     return CloudflarePublisher(_cf_api(settings, settings.cf_publish_token_file), _cf_routes(settings))
 
@@ -51,12 +52,12 @@ def publisher(settings: Any) -> QueuePublisher:
 def consumer(settings: Any) -> QueueConsumer:
     selected = QueueProviderName(settings.queue_provider)
     if selected is QueueProviderName.NATS:
-        token = _secret(settings.nats_consume_token_file, fallback=settings.nats_token)
+        auth = _nats_auth(settings, "consume")
         return NatsConsumer(
             settings.nats_url,
-            token=token,
+            **auth,
             stream=settings.nats_stream,
-            provision=settings.nats_consume_token_file is None,
+            provision=_nats_is_legacy(settings, "consume"),
         )
     return CloudflareConsumer(
         _cf_api(settings, settings.cf_consume_token_file),
@@ -70,8 +71,9 @@ def consumer(settings: Any) -> QueueConsumer:
 def stats_reader(settings: Any) -> QueueStatsReader:
     selected = QueueProviderName(settings.queue_provider)
     if selected is QueueProviderName.NATS:
-        token = _secret(settings.nats_stats_token_file, fallback=settings.nats_token)
-        return NatsStatsReader(settings.nats_url, token=token, stream=settings.nats_stream)
+        return NatsStatsReader(
+            settings.nats_url, **_nats_auth(settings, "stats"), stream=settings.nats_stream
+        )
     return CloudflareStatsReader(
         _cf_api(settings, settings.cf_stats_token_file),
         _cf_routes(settings),
@@ -92,8 +94,9 @@ def recovery_consumer(settings: Any) -> CloudflareRecoveryConsumer | None:
 def provisioner(settings: Any) -> QueueProvisioner:
     selected = QueueProviderName(settings.queue_provider)
     if selected is QueueProviderName.NATS:
-        token = _secret(settings.nats_admin_token_file, fallback=settings.nats_token)
-        return NatsProvisioner(settings.nats_url, token=token, stream=settings.nats_stream)
+        return NatsProvisioner(
+            settings.nats_url, **_nats_auth(settings, "admin"), stream=settings.nats_stream
+        )
     return CloudflareProvisioner(
         _cf_api(settings, settings.cf_admin_token_file),
         _cf_routes(settings),
@@ -132,3 +135,28 @@ def _secret(path: Path | None, *, fallback: str = "") -> str:
     if not value:
         raise ValueError(f"queue credential file is empty: {path}")
     return value
+
+
+def _nats_is_legacy(settings: Any, role: str) -> bool:
+    return (
+        getattr(settings, f"nats_{role}_credentials_file", None) is None
+        and getattr(settings, f"nats_{role}_token_file", None) is None
+    )
+
+
+def _nats_auth(settings: Any, role: str) -> dict[str, str]:
+    credentials_file = getattr(settings, f"nats_{role}_credentials_file", None)
+    if credentials_file is None:
+        token_file = getattr(settings, f"nats_{role}_token_file", None)
+        return {"token": _secret(token_file, fallback=settings.nats_token)}
+    try:
+        document = json.loads(credentials_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"cannot read NATS {role} credentials file") from error
+    if set(document) != {"user", "password"}:
+        raise ValueError(f"NATS {role} credentials must contain only user and password")
+    user = document["user"]
+    password = document["password"]
+    if not isinstance(user, str) or not user or not isinstance(password, str) or len(password) < 32:
+        raise ValueError(f"NATS {role} credentials are invalid")
+    return {"user": user, "password": password}

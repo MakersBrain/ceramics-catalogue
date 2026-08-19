@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -59,3 +60,45 @@ def test_legacy_shared_nats_token_keeps_implicit_provisioning() -> None:
     assert isinstance(legacy_consumer, NatsConsumer)
     assert legacy_publisher.queue.provision_on_connect is True
     assert legacy_consumer.queue.provision_on_connect is True
+
+
+def test_role_scoped_nats_user_credentials_are_loaded_without_provisioning(tmp_path) -> None:
+    credentials = tmp_path / "publish.json"
+    credentials.write_text(
+        json.dumps({"user": "catalogue-publisher", "password": "p" * 48}),
+        encoding="utf-8",
+    )
+    settings = SimpleNamespace(
+        queue_provider="nats",
+        nats_url="nats://queue:4222",
+        nats_token="",
+        nats_publish_token_file=None,
+        nats_publish_credentials_file=credentials,
+        nats_stream="CATALOGUE_JOBS",
+    )
+
+    scoped = publisher(settings)
+    assert isinstance(scoped, NatsPublisher)
+    assert scoped.queue.user == "catalogue-publisher"
+    assert scoped.queue.password == "p" * 48
+    assert scoped.queue.token == ""
+    assert scoped.queue.provision_on_connect is False
+
+
+def test_role_scoped_nats_credentials_reject_extra_fields(tmp_path) -> None:
+    credentials = tmp_path / "publish.json"
+    credentials.write_text(
+        json.dumps({"user": "catalogue-publisher", "password": "p" * 48, "admin": True}),
+        encoding="utf-8",
+    )
+    settings = SimpleNamespace(
+        queue_provider="nats",
+        nats_url="nats://queue:4222",
+        nats_token="",
+        nats_publish_token_file=None,
+        nats_publish_credentials_file=credentials,
+        nats_stream="CATALOGUE_JOBS",
+    )
+
+    with pytest.raises(ValueError, match="only user and password"):
+        publisher(settings)

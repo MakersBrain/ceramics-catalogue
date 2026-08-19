@@ -152,6 +152,15 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Browser worker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/worker/Dockerfile
+          target: worker-browser
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Control
         uses: docker/build-push-action@v6
         with:
@@ -165,6 +174,14 @@ jobs:
         with:
           context: .
           file: catalogue-service/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Database transfer tool
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/database-transfer/Dockerfile
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max

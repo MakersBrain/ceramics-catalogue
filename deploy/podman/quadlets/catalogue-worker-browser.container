@@ -1,0 +1,35 @@
+[Unit]
+Description=Ceramics catalogue browser worker
+Requires=catalogue-nats.container
+After=catalogue-nats.container
+
+[Container]
+Image=@@WORKER_BROWSER_IMAGE@@
+Pull=never
+ContainerName=catalogue-worker-browser
+Network=catalogue.network
+EnvironmentFile=/etc/makersbrain/catalogue/worker-browser.env
+Environment=CATALOGUE_NATS_URL=nats://catalogue-nats:4222
+Environment=CATALOGUE_NATS_CONSUME_CREDENTIALS_FILE=/run/queue/nats-consume-credentials.json
+Environment=CATALOGUE_MAX_JOBS=25
+Volume=/etc/makersbrain/catalogue-secrets/nats-consume-credentials.json:/run/queue/nats-consume-credentials.json:ro
+Volume=/etc/makersbrain/tenant-runtime-secrets/postgres-ca.crt:/run/database/postgres-ca.crt:ro
+Volume=catalogue-cache.volume:/var/lib/catalogue/cache
+Volume=catalogue-dumps.volume:/var/lib/catalogue/dumps
+Tmpfs=/tmp
+ShmSize=512m
+HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9109/health')"
+HealthInterval=30s
+HealthStartPeriod=30s
+HealthRetries=3
+NoNewPrivileges=true
+DropCapability=all
+
+[Service]
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=180
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=default.target

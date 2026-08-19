@@ -218,6 +218,10 @@ class Settings(BaseSettings):
     nats_consume_token_file: Path | None = None
     nats_stats_token_file: Path | None = None
     nats_admin_token_file: Path | None = None
+    nats_publish_credentials_file: Path | None = None
+    nats_consume_credentials_file: Path | None = None
+    nats_stats_credentials_file: Path | None = None
+    nats_admin_credentials_file: Path | None = None
     nats_stream: str = "CATALOGUE_JOBS"
     cf_account_id: str = ""
     cf_publish_token_file: Path | None = None
