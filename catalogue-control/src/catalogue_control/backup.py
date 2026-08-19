@@ -52,9 +52,9 @@ import os
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, timezone
+from collections.abc import Iterable, Sequence
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Iterable, Sequence
 
 from .changes import ArtifactError, resolve_artifact
 
@@ -102,7 +102,7 @@ class Settings:
     tags: tuple[str, ...]
 
     @classmethod
-    def from_env(cls, env: dict[str, str] | None = None) -> "Settings":
+    def from_env(cls, env: dict[str, str] | None = None) -> Settings:
         env = dict(os.environ if env is None else env)
         missing = [
             name
@@ -181,7 +181,7 @@ def dump_database(settings: Settings, destination: Path) -> Path:
 def backup(settings: Settings) -> None:
     """Dump the database, then the artifacts. See the module docstring."""
     ensure_repository(settings)
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    stamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     tags: list[str] = []
     for tag in (*settings.tags, f"at:{stamp}"):
         tags += ["--tag", tag]
