@@ -72,3 +72,15 @@ digest describes nothing.
 
 `catalogue-cache.volume` is deliberately **not** backed up. It is hundreds of
 megabytes, it is reproducible by fetching, and losing it costs one slow run.
+
+The backup set is now implemented rather than only described:
+`catalogue-backup` (image `docker/backup`) dumps PostgreSQL and this volume into
+one restic repository, in that order, because artifacts are write-once and the
+dump must not be able to reference a file the artifact pass never saw. Restore
+is not complete until `catalogue-backup verify` re-checks every recorded
+`sha256` against the restored files. See
+[`docs/backup-restore-runbook.md`](../../docs/backup-restore-runbook.md).
+
+The schedule, the object storage credentials and the Quadlet timer belong to
+`mb-infra`; this repository owns the image and the knowledge of what has to stay
+consistent with what.
