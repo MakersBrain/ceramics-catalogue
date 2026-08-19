@@ -53,6 +53,29 @@ def test_record_binds_environment(tmp_path: Path) -> None:
         release.load_record(path, values())
 
 
+def test_images_require_the_exact_keyless_identity(monkeypatch) -> None:
+    image = "ghcr.io/makersbrain/catalogue/control@sha256:" + "a" * 64
+    calls: list[list[str]] = []
+    monkeypatch.setattr(release, "run", calls.append)
+
+    release.verify_and_pull({"control": image})
+
+    assert calls == [
+        [
+            "cosign",
+            "verify",
+            "--certificate-oidc-issuer",
+            release.COSIGN_OIDC_ISSUER,
+            "--certificate-identity",
+            release.COSIGN_IDENTITY,
+            "--certificate-github-workflow-repository",
+            "MakersBrain/ceramics-catalogue",
+            image,
+        ],
+        ["podman", "pull", image],
+    ]
+
+
 def test_activation_restores_previous_symlink_on_failure(tmp_path: Path, monkeypatch) -> None:
     previous = tmp_path / "previous"
     candidate = tmp_path / "candidate"

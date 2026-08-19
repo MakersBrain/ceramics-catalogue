@@ -19,6 +19,11 @@ import validate
 RELEASE_ID = re.compile(r"^catalogue-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-[a-f0-9]{16,64}$")
 COMMIT = re.compile(r"^[a-f0-9]{40,64}$")
 QUALIFICATION = re.compile(r"^\S+/qualifications@sha256:[a-f0-9]{64}$")
+COSIGN_OIDC_ISSUER = "https://token.actions.githubusercontent.com"
+COSIGN_IDENTITY = (
+    "https://github.com/MakersBrain/ceramics-catalogue/"
+    ".github/workflows/release.yml@refs/heads/main"
+)
 BASE_UNITS = [
     "catalogue-nats.service",
     "catalogue-service.service",
@@ -35,6 +40,24 @@ def run(command: list[str]) -> None:
 
 def run_best_effort(command: list[str]) -> None:
     subprocess.run(command, check=False)
+
+
+def verify_and_pull(images: dict[str, str]) -> None:
+    for image in images.values():
+        run(
+            [
+                "cosign",
+                "verify",
+                "--certificate-oidc-issuer",
+                COSIGN_OIDC_ISSUER,
+                "--certificate-identity",
+                COSIGN_IDENTITY,
+                "--certificate-github-workflow-repository",
+                "MakersBrain/ceramics-catalogue",
+                image,
+            ]
+        )
+        run(["podman", "pull", image])
 
 
 def load_record(path: Path, values: dict) -> dict:
@@ -114,8 +137,6 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--values", type=Path, required=True)
     parser.add_argument("--release-record", type=Path, required=True)
-    parser.add_argument("--release-signature", type=Path, required=True)
-    parser.add_argument("--cosign-key", type=Path, required=True)
     parser.add_argument("--state-root", type=Path, default=Path.home() / ".local/state/catalogue")
     parser.add_argument(
         "--quadlet-root", type=Path, default=Path.home() / ".config/containers/systemd"
@@ -126,17 +147,9 @@ def main() -> None:
     mode.add_argument("--start-staged", action="store_true")
     args = parser.parse_args()
 
-    run(
-        [
-            "cosign", "verify-blob", "--insecure-ignore-tlog", "--key", str(args.cosign_key),
-            "--signature", str(args.release_signature), str(args.release_record),
-        ]
-    )
     values = render.load_values(args.values)
     record = load_record(args.release_record, values)
-    for image in values["images"].values():
-        run(["cosign", "verify", "--key", str(args.cosign_key), image])
-        run(["podman", "pull", image])
+    verify_and_pull(values["images"])
 
     with tempfile.TemporaryDirectory(prefix="catalogue-release-") as temporary:
         rendered = Path(temporary)
@@ -146,13 +159,13 @@ def main() -> None:
         if not args.start_staged:
             target = stage(rendered, record["release_id"], args.state_root)
         elif not target.is_dir():
-            raise ValueError("the exact signed release has not been staged")
+            raise ValueError("the exact verified release has not been staged")
         if args.activate or args.start_staged:
             activate(target, units(values), args.quadlet_root)
         elif args.stage_only:
             print(f"staged {record['release_id']}")
         else:
-            print("Catalogue release signature, images and Quadlets are valid")
+            print("Catalogue release images, record and Quadlets are valid")
 
 
 if __name__ == "__main__":
