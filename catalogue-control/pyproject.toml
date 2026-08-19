@@ -26,6 +26,7 @@ dependencies = [
 catalogue-control = "catalogue_control.__main__:main"
 catalogue-ops-openapi = "catalogue_control.generate:main"
 catalogue-ops-types = "catalogue_control.typescript:main"
+catalogue-backup = "catalogue_control.backup:main"
 
 [dependency-groups]
 dev = [
