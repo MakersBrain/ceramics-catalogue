@@ -127,10 +127,10 @@ class Settings:
         )
 
 
-def run(command: Sequence[str], *, env: dict[str, str] | None = None, stdout=None) -> None:
+def run(command: Sequence[str], *, env: dict[str, str] | None = None) -> None:
     """Run a command, failing loudly. Never `shell=True`, never interpolated."""
     try:
-        subprocess.run(list(command), check=True, env=env, stdout=stdout)
+        subprocess.run(list(command), check=True, env=env)
     except FileNotFoundError as error:
         raise BackupError(f"{command[0]} is not installed: {error}") from error
     except subprocess.CalledProcessError as error:
