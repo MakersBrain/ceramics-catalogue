@@ -1,0 +1,17 @@
+{
+  "environment": "staging",
+  "compatible_makersbrain_release": "control-2026.08.19-0123456789abcdef",
+  "postgres_host": "10.40.3.10",
+  "postgres_port": 5432,
+  "postgres_database": "ateliera",
+  "images": {
+    "control": "registry.example.test/catalogue/control@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "service": "registry.example.test/catalogue/service@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "worker": "registry.example.test/catalogue/worker@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "worker_browser": "registry.example.test/catalogue/worker-browser@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "explorer": "registry.example.test/catalogue/explorer@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "nats": "registry.example.test/catalogue/nats@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "database_transfer": "registry.example.test/catalogue/database-transfer@sha256:9999999999999999999999999999999999999999999999999999999999999999"
+  },
+  "worker_instances": [1, 2]
+}

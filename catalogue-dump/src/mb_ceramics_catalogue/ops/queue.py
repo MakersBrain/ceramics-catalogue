@@ -24,6 +24,9 @@ LOGGER = obs.get_logger("catalogue.queue")
 Connection = psycopg.AsyncConnection[dict[str, Any]]
 LEASE_SECONDS = 300
 HOST_BACKOFF_SECONDS = 30
+#: How long a source waits before an attempt spent on a host that
+#: refused it is tried again, multiplied by the attempt just used.
+TRANSIENT_BACKOFF_SECONDS = 300
 TERMINAL = ("succeeded", "degraded", "failed", "cancelled", "skipped")
 
 

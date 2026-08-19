@@ -114,6 +114,43 @@ def barren(summary: dict[str, Any]) -> str | None:
     )
 
 
+#: Outcomes that say the host refused the pace or the network faltered, rather
+#: than that the crawl asked the wrong thing. `_outcome` in `scrapers.base`
+#: names 429 and 403 individually and buckets the rest by class, so a server
+#: fault arrives as "5xx".
+THROTTLED_OUTCOMES = ("429", "5xx", "timeout", "transport_error")
+
+
+def transient(summary: dict[str, Any]) -> bool:
+    """Whether this source collected nothing for a reason that may clear.
+
+    The worker asks before it spends a job's terminal state. Three of the
+    eighty-two sources in the 2026-08-19 run failed this way — two Shopify
+    stores answering 429 to the very first request and one WooCommerce site
+    whose database was down — and every one of them had two of its three
+    attempts still unspent, because a failure recorded from a summary never
+    reached the retry budget at all.
+
+    The distinction that matters is against `barren`: a scraper that listed
+    products and recognised none of them will recognise none of them again in
+    five minutes, and retrying it three times only triples the crawl. So the
+    answer is yes only when nothing was extracted *and* the failures on record
+    are the host's refusals rather than our parsing.
+
+    A source stopped by its own deadline is excluded for the same reason in a
+    different shape: the retry would not fail faster, it would fail an hour
+    later, three times over.
+    """
+    if summary.get("records") or summary.get("interrupted"):
+        return False
+    if summary.get("deadline_exceeded"):
+        return False
+    if not summary.get("error_count"):
+        return False
+    outcomes = summary.get("outcome_counts") or {}
+    return any(int(outcomes.get(name) or 0) for name in THROTTLED_OUTCOMES)
+
+
 def summarise(
     name: str,
     config: SourceConfig,
@@ -193,6 +230,7 @@ async def run_source(
         await progress.started(name, scraper.result, config.scraper, scraper.method)
         started = time.monotonic()
 
+        deadline_exceeded = False
         try:
             # The deadline the original had nowhere. A source that never
             # finishes is treated as a failed source rather than as a run that
@@ -200,6 +238,7 @@ async def run_source(
             async with asyncio.timeout(params.timeout_for(config.timeout_seconds)):
                 result = await scraper.run(params.limit)
         except TimeoutError:
+            deadline_exceeded = True
             result = scraper.result
             deadline = params.timeout_for(config.timeout_seconds)
             result.errors.append(
@@ -247,6 +286,12 @@ async def run_source(
         collection_seconds = time.monotonic() - started
         summary = summarise(name, config, result, method=scraper.method)
         summary["collection_seconds"] = round(collection_seconds, 6)
+        if deadline_exceeded:
+            # Said plainly rather than left to be inferred from the error text,
+            # because `transient` reads it to refuse a retry: a source that
+            # spent its whole hour and stopped would spend another on every
+            # remaining attempt, and the clock is not a condition that clears.
+            summary["deadline_exceeded"] = True
         metrics.records(name, summary["records"])
 
         # Written as soon as this source is done rather than at the end of the

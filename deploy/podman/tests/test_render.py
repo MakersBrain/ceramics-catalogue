@@ -1,0 +1,45 @@
+from __future__ import annotations
+
+import importlib.util
+import json
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+SPEC = importlib.util.spec_from_file_location("catalogue_render", ROOT / "render.py")
+assert SPEC and SPEC.loader
+render = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(render)
+
+
+def values() -> dict:
+    return json.loads((ROOT / "values.example.json").read_text(encoding="utf-8"))
+
+
+def test_render_produces_exact_private_rootless_bundle(tmp_path: Path) -> None:
+    output = tmp_path / "rendered"
+    render.render(ROOT / "values.example.json", output)
+    assert "@@" not in (output / "catalogue-control.container").read_text(encoding="utf-8")
+    assert "NetworkName=catalogue" in (output / "catalogue.network").read_text(encoding="utf-8")
+    assert "PublishPort=" not in "\n".join(
+        path.read_text(encoding="utf-8") for path in output.glob("*.container")
+    )
+
+
+def test_render_rejects_mutable_image(tmp_path: Path) -> None:
+    document = values()
+    document["images"]["worker"] = "registry.example/catalogue/worker:latest"
+    source = tmp_path / "values.json"
+    source.write_text(json.dumps(document), encoding="utf-8")
+    with pytest.raises(ValueError, match="not pinned"):
+        render.render(source, tmp_path / "rendered")
+
+
+def test_render_rejects_oversized_worker_count(tmp_path: Path) -> None:
+    document = values()
+    document["worker_instances"] = [1, 2, 3, 4]
+    source = tmp_path / "values.json"
+    source.write_text(json.dumps(document), encoding="utf-8")
+    with pytest.raises(ValueError, match="one to three"):
+        render.render(source, tmp_path / "rendered")

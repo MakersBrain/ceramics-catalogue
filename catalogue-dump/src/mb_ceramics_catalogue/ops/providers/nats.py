@@ -28,8 +28,14 @@ from mb_ceramics_catalogue.ops.job_queue import (
 class NatsPublisher:
     provider = "nats"
 
-    def __init__(self, url: str, *, token: str = "", stream: str = STREAM, provision: bool = False) -> None:
-        self.queue = NatsJobQueue(url, token=token, stream=stream, provision_on_connect=provision)
+    def __init__(
+        self, url: str, *, token: str = "", user: str = "", password: str = "",
+        stream: str = STREAM, provision: bool = False,
+    ) -> None:
+        self.queue = NatsJobQueue(
+            url, token=token, user=user, password=password, stream=stream,
+            provision_on_connect=provision,
+        )
 
     async def connect(self) -> None:
         await self.queue.connect()
@@ -44,8 +50,14 @@ class NatsPublisher:
 class NatsConsumer:
     provider = "nats"
 
-    def __init__(self, url: str, *, token: str = "", stream: str = STREAM, provision: bool = False) -> None:
-        self.queue = NatsJobQueue(url, token=token, stream=stream, provision_on_connect=provision)
+    def __init__(
+        self, url: str, *, token: str = "", user: str = "", password: str = "",
+        stream: str = STREAM, provision: bool = False,
+    ) -> None:
+        self.queue = NatsJobQueue(
+            url, token=token, user=user, password=password, stream=stream,
+            provision_on_connect=provision,
+        )
 
     async def connect(self) -> None:
         await self.queue.connect()
@@ -68,12 +80,16 @@ class NatsProvisioner:
         url: str,
         *,
         token: str = "",
+        user: str = "",
+        password: str = "",
         stream: str = STREAM,
         subject_prefix: str = "catalogue.jobs",
     ) -> None:
         self.queue = NatsJobQueue(
             url,
             token=token,
+            user=user,
+            password=password,
             stream=stream,
             subject_prefix=subject_prefix,
             provision_on_connect=False,
@@ -117,9 +133,18 @@ class NatsProvisioner:
 class NatsStatsReader:
     provider = "nats"
 
-    def __init__(self, url: str, *, token: str = "", stream: str = STREAM) -> None:
+    def __init__(
+        self, url: str, *, token: str = "", user: str = "", password: str = "",
+        stream: str = STREAM,
+    ) -> None:
         self.url = url
         self.token = token
+        self.user = user
+        self.password = password
+        if self.token and (self.user or self.password):
+            raise ValueError("NATS token and user/password authentication are mutually exclusive")
+        if bool(self.user) != bool(self.password):
+            raise ValueError("NATS user and password must be supplied together")
         self.stream = stream
         self._last_success_at: datetime | None = None
 
@@ -133,6 +158,9 @@ class NatsStatsReader:
         }
         if self.token:
             options["token"] = self.token
+        elif self.user:
+            options["user"] = self.user
+            options["password"] = self.password
         client = None
         try:
             client = await nats.connect(**options)

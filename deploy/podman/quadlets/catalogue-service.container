@@ -1,0 +1,28 @@
+[Unit]
+Description=Ceramics catalogue read API
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=@@SERVICE_IMAGE@@
+Pull=never
+ContainerName=catalogue-service
+Network=catalogue.network
+UserNS=keep-id:uid=10001,gid=10001
+EnvironmentFile=/etc/makersbrain/catalogue/service.env
+Volume=/etc/makersbrain/tenant-runtime-secrets/postgres-ca.crt:/run/database/postgres-ca.crt:ro
+HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8686/health')"
+HealthInterval=15s
+HealthStartPeriod=10s
+HealthRetries=5
+NoNewPrivileges=true
+DropCapability=all
+ReadOnly=true
+Tmpfs=/tmp
+
+[Service]
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

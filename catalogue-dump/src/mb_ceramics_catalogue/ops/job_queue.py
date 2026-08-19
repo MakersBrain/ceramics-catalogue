@@ -108,12 +108,20 @@ class NatsJobQueue:
         url: str,
         *,
         token: str = "",
+        user: str = "",
+        password: str = "",
         stream: str = STREAM,
         subject_prefix: str = SUBJECT_PREFIX,
         provision_on_connect: bool = True,
     ) -> None:
         self.url = url
         self.token = token
+        self.user = user
+        self.password = password
+        if self.token and (self.user or self.password):
+            raise ValueError("NATS token and user/password authentication are mutually exclusive")
+        if bool(self.user) != bool(self.password):
+            raise ValueError("NATS user and password must be supplied together")
         self.stream = stream
         self.subject_prefix = subject_prefix
         self.provision_on_connect = provision_on_connect
@@ -133,6 +141,9 @@ class NatsJobQueue:
         }
         if self.token:
             options["token"] = self.token
+        elif self.user:
+            options["user"] = self.user
+            options["password"] = self.password
         self._nc = await nats.connect(**options)
         self._js = self._nc.jetstream()
         if self.provision_on_connect:

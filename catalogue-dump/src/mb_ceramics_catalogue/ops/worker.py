@@ -61,11 +61,12 @@ from mb_ceramics_catalogue.crawl import artifacts
 from mb_ceramics_catalogue.crawl.progress import Progress
 from mb_ceramics_catalogue.crawl.runner import barren as run_source_barren
 from mb_ceramics_catalogue.crawl.runner import run_source
+from mb_ceramics_catalogue.crawl.runner import transient as run_source_transient
 from mb_ceramics_catalogue.crawl.session import open_session
 from mb_ceramics_catalogue.datasets import built_in_registry
 from mb_ceramics_catalogue.observability import logging as obs
 from mb_ceramics_catalogue.observability import metrics, tracing
-from mb_ceramics_catalogue.ops import events, leases, monitor, queue, runs, schedule
+from mb_ceramics_catalogue.ops import events, health, leases, monitor, queue, runs, schedule
 from mb_ceramics_catalogue.ops import outputs as ops_outputs
 from mb_ceramics_catalogue.ops.connector_adapters import runtime_plan
 from mb_ceramics_catalogue.ops.delivery import Delivery, routes_for
@@ -192,6 +193,7 @@ class Worker:
         # schedule now, not in thirty seconds.
         self._last_lead = -LEADER_SECONDS
         self._last_prune = -PRUNE_SECONDS
+        self._last_probe = -health.PROBE_SECONDS
 
     def describe(self) -> dict[str, Any]:
         """What `/health` reports. Read from a thread, so it touches no I/O."""
@@ -447,10 +449,30 @@ class Worker:
                 if now - self._last_prune > PRUNE_SECONDS:
                     self._last_prune = now
                     await monitor.prune(connection)
+                if now - self._last_probe > health.PROBE_SECONDS:
+                    self._last_probe = now
+                    await self._probe_disabled_sources()
         except psycopg.Error:
             # Leading is maintenance. A worker that cannot do it should keep
             # crawling; another worker will hold the lock next tick.
             LOGGER.warning("worker.lead_failed", exc_info=True)
+
+    async def _probe_disabled_sources(self) -> None:
+        """Ask the sites of disabled sources whether they are back.
+
+        On its own connection, outside the leader transaction: these are
+        network calls to somebody else's server, and holding an advisory lock
+        and an open transaction across a twenty-second timeout would block
+        scheduling behind a supplier's outage.
+        """
+        try:
+            async with self.pool.connection() as connection:
+                recovered = await health.check_recovered(connection)
+            if recovered:
+                LOGGER.warning("source.recovered_count", sources=recovered)
+        except Exception:
+            # A probe is somebody else's server; it must never stop a worker.
+            LOGGER.warning("worker.probe_failed", exc_info=True)
 
     async def tick(self, spawn: set[asyncio.Task[bool]] | None = None) -> bool:
         """One pass: lead, recover, claim, run.
@@ -705,6 +727,13 @@ class Worker:
                             await close_reservation(connection, proxy_lease)
 
                 assert outcome is not None
+                # Asked before the artifact is written and before the load,
+                # because both are the work of recording an outcome and a job
+                # going back to the queue does not have one yet.
+                if run_source_transient(outcome.summary) and await self._retry_transient(
+                    connection, job, outcome.summary
+                ):
+                    return
                 artifact = artifacts.write_source(output, job.source_id, outcome.records, params.allow_empty)
                 outcome.summary["write_status"] = artifact.status
                 await events.log(
@@ -1150,6 +1179,66 @@ class Worker:
             return await queue.require_capability(
                 connection, job, self.state.id, "browser", reason=str(error)[:200]
             )
+
+    async def _retry_transient(
+        self, connection: Any, job: queue.ClaimedJob, summary: dict[str, Any]
+    ) -> bool:
+        """Spend one of a job's remaining attempts on a host that refused it.
+
+        `max_attempts` was only ever reachable through lease expiry — a worker
+        that crashed or hung. A source that ran to completion and collected
+        nothing because the host answered 429 finished normally, so it was
+        recorded terminally on attempt 1 with two attempts unspent. On
+        2026-08-19 that described every failure in the run: two Shopify stores
+        rate-limiting the first request and one site whose database was down.
+
+        The in-request backoff is the wrong instrument for this. It gets four
+        tries inside about seven seconds, which is the right shape for a host
+        pacing a crawl and the wrong one for a host refusing it outright; a
+        429 that persists through the seventh second is usually still there at
+        the thirtieth and usually gone at the three-hundredth. So the retry
+        that matters is the whole source, later, and that is an attempt.
+
+        Returns whether the job was requeued. False leaves the caller to record
+        the failure exactly as before — the attempt budget being spent is a
+        normal answer here, not an error.
+        """
+        if job.attempt >= job.max_attempts:
+            return False
+        # Widening with each attempt, because a host that was still refusing
+        # five minutes later is evidence the wait was short, not that waiting
+        # is futile.
+        delay = queue.TRANSIENT_BACKOFF_SECONDS * job.attempt
+        reason = _first_error(summary) or "host refused the request"
+        await leases.release_all(connection, job.id, job.execution_token)
+        if not await queue.release(
+            connection, job, self.state.id, delay=delay, reason=reason[:200]
+        ):
+            # The lease moved on under us, so this worker no longer owns the
+            # job and must not also ack its delivery.
+            return False
+        await events.log(
+            connection,
+            job.id,
+            f"collected nothing and will retry in {delay}s "
+            f"(attempt {job.attempt} of {job.max_attempts}): {reason}",
+            event="job.retry_scheduled",
+            level="warning",
+            data={"attempt": job.attempt, "max_attempts": job.max_attempts, "delay": delay},
+        )
+        # Through `events.log` alone, as the rest of the job lifecycle is.
+        # `JobLogHandler` also copies this module's logger into `job_events`,
+        # so logging it as well would write the same retry to the job twice.
+        delivery = self._deliveries.get(job.id)
+        if delivery is not None:
+            # Redelivery has to come from the broker; `release` only moved the
+            # row. Held until after the row is queued so a redelivery cannot
+            # arrive at a job that is still marked running.
+            await delivery.retry(delay)
+        # Ahead of `_run_job`'s finally, whose unconditional acknowledge would
+        # otherwise consume the delivery this job still needs.
+        self._forget(job)
+        return True
 
     async def _watch_for_cancel(self, job_id: UUID, task: asyncio.Task[Any]) -> None:
         """Cancel one running source once the heartbeat sees its flag."""

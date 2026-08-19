@@ -63,8 +63,10 @@ catalogue-migrate = "mb_ceramics_catalogue.cli.migrate:main"
 catalogue-proxy-roles = "mb_ceramics_catalogue.ops.proxy_roles:main"
 catalogue-compact = "mb_ceramics_catalogue.cli.compact:main"
 catalogue-source-config = "mb_ceramics_catalogue.cli.source_config:main"
+catalogue-source-health = "mb_ceramics_catalogue.cli.source_health:main"
 catalogue-shadow-compare = "mb_ceramics_catalogue.cli.shadow_compare:main"
 catalogue-queue-admin = "mb_ceramics_catalogue.cli.queue_admin:main"
+catalogue-db-transfer = "mb_ceramics_catalogue.ops.database_transfer:main"
 
 [dependency-groups]
 dev = [

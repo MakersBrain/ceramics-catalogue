@@ -40,13 +40,22 @@ def _role(connection: psycopg.Connection, name: str, *, login: bool, password: s
         )
 
 
-def provision(dsn: str, control_password: str, worker_password: str, archive_password: str) -> None:
+def provision(
+    dsn: str,
+    control_password: str,
+    worker_password: str,
+    archive_password: str,
+    service_password: str,
+    dispatcher_password: str,
+) -> None:
     with psycopg.connect(dsn, autocommit=True) as connection:
         _role(connection, "catalogue_proxy_owner", login=False)
         _role(connection, "catalogue_proxy_maintenance", login=False)
         _role(connection, "catalogue_control", login=True, password=control_password)
         _role(connection, "catalogue_worker", login=True, password=worker_password)
         _role(connection, "catalogue_proxy_archive", login=True, password=archive_password)
+        _role(connection, "catalogue_service", login=True, password=service_password)
+        _role(connection, "catalogue_dispatcher", login=True, password=dispatcher_password)
 
         current_row = connection.execute("select current_user").fetchone()
         assert current_row is not None
@@ -71,7 +80,7 @@ def provision(dsn: str, control_password: str, worker_password: str, archive_pas
         # provider snapshot fails while checking its budget-cycle foreign key.
         for role in (
             "catalogue_proxy_owner", "catalogue_control", "catalogue_worker",
-            "catalogue_proxy_archive",
+            "catalogue_proxy_archive", "catalogue_service", "catalogue_dispatcher",
         ):
             connection.execute(
                 sql.SQL("grant connect on database {} to {}").format(
@@ -85,6 +94,9 @@ def provision(dsn: str, control_password: str, worker_password: str, archive_pas
         connection.execute("grant usage, select on all sequences in schema catalogue to catalogue_control")
         connection.execute("grant select, insert, update, delete on all tables in schema catalogue to catalogue_worker")
         connection.execute("grant usage, select on all sequences in schema catalogue to catalogue_worker")
+        connection.execute("grant select on all tables in schema catalogue to catalogue_service")
+        connection.execute("grant select, insert, update, delete on all tables in schema catalogue to catalogue_dispatcher")
+        connection.execute("grant usage, select on all sequences in schema catalogue to catalogue_dispatcher")
         connection.execute("revoke update, delete, truncate on catalogue.proxy_admin_audit from catalogue_control")
         for table in PROXY_TABLES:
             connection.execute(
@@ -112,7 +124,10 @@ def provision(dsn: str, control_password: str, worker_password: str, archive_pas
             "catalogue.proxy_pilot_evidence to catalogue_worker"
         )
         connection.execute("grant select on catalogue.proxy_admin_audit to catalogue_proxy_archive")
-        connection.execute("revoke create on schema catalogue from catalogue_control, catalogue_worker")
+        connection.execute(
+            "revoke create on schema catalogue from catalogue_control, catalogue_worker, "
+            "catalogue_service, catalogue_dispatcher"
+        )
 
 
 def main() -> None:
@@ -126,6 +141,8 @@ def main() -> None:
         os.environ.get("CATALOGUE_CONTROL_DB_PASSWORD", ""),
         os.environ.get("CATALOGUE_WORKER_DB_PASSWORD", ""),
         os.environ.get("CATALOGUE_PROXY_ARCHIVE_DB_PASSWORD", ""),
+        os.environ.get("CATALOGUE_SERVICE_DB_PASSWORD", ""),
+        os.environ.get("CATALOGUE_DISPATCHER_DB_PASSWORD", ""),
     )
 
 

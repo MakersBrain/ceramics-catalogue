@@ -1,0 +1,26 @@
+[Unit]
+Description=Ceramics catalogue NATS JetStream
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=@@NATS_IMAGE@@
+Pull=never
+ContainerName=catalogue-nats
+Network=catalogue.network
+Volume=catalogue-nats.volume:/data
+Volume=/etc/makersbrain/catalogue-secrets/nats-server.conf:/etc/nats/nats-server.conf:ro
+Exec=-c /etc/nats/nats-server.conf
+HealthCmd=wget -q -O - http://127.0.0.1:8222/healthz | grep -q ok
+HealthInterval=10s
+HealthRetries=12
+HealthStartPeriod=10s
+NoNewPrivileges=true
+DropCapability=all
+
+[Service]
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
