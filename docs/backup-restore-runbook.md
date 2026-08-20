@@ -132,10 +132,123 @@ than an empty one.
    Until that is done this is an untested script, not a recovery capability.
 2. Create the R2 bucket and the `collector` prefix in `mb-infra`, with
    versioning on, a bucket lock over the prefix, and a scoped access key that
-   can write this prefix and no other.
+   can write this prefix and no other. The Terraform this expects is in the
+   appendix below.
 3. Add the Quadlet unit and systemd timer in `mb-infra`. Scheduling and storage
    are infrastructure-owned per the repository split; this repository owns the
    image and the data semantics, and the Infisical agent owns the credentials.
 4. Alert on backup age. A silent failure is indistinguishable from success
    until the day it matters — `catalogue-backup snapshots` is the signal.
 5. Escrow the restic password outside Infisical.
+
+## Appendix: the Terraform this expects
+
+Storage and credentials are `mb-infra`-owned; this appendix is here so the
+collector side states what it expects to exist rather than leaving the other
+repository to infer it. Verified against the Cloudflare provider (v5) and the
+Infisical provider as of August 2026.
+
+### The buckets and the lock
+
+The lock resource does not take wrangler's flags. It is a rules list with a
+typed condition — `Age`, `Date` or `Indefinite`:
+
+```hcl
+resource "cloudflare_r2_bucket" "backups" {
+  account_id = var.account_id
+  name       = "makersbrain-${var.env}-backups"
+}
+
+resource "cloudflare_r2_bucket_lock" "backups" {
+  account_id  = var.account_id
+  bucket_name = cloudflare_r2_bucket.backups.name
+  rules = [{
+    id        = "collector-retention"
+    enabled   = true
+    prefix    = "collector/"
+    condition = { type = "Age", max_age_seconds = 90 * 24 * 60 * 60 }
+  }]
+}
+
+# The response cache is a build input, not a backup: it is republished whenever
+# the crawl is refreshed, so a retention lock here would only block its own
+# replacement.
+resource "cloudflare_r2_bucket" "cache" {
+  account_id = var.account_id
+  name       = "makersbrain-catalogue-cache"
+}
+```
+
+### The keys
+
+R2 has no access-key resource. A scoped account token is created and the S3
+pair is derived from it: the Access Key ID is the token's `id`, and the Secret
+Access Key is the **SHA-256 of the token value**.
+
+```hcl
+data "cloudflare_account_api_token_permission_groups_list" "r2_write" {
+  account_id = var.account_id
+  name       = "Workers R2 Storage Bucket Item Write"
+}
+
+resource "cloudflare_account_token" "backup_writer" {
+  account_id = var.account_id
+  name       = "catalogue-backup-writer"
+  policies = [{
+    effect            = "allow"
+    permission_groups = [{ id = data.cloudflare_account_api_token_permission_groups_list.r2_write.result[0].id }]
+    resources = jsonencode({
+      "com.cloudflare.edge.r2.bucket.${var.account_id}_default_${cloudflare_r2_bucket.backups.name}" = "*"
+    })
+  }]
+}
+
+locals {
+  backup_access_key_id = cloudflare_account_token.backup_writer.id
+  backup_secret_key    = sha256(cloudflare_account_token.backup_writer.value)
+}
+```
+
+The bucket-scoped resource string is the whole of the isolation: it is what
+stops the CI reader from reaching the backup bucket, and the backup writer from
+reaching anything else. CI gets a second token with `Workers R2 Storage Bucket
+Item Read`, scoped to the cache bucket.
+
+Note what this does **not** give the backup writer: the lock rule is account
+configuration, not bucket data, so a compromised writer key can neither delete
+a snapshot nor lift the rule that stops it.
+
+### Into Infisical
+
+```hcl
+resource "infisical_secret" "backup_secret_key" {
+  name         = "AWS_SECRET_ACCESS_KEY"
+  value        = local.backup_secret_key
+  workspace_id = var.infisical_project_id
+  env_slug     = "prod"
+  folder_path  = "/catalogue/backup"
+}
+```
+
+`/catalogue/backup` in `prod` is what the agent renders on the host;
+`/catalogue/cache` in `ci` is what the golden job reads. The paths are the
+contract between this repository and `mb-infra`, and they are the reason the
+two identities can be scoped to different things.
+
+### Three things that bite
+
+**Terraform state becomes a secret store.** The token value, the derived S3
+secret and the restic password all land in state in plaintext. Encrypted remote
+state and access control on it stop being good practice and become part of the
+threat model — which is the argument for this living in `mb-infra` with its
+existing backend rather than anywhere more convenient.
+
+**The lock outlives `terraform destroy`.** Once objects are retained the bucket
+cannot be emptied or deleted until retention expires, so a torn-down
+environment leaves its backup bucket standing for up to 90 days. That is the
+feature working, but it surprises people who expect destroy to be total.
+
+**The Infisical provider cannot bootstrap itself.** It authenticates with a
+machine identity that Terraform cannot have fetched from Infisical. That one
+credential is placed by hand, the same as the host's client-id and
+client-secret pair. Everything downstream of it is managed.
