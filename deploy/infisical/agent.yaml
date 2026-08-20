@@ -35,7 +35,10 @@ templates:
     config:
       polling-interval: 60s
       execute:
+        # A restart that hangs must not wedge the agent: every other template
+        # stops being re-rendered behind it, including the backup credentials.
         command: systemctl restart catalogue-control catalogue-service
+        timeout: 60
 
   # Backup credentials: the restic repository password lives in its own file
   # because restic reads it from a path, and the R2 keys are separate from the

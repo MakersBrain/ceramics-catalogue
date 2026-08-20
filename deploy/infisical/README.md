@@ -36,10 +36,12 @@ systemctl enable --now infisical-agent
 ```
 
 The templates carry `INFISICAL_PROJECT_ID` as a placeholder. Substitute the
-project's id before installing them: the agent's template function takes the
-project id, where the CI job's API call takes the project slug. They are not
-interchangeable, and the failure when they are swapped is an empty render
-rather than an error.
+project's id before installing them: `listSecrets` and `getSecretByName` take
+the project id, where the CI job's API call takes the project slug. They are
+not interchangeable, and the failure when they are swapped is an empty render
+rather than an error — which is why the units refuse to start on a missing
+value rather than defaulting. (`listSecretsByProjectSlug` exists if you would
+rather both sides key on the slug.)
 
 ## Scope
 
