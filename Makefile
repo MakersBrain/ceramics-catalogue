@@ -64,6 +64,14 @@ test:  ## The fast suites: no network, no database, no cache replay
 test-golden:  ## Replay every cached source and compare against its frozen dump
 	$(RUN) pytest -m golden
 
+.PHONY: cache-pull
+cache-pull:  ## Fetch the recorded response cache the golden tests replay
+	$(RUN) catalogue-cache-archive pull --force
+
+.PHONY: cache-push
+cache-push:  ## Publish the local cache and update cache-archive.json
+	$(RUN) catalogue-cache-archive push
+
 .PHONY: golden-update
 golden-update:  ## Rewrite the frozen dumps. Review the diff; it is the change.
 	$(RUN) pytest -m golden --update-golden

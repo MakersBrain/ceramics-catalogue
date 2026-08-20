@@ -114,11 +114,16 @@ covers and compares the output against a frozen digest. During the refactor they
 caught a typed-config change that silently flipped two scrapers' defaults and
 dropped one source from 49 records to 40.
 
+The cache is not in the tree — it is 638 MB, published to R2, and fetched with
+`make cache-pull`. Without it the suite skips rather than fails, so a golden run
+on a fresh clone asserts nothing until the cache is pulled.
+
 ## Testing
 
 | Command | Covers |
 |---|---|
 | `make test` | the fast suite: no network, no database |
 | `make pg-up && make test-postgres` | the queue, run closure, the stream, the loader |
+| `make cache-pull` | fetch the recorded response cache the golden suite replays |
 | `make test-golden` | replay every cached source against its frozen dump |
 | `make check-all` | all of the above |

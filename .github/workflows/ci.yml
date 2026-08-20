@@ -108,19 +108,81 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          # The response cache is large and stored with Git LFS. Without it the
-          # golden tests skip rather than fail, which would make a missing cache
-          # look like a passing build.
-          lfs: true
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
           enable-cache: true
           cache-dependency-glob: catalogue-dump/uv.lock
       - name: Sync
         run: uv --directory catalogue-dump sync --all-groups
+      # Until the bucket, the machine identity and a published archive all
+      # exist, these two steps are skipped and the golden tests skip with an
+      # empty cache — which is exactly what this job did before. Setting the
+      # INFISICAL_PROJECT_SLUG variable is what turns the gate on, and the
+      # `Confirm` step below is what stops a missing variable from reading as a
+      # passing replay for a second time.
+      #
+      # The only secrets in this repository are the machine identity itself.
+      # Everything the job actually uses is read from Infisical at run time, so
+      # rotating an R2 key is a change in one place and never a commit here.
+      #
+      # Two curl calls rather than Infisical's action: this repository allows a
+      # short list of actions and pins every one of them to a SHA, and the API
+      # is stable enough that adding a third-party action to the supply chain
+      # buys nothing. The identity logs in, reads one path, and the values are
+      # masked before they reach the environment.
+      - name: Read the cache credentials from Infisical
+        if: vars.INFISICAL_PROJECT_SLUG != ''
+        env:
+          CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          PROJECT_SLUG: ${{ vars.INFISICAL_PROJECT_SLUG }}
+        run: |
+          set -euo pipefail
+          token=$(curl -sS --fail-with-body \
+            -X POST https://app.infisical.com/api/v1/auth/universal-auth/login \
+            -H 'Content-Type: application/json' \
+            -d "$(jq -nc --arg id "$CLIENT_ID" --arg secret "$CLIENT_SECRET" \
+                  '{clientId: $id, clientSecret: $secret}')" \
+            | jq -r .accessToken)
+          echo "::add-mask::$token"
+
+          secrets=$(curl -sS --fail-with-body -G \
+            https://app.infisical.com/api/v3/secrets/raw \
+            -H "Authorization: Bearer $token" \
+            --data-urlencode "workspaceSlug=$PROJECT_SLUG" \
+            --data-urlencode "environment=ci" \
+            --data-urlencode "secretPath=/catalogue/cache")
+
+          # Mask before export: a value that reaches the log unmasked is
+          # rotated, not un-logged.
+          for name in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY \
+                      CATALOGUE_CACHE_BUCKET CATALOGUE_CACHE_ENDPOINT; do
+            value=$(jq -r --arg n "$name" \
+              '.secrets[] | select(.secretKey == $n) | .secretValue' <<<"$secrets")
+            if [ -z "$value" ] || [ "$value" = "null" ]; then
+              echo "::error::$name is not set at /catalogue/cache in the ci environment"
+              exit 1
+            fi
+            echo "::add-mask::$value"
+            echo "$name=$value" >> "$GITHUB_ENV"
+          done
+      # The identity this job authenticates as can read the cache archive and
+      # nothing else. A build has no reason to be able to publish one.
+      - name: Fetch the recorded response cache
+        if: vars.INFISICAL_PROJECT_SLUG != ''
+        run: uv --directory catalogue-dump run -- catalogue-cache-archive pull --force
       - name: Replay every cached source
         run: make test-golden
+      # A skipped replay is not a passing replay. Once the cache is provisioned
+      # this fails the job if the suite quietly collected nothing, which is the
+      # failure mode that hid a dormant golden suite for months.
+      - name: Confirm the replay actually replayed something
+        if: vars.INFISICAL_PROJECT_SLUG != ''
+        run: |
+          test -d catalogue-dump/.cache || {
+            echo "::error::the response cache was not fetched; the replay asserted nothing"
+            exit 1
+          }
       - name: Keep the differing output for inspection
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
