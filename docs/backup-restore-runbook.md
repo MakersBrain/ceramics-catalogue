@@ -54,10 +54,27 @@ The agent renders all five of these to `/etc/catalogue/backup.env`, and the
 password to its own file, from `/catalogue/backup` in Infisical
 (`deploy/infisical/README.md`).
 
-R2 has no equivalent of the object-lock configuration the Scaleway module
-provided. Enable bucket versioning, and keep the lifecycle rule that expires
-old versions longer than the retention window, or a compromised writer can
-delete what it can also write.
+Retention is enforced by an R2 bucket lock on the `collector/` prefix, so a key
+that can write a snapshot cannot delete or overwrite one:
+
+```sh
+wrangler r2 bucket lock add makersbrain-<env>-backups \
+  --name collector-retention --prefix collector/ --retention-days 90
+```
+
+A lock rule is removable by an account administrator, which S3 compliance mode
+is not. That is the right trade here: the threat this defends against is a
+compromised backup writer — the key on the host, scoped to this prefix — and
+that key cannot change lock rules. It does not defend against a compromised
+Cloudflare account, which is what the offsite escrow of the password is for.
+
+**The lock and `restic forget --prune` are in direct conflict.** Pruning
+repacks and deletes pack files, and a locked object refuses deletion until its
+retention expires, so a prune inside the window fails partway and leaves the
+repository needing `restic repair index`. Either run `forget` without `--prune`
+and let the lock window be the retention policy, or prune only against objects
+older than the lock. Do not set an indefinite lock on a repository you intend
+to prune.
 
 The repository password is the encryption key. **If it is lost, the backups are
 unreadable** — restic has no recovery path. It is in Infisical so the agent can
@@ -114,9 +131,8 @@ than an empty one.
 1. **Rehearse a restore into a scratch database and prove `verify` passes.**
    Until that is done this is an untested script, not a recovery capability.
 2. Create the R2 bucket and the `collector` prefix in `mb-infra`, with
-   versioning on and a scoped access key that can write this prefix and no
-   other. R2 has no object lock, so the append-only guarantee the Scaleway
-   module gave for free now has to come from key scope and versioning.
+   versioning on, a bucket lock over the prefix, and a scoped access key that
+   can write this prefix and no other.
 3. Add the Quadlet unit and systemd timer in `mb-infra`. Scheduling and storage
    are infrastructure-owned per the repository split; this repository owns the
    image and the data semantics, and the Infisical agent owns the credentials.

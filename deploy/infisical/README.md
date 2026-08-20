@@ -61,3 +61,8 @@ third-party action in the supply chain buys nothing over two HTTP calls. See the
 live somewhere Infisical is not. The failure this protects against is not a
 lost password; it is losing the password and the bucket credentials together,
 which turns every snapshot into noise.
+
+The bucket lock over the backup prefix means the host's key can write snapshots
+but not remove them, so a compromised host destroys no history. It also means
+`restic forget --prune` fails inside the retention window — see the
+[backup runbook](../../docs/backup-restore-runbook.md).
