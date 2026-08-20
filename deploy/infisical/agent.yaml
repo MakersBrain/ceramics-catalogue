@@ -1,0 +1,51 @@
+# The Infisical agent renders secrets to files on the deployment host and
+# restarts what depends on them.
+#
+# The units read environment files, not a secret manager: a container that has
+# to authenticate to Infisical before it can open a database connection fails
+# in a new way every time the network hiccups. The agent moves that problem to
+# one daemon, off the request path, which re-renders on a poll and reloads the
+# services whose inputs actually changed.
+#
+# The machine identity's client secret is the one credential that has to exist
+# on disk before anything else works. Provision it out of band, mode 0400, root.
+infisical:
+  address: "https://app.infisical.com"
+  exit-after-auth: false
+
+auth:
+  type: "universal-auth"
+  config:
+    client-id: "/etc/infisical/client-id"
+    client-secret: "/etc/infisical/client-secret"
+    # The secret is long-lived and the host may reboot; consuming it on first
+    # read would leave a machine that cannot re-authenticate after a restart.
+    remove_client_secret_on_read: false
+
+sinks:
+  - type: "file"
+    config:
+      path: "/var/lib/infisical/auth-token"
+
+templates:
+  # The database DSN and the control token. Both services refuse to start
+  # without them, so a failed render is a failed start, not a silent default.
+  - source-path: /etc/infisical/templates/catalogue.env.tpl
+    destination-path: /etc/catalogue/catalogue.env
+    config:
+      polling-interval: 60s
+      execute:
+        command: systemctl restart catalogue-control catalogue-service
+
+  # Backup credentials: the restic repository password lives in its own file
+  # because restic reads it from a path, and the R2 keys are separate from the
+  # ones CI uses to read the response cache.
+  - source-path: /etc/infisical/templates/backup.env.tpl
+    destination-path: /etc/catalogue/backup.env
+    config:
+      polling-interval: 300s
+
+  - source-path: /etc/infisical/templates/restic-password.tpl
+    destination-path: /etc/catalogue/restic-password
+    config:
+      polling-interval: 300s

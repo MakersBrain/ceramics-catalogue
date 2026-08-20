@@ -39,6 +39,12 @@ browser = [
 impersonate = [
   "curl-cffi>=0.7,<1",
 ]
+# The response-cache archive tool talks S3 to R2. Only the machine that
+# publishes a cache and the CI job that fetches one need it; a worker replaying
+# a cache it already has should not carry an AWS SDK.
+archive = [
+  "boto3>=1.35,<2",
+]
 # Wired always, exporting only when OTEL_EXPORTER_OTLP_ENDPOINT is set (§4.7).
 otel = [
   "opentelemetry-api>=1.27",
@@ -67,6 +73,7 @@ catalogue-source-health = "mb_ceramics_catalogue.cli.source_health:main"
 catalogue-shadow-compare = "mb_ceramics_catalogue.cli.shadow_compare:main"
 catalogue-queue-admin = "mb_ceramics_catalogue.cli.queue_admin:main"
 catalogue-db-transfer = "mb_ceramics_catalogue.ops.database_transfer:main"
+catalogue-cache-archive = "mb_ceramics_catalogue.ops.cache_archive:main"
 
 [dependency-groups]
 dev = [
@@ -74,7 +81,7 @@ dev = [
   "pytest-asyncio>=0.24",
   "ruff>=0.8",
   "mypy>=1.13",
-  "mb-ceramics-catalogue[tui,postgres,browser,impersonate,otel]",
+  "mb-ceramics-catalogue[tui,postgres,browser,impersonate,otel,archive]",
 ]
 
 [build-system]
@@ -223,5 +230,5 @@ disallow_untyped_defs = false
 check_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["camoufox.*", "textual.*", "rich.*", "opentelemetry.*", "croniter.*"]
+module = ["camoufox.*", "textual.*", "rich.*", "opentelemetry.*", "croniter.*", "boto3.*"]
 ignore_missing_imports = true

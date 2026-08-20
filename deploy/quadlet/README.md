@@ -31,14 +31,14 @@ tripling the load on every shop.
 
 ## Secrets
 
-The database DSN and the control token come from Infisical through the existing
-`scripts/infisical-populate.sh` path, written to `/etc/catalogue/catalogue.env`
-with mode `0640`. Neither is in a unit file, and the control service refuses to
-start without a token.
+The database DSN and the control token come from Infisical, rendered to
+`/etc/catalogue/catalogue.env` by the Infisical agent. Neither is in a unit
+file, and the control service refuses to start without a token.
 
-```sh
-infisical-populate.sh --path /catalogue --out /etc/catalogue/catalogue.env
-```
+The agent runs on the host, before the units that read what it writes, and
+re-renders on a poll so a rotated credential arrives without a deploy. Its
+configuration, the templates and the bootstrap are in
+[deploy/infisical](../infisical/README.md).
 
 Set `CATALOGUE_QUEUE_PROVIDER` and the provider mapping in that environment
 file. Put role-scoped queue credentials in `/etc/catalogue/queue-secrets` with

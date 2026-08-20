@@ -15,9 +15,10 @@ catalogue-explorer/build/
 *.tsbuildinfo
 
 # The recorded response cache. 638 MB of gzipped pages, and the golden tests
-# replay it — see the `golden` job in .github/workflows/ci.yml, which expects it
-# via Git LFS rather than in the tree. Committing it as ordinary blobs would put
-# most of a gigabyte into every clone.
+# replay it. It is published to R2 as a versioned tarball and fetched with
+# `catalogue-cache-archive pull`; catalogue-dump/cache-archive.json names the
+# archive each commit expects. Committing it as ordinary blobs would put most of
+# a gigabyte into every clone, and Git LFS bills bandwidth on every fetch.
 catalogue-dump/.cache/
 
 # Collected catalogues. These are outputs, and the ones that matter are already

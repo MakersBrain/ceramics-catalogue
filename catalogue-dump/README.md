@@ -374,6 +374,35 @@ complete dump is never replaced by a half-finished one, because a run that
 stopped early is not a smaller catalogue — it is an incomplete one, and letting
 it overwrite would quietly delete products that are still for sale.
 
+### Sharing the cache
+
+The golden tests replay the cache, which makes it a build input: CI and every
+developer have to be able to get the same one. It is 638 MB, so it is published
+to Cloudflare R2 as an immutable tarball rather than committed.
+
+```sh
+catalogue-cache-archive push          # tar the local cache, upload, write the manifest
+catalogue-cache-archive pull          # fetch the archive this commit expects
+catalogue-cache-archive verify        # the object is still there and the right size
+```
+
+`cache-archive.json` is checked in and names exactly one archive, so a commit
+and the cache its golden files were frozen against travel together — an older
+commit still pulls the archive it was written from. The key contains the digest
+of the tar, so a push never overwrites the archive an older commit names, and a
+pull verifies what it downloaded before unpacking a byte of it.
+
+`push` needs a key that can write the bucket; `pull` needs one that can only
+read it, which is all CI is given. Both come from `CATALOGUE_CACHE_BUCKET`,
+`CATALOGUE_CACHE_ENDPOINT` and the standard `AWS_ACCESS_KEY_ID` /
+`AWS_SECRET_ACCESS_KEY`, and never from the command line. Install the extra
+that carries the S3 client with `uv sync --extra archive`.
+
+Pull replaces the local cache rather than merging into it. A cache holding some
+hosts and not others is worse than none at all: `cached_sources()` selects any
+source whose host directory exists, so a partial cache turns the golden suite
+from honestly skipping into failing on every source it half-covers.
+
 ## Progress
 
 On a terminal the run opens an interactive view: a scrollable table of sources

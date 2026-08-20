@@ -1,0 +1,24 @@
+# The agent runs before anything that reads what it renders. It is not a
+# Quadlet unit: it is the thing the containers depend on, and running it on the
+# host means a container never has to hold a machine identity of its own.
+[Unit]
+Description=Infisical agent: render catalogue secrets and reload what uses them
+After=network-online.target
+Wants=network-online.target
+Before=catalogue-control.service catalogue-service.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/infisical agent --config /etc/infisical/agent.yaml
+Restart=on-failure
+RestartSec=10
+# The rendered files are the only thing this unit writes outside its own state.
+ReadWritePaths=/etc/catalogue /var/lib/infisical
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
