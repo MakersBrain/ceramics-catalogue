@@ -36,8 +36,10 @@ systemctl enable --now infisical-agent
 ```
 
 The templates carry `INFISICAL_PROJECT_ID` as a placeholder. Substitute the
-project's id before installing them: the agent's template function takes an id,
-where the CI action takes the project slug.
+project's id before installing them: the agent's template function takes the
+project id, where the CI job's API call takes the project slug. They are not
+interchangeable, and the failure when they are swapped is an empty render
+rather than an error.
 
 ## Scope
 
@@ -47,8 +49,11 @@ which is CI's, or to write anywhere: an identity that can rewrite the secret it
 authenticates with is a way to lock yourself out of your own deployment.
 
 CI authenticates as a separate identity, scoped to `/catalogue/cache` in the
-`ci` environment, and can read the response-cache archive and nothing else. See
-the `golden` job in `.github/workflows/ci.yml`.
+`ci` environment, and can read the response-cache archive and nothing else. It
+calls the Infisical API with curl rather than using the published action: this
+repository allows a short list of actions and pins each to a SHA, and a
+third-party action in the supply chain buys nothing over two HTTP calls. See the
+`golden` job in `.github/workflows/ci.yml`.
 
 ## Backups escrow
 
