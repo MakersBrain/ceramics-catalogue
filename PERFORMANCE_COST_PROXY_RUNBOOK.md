@@ -1,6 +1,6 @@
 # Performance, retention, and Decodo operations
 
-This is the operator companion to `PERFORMANCE_COST_PROXY_PLAN.md`. All byte
+This is the operator reference for performance, retention, and proxy cost. All byte
 budgets are decimal bytes. Proxy routing remains disabled unless every rollout
 gate below has been completed deliberately.
 
