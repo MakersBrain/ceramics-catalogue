@@ -68,9 +68,10 @@ Three sharp edges worth knowing:
 
 ### Testing
 
-`make check` runs ruff, mypy and the fast suite. `make test-golden` replays every
-source that the response cache covers and compares the result against a frozen
-digest in `tests/golden/` — that is the suite that proves a refactor changed no
+`make check` runs ruff, mypy and the fast suite. `make cache-pull` fetches the
+recorded response cache, without which the next command has nothing to replay
+and skips. `make test-golden` replays every source that the response cache
+covers and compares the result against a frozen digest in `tests/golden/` — that is the suite that proves a refactor changed no
 output, and it is how the two `config.get(key, True)` defaults that the typed
 configuration silently flipped were caught. After an intended change to
 collection, `make golden-update` rewrites those files and the diff is the review.
