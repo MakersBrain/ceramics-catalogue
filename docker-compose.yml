@@ -10,7 +10,9 @@ services:
   nats:
     image: nats:2.11-alpine
     container_name: catalogue-nats
-    command: ["--jetstream", "--store_dir=/data", "--http_port=8222", "--auth", "${CATALOGUE_NATS_TOKEN:-catalogue-local}"]
+    # Development ports are loopback-only. Production uses the role-scoped
+    # credentials described in docs/queue-provider-runbook.md.
+    command: ["--jetstream", "--store_dir=/data", "--http_port=8222"]
     ports:
       - "127.0.0.1:${CATALOGUE_NATS_PORT:-4222}:4222"
       - "127.0.0.1:${CATALOGUE_NATS_MONITOR_PORT:-8222}:8222"
@@ -22,6 +24,23 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
+
+  # Provisioning is an administrative action, never a publisher/consumer side
+  # effect. Keeping it explicit also makes local startup match production.
+  nats-init:
+    build:
+      context: .
+      dockerfile: docker/worker/Dockerfile
+      target: worker
+    depends_on:
+      nats:
+        condition: service_healthy
+    environment:
+      CATALOGUE_QUEUE_PROVIDER: nats
+      CATALOGUE_NATS_URL: nats://nats:4222
+    entrypoint: ["catalogue-queue-admin"]
+    command: ["apply"]
+    restart: "no"
 
   postgres:
     image: postgres:17-alpine
@@ -189,6 +208,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      nats-init:
+        condition: service_completed_successfully
       proxy-secrets-init:
         condition: service_completed_successfully
       proxy-db-roles:
@@ -197,7 +218,6 @@ services:
       CATALOGUE_DSN: postgresql://catalogue_control:${CATALOGUE_CONTROL_DB_PASSWORD:-catalogue-control}@postgres:5432/${CATALOGUE_DB_NAME:-ateliera}
       CATALOGUE_QUEUE_PROVIDER: ${CATALOGUE_QUEUE_PROVIDER:-nats}
       CATALOGUE_NATS_URL: nats://nats:4222
-      CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
       CATALOGUE_CF_ACCOUNT_ID: ${CATALOGUE_CF_ACCOUNT_ID:-}
       CATALOGUE_CF_STATS_TOKEN_FILE: /run/queue-secrets/cloudflare-stats-token
       CATALOGUE_CF_QUEUE_PLAIN_ID: ${CATALOGUE_CF_QUEUE_PLAIN_ID:-}
@@ -250,6 +270,8 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      nats-init:
+        condition: service_completed_successfully
       proxy-db-roles:
         condition: service_completed_successfully
     environment:
@@ -257,7 +279,6 @@ services:
       CATALOGUE_QUEUE_PROVIDER: ${CATALOGUE_QUEUE_PROVIDER:-nats}
       CATALOGUE_QUEUE_VISIBILITY_SECONDS: ${CATALOGUE_QUEUE_VISIBILITY_SECONDS:-4200}
       CATALOGUE_NATS_URL: nats://nats:4222
-      CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
       CATALOGUE_CF_ACCOUNT_ID: ${CATALOGUE_CF_ACCOUNT_ID:-}
       CATALOGUE_CF_PUBLISH_TOKEN_FILE: /run/queue-secrets/cloudflare-publish-token
       CATALOGUE_CF_RECOVERY_TOKEN_FILE: /run/queue-secrets/cloudflare-recovery-token
@@ -296,6 +317,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      nats-init:
+        condition: service_completed_successfully
       proxy-secrets-init:
         condition: service_completed_successfully
       proxy-db-roles:
@@ -306,7 +329,6 @@ services:
       CATALOGUE_QUEUE_POLL_EMPTY_SECONDS: ${CATALOGUE_QUEUE_POLL_EMPTY_SECONDS:-2}
       CATALOGUE_QUEUE_VISIBILITY_SECONDS: ${CATALOGUE_QUEUE_VISIBILITY_SECONDS:-4200}
       CATALOGUE_NATS_URL: nats://nats:4222
-      CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
       CATALOGUE_CF_ACCOUNT_ID: ${CATALOGUE_CF_ACCOUNT_ID:-}
       CATALOGUE_CF_CONSUME_TOKEN_FILE: /run/queue-secrets/cloudflare-consume-token
       CATALOGUE_CF_QUEUE_PLAIN_ID: ${CATALOGUE_CF_QUEUE_PLAIN_ID:-}
@@ -356,6 +378,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      nats-init:
+        condition: service_completed_successfully
       proxy-secrets-init:
         condition: service_completed_successfully
       proxy-db-roles:
@@ -366,7 +390,6 @@ services:
       CATALOGUE_QUEUE_POLL_EMPTY_SECONDS: ${CATALOGUE_QUEUE_POLL_EMPTY_SECONDS:-2}
       CATALOGUE_QUEUE_VISIBILITY_SECONDS: ${CATALOGUE_QUEUE_VISIBILITY_SECONDS:-4200}
       CATALOGUE_NATS_URL: nats://nats:4222
-      CATALOGUE_NATS_TOKEN: ${CATALOGUE_NATS_TOKEN:-catalogue-local}
       CATALOGUE_CF_ACCOUNT_ID: ${CATALOGUE_CF_ACCOUNT_ID:-}
       CATALOGUE_CF_CONSUME_TOKEN_FILE: /run/queue-secrets/cloudflare-consume-token
       CATALOGUE_CF_QUEUE_PLAIN_ID: ${CATALOGUE_CF_QUEUE_PLAIN_ID:-}

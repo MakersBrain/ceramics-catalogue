@@ -28,7 +28,6 @@ class Settings(BaseSettings):
     #: not gate the control service: when NATS is down, operators still need the
     #: page that explains why work is not moving.
     nats_url: str = "nats://127.0.0.1:4222"
-    nats_token: str = ""
     nats_stream: str = "CATALOGUE_JOBS"
     nats_stats_token_file: Path | None = None
     queue_provider: Literal["nats", "cloudflare"] = "nats"

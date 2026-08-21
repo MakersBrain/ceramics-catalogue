@@ -11,7 +11,7 @@ Volume=catalogue-nats.volume:/data
 PublishPort=127.0.0.1:4222:4222
 PublishPort=127.0.0.1:8222:8222
 Entrypoint=/bin/sh
-Exec=-ec 'exec nats-server --jetstream --store_dir=/data --http_port=8222 --auth "$CATALOGUE_NATS_TOKEN"'
+Exec=-ec ': "${CATALOGUE_NATS_SERVER_TOKEN:?set CATALOGUE_NATS_SERVER_TOKEN}"; exec nats-server --jetstream --store_dir=/data --http_port=8222 --auth "$CATALOGUE_NATS_SERVER_TOKEN"'
 HealthCmd=wget -q -O - http://127.0.0.1:8222/healthz | grep -q ok
 HealthInterval=10s
 HealthRetries=6

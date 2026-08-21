@@ -30,7 +30,6 @@ def test_role_scoped_nats_clients_do_not_provision(tmp_path) -> None:
     settings = SimpleNamespace(
         queue_provider="nats",
         nats_url="nats://queue:4222",
-        nats_token="",
         nats_publish_token_file=publish_token,
         nats_consume_token_file=consume_token,
         nats_stream="CATALOGUE_JOBS",
@@ -40,26 +39,25 @@ def test_role_scoped_nats_clients_do_not_provision(tmp_path) -> None:
     scoped_consumer = consumer(settings)
     assert isinstance(scoped_publisher, NatsPublisher)
     assert isinstance(scoped_consumer, NatsConsumer)
-    assert scoped_publisher.queue.provision_on_connect is False
-    assert scoped_consumer.queue.provision_on_connect is False
+    assert scoped_publisher.queue.token == "publish-only"
+    assert scoped_consumer.queue.token == "consume-only"
 
 
-def test_legacy_shared_nats_token_keeps_implicit_provisioning() -> None:
+def test_nats_clients_never_provision_implicitly() -> None:
     settings = SimpleNamespace(
         queue_provider="nats",
         nats_url="nats://queue:4222",
-        nats_token="shared-admin-token",
         nats_publish_token_file=None,
         nats_consume_token_file=None,
         nats_stream="CATALOGUE_JOBS",
     )
 
-    legacy_publisher = publisher(settings)
-    legacy_consumer = consumer(settings)
-    assert isinstance(legacy_publisher, NatsPublisher)
-    assert isinstance(legacy_consumer, NatsConsumer)
-    assert legacy_publisher.queue.provision_on_connect is True
-    assert legacy_consumer.queue.provision_on_connect is True
+    nats_publisher = publisher(settings)
+    nats_consumer = consumer(settings)
+    assert isinstance(nats_publisher, NatsPublisher)
+    assert isinstance(nats_consumer, NatsConsumer)
+    assert not hasattr(nats_publisher.queue, "provision_on_connect")
+    assert not hasattr(nats_consumer.queue, "provision_on_connect")
 
 
 def test_role_scoped_nats_user_credentials_are_loaded_without_provisioning(tmp_path) -> None:
@@ -71,7 +69,6 @@ def test_role_scoped_nats_user_credentials_are_loaded_without_provisioning(tmp_p
     settings = SimpleNamespace(
         queue_provider="nats",
         nats_url="nats://queue:4222",
-        nats_token="",
         nats_publish_token_file=None,
         nats_publish_credentials_file=credentials,
         nats_stream="CATALOGUE_JOBS",
@@ -82,7 +79,6 @@ def test_role_scoped_nats_user_credentials_are_loaded_without_provisioning(tmp_p
     assert scoped.queue.user == "catalogue-publisher"
     assert scoped.queue.password == "p" * 48
     assert scoped.queue.token == ""
-    assert scoped.queue.provision_on_connect is False
 
 
 def test_role_scoped_nats_credentials_reject_extra_fields(tmp_path) -> None:
@@ -94,7 +90,6 @@ def test_role_scoped_nats_credentials_reject_extra_fields(tmp_path) -> None:
     settings = SimpleNamespace(
         queue_provider="nats",
         nats_url="nats://queue:4222",
-        nats_token="",
         nats_publish_token_file=None,
         nats_publish_credentials_file=credentials,
         nats_stream="CATALOGUE_JOBS",

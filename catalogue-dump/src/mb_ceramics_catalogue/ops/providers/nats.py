@@ -20,6 +20,7 @@ from mb_ceramics_catalogue.ops.delivery import (
 )
 from mb_ceramics_catalogue.ops.job_queue import (
     STREAM,
+    SUBJECT_PREFIX,
     NatsJobQueue,
     durable_for,
 )
@@ -30,11 +31,10 @@ class NatsPublisher:
 
     def __init__(
         self, url: str, *, token: str = "", user: str = "", password: str = "",
-        stream: str = STREAM, provision: bool = False,
+        stream: str = STREAM,
     ) -> None:
         self.queue = NatsJobQueue(
             url, token=token, user=user, password=password, stream=stream,
-            provision_on_connect=provision,
         )
 
     async def connect(self) -> None:
@@ -52,11 +52,10 @@ class NatsConsumer:
 
     def __init__(
         self, url: str, *, token: str = "", user: str = "", password: str = "",
-        stream: str = STREAM, provision: bool = False,
+        stream: str = STREAM,
     ) -> None:
         self.queue = NatsJobQueue(
             url, token=token, user=user, password=password, stream=stream,
-            provision_on_connect=provision,
         )
 
     async def connect(self) -> None:
@@ -83,7 +82,7 @@ class NatsProvisioner:
         user: str = "",
         password: str = "",
         stream: str = STREAM,
-        subject_prefix: str = "catalogue.jobs",
+        subject_prefix: str = SUBJECT_PREFIX,
     ) -> None:
         self.queue = NatsJobQueue(
             url,
@@ -92,7 +91,6 @@ class NatsProvisioner:
             password=password,
             stream=stream,
             subject_prefix=subject_prefix,
-            provision_on_connect=False,
         )
 
     async def apply(self, routes: Sequence[str] = ROUTES) -> None:
