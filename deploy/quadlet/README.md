@@ -41,7 +41,8 @@ configuration, the templates and the bootstrap are in
 [deploy/infisical](../infisical/README.md).
 
 Set `CATALOGUE_QUEUE_PROVIDER` and the provider mapping in that environment
-file. Put role-scoped queue credentials in `/etc/catalogue/queue-secrets` with
+file. When NATS is selected, set `CATALOGUE_NATS_SERVER_TOKEN` for the broker.
+Put role-scoped client credentials in `/etc/catalogue/queue-secrets` with
 mode `0400`: `nats-{publish,consume,stats,admin}-token` or
 `cloudflare-{publish,consume,recovery,stats,admin}-token`. Each unit mounts only
 the credential files its process is allowed to open. The NATS unit is required

@@ -47,6 +47,11 @@ def test_worker_routes_are_disjoint_capabilities() -> None:
     assert durable_for("browser.camoufox.normal") == "catalogue-browser-camoufox-normal"
 
 
+def test_nats_provisioner_uses_the_versioned_delivery_subject() -> None:
+    provisioner = NatsProvisioner("nats://queue:4222")
+    assert provisioner.queue.subject("plain.normal") == "catalogue.jobs.v1.plain.normal"
+
+
 def test_invalid_schema_and_route_are_rejected() -> None:
     with pytest.raises(ValueError, match="schema"):
         JobEnvelope.decode(b'{"schema":"wrong"}')
@@ -60,6 +65,10 @@ def test_invalid_schema_and_route_are_rejected() -> None:
     reason="set CATALOGUE_TEST_NATS_URL to a disposable JetStream server",
 )
 async def test_publish_pull_and_ack_against_jetstream() -> None:
+    provisioner = NatsProvisioner(
+        os.environ["CATALOGUE_TEST_NATS_URL"],
+        token=os.environ.get("CATALOGUE_TEST_NATS_TOKEN", ""),
+    )
     queue = NatsJobQueue(
         os.environ["CATALOGUE_TEST_NATS_URL"],
         token=os.environ.get("CATALOGUE_TEST_NATS_TOKEN", ""),
@@ -74,6 +83,7 @@ async def test_publish_pull_and_ack_against_jetstream() -> None:
         enqueued_at=datetime.now(UTC),
     )
     try:
+        await provisioner.apply()
         await queue.connect()
         await queue.publish(envelope)
         delivery = await queue.next_delivery(["plain.normal"])
@@ -82,6 +92,7 @@ async def test_publish_pull_and_ack_against_jetstream() -> None:
         await delivery.ack()
     finally:
         await queue.close()
+        await provisioner.close()
 
 
 @pytest.mark.nats

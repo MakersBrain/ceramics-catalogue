@@ -204,8 +204,8 @@ class Settings(BaseSettings):
 
     #: libpq connection string for the catalogue database.
     dsn: str = ""
-    #: NATS JetStream is the sole work-delivery backend. PostgreSQL remains the
-    #: state and fencing authority.
+    #: One queue provider delivers work; PostgreSQL remains the state and
+    #: fencing authority.
     queue_provider: Literal["nats", "cloudflare"] = "nats"
     queue_poll_empty_seconds: float = Field(default=2.0, gt=0)
     queue_visibility_seconds: int = Field(default=4200, gt=0, le=43_200)
@@ -213,7 +213,6 @@ class Settings(BaseSettings):
     queue_finalization_seconds: int = Field(default=180, ge=0)
     queue_shutdown_ack_margin_seconds: int = Field(default=60, ge=0)
     nats_url: str = "nats://127.0.0.1:4222"
-    nats_token: str = ""
     nats_publish_token_file: Path | None = None
     nats_consume_token_file: Path | None = None
     nats_stats_token_file: Path | None = None

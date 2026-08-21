@@ -52,8 +52,8 @@ docker compose --profile observability up -d  # Grafana :3001, Prometheus :9090
 
 `make` on its own lists every target. `make check` is what a change has to pass.
 The six initial alerts have operator steps in [the observability runbooks](docs/observability-runbooks.md).
-NATS delivery, cutover, and broker recovery are covered by the
-[queue runbook](docs/nats-queue-runbook.md).
+Queue delivery, cutover, and broker recovery are covered by the
+[queue runbook](docs/queue-provider-runbook.md).
 
 ## The design decisions worth knowing
 

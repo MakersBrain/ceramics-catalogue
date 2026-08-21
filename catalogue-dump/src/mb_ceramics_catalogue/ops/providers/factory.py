@@ -42,9 +42,6 @@ def publisher(settings: Any) -> QueuePublisher:
             settings.nats_url,
             **auth,
             stream=settings.nats_stream,
-            # A role credential is deliberately unable to administer JetStream.
-            # Keep implicit provisioning only for the legacy shared-token setup.
-            provision=_nats_is_legacy(settings, "publish"),
         )
     return CloudflarePublisher(_cf_api(settings, settings.cf_publish_token_file), _cf_routes(settings))
 
@@ -57,7 +54,6 @@ def consumer(settings: Any) -> QueueConsumer:
             settings.nats_url,
             **auth,
             stream=settings.nats_stream,
-            provision=_nats_is_legacy(settings, "consume"),
         )
     return CloudflareConsumer(
         _cf_api(settings, settings.cf_consume_token_file),
@@ -125,9 +121,9 @@ def _cf_routes(settings: Any) -> dict[str, str]:
     }
 
 
-def _secret(path: Path | None, *, fallback: str = "") -> str:
+def _secret(path: Path | None) -> str:
     if path is None:
-        return fallback
+        return ""
     try:
         value = path.read_text(encoding="utf-8").strip()
     except OSError as error:
@@ -137,18 +133,11 @@ def _secret(path: Path | None, *, fallback: str = "") -> str:
     return value
 
 
-def _nats_is_legacy(settings: Any, role: str) -> bool:
-    return (
-        getattr(settings, f"nats_{role}_credentials_file", None) is None
-        and getattr(settings, f"nats_{role}_token_file", None) is None
-    )
-
-
 def _nats_auth(settings: Any, role: str) -> dict[str, str]:
     credentials_file = getattr(settings, f"nats_{role}_credentials_file", None)
     if credentials_file is None:
         token_file = getattr(settings, f"nats_{role}_token_file", None)
-        return {"token": _secret(token_file, fallback=settings.nats_token)}
+        return {"token": _secret(token_file)}
     try:
         document = json.loads(credentials_file.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:

@@ -112,7 +112,6 @@ class NatsJobQueue:
         password: str = "",
         stream: str = STREAM,
         subject_prefix: str = SUBJECT_PREFIX,
-        provision_on_connect: bool = True,
     ) -> None:
         self.url = url
         self.token = token
@@ -124,7 +123,6 @@ class NatsJobQueue:
             raise ValueError("NATS user and password must be supplied together")
         self.stream = stream
         self.subject_prefix = subject_prefix
-        self.provision_on_connect = provision_on_connect
         self._nc: NATS | None = None
         self._js: JetStreamContext | None = None
         self._subscriptions: dict[str, JetStreamContext.PullSubscription] = {}
@@ -146,8 +144,6 @@ class NatsJobQueue:
             options["password"] = self.password
         self._nc = await nats.connect(**options)
         self._js = self._nc.jetstream()
-        if self.provision_on_connect:
-            await self.provision()
 
     async def provision(self) -> None:
         js = self._require_js()

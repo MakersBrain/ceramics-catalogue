@@ -8,6 +8,7 @@ from mb_ceramics_catalogue.config.sources import SourcesFile
 from mb_ceramics_catalogue.ops import runs
 from mb_ceramics_catalogue.ops.dispatcher import Dispatcher
 from mb_ceramics_catalogue.ops.job_queue import NatsJobQueue
+from mb_ceramics_catalogue.ops.providers.nats import NatsProvisioner
 from mb_ceramics_catalogue.storage import db as storage_db
 
 from .conftest import postgres_dsn, requires_postgres
@@ -38,6 +39,11 @@ async def test_committed_outbox_is_published_and_marked(db) -> None:
         {"id": jobs["shop"]},
     )
 
+    provisioner = NatsProvisioner(
+        os.environ["CATALOGUE_TEST_NATS_URL"],
+        token=os.environ.get("CATALOGUE_TEST_NATS_TOKEN", ""),
+    )
+    await provisioner.apply()
     broker = NatsJobQueue(
         os.environ["CATALOGUE_TEST_NATS_URL"],
         token=os.environ.get("CATALOGUE_TEST_NATS_TOKEN", ""),
@@ -55,6 +61,7 @@ async def test_committed_outbox_is_published_and_marked(db) -> None:
             assert await dispatcher.tick() == 1
         finally:
             await dispatcher.close()
+            await provisioner.close()
 
     cursor = await db.execute(
         "select published_at from catalogue.queue_outbox where job_id=%(id)s",
